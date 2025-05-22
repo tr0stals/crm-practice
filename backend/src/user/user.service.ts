@@ -2,6 +2,8 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
+import { UserRegisterDTO } from './dto/UserRegisterDTO';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -10,16 +12,32 @@ export class UserService {
     private usersRepository: Repository<User>,
   ) {}
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmail(email: string) {
     return this.usersRepository.findOne({ where: { email } });
   }
 
-  async create(user: Partial<User>): Promise<User> {
-    const existing = await this.findByEmail(user.email!);
-    if (existing) {
-      throw new BadRequestException('Пользователь с таким email уже существует');
+  async create(user: UserRegisterDTO) {
+    try {
+      const existing = await this.findByEmail(user.email);
+
+      user.passwordSalt = (
+        await this.cryptUserPasswordService(user.password)
+      ).toString();
+
+      if (existing) {
+        throw new BadRequestException(
+          'Пользователь с таким email уже существует',
+        );
+      }
+      const newUser = this.usersRepository.create(user);
+      return this.usersRepository.save(newUser);
+    } catch (e) {
+      console.error(e);
     }
-    const newUser = this.usersRepository.create(user);
-    return this.usersRepository.save(newUser);
   }
-} 
+
+  async cryptUserPasswordService(password: string) {
+    const salt = await bcrypt.genSaltSync(10);
+    return await bcrypt.hashSync(password, salt);
+  }
+}

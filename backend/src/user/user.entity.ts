@@ -18,13 +18,13 @@ export class User {
   password: string;
 
   @Column()
-  passwordSalt: string;
+  passwordSalt?: string;
 
   @Column()
-  firstName: string;
+  firstName?: string;
 
   @Column()
-  lastName: string;
+  lastName?: string;
 
   @Column({ nullable: true })
   middleName: string;
@@ -33,7 +33,7 @@ export class User {
   comment: string;
 
   @Column()
-  state: number;
+  state: string;
 
   @OneToMany(() => Tutors, (tutor) => tutor.users)
   tutors: Tutors[];

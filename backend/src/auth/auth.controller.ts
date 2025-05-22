@@ -1,8 +1,16 @@
-import { Controller, Post, Body, Get, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
 import { AuthGuard } from '@nestjs/passport';
+import { UserRegisterDTO } from 'src/user/dto/UserRegisterDTO';
 
 @Controller('auth')
 export class AuthController {
@@ -17,13 +25,9 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() body: { email: string; password: string }) {
-    const hashedPassword = await bcrypt.hash(body.password, 10);
-    const user = await this.userService.create({
-      email: body.email,
-      password: hashedPassword,
-    });
-    return { id: user.id, email: user.email };
+  async register(@Body() user: UserRegisterDTO) {
+    const newUser = await this.userService.create({ ...user });
+    return { id: newUser?.id, email: newUser?.email };
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -31,4 +35,4 @@ export class AuthController {
   async check(@Request() req) {
     return { user: req.user };
   }
-} 
+}
