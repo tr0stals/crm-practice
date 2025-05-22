@@ -3,16 +3,28 @@
     <h2>Register Form</h2>
     <form @submit.prevent="handleSubmit">
       <div class="form-group">
-        <label for="email">Email:</label>
-        <input type="email" id="email" v-model="email" required />
+        <label for="email">Email</label>
+        <input type="text" id="email" v-model="userEmail" required />
       </div>
       <div class="form-group">
-        <label for="password">Password:</label>
+        <label for="userName">Логин</label>
+        <input type="text" id="userName" v-model="userName" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Пароль</label>
         <input type="password" id="password" v-model="password" required />
       </div>
       <div class="form-group">
-        <label for="confirmPassword">Confirm Password:</label>
-        <input type="password" id="confirmPassword" v-model="confirmPassword" required />
+        <label for="firstName">Имя</label>
+        <input type="text" id="firstName" v-model="firstName" required />
+      </div>
+      <div class="form-group">
+        <label for="lastName">Фамилия</label>
+        <input type="text" id="lastName" v-model="lastName" required />
+      </div>
+      <div class="form-group">
+        <label for="state">Статус</label>
+        <input type="text" id="state" v-model="state" required />
       </div>
       <button type="submit" class="submit-button">Register</button>
       <p v-if="authStore.error" class="error">{{ authStore.error }}</p>
@@ -21,27 +33,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useAuthStore } from '@/stores/auth.store';
-import { useRouter } from 'vue-router';
+import { ref } from "vue";
+import { useAuthStore } from "@/stores/auth.store";
+import { useRouter } from "vue-router";
+import type { IUserRegister } from "@/interfaces/IUserRegister";
 
-const email = ref('');
-const password = ref('');
-const confirmPassword = ref('');
+const userEmail = ref("");
+const password = ref("");
+const confirmPassword = ref("");
+const userName = ref("");
+const firstName = ref("");
+const lastName = ref("");
+const state = ref("");
 const authStore = useAuthStore();
 const router = useRouter();
 
 const handleSubmit = async () => {
-  if (password.value !== confirmPassword.value) {
-    alert('Passwords do not match');
-    return;
-  }
   try {
-    await authStore.registerUser(email.value, password.value);
-    router.push('/dashboard');
+    const user: IUserRegister = {
+      email: userEmail.value,
+      firstName: firstName.value,
+      lastName: lastName.value,
+      password: password.value,
+      state: state.value,
+      userName: userName.value,
+      passwordSalt: confirmPassword.value,
+    };
+    await authStore.registerUser(user);
+    router.push("/dashboard");
   } catch (error) {
     // Ошибка уже будет выведена через authStore.error
-    console.error('Registration failed:', error);
+    console.error("Registration failed:", error);
   }
 };
 </script>
@@ -76,7 +98,7 @@ input {
 .submit-button {
   width: 100%;
   padding: 10px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 4px;
@@ -90,4 +112,4 @@ input {
   color: red;
   margin-top: 1rem;
 }
-</style> 
+</style>
