@@ -12,7 +12,7 @@ import { AuthModule } from './auth/auth.module';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: 'MySuperPass123!',
+      password: 'Mysqlpassword123!',
       database: 'crm_practice',
       autoLoadEntities: true,
       synchronize: true,
