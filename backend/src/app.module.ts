@@ -19,6 +19,7 @@ import { RightsModule } from './rights/rights.module';
 import { RoleRightsModule } from './role-rights/role-rights.module';
 import { LicenseModule } from './license/license.module';
 import { LicenseTypesModule } from './license-types/license-types.module';
+import { EmployeesModule } from './employees/employees.module';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { LicenseTypesModule } from './license-types/license-types.module';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: 'yoga105',
+      password: 'Mysqlpassword123!',
       database: 'crm_practice',
       autoLoadEntities: true,
       synchronize: true,
@@ -49,6 +50,7 @@ import { LicenseTypesModule } from './license-types/license-types.module';
     RoleRightsModule,
     LicenseModule,
     LicenseTypesModule,
+    EmployeesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
