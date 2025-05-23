@@ -27,7 +27,7 @@ import { LicenseTypesModule } from './license-types/license-types.module';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: 'yoga105',
+      password: 'MySuperPass123!',
       database: 'crm_practice',
       autoLoadEntities: true,
       synchronize: true,
