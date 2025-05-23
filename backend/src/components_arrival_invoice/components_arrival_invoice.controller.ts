@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+    import { Controller } from '@nestjs/common';
 
-@Controller('components-arrival-invoice')
-export class ComponentsArrivalInvoiceController {}
+    @Controller('components-invoice')
+    export class ComponentsInvoiceController {}

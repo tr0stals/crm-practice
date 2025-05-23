@@ -30,6 +30,11 @@ import { EmployeesModule } from './employees/employees.module';
       database: 'crm_practice',
       autoLoadEntities: true,
       synchronize: true,
+      logging: true,
+      entities: ['dist/**/*.entity{.ts,.js}'],
+      extra: {
+        charset: 'utf8mb4'
+      }
     }),
     UserModule,
     AuthModule,
