@@ -1,6 +1,7 @@
 import { Students } from 'src/students/students.entity';
 import { Tutors } from 'src/tutors/tutors.entity';
 import { UserRoles } from 'src/user-roles/user-roles.entity';
+import { Employees } from 'src/employees/employees.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
 @Entity()
@@ -43,4 +44,7 @@ export class User {
 
   @OneToMany(() => Students, (student) => student.user)
   students: Students[];
+
+  @OneToMany(() => Employees, (employee) => employee.user)
+  employees: Employees[];
 }

@@ -17,6 +17,7 @@ import { UserRolesModule } from './user-roles/user-roles.module';
 import { StudentsModule } from './students/students.module';
 import { RightsModule } from './rights/rights.module';
 import { RoleRightsModule } from './role-rights/role-rights.module';
+import { EmployeesModule } from './employees/employees.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { RoleRightsModule } from './role-rights/role-rights.module';
     StudentsModule,
     RightsModule,
     RoleRightsModule,
+    EmployeesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
