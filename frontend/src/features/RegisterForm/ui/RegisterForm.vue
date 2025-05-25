@@ -33,10 +33,12 @@
 </template>
 
 <script setup lang="ts">
+import "../style.scss";
 import { ref } from "vue";
-import { useAuthStore } from "@/stores/auth.store";
+import { useAuthStore } from "@/shared/store/auth.store";
 import { useRouter } from "vue-router";
-import type { IUserRegister } from "@/interfaces/IUserRegister";
+import type { IUserRegister } from "../interface/IUserRegister";
+import { register } from "../api/registerApi";
 
 const userEmail = ref("");
 const password = ref("");
@@ -47,6 +49,7 @@ const lastName = ref("");
 const state = ref("");
 const authStore = useAuthStore();
 const router = useRouter();
+const error = ref<string | null>(null);
 
 const handleSubmit = async () => {
   try {
@@ -59,57 +62,25 @@ const handleSubmit = async () => {
       userName: userName.value,
       passwordSalt: confirmPassword.value,
     };
-    await authStore.registerUser(user);
+    await registerUser(user);
     router.push("/dashboard");
   } catch (error) {
     // Ошибка уже будет выведена через authStore.error
     console.error("Registration failed:", error);
   }
 };
+
+const registerUser = async (user: any) => {
+  try {
+    await register(user);
+    error.value = null;
+  } catch (err: any) {
+    if (err.response && err.response.data && err.response.data.message) {
+      error.value = err.response.data.message;
+    } else {
+      error.value = "Ошибка регистрации";
+    }
+    throw err;
+  }
+};
 </script>
-
-<style scoped>
-.register-form {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.submit-button {
-  width: 100%;
-  padding: 10px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.submit-button:hover {
-  background-color: #45a049;
-}
-.error {
-  color: red;
-  margin-top: 1rem;
-}
-</style>

@@ -1,50 +1,60 @@
-import { createRouter, createWebHistory, type RouteRecordRaw, type NavigationGuardNext, type RouteLocationNormalized } from 'vue-router'
-import { useAuthStore } from '@/stores/auth.store'
-import AuthView from '../views/AuthView.vue'
+import {
+  createRouter,
+  createWebHistory,
+  type RouteRecordRaw,
+  type NavigationGuardNext,
+  type RouteLocationNormalized,
+} from "vue-router";
+import { useAuthStore } from "@/shared/store/auth.store";
+import AuthView from "@/views/AuthView/ui/AuthView.vue";
+import ErrorView from "@/views/ErrorView/ui/ErrorView.vue";
+import Dashboard from "@/views/Dashboard.vue";
 
 const routes: RouteRecordRaw[] = [
   {
-    path: '/',
-    redirect: '/login'
+    path: "/",
+    redirect: "/login",
   },
   {
-    path: '/login',
-    name: 'Login',
+    path: "/login",
+    name: "Login",
     component: AuthView,
-    meta: { public: true }
+    meta: { public: true },
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: () => import('@/views/Dashboard.vue'),
-    meta: { requiresAuth: true }
+    // TODO: перебрасывать пользователя на главную страницу (а не дашборд)
+    path: "/dashboard",
+    name: "Dashboard",
+    component: Dashboard,
+    meta: { requiresAuth: true },
   },
   {
-    path: '/auth',
-    name: 'auth',
-    component: AuthView
+    path: "/:pathMatch(.*)*",
+    component: ErrorView,
   },
-  {
-    path: '/:pathMatch(.*)*',
-    component: () => import('@/views/404.vue')
-  }
-]
+];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
-})
+  routes,
+});
 
-router.beforeEach((to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
-  const authStore = useAuthStore()
-  
-  if (to.meta.requiresAuth && !authStore.token) {
-    next('/login')
-  } else if (to.meta.public && authStore.token) {
-    next('/dashboard')
-  } else {
-    next()
+router.beforeEach(
+  (
+    to: RouteLocationNormalized,
+    from: RouteLocationNormalized,
+    next: NavigationGuardNext
+  ) => {
+    const authStore = useAuthStore();
+
+    if (to.meta.requiresAuth && !authStore.token) {
+      next("/login");
+    } else if (to.meta.public && authStore.token) {
+      next("/dashboard");
+    } else {
+      next();
+    }
   }
-})
+);
 
-export default router
+export default router;

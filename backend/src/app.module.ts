@@ -28,15 +28,15 @@ import { EmployeesModule } from './employees/employees.module';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: 'Mysqlpassword123!',
+      password: 'yoga105',
       database: 'crm_practice',
       autoLoadEntities: true,
       synchronize: true,
       logging: true,
       entities: ['dist/**/*.entity{.ts,.js}'],
       extra: {
-        charset: 'utf8mb4'
-      }
+        charset: 'utf8mb4',
+      },
     }),
     UserModule,
     AuthModule,
