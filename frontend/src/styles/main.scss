@@ -1,0 +1,12 @@
+@import "./variables.scss";
+
+html {
+  font: var(--baseFontWeight) var(--baseFontSize) / var(--baseLineHeight)
+    var(--baseFontFamily);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
