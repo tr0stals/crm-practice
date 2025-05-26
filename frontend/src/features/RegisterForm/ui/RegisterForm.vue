@@ -39,6 +39,7 @@ import { useAuthStore } from "@/shared/store/auth.store";
 import { useRouter } from "vue-router";
 import type { IUserRegister } from "../interface/IUserRegister";
 import { register } from "../api/registerApi";
+import { ModalManager } from "@/shared/plugins/modalManager";
 
 const userEmail = ref("");
 const password = ref("");
