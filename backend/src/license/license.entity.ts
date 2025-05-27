@@ -13,9 +13,6 @@ export class License {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  prevLicenseId: number;
-
   @ManyToOne(() => LicenseTypes, (licenseType) => licenseType.licenseTypes)
   @JoinColumn({ name: 'licenseTypeId' })
   licenseTypes: LicenseTypes;

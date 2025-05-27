@@ -20,6 +20,14 @@ import { RoleRightsModule } from './role-rights/role-rights.module';
 import { LicenseModule } from './license/license.module';
 import { LicenseTypesModule } from './license-types/license-types.module';
 import { EmployeesModule } from './employees/employees.module';
+import { StandsController } from './stands/stands.controller';
+import { StandsModule } from './stands/stands.module';
+import { StandCategoriesService } from './stand-categories/stand-categories.service';
+import { StandCategoriesModule } from './stand-categories/stand-categories.module';
+import { StandCoursesController } from './stand-courses/stand-courses.controller';
+import { StandCoursesModule } from './stand-courses/stand-courses.module';
+import { StandTypesService } from './stand-types/stand-types.service';
+import { StandTypesModule } from './stand-types/stand-types.module';
 
 @Module({
   imports: [
@@ -56,8 +64,12 @@ import { EmployeesModule } from './employees/employees.module';
     LicenseModule,
     LicenseTypesModule,
     EmployeesModule,
+    StandsModule,
+    StandCategoriesModule,
+    StandCoursesModule,
+    StandTypesModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, StandsController, StandCoursesController],
+  providers: [AppService, StandCategoriesService, StandTypesService],
 })
 export class AppModule {}
