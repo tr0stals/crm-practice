@@ -13,10 +13,6 @@ export class License {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => LicenseTypes, (licenseType) => licenseType.licenseTypes)
-  @JoinColumn({ name: 'licenseTypeId' })
-  licenseTypes: LicenseTypes;
-
   @Column()
   shipmentId: number;
 
@@ -26,7 +22,7 @@ export class License {
   @Column()
   startDate: Date;
 
-  @Column()
+  @Column({nullable: true})
   expirationDate: Date;
 
   @Column()
@@ -35,9 +31,13 @@ export class License {
   @Column()
   price: number;
 
-  @Column()
+  @Column({nullable: true})
   places: number;
 
-  @Column()
+  @Column({nullable: true})
   comment: string;
+
+  @ManyToOne(() => LicenseTypes, (licenseType) => licenseType.licenseTypes)
+  @JoinColumn({ name: 'licenseTypeId' })
+  licenseTypes: LicenseTypes;
 }
