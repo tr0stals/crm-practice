@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Delete } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserRegisterDTO } from './dto/UserRegisterDTO';
 
@@ -14,6 +14,17 @@ export class UserController {
 
   @Get('get')
   async getUsers() {
-    return this.userService.getUsers();
+    try {
+      const users = await this.userService.getUsers();
+      // Удаляем поле password из каждого пользователя
+      return (users ?? []).map(({ password, ...rest }) => rest);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  @Delete(':id')
+  async deleteUser(@Param('id') id: number) {
+    return this.userService.deleteUser(id);
   }
 }

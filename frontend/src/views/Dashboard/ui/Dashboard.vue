@@ -180,7 +180,7 @@ const handleAvatarUpload = (event: Event) => {
           <table class="data-table">
             <thead>
               <tr>
-                <th v-for="(value, key) in data[0]" :key="key">
+                <th v-for="(value, key) in data[0]" :key="key" v-if="key !== 'password'">
                   {{ key }}
                 </th>
               </tr>
@@ -191,7 +191,7 @@ const handleAvatarUpload = (event: Event) => {
                 :data-js-section-data="JSON.stringify(item)"
                 :key="item.id || index"
               >
-                <td v-for="(value, key) in item" :key="key">
+                <td v-for="(value, key) in item" :key="key" v-if="key !== 'password'">
                   <template v-if="typeof value === 'boolean'">
                     <input type="checkbox" :checked="value" disabled />
                   </template>

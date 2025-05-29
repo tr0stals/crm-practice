@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
+import type { IData } from "@/views/Dashboard/interface/IData";
+import { getDataAsync } from "@/views/Dashboard/api/licenseApi";
 import "../style.scss";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import Button from "@/shared/ui/Button/ui/Button.vue";
-import { onMounted, reactive } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { EditModalWindowModel } from "../model/EditModalWindowModel";
+import { api } from "@/shared/api/axiosInstance";
+import { deleteUser } from "@/shared/api/userApi";
+
+const data = ref<any[]>([]);
+
 const props = defineProps<{
   config: IEdittingProps;
 }>();
@@ -25,6 +32,18 @@ onMounted(() => {
 });
 
 console.debug(originalData);
+
+const handleDeleteUser = async (id: number) => {
+  try {
+    await deleteUser(id);
+    // После удаления обновите данные
+    const config: IData = { endpoint: 'users/get' };
+    const response = await getDataAsync(config);
+    data.value = response.data;
+  } catch (e) {
+    console.error("Ошибка при удалении пользователя:", e);
+  }
+};
 </script>
 
 <template>
@@ -44,7 +63,7 @@ console.debug(originalData);
     <div class="editModalWindow__content">
       <div
         v-for="(value, key) in formData"
-        :key="key"
+        :key="String(key)"
         class="editModalWindow__content__field"
       >
         <label
@@ -55,11 +74,11 @@ console.debug(originalData);
         </label>
         <input
           class="editModalWindow__content__field__input"
-          :disabled="key === 'id'"
-          :type="getInputType(key, value)"
+          :disabled="String(key) === 'id'"
+          :type="getInputType(String(key), value)"
           :id="String(key)"
           :name="String(key)"
-          v-model="formData[key]"
+          v-model="formData[String(key)]"
         />
       </div>
     </div>

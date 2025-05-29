@@ -37,7 +37,7 @@ import { ShipmentsModule } from './shipments/shipments.module';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: 'yoga105',
+      password: 'Mysqlpassword123!',
       database: 'crm_practice',
       autoLoadEntities: true,
       synchronize: true,

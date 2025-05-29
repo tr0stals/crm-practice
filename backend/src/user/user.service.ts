@@ -48,4 +48,8 @@ export class UserService {
       console.error(e);
     }
   }
+  // backend/src/user/user.service.ts
+async deleteUser(id: number) {
+  return this.usersRepository.delete(id);
+}
 }
