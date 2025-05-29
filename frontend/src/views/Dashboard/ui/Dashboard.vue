@@ -14,6 +14,7 @@ import { ref, onMounted, onUnmounted, reactive, watch } from "vue";
 import "../style.scss";
 import { getDataAsync } from "../api/licenseApi";
 import type { IData } from "../interface/IData";
+import { DashboardModel } from "../model/DashboardModel";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -67,6 +68,8 @@ const updateTime = () => {
 let timer: ReturnType<typeof setInterval> | undefined;
 
 onMounted(async () => {
+  new DashboardModel();
+
   updateTime(); // Обновляем время сразу при монтировании
   timer = setInterval(updateTime, 1000); // Обновляем время каждую секунду
 });
@@ -75,7 +78,6 @@ watch(currentSection, async (newSection) => {
   const config: IData = {
     endpoint: `${newSection.toLowerCase()}/get`,
   };
-  console.debug(config.endpoint);
 
   const response = await getDataAsync(config);
   data.value = response.data;
@@ -184,7 +186,11 @@ const handleAvatarUpload = (event: Event) => {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, index) in data" :key="item.id || index">
+              <tr
+                v-for="(item, index) in data"
+                :data-js-section-data="JSON.stringify(item)"
+                :key="item.id || index"
+              >
                 <td v-for="(value, key) in item" :key="key">
                   <template v-if="typeof value === 'boolean'">
                     <input type="checkbox" :checked="value" disabled />
