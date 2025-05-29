@@ -3,12 +3,15 @@ import type { IEdittingProps } from "@/shared/config/IEdittingProps";
 import "../style.scss";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import Button from "@/shared/ui/Button/ui/Button.vue";
-import { onMounted } from "vue";
+import { onMounted, reactive } from "vue";
 import { EditModalWindowModel } from "../model/EditModalWindowModel";
 const props = defineProps<{
   config: IEdittingProps;
 }>();
-const data = props.config.data[0];
+const originalData = props.config.data[0];
+const formData = reactive({ ...originalData });
+
+console.debug("formData:", formData.target);
 
 const getInputType = (key: string, value: any): string => {
   if (key.toLowerCase().includes("date")) return "date";
@@ -18,11 +21,10 @@ const getInputType = (key: string, value: any): string => {
 };
 
 onMounted(() => {
-  console.debug("!!!");
   new EditModalWindowModel();
 });
 
-console.debug(data);
+console.debug(originalData);
 </script>
 <template>
   <div class="editModalWindow">
@@ -40,35 +42,19 @@ console.debug(data);
 
     <div class="editModalWindow__content">
       <div
-        v-for="([key, value], index) in Object.entries(data)"
-        :key="index"
+        v-for="(value, key) in formData"
+        :key="key"
         class="editModalWindow__content__field"
       >
-        <label
-          class="editModalWindow__content__field__label"
-          :for="'field' + index"
-        >
+        <label class="editModalWindow__content__field__label" :for="key">
           {{ key }}
         </label>
-
         <input
-          v-if="getInputType(key, value) !== 'checkbox'"
           class="editModalWindow__content__field__input"
-          :type="getInputType(key, value)"
-          :name="'field' + index"
-          :id="'field' + index"
-          :disabled="key === 'id'"
-          :value="value"
-        />
-
-        <input
-          v-else
-          type="checkbox"
-          class="editModalWindow__content__field__input"
-          :name="'field' + index"
-          :id="'field' + index"
-          :disabled="key === 'id'"
-          :checked="value"
+          type="text"
+          :id="key"
+          :name="key"
+          v-model="formData[key]"
         />
       </div>
     </div>
@@ -80,7 +66,7 @@ console.debug(data);
         :extra-classes="['editModalWindow__controls__btn']"
       />
       <Button
-        data-js-save-btn=""
+        :data-js-save-btn="JSON.stringify(formData)"
         text="Сохранить"
         button-color="button__buttonBlue"
         :extra-classes="['editModalWindow__controls__btn']"

@@ -1,3 +1,5 @@
+import { getAttr } from "@/shared/utils/getAttr";
+
 export class EditModalWindowModel {
   attrs = {
     saveBtn: "[data-js-save-btn]",
@@ -10,8 +12,13 @@ export class EditModalWindowModel {
 
   #bindEvents() {
     document.addEventListener("click", (e) => {
-      console.debug();
-      console.debug("???", e.target.closest(this.attrs.saveBtn));
+      const target = e.target;
+
+      if (target) {
+        const attr = getAttr(this.attrs.saveBtn).toString();
+        const key = JSON.parse(target.getAttribute(attr));
+        console.debug(key);
+      }
     });
   }
 }

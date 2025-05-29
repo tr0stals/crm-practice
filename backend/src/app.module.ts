@@ -36,7 +36,7 @@ import { StandTypesModule } from './stand-types/stand-types.module';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: 'Mysqlpassword123!',
+      password: 'yoga105',
       database: 'crm_practice',
       autoLoadEntities: true,
       synchronize: true,

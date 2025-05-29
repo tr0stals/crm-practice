@@ -15,7 +15,6 @@ export class ModalManager {
   private bindEvents() {
     document.addEventListener("click", (e) => {
       const parent = e.target.closest("#closeIcon");
-      console.debug(parent);
 
       if (parent) {
         this.closeModal();
