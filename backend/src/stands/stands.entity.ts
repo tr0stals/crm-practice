@@ -1,5 +1,5 @@
 import { StandCategories } from "src/stand-categories/stand-categories.entity";
-import { StandCourses, standCourses } from "src/stand-courses/stand-courses.entity";
+import { StandCourses } from "src/stand-courses/stand-courses.entity";
 import { StandsTypes } from "src/stand-types/stand-types.entity";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 

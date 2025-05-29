@@ -30,12 +30,6 @@ export class User {
   @Column({ nullable: true })
   middleName: string;
 
-  @Column({ nullable: true })
-  comment: string;
-
-  @Column()
-  state: string;
-
   @OneToMany(() => Tutors, (tutor) => tutor.users)
   tutors: Tutors[];
 

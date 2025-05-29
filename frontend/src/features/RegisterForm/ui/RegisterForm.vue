@@ -23,8 +23,8 @@
         <input type="text" id="lastName" v-model="lastName" required />
       </div>
       <div class="form-group">
-        <label for="state">Статус</label>
-        <input type="text" id="state" v-model="state" required />
+        <label for="middleName">Отчество</label>
+        <input type="text" id="middleName" v-model="middleName" />
       </div>
       <button type="submit" class="submit-button">Register</button>
       <p v-if="authStore.error" class="error">{{ authStore.error }}</p>
@@ -47,7 +47,7 @@ const confirmPassword = ref("");
 const userName = ref("");
 const firstName = ref("");
 const lastName = ref("");
-const state = ref("");
+const middleName = ref("");
 const authStore = useAuthStore();
 const router = useRouter();
 const error = ref<string | null>(null);
@@ -59,7 +59,7 @@ const handleSubmit = async () => {
       firstName: firstName.value,
       lastName: lastName.value,
       password: password.value,
-      state: state.value,
+      middleName: middleName.value,
       userName: userName.value,
       passwordSalt: confirmPassword.value,
     };

@@ -6,6 +6,4 @@ export interface IUserRegister {
   firstName: string;
   lastName: string;
   middleName?: string;
-  comment?: string;
-  state: string;
 }

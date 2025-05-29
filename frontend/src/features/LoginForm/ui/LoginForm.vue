@@ -10,7 +10,7 @@
         <label for="password">Password:</label>
         <input type="password" id="password" v-model="password" required />
       </div>
-      <button type="submit" class="submit-button">Login</button>
+      <button type="submit" class="submit-button">Войти</button>
       <p v-if="authStore.error" class="error">{{ authStore.error }}</p>
     </form>
   </div>
