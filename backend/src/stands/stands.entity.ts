@@ -1,3 +1,4 @@
+import { Shipments } from 'src/shipments/shipments.entity';
 import { StandCategories } from 'src/stand-categories/stand-categories.entity';
 import { StandCourses } from 'src/stand-courses/stand-courses.entity';
 import { StandsTypes } from 'src/stand-types/stand-types.entity';
@@ -6,6 +7,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -47,4 +49,7 @@ export class Stands {
 
   @Column()
   comment: string;
+
+  @OneToMany(() => Shipments, (shipment) => shipment.stands)
+  shipments: Shipments[];
 }

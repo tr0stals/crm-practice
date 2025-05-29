@@ -8,7 +8,7 @@ import {
 import { useAuthStore } from "@/shared/store/auth.store";
 import AuthView from "@/views/AuthView/ui/AuthView.vue";
 import ErrorView from "@/views/ErrorView/ui/ErrorView.vue";
-import Dashboard from "@/views/Dashboard.vue";
+import Dashboard from "@/views/Dashboard/ui/Dashboard.vue";
 
 const routes: RouteRecordRaw[] = [
   {

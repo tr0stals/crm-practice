@@ -28,6 +28,7 @@ import { StandCoursesController } from './stand-courses/stand-courses.controller
 import { StandCoursesModule } from './stand-courses/stand-courses.module';
 import { StandTypesService } from './stand-types/stand-types.service';
 import { StandTypesModule } from './stand-types/stand-types.module';
+import { ShipmentsModule } from './shipments/shipments.module';
 
 @Module({
   imports: [
@@ -36,7 +37,7 @@ import { StandTypesModule } from './stand-types/stand-types.module';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: 'chmok',
+      password: 'yoga105',
       database: 'crm_practice',
       autoLoadEntities: true,
       synchronize: true,
@@ -68,6 +69,7 @@ import { StandTypesModule } from './stand-types/stand-types.module';
     StandCategoriesModule,
     StandCoursesModule,
     StandTypesModule,
+    ShipmentsModule,
   ],
   controllers: [AppController, StandsController, StandCoursesController],
   providers: [AppService, StandCategoriesService, StandTypesService],

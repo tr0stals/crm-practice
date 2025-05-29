@@ -40,4 +40,12 @@ export class UserService {
     const salt = await bcrypt.genSaltSync(10);
     return await bcrypt.hashSync(password, salt);
   }
+
+  async getUsers() {
+    try {
+      return await this.usersRepository.find();
+    } catch (e) {
+      console.error(e);
+    }
+  }
 }

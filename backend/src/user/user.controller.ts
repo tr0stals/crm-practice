@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserRegisterDTO } from './dto/UserRegisterDTO';
 
@@ -10,5 +10,10 @@ export class UserController {
   async register(@Body() user: UserRegisterDTO) {
     // Здесь позже добавим хеширование пароля!
     return this.userService.create(user);
+  }
+
+  @Get('get')
+  async getUsers() {
+    return this.userService.getUsers();
   }
 }

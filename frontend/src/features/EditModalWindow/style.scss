@@ -5,27 +5,37 @@
   top: 50%;
   transform: translate(-50%, -50%);
   width: 90%;
+  max-width: 600px;
   gap: 2rem;
-  padding: 2rem;
-  border-radius: 1rem;
+  padding: 25px;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 
   &__header {
     &__title {
-      font-size: 2.5rem;
+      font-size: 2rem;
+      color: #333;
     }
 
     &__hr {
       width: 100%;
+      border: none;
+      height: 1px;
+      background-color: #eee;
+      margin: 15px 0;
     }
   }
 
   &__closeIcon {
     position: absolute;
-    right: 5%;
-    top: 10%;
+    right: 15px;
+    top: 15px;
     cursor: pointer;
+    width: 24px;
+    height: 24px;
+    color: #666;
   }
 
   &__content {
@@ -34,7 +44,7 @@
     flex-wrap: nowrap;
     justify-content: center;
     width: 100%;
-    gap: 1rem;
+    gap: 15px;
 
     &__field {
       display: flex;
@@ -42,10 +52,21 @@
       justify-content: space-between;
       align-items: center;
       width: 100%;
-      gap: 1.5rem;
+      gap: 15px;
+
+      &__label {
+        font-weight: bold;
+        color: #555;
+        flex-basis: 120px;
+        flex-shrink: 0;
+      }
 
       &__input {
-        max-width: 80%;
+        flex-grow: 1;
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1.5rem;
       }
     }
   }
@@ -57,10 +78,13 @@
     gap: 2rem;
 
     &__btn {
-      color: #fff;
+      background-color: #f4f4f4;
+      color: #0056b3;
+      border: 1px solid #ddd;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
       font-size: 1.5rem;
-      border: none;
-      outline: none;
     }
   }
 }
