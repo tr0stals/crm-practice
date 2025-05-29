@@ -9,6 +9,7 @@ import RefreshIcon from "@/shared/ui/RefreshIcon/ui/RefreshIcon.vue";
 import { ModalManager } from "@/shared/plugins/modalManager";
 import EditModalWindow from "@/features/EditModalWindow/ui/EditModalWindow.vue";
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
+import { licenseData } from "@/shared/config/mockData";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -24,11 +25,9 @@ const logout = () => {
  */
 const handleEditModalWindow = () => {
   const cfg: IEdittingProps = {
-    operation: "Редактировать",
-    data: {
-      // Здесь нужно будет указывать объект с данными из таблицы.
-      // Например, users - указываем объект: {id: 1, userName: Pavel, password: 123, email: example@mail.ru...}
-    },
+    // Здесь нужно будет указывать объект с данными из таблицы.
+    // Например, users - указываем объект: {id: 1, userName: Pavel, password: 123, email: example@mail.ru...}
+    ...licenseData,
   };
   ModalManager.getInstance().open(EditModalWindow, { config: cfg });
 };
@@ -48,6 +47,7 @@ const handleEditModalWindow = () => {
       @click="handleEditModalWindow"
       text="Редактировать"
       :image="EditIcon"
+      :extraClasses="['button__buttonBlue']"
     />
     <Button text="удалить" :image="DeleteIcon" />
     <Button text="обновить" :image="RefreshIcon" />

@@ -22,4 +22,12 @@
       background-color: red;
     }
   }
+
+  &__buttonBlue {
+    background-color: blue;
+
+    &:hover {
+      background-color: blue;
+    }
+  }
 }

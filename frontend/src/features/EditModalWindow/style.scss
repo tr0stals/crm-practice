@@ -5,7 +5,7 @@
   top: 50%;
   transform: translate(-50%, -50%);
   width: 90%;
-  height: 50%;
+  gap: 2rem;
   padding: 2rem;
   border-radius: 1rem;
   display: flex;
@@ -29,14 +29,38 @@
   }
 
   &__content {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    width: 100%;
+    gap: 1rem;
+
     &__field {
       display: flex;
       flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
       gap: 1.5rem;
 
       &__input {
-        max-width: 20%;
+        max-width: 80%;
       }
+    }
+  }
+
+  &__controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    gap: 2rem;
+
+    &__btn {
+      color: #fff;
+      font-size: 1.5rem;
+      border: none;
+      outline: none;
     }
   }
 }

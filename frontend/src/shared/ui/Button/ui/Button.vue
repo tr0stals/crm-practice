@@ -1,5 +1,9 @@
 <template>
-  <button @click="printText" class="button" :class="buttonColor">
+  <button
+    @click="printText"
+    class="button"
+    :class="[buttonColor, ...(extraClasses || [])]"
+  >
     <component v-if="image" :is="image" class="button__icon" />
     {{ text }}
   </button>
@@ -17,6 +21,7 @@ const props = defineProps<{
   text: string;
   image?: any;
   buttonColor?: string;
+  extraClasses?: string[];
 }>();
 
 const printText = () => {

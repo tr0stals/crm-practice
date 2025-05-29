@@ -1,4 +1,4 @@
 export interface IEdittingProps {
-  operation: string;
+  sectionName: string;
   data: any;
 }
