@@ -16,11 +16,18 @@ import { getDataAsync } from "../api/licenseApi";
 import type { IData } from "../interface/IData";
 import { DashboardModel } from "../model/DashboardModel";
 
+// TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
+
 const authStore = useAuthStore();
 const router = useRouter();
 
+/**
+ * Данные, которые отображаются в таблице
+ */
 const data = ref<any[]>([]);
 const isMenuOpen = ref(false);
+
+const selectedRow = ref<any | null>(null);
 
 /**
  * Наполняем этот массив по ходу
@@ -30,6 +37,7 @@ const sectionsList = ["License", "Users", "Stands"];
  * Текущая секция
  */
 const currentSection = ref("License");
+const targetData = ref();
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
@@ -40,16 +48,21 @@ const logout = () => {
   router.push("/login");
 };
 
-/*
+/**
  *  Эта функция должна срабатывать при клике на кнопку "Редактировать"
  *  или при двойном клике на ячейку в таблице.
  */
 const handleEditModalWindow = () => {
   const cfg: IEdittingProps = {
-    // Здесь нужно будет указывать объект с данными из таблицы.
-    // Например, users - указываем объект: {id: 1, userName: Pavel, password: 123, email: example@mail.ru...}
-    ...licenseData,
+    sectionName: currentSection.value,
+    data: targetData.value,
   };
+
+  if (!cfg.data) {
+    alert("Выберите строку для редактирования");
+    return;
+  }
+
   ModalManager.getInstance().open(EditModalWindow, { config: cfg });
 };
 
@@ -74,13 +87,29 @@ onMounted(async () => {
   timer = setInterval(updateTime, 1000); // Обновляем время каждую секунду
 });
 
+/**
+ * Здесь мы следим за состоянием переменной currentSection,
+ * для того, чтобы менять контент таблицы (Users, License, Stands, ...)
+ */
 watch(currentSection, async (newSection) => {
+  selectedRow.value = null;
+  targetData.value = null;
+
   const config: IData = {
     endpoint: `${newSection.toLowerCase()}/get`,
   };
 
-  const response = await getDataAsync(config);
-  data.value = response.data;
+  try {
+    const response = await getDataAsync(config);
+    data.value = response.data;
+  } catch (e) {
+    console.error(e);
+  }
+});
+
+watch(selectedRow, (newVal) => {
+  console.debug(newVal);
+  targetData.value = newVal;
 });
 
 onUnmounted(() => {
@@ -180,9 +209,11 @@ const handleAvatarUpload = (event: Event) => {
           <table class="data-table">
             <thead>
               <tr>
-                <th v-for="(value, key) in data[0]" :key="key" v-if="key !== 'password'">
-                  {{ key }}
-                </th>
+                <template v-for="(value, key) in data[0]">
+                  <th :key="key" v-if="key !== 'password'">
+                    {{ key }}
+                  </th>
+                </template>
               </tr>
             </thead>
             <tbody>
@@ -190,15 +221,20 @@ const handleAvatarUpload = (event: Event) => {
                 v-for="(item, index) in data"
                 :data-js-section-data="JSON.stringify(item)"
                 :key="item.id || index"
+                @click="selectedRow = item"
+                @dblclick="handleEditModalWindow"
+                :class="{ 'selected-row': selectedRow?.id === item.id }"
               >
-                <td v-for="(value, key) in item" :key="key" v-if="key !== 'password'">
-                  <template v-if="typeof value === 'boolean'">
-                    <input type="checkbox" :checked="value" disabled />
-                  </template>
-                  <template v-else>
-                    {{ value }}
-                  </template>
-                </td>
+                <template v-for="(value, title) in item">
+                  <td v-if="title !== 'password'" :key="title">
+                    <template v-if="typeof value === 'boolean'">
+                      <input type="checkbox" :checked="value" disabled />
+                    </template>
+                    <template v-else>
+                      {{ value }}
+                    </template>
+                  </td>
+                </template>
               </tr>
             </tbody>
           </table>

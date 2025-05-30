@@ -15,7 +15,8 @@ const data = ref<any[]>([]);
 const props = defineProps<{
   config: IEdittingProps;
 }>();
-const originalData = props.config.data[0];
+
+const originalData = props.config.data;
 const formData = reactive({ ...originalData });
 
 console.debug("formData:", formData.target);
@@ -37,7 +38,7 @@ const handleDeleteUser = async (id: number) => {
   try {
     await deleteUser(id);
     // После удаления обновите данные
-    const config: IData = { endpoint: 'users/get' };
+    const config: IData = { endpoint: "users/get" };
     const response = await getDataAsync(config);
     data.value = response.data;
   } catch (e) {
