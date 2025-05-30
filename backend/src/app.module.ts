@@ -29,6 +29,7 @@ import { StandCoursesModule } from './stand-courses/stand-courses.module';
 import { StandTypesService } from './stand-types/stand-types.service';
 import { StandTypesModule } from './stand-types/stand-types.module';
 import { ShipmentsModule } from './shipments/shipments.module';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { ShipmentsModule } from './shipments/shipments.module';
     StandCoursesModule,
     StandTypesModule,
     ShipmentsModule,
+    DatabaseModule
   ],
   controllers: [AppController, StandsController, StandCoursesController],
   providers: [AppService, StandCategoriesService, StandTypesService],
