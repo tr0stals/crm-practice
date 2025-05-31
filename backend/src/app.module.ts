@@ -38,7 +38,7 @@ import { DatabaseModule } from './database/database.module';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: 'root',
+      password: 'Mysqlpassword123!',
       database: 'crm_practice',
       autoLoadEntities: true,
       synchronize: true,

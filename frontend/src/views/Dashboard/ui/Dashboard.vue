@@ -15,6 +15,7 @@ import "../style.scss";
 import { getDataAsync } from "../api/licenseApi";
 import type { IData } from "../interface/IData";
 import { DashboardModel } from "../model/DashboardModel";
+import { deleteUser, getUsers } from '@/shared/api/userApi'
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -129,6 +130,35 @@ const handleAvatarUpload = (event: Event) => {
     }
   }
 };
+
+// Функция для обновления списка пользователей
+const refreshUsers = async () => {
+  if (currentSection.value === 'Users') {
+    try {
+      const response = await getUsers();
+      data.value = response.data;
+      selectedRow.value = null;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+};
+
+// Функция для удаления пользователя
+const handleDeleteUser = async () => {
+  if (currentSection.value !== 'Users') return;
+  if (!selectedRow.value || !selectedRow.value.id) {
+    alert('Выберите пользователя для удаления');
+    return;
+  }
+  try {
+    await deleteUser(selectedRow.value.id);
+    await refreshUsers();
+  } catch (e) {
+    alert('Ошибка при удалении пользователя');
+    console.error(e);
+  }
+};
 </script>
 
 <template>
@@ -196,8 +226,8 @@ const handleAvatarUpload = (event: Event) => {
               :image="EditIcon"
               :extraClasses="['button__buttonBlue']"
             />
-            <Button text="Удалить" :image="DeleteIcon" />
-            <Button text="Обновить" :image="RefreshIcon" />
+            <Button text="Удалить" :image="DeleteIcon" @click="handleDeleteUser" />
+            <Button text="Обновить" :image="RefreshIcon" @click="refreshUsers" />
           </div>
           <div class="search-filter">
             <input type="text" placeholder="Поиск" class="search-input" />
