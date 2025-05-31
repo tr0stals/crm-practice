@@ -228,6 +228,14 @@
   width: 100%;
 }
 
+.selected-row {
+  background-color: #e0f0ff !important;
+}
+
+.data-table tbody tr {
+  cursor: pointer;
+}
+
 .data-table th,
 .data-table td {
   border: 1px solid #ddd;
