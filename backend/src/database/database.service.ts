@@ -34,4 +34,16 @@ export class DatabaseService {
   async getTableRows(tableName: string) {
     return await this.dataSource.query(`SELECT * FROM \`${tableName}\``);
   }
+
+  async deleteTableRecord(tableName: string, id: string) {
+    return await this.dataSource.query(`DELETE FROM \`${tableName}\` WHERE id = ${id}`);
+  }
+
+  async addTableRecord(tableName: string, record: any) {
+    return await this.dataSource.query(`INSERT INTO \`${tableName}\` SET ?`, [record]);
+  }
+
+  async updateTableRecord(tableName: string, id: string, record: any) {
+    return await this.dataSource.query(`UPDATE \`${tableName}\` SET ? WHERE id = ${id}`, [record]);
+  }
 }
