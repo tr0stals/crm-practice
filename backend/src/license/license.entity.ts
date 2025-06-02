@@ -1,40 +1,45 @@
-import { UUID } from "crypto";
-import { LicenseTypes } from "src/license-types/license-types.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { UUID } from 'crypto';
+import { LicenseTypes } from 'src/license-types/license-types.entity';
+import { Shipments } from 'src/shipments/shipments.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class License {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    prevLicenseId: number;
+  @Column()
+  licenseCode: UUID;
 
-    @ManyToOne(()=> LicenseTypes, (licenseType) => licenseType.licenseTypes)
-    @JoinColumn({name:'licenseTypeId'})
-    licenseTypes:LicenseTypes;
+  @Column()
+  startDate: Date;
 
-    @Column()
-    shipmentId: number;
+  @Column({ nullable: true })
+  expirationDate: Date;
 
-    @Column()
-    licenseCode: UUID;
+  @Column()
+  state: number;
 
-    @Column()
-    startDate: Date;
+  @Column()
+  price: number;
 
-    @Column()
-    expirationDate: Date;
+  @Column({ nullable: true })
+  places: number;
 
-    @Column()
-    state: number;
+  @Column({ nullable: true })
+  comment: string;
 
-    @Column()
-    price: number;
+  @ManyToOne(() => LicenseTypes, (licenseType) => licenseType.licenseTypes)
+  @JoinColumn({ name: 'licenseTypeId' })
+  licenseTypes: LicenseTypes;
 
-    @Column()
-    places: number;
-
-    @Column()
-    comment: string;
+  @ManyToOne(() => Shipments, (shipment) => shipment.licenses)
+  @JoinColumn({ name: 'shipmentId' })
+  shipments: Shipments;
 }

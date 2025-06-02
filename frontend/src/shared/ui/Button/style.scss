@@ -1,0 +1,33 @@
+.button {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  gap: 1rem;
+  border: 1px solid black;
+  padding: 0.5rem 1rem;
+  background-color: rgba(222, 222, 222, 0.6);
+  color: #000;
+  font-size: 1.75rem;
+  text-transform: capitalize;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(222, 222, 222, 1);
+  }
+
+  &__buttonAdd {
+    background-color: red;
+
+    &:hover {
+      background-color: red;
+    }
+  }
+
+  &__buttonBlue {
+    background-color: blue;
+
+    &:hover {
+      background-color: blue;
+    }
+  }
+}

@@ -1,4 +1,4 @@
 import { Controller } from '@nestjs/common';
 
-@Controller('license-types')
+@Controller('licenseTypes')
 export class LicenseTypesController {}

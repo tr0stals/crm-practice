@@ -12,7 +12,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ nullable: false })
   userName: string;
 
   @Column()
@@ -29,12 +29,6 @@ export class User {
 
   @Column({ nullable: true })
   middleName: string;
-
-  @Column({ nullable: true })
-  comment: string;
-
-  @Column()
-  state: string;
 
   @OneToMany(() => Tutors, (tutor) => tutor.users)
   tutors: Tutors[];

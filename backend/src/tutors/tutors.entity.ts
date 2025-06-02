@@ -1,5 +1,6 @@
 import { Departments } from 'src/departments/departments.entity';
 import { Groups } from 'src/groups/groups.entity';
+import { Shipments } from 'src/shipments/shipments.entity';
 import { User } from 'src/user/user.entity';
 import {
   Entity,
@@ -24,4 +25,7 @@ export class Tutors {
 
   @OneToMany(() => Groups, (group) => group.tutors)
   groups: Groups[];
+
+  @OneToMany(() => Shipments, (shipment) => shipment.tutors)
+  shipments: Shipments[];
 }

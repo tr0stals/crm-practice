@@ -13,7 +13,10 @@ export class UserService {
   ) {}
 
   async findByEmail(email: string) {
-    return this.usersRepository.findOne({ where: { email } });
+    return this.usersRepository.findOne({
+      where: { email },
+      relations: ['userRoles', 'userRoles.roles'],
+    });
   }
 
   async create(user: UserRegisterDTO) {
@@ -39,5 +42,26 @@ export class UserService {
   async cryptUserPasswordService(password: string) {
     const salt = await bcrypt.genSaltSync(10);
     return await bcrypt.hashSync(password, salt);
+  }
+
+  async getUsers() {
+    try {
+      return await this.usersRepository.find();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async update(id: any, updateUser: UserRegisterDTO) {
+    try {
+      await this.usersRepository.update(id, updateUser);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // backend/src/user/user.service.ts
+  async deleteUser(id: number) {
+    return this.usersRepository.delete(id);
   }
 }

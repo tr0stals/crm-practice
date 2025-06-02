@@ -6,5 +6,5 @@ export class BoxDrawings {
     id: number;
 
     @Column ({length: 255})
-    drawingsScan: string;
+    drawingScan: string;
 }

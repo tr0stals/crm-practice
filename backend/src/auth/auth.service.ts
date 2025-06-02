@@ -22,13 +22,23 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.userService.findByEmail(email);
 
-    if (user?.password !== password) throw new UnauthorizedException();
+    if (user?.password !== password) {
+      throw new UnauthorizedException();
+    }
 
-    const payload = { email: user?.email, sub: user?.id };
+    const payload = { email: user.email, sub: user.id };
     return {
       token: this.jwtService.signAsync(payload, {
         expiresIn: '24h', // токен действителен 24ч
       }),
-    };
-  }
+      user: {
+        id: user.id,
+        email: user.email,
+        userName: user.userName,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        middleName: user.middleName,
+        roles: user.userRoles ? user.userRoles.map(ur => ur.roles.name) : []
+      },
+  }}
 }
