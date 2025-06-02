@@ -122,11 +122,6 @@ watch(currentSection, async (newSection: string) => {
   getCurrentData(newSection);
 });
 
-watch(data, (newData) => {
-  console.debug("Дата помнялась!!!");
-  data.value = newData;
-});
-
 watch(selectedRow, (newVal) => {
   console.debug(newVal);
   targetData.value = newVal;
@@ -135,18 +130,6 @@ watch(selectedRow, (newVal) => {
 onUnmounted(() => {
   clearInterval(timer); // Очищаем таймер при размонтировании компонента
 });
-
-const handleDeleteUser = async (id: number) => {
-  try {
-    await deleteUser(id);
-    // После удаления обновите данные
-    const config: IData = { endpoint: "users/get" };
-    const response = await getDataAsync(config);
-    data.value = response.data;
-  } catch (e) {
-    console.error("Ошибка при удалении пользователя:", e);
-  }
-};
 
 const handleAvatarUpload = (event: Event) => {
   const target = event.target as HTMLInputElement;
