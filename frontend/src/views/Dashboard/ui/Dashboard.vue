@@ -15,7 +15,8 @@ import "../style.scss";
 import { getDataAsync } from "../api/getDataAsync";
 import type { IData } from "../interface/IData";
 import { DashboardModel } from "../model/DashboardModel";
-import { deleteUser, getUsers } from "@/shared/api/userApi";
+import { getUsers } from "@/shared/api/userApi";
+import { deleteDataAsync } from "../api/deleteDataAsync";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -72,9 +73,7 @@ const getCurrentData = async (section: string) => {
 };
 
 const onUpdateCallBack = async () => {
-  //#region TODO: ВЫНЕСТИ ЭТОТ КУСОК В ОТДЕЛЬНУЮ ФУНКЦИЮ. (ИСПОЛЬЗУЕТСЯ В МЕТОДАХ: onUpdateCallBack, watch(newSection)...)
   getCurrentData(currentSection.value);
-  //#endregion
 };
 
 /**
@@ -168,20 +167,24 @@ const refreshUsers = async () => {
 };
 
 // Функция для удаления пользователя
-const handleDeleteUser = async () => {
-  if (currentSection.value !== "Users") return;
+const handleDeleteRow = async () => {
   if (!selectedRow.value || !selectedRow.value.id) {
     alert("Выберите пользователя для удаления");
     return;
   }
+
   try {
-    await deleteUser(selectedRow.value.id);
-    await refreshUsers();
+    console.debug(currentSection.value);
+    await deleteDataAsync(selectedRow.value.id, currentSection.value);
+    getCurrentData(currentSection.value);
   } catch (e) {
     alert("Ошибка при удалении пользователя");
     console.error(e);
   }
 };
+
+// TODO: сделать добавление
+const handleCreateModalWindow = () => {};
 </script>
 
 <template>
@@ -236,12 +239,13 @@ const handleDeleteUser = async () => {
 
       <!-- Content -->
       <section class="content-section">
-        <h2>{{ currentSection }}</h2>
+        <h2 class="content-section__title">{{ currentSection }}</h2>
 
         <!-- Action Buttons, Search, and Filter Placeholder -->
         <div class="controls">
           <div class="action-buttons">
             <Button
+              @click="handleCreateModalWindow"
               text="Добавить"
               :image="PlusIcon"
               buttonColor="button__buttonAdd"
@@ -255,7 +259,7 @@ const handleDeleteUser = async () => {
             <Button
               text="Удалить"
               :image="DeleteIcon"
-              @click="handleDeleteUser"
+              @click="handleDeleteRow"
             />
             <Button
               text="Обновить"

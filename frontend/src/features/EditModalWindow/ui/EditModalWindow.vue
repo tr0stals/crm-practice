@@ -8,7 +8,6 @@ import Button from "@/shared/ui/Button/ui/Button.vue";
 import { onMounted, reactive, ref } from "vue";
 import { EditModalWindowModel } from "../model/EditModalWindowModel";
 import { api } from "@/shared/api/axiosInstance";
-import { deleteUser } from "@/shared/api/userApi";
 
 const data = ref<any[]>([]);
 
