@@ -38,7 +38,7 @@ import { DatabaseModule } from './database/database.module';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: 'root',
+      password: 'yoga105',
       database: 'crm_practice',
       autoLoadEntities: true,
       synchronize: true,
@@ -71,7 +71,7 @@ import { DatabaseModule } from './database/database.module';
     StandCoursesModule,
     StandTypesModule,
     ShipmentsModule,
-    DatabaseModule
+    DatabaseModule,
   ],
   controllers: [AppController, StandsController, StandCoursesController],
   providers: [AppService, StandCategoriesService, StandTypesService],

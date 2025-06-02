@@ -10,12 +10,12 @@ import { ModalManager } from "@/shared/plugins/modalManager";
 import EditModalWindow from "@/features/EditModalWindow/ui/EditModalWindow.vue";
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
 import { licenseData } from "@/shared/config/mockData";
-import { ref, onMounted, onUnmounted, reactive, watch } from "vue";
+import { ref, onMounted, onUnmounted, reactive, watch, type Ref } from "vue";
 import "../style.scss";
-import { getDataAsync } from "../api/licenseApi";
+import { getDataAsync } from "../api/getDataAsync";
 import type { IData } from "../interface/IData";
 import { DashboardModel } from "../model/DashboardModel";
-import { deleteUser, getUsers } from '@/shared/api/userApi'
+import { deleteUser, getUsers } from "@/shared/api/userApi";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -33,7 +33,7 @@ const selectedRow = ref<any | null>(null);
 /**
  * Наполняем этот массив по ходу
  */
-const sectionsList = ["License", "Users", "Stands"];
+const sectionsList = ["License", "User", "Stands"];
 /**
  * Текущая секция
  */
@@ -47,6 +47,26 @@ const toggleMenu = () => {
 const logout = () => {
   authStore.logout();
   router.push("/login");
+};
+
+const getCurrentData = async (section: string) => {
+  console.debug(section);
+  const config: IData = {
+    endpoint: `${section.toLowerCase()}/get`,
+  };
+
+  try {
+    const response = await getDataAsync(config);
+    data.value = response.data;
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const onUpdateCallBack = async () => {
+  //#region TODO: ВЫНЕСТИ ЭТОТ КУСОК В ОТДЕЛЬНУЮ ФУНКЦИЮ. (ИСПОЛЬЗУЕТСЯ В МЕТОДАХ: onUpdateCallBack, watch(newSection)...)
+  getCurrentData(currentSection.value);
+  //#endregion
 };
 
 /**
@@ -64,7 +84,10 @@ const handleEditModalWindow = () => {
     return;
   }
 
-  ModalManager.getInstance().open(EditModalWindow, { config: cfg });
+  ModalManager.getInstance().open(EditModalWindow, {
+    config: cfg,
+    onUpdateCb: onUpdateCallBack,
+  });
 };
 
 const currentTime = ref("");
@@ -85,27 +108,18 @@ onMounted(async () => {
   new DashboardModel();
 
   updateTime(); // Обновляем время сразу при монтировании
-  timer = setInterval(updateTime, 1000); // Обновляем время каждую секунду
+  timer = setInterval(updateTime, 1000); // Обнyовляем время каждую секунду
 });
 
 /**
  * Здесь мы следим за состоянием переменной currentSection,
  * для того, чтобы менять контент таблицы (Users, License, Stands, ...)
  */
-watch(currentSection, async (newSection) => {
+watch(currentSection, async (newSection: string) => {
   selectedRow.value = null;
   targetData.value = null;
 
-  const config: IData = {
-    endpoint: `${newSection.toLowerCase()}/get`,
-  };
-
-  try {
-    const response = await getDataAsync(config);
-    data.value = response.data;
-  } catch (e) {
-    console.error(e);
-  }
+  getCurrentData(newSection);
 });
 
 watch(selectedRow, (newVal) => {
@@ -133,7 +147,7 @@ const handleAvatarUpload = (event: Event) => {
 
 // Функция для обновления списка пользователей
 const refreshUsers = async () => {
-  if (currentSection.value === 'Users') {
+  if (currentSection.value === "Users") {
     try {
       const response = await getUsers();
       data.value = response.data;
@@ -146,16 +160,16 @@ const refreshUsers = async () => {
 
 // Функция для удаления пользователя
 const handleDeleteUser = async () => {
-  if (currentSection.value !== 'Users') return;
+  if (currentSection.value !== "Users") return;
   if (!selectedRow.value || !selectedRow.value.id) {
-    alert('Выберите пользователя для удаления');
+    alert("Выберите пользователя для удаления");
     return;
   }
   try {
     await deleteUser(selectedRow.value.id);
     await refreshUsers();
   } catch (e) {
-    alert('Ошибка при удалении пользователя');
+    alert("Ошибка при удалении пользователя");
     console.error(e);
   }
 };
@@ -226,8 +240,16 @@ const handleDeleteUser = async () => {
               :image="EditIcon"
               :extraClasses="['button__buttonBlue']"
             />
-            <Button text="Удалить" :image="DeleteIcon" @click="handleDeleteUser" />
-            <Button text="Обновить" :image="RefreshIcon" @click="refreshUsers" />
+            <Button
+              text="Удалить"
+              :image="DeleteIcon"
+              @click="handleDeleteUser"
+            />
+            <Button
+              text="Обновить"
+              :image="RefreshIcon"
+              @click="refreshUsers"
+            />
           </div>
           <div class="search-filter">
             <input type="text" placeholder="Поиск" class="search-input" />
