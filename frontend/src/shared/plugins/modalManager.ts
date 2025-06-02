@@ -13,7 +13,8 @@ export class ModalManager {
   }
 
   private bindEvents() {
-    document.addEventListener("click", (e) => {
+    document.addEventListener("click", (e: any) => {
+      /* Закрытие модального окна при клике на крестик */
       const parent = e.target.closest("#closeIcon");
 
       if (parent) {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
 import type { IData } from "@/views/Dashboard/interface/IData";
-import { getDataAsync } from "@/views/Dashboard/api/licenseApi";
+import { getDataAsync } from "@/views/Dashboard/api/getDataAsync";
 import "../style.scss";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import Button from "@/shared/ui/Button/ui/Button.vue";
@@ -14,6 +14,7 @@ const data = ref<any[]>([]);
 
 const props = defineProps<{
   config: IEdittingProps;
+  onUpdateCb: () => {};
 }>();
 
 const originalData = props.config.data;
@@ -29,22 +30,10 @@ const getInputType = (key: string, value: any): string => {
 };
 
 onMounted(() => {
-  new EditModalWindowModel();
+  new EditModalWindowModel(props.onUpdateCb);
 });
 
 console.debug(originalData);
-
-const handleDeleteUser = async (id: number) => {
-  try {
-    await deleteUser(id);
-    // После удаления обновите данные
-    const config: IData = { endpoint: "users/get" };
-    const response = await getDataAsync(config);
-    data.value = response.data;
-  } catch (e) {
-    console.error("Ошибка при удалении пользователя:", e);
-  }
-};
 </script>
 
 <template>
@@ -91,7 +80,9 @@ const handleDeleteUser = async (id: number) => {
         :extra-classes="['editModalWindow__controls__btn']"
       />
       <Button
-        :data-js-save-btn="JSON.stringify(formData)"
+        :data-js-apply-btn="
+          JSON.stringify({ sectionName: props.config.sectionName, formData })
+        "
         text="Сохранить"
         button-color="button__buttonBlue"
         :extra-classes="['editModalWindow__controls__btn']"

@@ -51,8 +51,17 @@ export class UserService {
       console.error(e);
     }
   }
+
+  async update(id: any, updateUser: UserRegisterDTO) {
+    try {
+      await this.usersRepository.update(id, updateUser);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   // backend/src/user/user.service.ts
-async deleteUser(id: number) {
-  return this.usersRepository.delete(id);
-}
+  async deleteUser(id: number) {
+    return this.usersRepository.delete(id);
+  }
 }
