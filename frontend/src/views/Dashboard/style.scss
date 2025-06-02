@@ -11,6 +11,8 @@
   padding: 20px;
   box-sizing: border-box;
   border-right: 1px solid #e0e0e0; /* Разделитель между сайдбаром и контентом */
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
@@ -19,6 +21,11 @@
   margin-bottom: 40px; /* Увеличил отступ после логотипа */
   color: #0056b3; /* Примерный синий цвет по изображению */
   text-align: center; /* Центрировал логотип */
+}
+
+.menu {
+  height: 50%;
+  overflow-y: auto;
 }
 
 .menu ul {

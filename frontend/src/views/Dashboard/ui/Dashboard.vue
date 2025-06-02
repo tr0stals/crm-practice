@@ -33,7 +33,7 @@ const selectedRow = ref<any | null>(null);
 /**
  * Наполняем этот массив по ходу
  */
-const sectionsList = ["License", "User", "Stands"];
+const sectionsList = ref([]);
 /**
  * Текущая секция
  */
@@ -42,6 +42,14 @@ const targetData = ref();
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
+};
+
+const getSectionList = async () => {
+  const cfg: IData = {
+    endpoint: "database/names",
+  };
+
+  return await getDataAsync(cfg).then((res) => (sectionsList.value = res.data));
 };
 
 const logout = () => {
@@ -106,6 +114,7 @@ let timer: ReturnType<typeof setInterval> | undefined;
 
 onMounted(async () => {
   new DashboardModel();
+  getSectionList();
 
   updateTime(); // Обновляем время сразу при монтировании
   timer = setInterval(updateTime, 1000); // Обнyовляем время каждую секунду
@@ -189,7 +198,10 @@ const handleDeleteUser = async () => {
           >
             {{ section }}
           </li>
-
+        </ul>
+      </nav>
+      <nav class="menu">
+        <ul>
           <li>
             <div @click="toggleMenu" class="menu-item-with-dropdown">
               [HEADER TEXT]
