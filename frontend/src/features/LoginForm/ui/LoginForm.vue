@@ -22,10 +22,12 @@ import { ref } from "vue";
 import { useAuthStore } from "@/shared/store/auth.store";
 import { useRouter } from "vue-router";
 import { loginApi } from "../api/loginApi";
+import { useUserStore } from "@/shared/store/user.store";
 
 const email = ref("");
 const password = ref("");
 const authStore = useAuthStore();
+const userStore = useUserStore();
 const router = useRouter();
 const token = ref<string | null>(localStorage.getItem("token") || null);
 const error = ref<string | null>(null);
@@ -45,8 +47,10 @@ const handleSubmit = async () => {
 const loginUser = async (email: string, password: string) => {
   try {
     const response = await loginApi(email, password);
+
     if (response.data.token) {
       token.value = response.data.token;
+
       localStorage.setItem("token", response.data.token);
       authStore.token = token.value;
       error.value = null;

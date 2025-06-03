@@ -17,6 +17,7 @@ import type { IData } from "../interface/IData";
 import { DashboardModel } from "../model/DashboardModel";
 import { getUsers } from "@/shared/api/userApi";
 import { deleteDataAsync } from "../api/deleteDataAsync";
+import axios from "axios";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -28,6 +29,8 @@ const router = useRouter();
  */
 const data = ref<any[]>([]);
 const isMenuOpen = ref(false);
+const userFirstName = ref("[First name]");
+const userLastName = ref("[Last name]");
 
 const selectedRow = ref<any | null>(null);
 
@@ -166,6 +169,24 @@ const refreshUsers = async () => {
   }
 };
 
+const getUserInfo = async () => {
+  const token = localStorage.getItem("token");
+
+  const cfg = {
+    endpoint: "auth/check",
+    data: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  };
+
+  const response = getDataAsync(cfg);
+  response.then((res) => console.debug(res.data.user));
+};
+
+getUserInfo();
+
 // Функция для удаления пользователя
 const handleDeleteRow = async () => {
   if (!selectedRow.value || !selectedRow.value.id) {
@@ -229,8 +250,8 @@ const handleCreateModalWindow = () => {};
         <div class="user-info">
           <img :src="avatarImage" alt="User Avatar" class="avatar" />
           <div>
-            <div class="user-name">[First name]</div>
-            <div class="user-details">[Last name]</div>
+            <div class="user-name">{{ userFirstName }}</div>
+            <div class="user-details">{{ userLastName }}</div>
             <div class="user-details">{{ currentTime }}</div>
           </div>
         </div>

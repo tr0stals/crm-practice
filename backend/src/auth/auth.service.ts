@@ -28,7 +28,7 @@ export class AuthService {
 
     const payload = { email: user.email, sub: user.id };
     return {
-      token: this.jwtService.signAsync(payload, {
+      token: await this.jwtService.signAsync(payload, {
         expiresIn: '24h', // токен действителен 24ч
       }),
       user: {
@@ -38,7 +38,8 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         middleName: user.middleName,
-        roles: user.userRoles ? user.userRoles.map(ur => ur.roles.name) : []
+        roles: user.userRoles ? user.userRoles.map((ur) => ur.roles.name) : [],
       },
-  }}
+    };
+  }
 }

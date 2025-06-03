@@ -9,5 +9,5 @@ import type { IData } from "../interface/IData";
 export const getDataAsync = async (config: IData) => {
   const { endpoint, data } = config;
 
-  return await api.get(endpoint);
+  return await api.get(endpoint, data);
 };
