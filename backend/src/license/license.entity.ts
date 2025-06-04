@@ -1,4 +1,3 @@
-import { UUID } from 'crypto';
 import { LicenseTypes } from 'src/license-types/license-types.entity';
 import { Shipments } from 'src/shipments/shipments.entity';
 import {
@@ -6,6 +5,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -15,31 +15,27 @@ export class License {
   id: number;
 
   @Column()
-  licenseCode: UUID;
+  licenseCode: string;
 
   @Column()
-  startDate: Date;
-
-  @Column({ nullable: true })
-  expirationDate: Date;
+  start: Date;
 
   @Column()
-  state: number;
+  end: Date;
 
   @Column()
-  price: number;
-
-  @Column({ nullable: true })
   places: number;
 
-  @Column({ nullable: true })
+  @Column()
+  timeout: Date;
+
+  @Column()
   comment: string;
 
-  @ManyToOne(() => LicenseTypes, (licenseType) => licenseType.licenseTypes)
+  @ManyToOne(() => LicenseTypes, (licenseType) => licenseType.licenses)
   @JoinColumn({ name: 'licenseTypeId' })
   licenseTypes: LicenseTypes;
 
-  @ManyToOne(() => Shipments, (shipment) => shipment.licenses)
-  @JoinColumn({ name: 'shipmentId' })
-  shipments: Shipments;
+  @OneToOne(() => Shipments, (shipment) => shipment.licenses)
+  shipments: Shipments[];
 }

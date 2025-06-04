@@ -11,7 +11,7 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string) {
-    const user = await this.userService.findByEmail(email);
+    const user = await this.userService.findByUsername(email);
     if (user && (await bcrypt.compare(password, user.password))) {
       const { password, ...result } = user;
       return result;
@@ -19,26 +19,23 @@ export class AuthService {
     return null;
   }
 
-  async login(email: string, password: string) {
-    const user = await this.userService.findByEmail(email);
+  async login(userName: string, password: string) {
+    const user = await this.userService.findByUsername(userName);
+    console.log(user);
 
     if (user?.password !== password) {
       throw new UnauthorizedException();
     }
 
-    const payload = { email: user.email, sub: user.id };
+    const payload = { userName: user.userName, sub: user.id };
+    console.log(payload);
     return {
       token: await this.jwtService.signAsync(payload, {
         expiresIn: '24h', // токен действителен 24ч
       }),
       user: {
         id: user.id,
-        email: user.email,
         userName: user.userName,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        middleName: user.middleName,
-        roles: user.userRoles ? user.userRoles.map((ur) => ur.roles.name) : [],
       },
     };
   }

@@ -1,14 +1,14 @@
-import { Stands } from "src/stands/stands.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Stands } from 'src/stands/stands.entity';
+import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class StandsTypes {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @OneToMany(()=> Stands, (type)=>type.standsTypes)
-    standsTypes:Stands[];
+  @Column()
+  title: string;
 
-    @Column()
-    name:string;
+  @OneToOne(() => Stands, (stand) => stand.standTypes)
+  stands: Stands[];
 }

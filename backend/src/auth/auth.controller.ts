@@ -20,14 +20,15 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  async login(@Body() body: { email: string; password: string }) {
-    return this.authService.login(body.email, body.password);
+  async login(@Body() body: { userName: string; password: string }) {
+    return this.authService.login(body.userName, body.password);
   }
 
   @Post('register')
   async register(@Body() user: UserRegisterDTO) {
+    console.debug(user);
     const newUser = await this.userService.create({ ...user });
-    return { id: newUser?.id, email: newUser?.email };
+    return { id: newUser?.id, userName: newUser?.userName };
   }
 
   @UseGuards(AuthGuard('jwt'))

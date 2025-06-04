@@ -4,35 +4,53 @@ import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { UserRegisterDTO } from './dto/UserRegisterDTO';
 import * as bcrypt from 'bcrypt';
+import { PeoplesService } from 'src/peoples/peoples.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+
+    private peoplesService: PeoplesService,
   ) {}
 
-  async findByEmail(email: string) {
+  async findByUsername(userName: string) {
     return this.usersRepository.findOne({
-      where: { email },
-      relations: ['userRoles', 'userRoles.roles'],
+      where: { userName },
     });
   }
 
-  async create(user: UserRegisterDTO) {
+  async create(data: UserRegisterDTO) {
     try {
-      const existing = await this.findByEmail(user.email);
-
-      user.passwordSalt = (
-        await this.cryptUserPasswordService(user.password)
+      data.passwordSalt = (
+        await this.cryptUserPasswordService(data.password)
       ).toString();
 
-      if (existing) {
-        throw new BadRequestException(
-          'Пользователь с таким email уже существует',
-        );
+      const peopleData = {
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        middleName: data.middleName,
+        phone: data.phone,
+        comment: data.comment,
+      };
+
+      const people = await this.peoplesService.create(peopleData);
+
+      if (!people) {
+        throw new BadRequestException('Ошибка при регистрации пользователя');
       }
+
+      const user = {
+        userName: data.userName,
+        password: data.password,
+        passwordSalt: data.passwordSalt,
+        peoples: people,
+      };
+
       const newUser = this.usersRepository.create(user);
+
       return this.usersRepository.save(newUser);
     } catch (e) {
       console.error(e);
