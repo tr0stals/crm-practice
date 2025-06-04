@@ -26,6 +26,11 @@ export class DatabaseController {
     return await this.databaseService.getTableColumns(tableName);
     }
 
+  @Get(':tableName/column/:columnName/values')
+  async getTableColumnValues(@Param('tableName') tableName: string, @Param('columnName') columnName: string) {
+    return await this.databaseService.getTableColumnValues(tableName, columnName);
+  }
+
   @Delete(':tableName/:id')
   async deleteTableRecord(@Param('tableName') tableName: string, @Param('id') id: string) {
     return await this.databaseService.deleteTableRecord(tableName, id);

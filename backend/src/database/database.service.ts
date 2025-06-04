@@ -35,6 +35,10 @@ export class DatabaseService {
     return await this.dataSource.query(`SELECT * FROM \`${tableName}\``);
   }
 
+  async getTableColumnValues(tableName: string, columnName: string) {
+    return await this.dataSource.query(`SELECT DISTINCT ${columnName} FROM \`${tableName}\``);
+  }
+
   async deleteTableRecord(tableName: string, id: string) {
     return await this.dataSource.query(`DELETE FROM \`${tableName}\` WHERE id = ${id}`);
   }
