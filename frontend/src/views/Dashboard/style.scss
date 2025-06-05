@@ -201,7 +201,7 @@
 /* Устанавливаю серый фон и синий текст для всех кнопок действий */
 .action-buttons .button {
   background-color: #f4f4f4;
-  color: #0056b3; /* Синий цвет из логотипа */
+  /* Убираем цвет отсюда, он будет в .action-button-style */
   border: 1px solid #ddd; /* Оставляем серую рамку */
 }
 
@@ -317,4 +317,25 @@
   /* Или альтернативный метод для полного скрытия, но сохранения кликабельности: */
   /* position: absolute; */
   /* left: -9999px; */
+}
+
+.action-button-style {
+  background-color: #f4f4f4;
+  color: #555; /* Цвет текста */
+  font-size: 1.5em; /* Размер шрифта */
+  /* Остальные стили как у .logout-button, если нужно */
+}
+
+.logout-button {
+  background-color: #f4f4f4;
+  color: #555;
+  border: 1px solid #ddd;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.5em;
+}
+
+.logout-button:hover {
+  background-color: #e0e0e0;
 }

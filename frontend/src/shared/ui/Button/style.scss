@@ -30,4 +30,17 @@
       background-color: blue;
     }
   }
+
+  &__logout-style {
+    background-color: #f4f4f4;
+    color: #555;
+    border: 1px solid #ddd;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 1.5em;
+
+    &:hover {
+      background-color: #e0e0e0;
+    }
+  }
 }
