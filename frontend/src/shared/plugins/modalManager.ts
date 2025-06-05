@@ -17,12 +17,18 @@ export class ModalManager {
       /* Закрытие модального окна при клике на крестик */
       const parent = e.target.closest("#closeIcon");
 
-      if (parent) {
+      if (parent || e.target === document.getElementById("modalInstance")) {
         this.closeModal();
       }
     });
   }
 
+  /**
+   * Метод открывает модальное окно
+   * @param component - компонент для отрисовки в модальном окне
+   * @param props - необходимые пропсы для модального окна
+   * @param options - опции (пока неактуально)
+   */
   open(component: string, props: any | undefined, options = {}) {
     this.createModalInstance(component, props);
   }
@@ -44,7 +50,7 @@ export class ModalManager {
   }
 
   /**
-   * Закрытие модального окна
+   * Метод закрывает модальное окно
    */
   closeModal() {
     document.querySelector("#modalInstance")?.remove();

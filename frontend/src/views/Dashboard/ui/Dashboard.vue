@@ -9,7 +9,6 @@ import RefreshIcon from "@/shared/ui/RefreshIcon/ui/RefreshIcon.vue";
 import { ModalManager } from "@/shared/plugins/modalManager";
 import EditModalWindow from "@/features/EditModalWindow/ui/EditModalWindow.vue";
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
-import { licenseData } from "@/shared/config/mockData";
 import { ref, onMounted, onUnmounted, reactive, watch, type Ref } from "vue";
 import "../style.scss";
 import { getDataAsync } from "../api/getDataAsync";
@@ -17,7 +16,7 @@ import type { IData } from "../interface/IData";
 import { DashboardModel } from "../model/DashboardModel";
 import { getUsers } from "@/shared/api/userApi";
 import { deleteDataAsync } from "../api/deleteDataAsync";
-import axios from "axios";
+import AddModalWindow from "@/features/AddModalWindow/ui/AddModalWindow.vue";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -41,7 +40,7 @@ const sectionsList = ref([]);
 /**
  * Текущая секция
  */
-const currentSection = ref("License");
+const currentSection = ref("");
 const targetData = ref();
 
 const toggleMenu = () => {
@@ -96,7 +95,7 @@ const handleEditModalWindow = () => {
 
   ModalManager.getInstance().open(EditModalWindow, {
     config: cfg,
-    onUpdateCb: onUpdateCallBack,
+    onApplyCallback: onUpdateCallBack,
   });
 };
 
@@ -205,7 +204,18 @@ const handleDeleteRow = async () => {
 };
 
 // TODO: сделать добавление
-const handleCreateModalWindow = () => {};
+const handleCreateModalWindow = () => {
+  // в конфиг добавляем название секции
+  const cfg = {
+    sectionName: currentSection.value,
+    endpoint: `${currentSection.value}/create`,
+  };
+
+  ModalManager.getInstance().open(AddModalWindow, {
+    config: cfg,
+    onApplyCallback: onUpdateCallBack,
+  });
+};
 </script>
 
 <template>

@@ -27,4 +27,12 @@ export class PeoplesService {
     const people = this.peoplesRepository.create(data);
     return await this.peoplesRepository.save(people);
   }
+
+  async getPeoples() {
+    try {
+      return await this.peoplesRepository.find();
+    } catch (e) {
+      console.error('Ошибка при получении Peoples');
+    }
+  }
 }

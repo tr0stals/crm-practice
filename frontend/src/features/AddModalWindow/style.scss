@@ -1,19 +1,4 @@
-.editModalWindow {
-  &__header {
-    &__title {
-      font-size: 2rem;
-      color: #333;
-    }
-
-    &__hr {
-      width: 100%;
-      border: none;
-      height: 1px;
-      background-color: #eee;
-      margin: 15px 0;
-    }
-  }
-
+.addModalWindow {
   &__closeIcon {
     position: absolute;
     right: 15px;
