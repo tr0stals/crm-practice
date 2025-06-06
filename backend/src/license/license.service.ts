@@ -3,18 +3,36 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { License } from './license.entity';
 import { Repository } from 'typeorm';
 import { LicenseDTO } from './dto/LicenseDTO';
+import { LicenseTypes } from 'src/license-types/license-types.entity';
+import { LicenseTypesService } from 'src/license-types/license-types.service';
 
 @Injectable()
 export class LicenseService {
   constructor(
     @InjectRepository(License)
     private licenseRepository: Repository<License>,
+    private licenseTypesService: LicenseTypesService,
   ) {}
 
-  async create(license: LicenseDTO) {
+  async create(data: LicenseDTO) {
     try {
-      const newLicense = this.licenseRepository.create(license);
-      return this.licenseRepository.save(newLicense);
+      const licenseType = await this.licenseTypesService.findById(
+        data.licenseTypeId,
+      );
+
+      if (licenseType) {
+        const license = {
+          licenseCode: data.licenseCode,
+          comment: data.comment,
+          end: data.end,
+          start: data.start,
+          places: data.places,
+          timeout: data.timeout,
+          licenseTypes: licenseType,
+        };
+        const newLicense = this.licenseRepository.create(license);
+        return this.licenseRepository.save(newLicense);
+      }
     } catch (e) {
       console.error(e);
     }

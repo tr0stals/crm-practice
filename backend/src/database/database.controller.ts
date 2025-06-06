@@ -29,14 +29,25 @@ export class DatabaseController {
     return await this.databaseService.getTableRows(tableName);
   }
 
+  @Get(':tableName/relations')
+  async getTableRelations(@Param('tableName') tableName: string) {
+    return this.databaseService.getTableRelations(tableName);
+  }
+
   @Get(':tableName/columns')
   async getTableColumns(@Param('tableName') tableName: string) {
     return await this.databaseService.getTableColumns(tableName);
   }
 
   @Get(':tableName/column/:columnName/values')
-  async getTableColumnValues(@Param('tableName') tableName: string, @Param('columnName') columnName: string) {
-    return await this.databaseService.getTableColumnValues(tableName, columnName);
+  async getTableColumnValues(
+    @Param('tableName') tableName: string,
+    @Param('columnName') columnName: string,
+  ) {
+    return await this.databaseService.getTableColumnValues(
+      tableName,
+      columnName,
+    );
   }
 
   @Delete(':tableName/:id')

@@ -40,7 +40,27 @@ export class DatabaseService {
   }
 
   async getTableColumnValues(tableName: string, columnName: string) {
-    return await this.dataSource.query(`SELECT DISTINCT ${columnName} FROM \`${tableName}\``);
+    return await this.dataSource.query(
+      `SELECT DISTINCT ${columnName} FROM \`${tableName}\``,
+    );
+  }
+
+  async getTableRelations(tableName: string) {
+    const metadata = this.dataSource.entityMetadatas.find(
+      (meta) => meta.tableName === tableName,
+    );
+
+    if (!metadata) {
+      throw new Error(`Table ${tableName} not found`);
+    }
+
+    const relations = metadata.relations.map((rel) => ({
+      propertyName: rel.propertyName, // например, licenseTypes
+      referencedColumn: rel.inverseEntityMetadata.tableName, // например, license_types
+      foreignKey: rel.joinColumns[0]?.databaseName || `${rel.propertyName}Id`, // licenseTypeId
+    }));
+
+    return relations;
   }
 
   async deleteTableRecord(tableName: string, id: string) {

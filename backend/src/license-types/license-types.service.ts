@@ -20,6 +20,14 @@ export class LicenseTypesService {
     }
   }
 
+  async findById(data: number) {
+    try {
+      return await this.licenseRepository.findOne({ where: { id: data } });
+    } catch (e) {
+      console.error('Ошибка при поиске');
+    }
+  }
+
   async getLicenseTypes() {
     try {
       return await this.licenseRepository.find();

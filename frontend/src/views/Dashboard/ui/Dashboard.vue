@@ -9,7 +9,15 @@ import RefreshIcon from "@/shared/ui/RefreshIcon/ui/RefreshIcon.vue";
 import { ModalManager } from "@/shared/plugins/modalManager";
 import EditModalWindow from "@/features/EditModalWindow/ui/EditModalWindow.vue";
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
-import { ref, onMounted, onUnmounted, reactive, watch, type Ref, computed } from "vue";
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  reactive,
+  watch,
+  type Ref,
+  computed,
+} from "vue";
 import "../style.scss";
 import { getDataAsync } from "../api/getDataAsync";
 import type { IData } from "../interface/IData";
@@ -18,6 +26,7 @@ import { getUsers } from "@/shared/api/userApi";
 import { deleteDataAsync } from "../api/deleteDataAsync";
 import AddModalWindow from "@/features/AddModalWindow/ui/AddModalWindow.vue";
 import AvatarIcon from "@/shared/ui/AvatarIcon/ui/AvatarIcon.vue";
+import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -45,7 +54,7 @@ const currentSection = ref("");
 const targetData = ref();
 
 // Поисковый запрос для фильтрации
-const searchQuery = ref('');
+const searchQuery = ref("");
 
 // Переменные для пагинации
 const currentPage = ref(1);
@@ -54,10 +63,10 @@ const itemsPerPage = ref(3); // Для теста ставим 3 строки н
 // Добавляем вычисляемое свойство для фильтрации данных
 const filteredData = computed(() => {
   if (!searchQuery.value) return data.value;
-  
+
   const query = searchQuery.value.toLowerCase();
-  return data.value.filter(item => {
-    return Object.values(item).some(value => {
+  return data.value.filter((item) => {
+    return Object.values(item).some((value) => {
       if (value === null || value === undefined) return false;
       return String(value).toLowerCase().includes(query);
     });
@@ -93,10 +102,9 @@ const logout = () => {
   router.push("/login");
 };
 
-const getCurrentData = async (section: string) => {
-  console.debug(section);
+const getCurrentData = async () => {
   const config: IData = {
-    endpoint: `${section.toLowerCase()}/get`,
+    endpoint: `${currentSection.value.toLowerCase()}/get`,
   };
 
   try {
@@ -108,7 +116,7 @@ const getCurrentData = async (section: string) => {
 };
 
 const onUpdateCallBack = async () => {
-  getCurrentData(currentSection.value);
+  getCurrentData();
 };
 
 /**
@@ -240,7 +248,7 @@ const handleDeleteRow = async () => {
   try {
     console.debug(currentSection.value);
     await deleteDataAsync(selectedRow.value.id, currentSection.value);
-    getCurrentData(currentSection.value);
+    getCurrentData();
   } catch (e) {
     alert("Ошибка при удалении пользователя");
     console.error(e);
@@ -255,9 +263,15 @@ const handleCreateModalWindow = () => {
     endpoint: `${currentSection.value}/create`,
   };
 
-  ModalManager.getInstance().open(AddModalWindow, {
-    config: cfg,
-    onApplyCallback: onUpdateCallBack,
+  if (!cfg.sectionName) {
+    alert("Выберите таблицу для добавления!");
+    return;
+  }
+
+  ModalManager.getInstance().open(AddEntity, {
+    sectionName: currentSection.value,
+    onClose: ModalManager.getInstance().closeModal,
+    onSuccess: getCurrentData,
   });
 };
 
@@ -370,7 +384,10 @@ const nextPage = () => {
             />
           </div>
           <div class="search-filter">
-            <input type="text" placeholder="Поиск" class="search-input"
+            <input
+              type="text"
+              placeholder="Поиск"
+              class="search-input"
               v-model="searchQuery"
             />
           </div>
@@ -415,7 +432,9 @@ const nextPage = () => {
         <!-- Pagination -->
         <div class="pagination">
           <button @click="prevPage" :disabled="currentPage === 1">&lt;</button>
-          <button @click="firstPage" :disabled="currentPage === 1">&lt;&lt;</button>
+          <button @click="firstPage" :disabled="currentPage === 1">
+            &lt;&lt;
+          </button>
           <template v-for="page in totalPages" :key="page">
             <button
               @click="gotoPage(page)"
@@ -424,8 +443,12 @@ const nextPage = () => {
               {{ page }}
             </button>
           </template>
-          <button @click="lastPage" :disabled="currentPage === totalPages">&gt;&gt;</button>
-          <button @click="nextPage" :disabled="currentPage === totalPages">&gt;</button>
+          <button @click="lastPage" :disabled="currentPage === totalPages">
+            &gt;&gt;
+          </button>
+          <button @click="nextPage" :disabled="currentPage === totalPages">
+            &gt;
+          </button>
         </div>
       </section>
     </main>

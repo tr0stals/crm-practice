@@ -35,4 +35,20 @@ export class PeoplesService {
       console.error('Ошибка при получении Peoples');
     }
   }
+
+  async update(id: number, people: PeoplesDTO) {
+    try {
+      await this.peoplesRepository.update(id, people);
+    } catch (e) {
+      console.error('Ошибка при редактировании People');
+    }
+  }
+
+  async remove(id: any) {
+    try {
+      return await this.peoplesRepository.delete(id);
+    } catch (e) {
+      console.error('Ошибка при удалении People');
+    }
+  }
 }
