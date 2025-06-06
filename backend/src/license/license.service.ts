@@ -30,7 +30,7 @@ export class LicenseService {
 
   async remove(id) {
     try {
-      await this.licenseRepository.remove(id);
+      await this.licenseRepository.delete(id);
     } catch (e) {
       console.error(e);
     }
