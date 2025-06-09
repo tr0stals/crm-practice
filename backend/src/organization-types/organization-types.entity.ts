@@ -7,8 +7,11 @@ export class OrganizationTypes {
   id: number;
 
   @Column()
-  name: string;
+  title: string;
 
-  @OneToMany(() => Organizations, (organization) => organization.locations)
+  @OneToMany(
+    () => Organizations,
+    (organization) => organization.organizationTypes,
+  )
   organizations: Organizations[];
 }

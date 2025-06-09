@@ -1,14 +1,14 @@
-import { License } from "src/license/license.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { License } from 'src/license/license.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class LicenseTypes {
-    @PrimaryGeneratedColumn()
-    id:number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    name:string;
+  @Column()
+  name: string;
 
-    @OneToMany(() => License, (license) => license.licenseTypes)
-      licenseTypes: License[];
+  @OneToMany(() => License, (license) => license.licenseTypes)
+  licenses: License[];
 }
