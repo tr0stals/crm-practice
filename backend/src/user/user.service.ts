@@ -57,6 +57,13 @@ export class UserService {
     }
   }
 
+  async getUserById(id: number) {
+    return await this.usersRepository.findOne({
+      where: { id: id },
+      relations: ['peoples'],
+    });
+  }
+
   async cryptUserPasswordService(password: string) {
     const salt = await bcrypt.genSaltSync(10);
     return await bcrypt.hashSync(password, salt);

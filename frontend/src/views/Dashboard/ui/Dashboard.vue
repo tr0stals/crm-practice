@@ -9,6 +9,7 @@ import RefreshIcon from "@/shared/ui/RefreshIcon/ui/RefreshIcon.vue";
 import { ModalManager } from "@/shared/plugins/modalManager";
 import EditModalWindow from "@/features/EditModalWindow/ui/EditModalWindow.vue";
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
+import { getUserInfoAsync } from "../api/getUserInfoAsync";
 import {
   ref,
   onMounted,
@@ -24,7 +25,6 @@ import type { IData } from "../interface/IData";
 import { DashboardModel } from "../model/DashboardModel";
 import { getUsers } from "@/shared/api/userApi";
 import { deleteDataAsync } from "../api/deleteDataAsync";
-import AddModalWindow from "@/features/AddModalWindow/ui/AddModalWindow.vue";
 import AvatarIcon from "@/shared/ui/AvatarIcon/ui/AvatarIcon.vue";
 import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
 
@@ -40,6 +40,7 @@ const data = ref<any[]>([]);
 const isMenuOpen = ref(false);
 const userFirstName = ref("[First name]");
 const userLastName = ref("[Last name]");
+// const userInfo = ref<any>();
 
 const selectedRow = ref<any | null>(null);
 
@@ -164,8 +165,14 @@ const updateTime = () => {
 let timer: ReturnType<typeof setInterval> | undefined;
 
 onMounted(async () => {
-  new DashboardModel();
+  // new DashboardModel();
   getSectionList();
+
+  // получаем имя, фамилию пользователя
+  const { firstName, lastName } = await getUserInfoAsync();
+
+  userFirstName.value = firstName;
+  userLastName.value = lastName;
 
   updateTime(); // Обновляем время и дату сразу при монтировании
   timer = setInterval(updateTime, 1000); // Обновляем время каждую секунду
@@ -179,11 +186,10 @@ watch(currentSection, async (newSection: string) => {
   selectedRow.value = null;
   targetData.value = null;
 
-  getCurrentData(newSection);
+  getCurrentData();
 });
 
 watch(selectedRow, (newVal) => {
-  console.debug(newVal);
   targetData.value = newVal;
 });
 
@@ -220,24 +226,6 @@ const refreshUsers = async () => {
   }
 };
 
-const getUserInfo = async () => {
-  const token = localStorage.getItem("token");
-
-  const cfg = {
-    endpoint: "auth/check",
-    data: {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  };
-
-  const response = getDataAsync(cfg);
-  response.then((res) => console.debug(res.data.user));
-};
-
-getUserInfo();
-
 // Функция для удаления пользователя
 const handleDeleteRow = async () => {
   if (!selectedRow.value || !selectedRow.value.id) {
@@ -255,7 +243,6 @@ const handleDeleteRow = async () => {
   }
 };
 
-// TODO: сделать добавление
 const handleCreateModalWindow = () => {
   // в конфиг добавляем название секции
   const cfg = {
