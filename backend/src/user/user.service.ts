@@ -18,6 +18,7 @@ export class UserService {
   async findByUsername(userName: string) {
     return this.usersRepository.findOne({
       where: { userName },
+      relations: ['profession', 'peoples'],
     });
   }
 

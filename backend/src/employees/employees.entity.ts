@@ -25,6 +25,10 @@ export class Employees {
   @Column()
   birthDate: Date;
 
+  @ManyToOne(() => Professions, (profession) => profession.employees)
+  @JoinColumn({ name: 'professionId' })
+  profession: Professions;
+
   @ManyToOne(() => Peoples, (people) => people.employees)
   @JoinColumn({ name: 'peopleId' })
   peoples: Peoples;
@@ -38,9 +42,6 @@ export class Employees {
     (employeeDepartment) => employeeDepartment.employees,
   )
   employeeDepartments: EmployeeDepartments[];
-
-  @OneToMany(() => Professions, (profession) => profession.employees)
-  professions: Professions[];
 
   @OneToMany(() => EmployeeTasks, (employeeTask) => employeeTask.employees)
   employeeTasks: EmployeeTasks[];

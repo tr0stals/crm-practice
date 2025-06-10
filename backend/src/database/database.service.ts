@@ -63,6 +63,10 @@ export class DatabaseService {
     return relations;
   }
 
+  async getTableRowById(tableName: string, id: string) {
+    return await this.dataSource.query(`SELECT * FROM \`${tableName}\` WHERE id = ? LIMIT 1`, [id]);
+  }
+
   async deleteTableRecord(tableName: string, id: string) {
     return await this.dataSource.query(
       `DELETE FROM \`${tableName}\` WHERE id = ${id}`,
@@ -80,5 +84,16 @@ export class DatabaseService {
       `UPDATE \`${tableName}\` SET ? WHERE id = ${id}`,
       [record],
     );
+  }
+
+  async searchTableRows(tableName: string, query: string) {
+    // Получаем все колонки
+    const columns = await this.getTableColumns(tableName);
+    if (!columns || columns.length === 0) return [];
+    // Формируем WHERE для поиска по всем колонкам
+    const likeStatements = columns.map(col => `CAST(\`${col}\` AS CHAR) LIKE ?`).join(' OR ');
+    const params = columns.map(() => `%${query}%`);
+    const sql = `SELECT * FROM \`${tableName}\` WHERE ${likeStatements}`;
+    return await this.dataSource.query(sql, params);
   }
 }
