@@ -10,6 +10,7 @@ import { ModalManager } from "@/shared/plugins/modalManager";
 import EditModalWindow from "@/features/EditModalWindow/ui/EditModalWindow.vue";
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
 import { getUserInfoAsync } from "../api/getUserInfoAsync";
+import CustomTreeview from "@/shared/ui/CustomTreeview/ui/CustomTreeview.vue";
 import {
   ref,
   onMounted,
@@ -27,6 +28,7 @@ import { getUsers } from "@/shared/api/userApi";
 import { deleteDataAsync } from "../api/deleteDataAsync";
 import AvatarIcon from "@/shared/ui/AvatarIcon/ui/AvatarIcon.vue";
 import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
+import type { TreeNode } from "primevue/treenode";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -41,6 +43,38 @@ const isMenuOpen = ref(false);
 const userFirstName = ref("[First name]");
 const userLastName = ref("[Last name]");
 // const userInfo = ref<any>();
+
+const treeviewData = ref<TreeNode[]>([]);
+
+const nodes = ref<TreeNode[]>([
+  {
+    key: "0",
+    label: "Documents",
+    children: [
+      {
+        key: "0-0",
+        label: "Work",
+        children: [{ key: "0-0-0", label: "Resume.doc" }],
+      },
+      {
+        key: "0-1",
+        label: "Home",
+        children: [{ key: "0-1-0", label: "Invoices.txt" }],
+      },
+    ],
+  },
+  {
+    key: "1",
+    label: "Pictures",
+    children: [
+      {
+        key: "1-0",
+        label: "Vacation",
+        children: [{ key: "1-0-0", label: "photo.png" }],
+      },
+    ],
+  },
+]);
 
 const selectedRow = ref<any | null>(null);
 
@@ -117,7 +151,7 @@ const getCurrentData = async () => {
 };
 
 const onUpdateCallBack = async () => {
-  getCurrentData();
+  await getCurrentData();
 };
 
 /**
@@ -182,11 +216,31 @@ onMounted(async () => {
  * Здесь мы следим за состоянием переменной currentSection,
  * для того, чтобы менять контент таблицы (Users, License, Stands, ...)
  */
-watch(currentSection, async (newSection: string) => {
+watch(currentSection, async (oldVal: string, newSection: string) => {
   selectedRow.value = null;
   targetData.value = null;
+  treeviewData.value = [];
 
-  getCurrentData();
+  await getCurrentData();
+
+  data.value.map((item, index) => {
+    if (index > Object.keys(item).length) return;
+
+    const obj: TreeNode = {
+      key: `${index}`,
+      label: Object.keys(item)[index] as string,
+      data: Object.keys(item)[index] as string,
+      children: [
+        {
+          key: `${index}-${index++}`,
+          label: Object.values(item)[index] as string,
+          data: Object.values(item)[index] as string,
+        },
+      ],
+    };
+
+    treeviewData.value.push(obj);
+  });
 });
 
 watch(selectedRow, (newVal) => {
@@ -288,6 +342,8 @@ const nextPage = () => {
 </script>
 
 <template>
+  <!-- <CustomTreeview :data="treeviewData" /> -->
+
   <div class="dashboard-layout">
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -303,23 +359,7 @@ const nextPage = () => {
           </li>
         </ul>
       </nav>
-      <nav class="menu">
-        <ul>
-          <li>
-            <div @click="toggleMenu" class="menu-item-with-dropdown">
-              [HEADER TEXT]
-              <span class="dropdown-icon" :class="{ rotated: isMenuOpen }"
-                >▼</span
-              >
-            </div>
-            <ul v-if="isMenuOpen" class="dropdown-menu">
-              <li>Пункт меню 1</li>
-              <li>Пункт меню 2</li>
-              <li>Пункт меню 3</li>
-            </ul>
-          </li>
-        </ul>
-      </nav>
+      <CustomTreeview :data="treeviewData" />
     </aside>
 
     <!-- Main Content Area -->
@@ -401,6 +441,9 @@ const nextPage = () => {
                 @dblclick="handleEditModalWindow"
                 :class="{ 'selected-row': selectedRow?.id === item.id }"
               >
+                {{
+                  console.debug()
+                }}
                 <template v-for="(value, title) in item">
                   <td v-if="title !== 'password'" :key="title">
                     <template v-if="typeof value === 'boolean'">
