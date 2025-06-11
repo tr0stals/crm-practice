@@ -18,6 +18,7 @@
         <label for="firstName">Имя</label>
         <input type="text" id="firstName" v-model="firstName" required />
       </div>
+
       <div class="form-group">
         <label for="lastName">Фамилия</label>
         <input type="text" id="lastName" v-model="lastName" required />
@@ -25,6 +26,10 @@
       <div class="form-group">
         <label for="middleName">Отчество</label>
         <input type="text" id="middleName" v-model="middleName" />
+      </div>
+      <div class="form-group">
+        <label for="phone">Телефон</label>
+        <input type="phone" id="phone" v-model="phone" required />
       </div>
       <button type="submit" class="submit-button">Register</button>
       <p v-if="authStore.error" class="error">{{ authStore.error }}</p>
@@ -39,7 +44,6 @@ import { useAuthStore } from "@/shared/store/auth.store";
 import { useRouter } from "vue-router";
 import type { IUserRegister } from "../interface/IUserRegister";
 import { register } from "../api/registerApi";
-import { ModalManager } from "@/shared/plugins/modalManager";
 
 const userEmail = ref("");
 const password = ref("");
@@ -51,6 +55,7 @@ const middleName = ref("");
 const authStore = useAuthStore();
 const router = useRouter();
 const error = ref<string | null>(null);
+const phone = ref("");
 
 const handleSubmit = async () => {
   try {
@@ -61,7 +66,9 @@ const handleSubmit = async () => {
       password: password.value,
       middleName: middleName.value,
       userName: userName.value,
+      phone: phone.value,
       passwordSalt: confirmPassword.value,
+      comment: "",
     };
     await registerUser(user);
     router.push("/dashboard");

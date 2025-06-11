@@ -1,11 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { EmployeeTasks } from '../employee-tasks/employee-tasks.entity';
 
 export enum TaskStatus {
   NOT_STARTED = 'NOT_STARTED',
   WAITING_COMPONENTS = 'WAITING_COMPONENTS',
   IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED'
+  COMPLETED = 'COMPLETED',
 }
 
 @Entity()
@@ -22,11 +28,7 @@ export class CurrentTasks {
   @Column({
     type: 'enum',
     enum: TaskStatus,
-    default: TaskStatus.NOT_STARTED
+    default: TaskStatus.NOT_STARTED,
   })
   status: TaskStatus;
-
-  @ManyToOne(() => EmployeeTasks, task => task.currentTasks)
-  @JoinColumn({ name: 'taskId' })
-  task: EmployeeTasks;
-} 
+}

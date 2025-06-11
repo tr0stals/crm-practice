@@ -11,9 +11,11 @@ export class DatabaseService {
     const result: { tableName: string; rows: { json: string }[] }[] = [];
     for (const t of tables) {
       const tableName = t[tableKey];
-      const rowsRaw = await this.dataSource.query(`SELECT * FROM \`${tableName}\``);
+      const rowsRaw = await this.dataSource.query(
+        `SELECT * FROM \`${tableName}\``,
+      );
       // Сериализуем каждую строку в JSON
-      const rows = rowsRaw.map(row => ({ json: JSON.stringify(row) }));
+      const rows = rowsRaw.map((row) => ({ json: JSON.stringify(row) }));
       result.push({ tableName, rows });
     }
     return result;
@@ -22,28 +24,76 @@ export class DatabaseService {
   async getTableNames() {
     const tables = await this.dataSource.query('SHOW TABLES');
     const tableKey = Object.keys(tables[0])[0];
-    return tables.map(t => t[tableKey]);
+    return tables.map((t) => t[tableKey]);
   }
-  
+
   async getTableColumns(tableName: string) {
-    const columns = await this.dataSource.query(`SHOW COLUMNS FROM \`${tableName}\``);
+    const columns = await this.dataSource.query(
+      `SHOW COLUMNS FROM \`${tableName}\``,
+    );
     // columns[i].Field — имя столбца
-    return columns.map(col => col.Field);
+    return columns.map((col) => col.Field);
   }
 
   async getTableRows(tableName: string) {
     return await this.dataSource.query(`SELECT * FROM \`${tableName}\``);
   }
 
+  async getTableColumnValues(tableName: string, columnName: string) {
+    return await this.dataSource.query(
+      `SELECT DISTINCT ${columnName} FROM \`${tableName}\``,
+    );
+  }
+
+  async getTableRelations(tableName: string) {
+    const metadata = this.dataSource.entityMetadatas.find(
+      (meta) => meta.tableName === tableName,
+    );
+
+    if (!metadata) {
+      throw new Error(`Table ${tableName} not found`);
+    }
+
+    const relations = metadata.relations.map((rel) => ({
+      propertyName: rel.propertyName, // например, licenseTypes
+      referencedColumn: rel.inverseEntityMetadata.tableName, // например, license_types
+      foreignKey: rel.joinColumns[0]?.databaseName || `${rel.propertyName}Id`, // licenseTypeId
+    }));
+
+    return relations;
+  }
+
+  async getTableRowById(tableName: string, id: string) {
+    return await this.dataSource.query(`SELECT * FROM \`${tableName}\` WHERE id = ? LIMIT 1`, [id]);
+  }
+
   async deleteTableRecord(tableName: string, id: string) {
-    return await this.dataSource.query(`DELETE FROM \`${tableName}\` WHERE id = ${id}`);
+    return await this.dataSource.query(
+      `DELETE FROM \`${tableName}\` WHERE id = ${id}`,
+    );
   }
 
   async addTableRecord(tableName: string, record: any) {
-    return await this.dataSource.query(`INSERT INTO \`${tableName}\` SET ?`, [record]);
+    return await this.dataSource.query(`INSERT INTO \`${tableName}\` SET ?`, [
+      record,
+    ]);
   }
 
   async updateTableRecord(tableName: string, id: string, record: any) {
-    return await this.dataSource.query(`UPDATE \`${tableName}\` SET ? WHERE id = ${id}`, [record]);
+    return await this.dataSource.query(
+      `UPDATE \`${tableName}\` SET ? WHERE id = ${id}`,
+      [record],
+    );
+  }
+
+  async searchTableRows(tableName: string, query: string) {
+    // Получаем все колонки
+    const columns = await this.getTableColumns(tableName);
+    if (!columns || columns.length === 0) return [];
+    // Формируем WHERE для поиска по всем колонкам
+    const likeStatements = columns.map(col => `CAST(\`${col}\` AS CHAR) LIKE ?`).join(' OR ');
+    const params = columns.map(() => `%${query}%`);
+    const sql = `SELECT * FROM \`${tableName}\` WHERE ${likeStatements}`;
+    return await this.dataSource.query(sql, params);
   }
 }

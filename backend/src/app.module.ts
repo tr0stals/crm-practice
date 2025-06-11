@@ -10,13 +10,7 @@ import { LocationsModule } from './locations/locations.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { OrganizationTypesModule } from './organization-types/organization-types.module';
 import { DepartmentsModule } from './departments/departments.module';
-import { GroupsModule } from './groups/groups.module';
-import { TutorsModule } from './tutors/tutors.module';
-import { RolesModule } from './roles/roles.module';
-import { UserRolesModule } from './user-roles/user-roles.module';
 import { StudentsModule } from './students/students.module';
-import { RightsModule } from './rights/rights.module';
-import { RoleRightsModule } from './role-rights/role-rights.module';
 import { LicenseModule } from './license/license.module';
 import { LicenseTypesModule } from './license-types/license-types.module';
 import { EmployeesModule } from './employees/employees.module';
@@ -28,8 +22,26 @@ import { StandCoursesController } from './stand-courses/stand-courses.controller
 import { StandCoursesModule } from './stand-courses/stand-courses.module';
 import { StandTypesService } from './stand-types/stand-types.service';
 import { StandTypesModule } from './stand-types/stand-types.module';
-import { ShipmentsModule } from './shipments/shipments.module';
 import { DatabaseModule } from './database/database.module';
+import { ShipmentPackageStatesModule } from './shipment-package-states/shipment-package-states.module';
+import { ShipmentPackageModule } from './shipment-package/shipment-package.module';
+import { ShipmentsModule } from './shipments/shipments.module';
+import { ShipmentStatesModule } from './shipment-states/shipment-states.module';
+import { ShipmentTripsModule } from './shipment-trips/shipment-trips.module';
+import { PeoplesModule } from './peoples/peoples.module';
+import { EmployeeStatesModule } from './employee-states/employee-states.module';
+import { EmployeeDepartmentsModule } from './employee-departments/employee-departments.module';
+import { ProfessionsModule } from './professions/professions.module';
+import { StandAssembliesModule } from './stand-assemblies/stand-assemblies.module';
+import { StandPackagesModule } from './stand-packages/stand-packages.module';
+import { WarehouseComponentsModule } from './warehouse-components/warehouse-components.module';
+import { OrderRequestsModule } from './order-requests/order-requests.module';
+import { OrderRequestComponentsModule } from './order-request-components/order-request-components.module';
+import { OrderTypesModule } from './order-types/order-types.module';
+import { PcbOrderStatesModule } from './pcb-order-states/pcb-order-states.module';
+import { PcbsModule } from './pcbs/pcbs.module';
+import { PcbWarehouseComponentsModule } from './pcb-warehouse-components/pcb-warehouse-components.module';
+import { PcbOrdersModule } from './pcb-orders/pcb-orders.module';
 
 @Module({
   imports: [
@@ -38,7 +50,7 @@ import { DatabaseModule } from './database/database.module';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: 'yoga105',
+      password: 'Yoga105!',
       database: 'crm_practice',
       autoLoadEntities: true,
       synchronize: true,
@@ -56,13 +68,7 @@ import { DatabaseModule } from './database/database.module';
     OrganizationsModule,
     OrganizationTypesModule,
     DepartmentsModule,
-    GroupsModule,
-    TutorsModule,
-    RolesModule,
-    UserRolesModule,
     StudentsModule,
-    RightsModule,
-    RoleRightsModule,
     LicenseModule,
     LicenseTypesModule,
     EmployeesModule,
@@ -72,6 +78,24 @@ import { DatabaseModule } from './database/database.module';
     StandTypesModule,
     ShipmentsModule,
     DatabaseModule,
+    ShipmentPackageStatesModule,
+    ShipmentPackageModule,
+    ShipmentStatesModule,
+    ShipmentTripsModule,
+    PeoplesModule,
+    EmployeeStatesModule,
+    EmployeeDepartmentsModule,
+    ProfessionsModule,
+    StandAssembliesModule,
+    StandPackagesModule,
+    WarehouseComponentsModule,
+    OrderRequestsModule,
+    OrderRequestComponentsModule,
+    OrderTypesModule,
+    PcbOrderStatesModule,
+    PcbsModule,
+    PcbWarehouseComponentsModule,
+    PcbOrdersModule,
   ],
   controllers: [AppController, StandsController, StandCoursesController],
   providers: [AppService, StandCategoriesService, StandTypesService],

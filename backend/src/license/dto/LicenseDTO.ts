@@ -1,11 +1,9 @@
-import { UUID } from 'crypto';
-
 export class LicenseDTO {
-  licenseCode: UUID;
-  startDate: Date;
-  expirationDate?: Date;
-  state: number;
-  price: number;
-  places?: number;
-  comment?: string;
+  licenseTypeId: number;
+  licenseCode: string;
+  start: Date;
+  end: Date;
+  places: number;
+  timeout: Date;
+  comment: string;
 }

@@ -14,6 +14,7 @@ export class EditModalWindowModel {
 
   constructor(cb: () => {}) {
     this.cb = cb;
+    this.endpoint = "";
     this.#bindEvents();
   }
 
@@ -36,7 +37,6 @@ export class EditModalWindowModel {
         const key = JSON.parse(target.getAttribute(attr));
 
         this.endpoint = key.sectionName;
-        console.debug(key.formData);
         this.data = key.formData;
 
         const response = this.applyData();

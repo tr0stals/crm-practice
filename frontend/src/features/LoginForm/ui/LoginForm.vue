@@ -3,8 +3,8 @@
     <h2 class="login-form__title">Login Form</h2>
     <form @submit.prevent="handleSubmit">
       <div class="form-group">
-        <label for="email">Email:</label>
-        <input type="email" id="email" v-model="email" required />
+        <label for="userName">UserName:</label>
+        <input type="text" id="userName" v-model="userName" required />
       </div>
       <div class="form-group">
         <label for="password">Password:</label>
@@ -22,8 +22,9 @@ import { ref } from "vue";
 import { useAuthStore } from "@/shared/store/auth.store";
 import { useRouter } from "vue-router";
 import { loginApi } from "../api/loginApi";
+import { useUserStore } from "@/shared/store/user.store";
 
-const email = ref("");
+const userName = ref("");
 const password = ref("");
 const authStore = useAuthStore();
 const router = useRouter();
@@ -32,7 +33,7 @@ const error = ref<string | null>(null);
 
 const handleSubmit = async () => {
   try {
-    await loginUser(email.value, password.value);
+    await loginUser(userName.value, password.value);
 
     // переход после успешного входа
     router.push("/dashboard");
@@ -42,11 +43,13 @@ const handleSubmit = async () => {
   }
 };
 
-const loginUser = async (email: string, password: string) => {
+const loginUser = async (userName: string, password: string) => {
   try {
-    const response = await loginApi(email, password);
+    const response = await loginApi(userName, password);
+
     if (response.data.token) {
       token.value = response.data.token;
+
       localStorage.setItem("token", response.data.token);
       authStore.token = token.value;
       error.value = null;

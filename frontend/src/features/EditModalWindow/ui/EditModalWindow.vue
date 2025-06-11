@@ -1,23 +1,20 @@
 <script setup lang="ts">
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
-import type { IData } from "@/views/Dashboard/interface/IData";
-import { getDataAsync } from "@/views/Dashboard/api/getDataAsync";
 import "../style.scss";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import Button from "@/shared/ui/Button/ui/Button.vue";
 import { onMounted, reactive, ref } from "vue";
 import { EditModalWindowModel } from "../model/EditModalWindowModel";
-import { api } from "@/shared/api/axiosInstance";
-import { deleteUser } from "@/shared/api/userApi";
+import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 
 const data = ref<any[]>([]);
 
 const props = defineProps<{
-  config: IEdittingProps;
-  onUpdateCb: () => {};
+  config?: IEdittingProps;
+  onApplyCallback: () => {};
 }>();
 
-const originalData = props.config.data;
+const originalData = props.config?.data;
 const formData = reactive({ ...originalData });
 
 console.debug("formData:", formData.target);
@@ -30,14 +27,14 @@ const getInputType = (key: string, value: any): string => {
 };
 
 onMounted(() => {
-  new EditModalWindowModel(props.onUpdateCb);
+  new EditModalWindowModel(props.onApplyCallback);
 });
 
 console.debug(originalData);
 </script>
 
 <template>
-  <div class="editModalWindow">
+  <div id="modalWindow" class="modalWindow editModalWindow">
     <component
       class="editModalWindow__closeIcon"
       id="closeIcon"
@@ -45,7 +42,7 @@ console.debug(originalData);
     />
     <div class="editModalWindow__header">
       <h1 class="editModalWindow__header__title">
-        {{ props.config.sectionName || "[Operation]" }}
+        {{ props.config?.sectionName || "[Operation]" }}
       </h1>
       <hr class="editModalWindow__header__hr" />
     </div>
@@ -60,7 +57,7 @@ console.debug(originalData);
           class="editModalWindow__content__field__label"
           :for="String(key)"
         >
-          {{ key }}
+          {{ fieldDictionary[key] }}
         </label>
         <input
           class="editModalWindow__content__field__input"
@@ -81,7 +78,7 @@ console.debug(originalData);
       />
       <Button
         :data-js-apply-btn="
-          JSON.stringify({ sectionName: props.config.sectionName, formData })
+          JSON.stringify({ sectionName: props.config?.sectionName, formData })
         "
         text="Сохранить"
         button-color="button__buttonBlue"

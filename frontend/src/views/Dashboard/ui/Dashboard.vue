@@ -9,13 +9,24 @@ import RefreshIcon from "@/shared/ui/RefreshIcon/ui/RefreshIcon.vue";
 import { ModalManager } from "@/shared/plugins/modalManager";
 import EditModalWindow from "@/features/EditModalWindow/ui/EditModalWindow.vue";
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
-import { licenseData } from "@/shared/config/mockData";
-import { ref, onMounted, onUnmounted, reactive, watch, type Ref } from "vue";
+import { getUserInfoAsync } from "../api/getUserInfoAsync";
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  reactive,
+  watch,
+  type Ref,
+  computed,
+} from "vue";
 import "../style.scss";
 import { getDataAsync } from "../api/getDataAsync";
 import type { IData } from "../interface/IData";
 import { DashboardModel } from "../model/DashboardModel";
-import { deleteUser, getUsers } from "@/shared/api/userApi";
+import { getUsers } from "@/shared/api/userApi";
+import { deleteDataAsync } from "../api/deleteDataAsync";
+import AvatarIcon from "@/shared/ui/AvatarIcon/ui/AvatarIcon.vue";
+import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -27,21 +38,64 @@ const router = useRouter();
  */
 const data = ref<any[]>([]);
 const isMenuOpen = ref(false);
+const userFirstName = ref("[First name]");
+const userLastName = ref("[Last name]");
+// const userInfo = ref<any>();
 
 const selectedRow = ref<any | null>(null);
 
 /**
  * Наполняем этот массив по ходу
  */
-const sectionsList = ["License", "User", "Stands"];
+const sectionsList = ref([]);
 /**
  * Текущая секция
  */
-const currentSection = ref("License");
+const currentSection = ref("");
 const targetData = ref();
+
+// Поисковый запрос для фильтрации
+const searchQuery = ref("");
+
+// Переменные для пагинации
+const currentPage = ref(1);
+const itemsPerPage = ref(3); // Для теста ставим 3 строки на странице
+
+// Добавляем вычисляемое свойство для фильтрации данных
+const filteredData = computed(() => {
+  if (!searchQuery.value) return data.value;
+
+  const query = searchQuery.value.toLowerCase();
+  return data.value.filter((item) => {
+    return Object.values(item).some((value) => {
+      if (value === null || value === undefined) return false;
+      return String(value).toLowerCase().includes(query);
+    });
+  });
+});
+
+// Вычисляемое свойство для данных текущей страницы
+const paginatedData = computed(() => {
+  const startIndex = (currentPage.value - 1) * itemsPerPage.value;
+  const endIndex = startIndex + itemsPerPage.value;
+  return filteredData.value.slice(startIndex, endIndex);
+});
+
+// Вычисляемое свойство для общего количества страниц
+const totalPages = computed(() => {
+  return Math.ceil(filteredData.value.length / itemsPerPage.value);
+});
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
+};
+
+const getSectionList = async () => {
+  const cfg: IData = {
+    endpoint: "database/names",
+  };
+
+  return await getDataAsync(cfg).then((res) => (sectionsList.value = res.data));
 };
 
 const logout = () => {
@@ -49,10 +103,9 @@ const logout = () => {
   router.push("/login");
 };
 
-const getCurrentData = async (section: string) => {
-  console.debug(section);
+const getCurrentData = async () => {
   const config: IData = {
-    endpoint: `${section.toLowerCase()}/get`,
+    endpoint: `${currentSection.value.toLowerCase()}/get`,
   };
 
   try {
@@ -64,9 +117,7 @@ const getCurrentData = async (section: string) => {
 };
 
 const onUpdateCallBack = async () => {
-  //#region TODO: ВЫНЕСТИ ЭТОТ КУСОК В ОТДЕЛЬНУЮ ФУНКЦИЮ. (ИСПОЛЬЗУЕТСЯ В МЕТОДАХ: onUpdateCallBack, watch(newSection)...)
-  getCurrentData(currentSection.value);
-  //#endregion
+  getCurrentData();
 };
 
 /**
@@ -86,12 +137,14 @@ const handleEditModalWindow = () => {
 
   ModalManager.getInstance().open(EditModalWindow, {
     config: cfg,
-    onUpdateCb: onUpdateCallBack,
+    onApplyCallback: onUpdateCallBack,
   });
 };
 
 const currentTime = ref("");
 const avatarImage = ref(""); // Переменная для изображения аватара, изначально пустая
+const currentDate = ref(""); // Переменная для текущей даты
+let today = ""; // Переменная для хранения текущего дня, чтобы обновлять дату только раз в день
 
 const updateTime = () => {
   const now = new Date();
@@ -100,15 +153,29 @@ const updateTime = () => {
     minute: "2-digit",
     second: "2-digit",
   }).format(now);
+
+  // Обновляем дату только если день изменился
+  const newToday = new Intl.DateTimeFormat("ru-RU").format(now);
+  if (newToday !== today) {
+    today = newToday;
+    currentDate.value = today;
+  }
 };
 
 let timer: ReturnType<typeof setInterval> | undefined;
 
 onMounted(async () => {
-  new DashboardModel();
+  // new DashboardModel();
+  getSectionList();
 
-  updateTime(); // Обновляем время сразу при монтировании
-  timer = setInterval(updateTime, 1000); // Обнyовляем время каждую секунду
+  // получаем имя, фамилию пользователя
+  const { firstName, lastName } = await getUserInfoAsync();
+
+  userFirstName.value = firstName;
+  userLastName.value = lastName;
+
+  updateTime(); // Обновляем время и дату сразу при монтировании
+  timer = setInterval(updateTime, 1000); // Обновляем время каждую секунду
 });
 
 /**
@@ -119,16 +186,17 @@ watch(currentSection, async (newSection: string) => {
   selectedRow.value = null;
   targetData.value = null;
 
-  getCurrentData(newSection);
+  getCurrentData();
 });
 
 watch(selectedRow, (newVal) => {
-  console.debug(newVal);
   targetData.value = newVal;
 });
 
 onUnmounted(() => {
-  clearInterval(timer); // Очищаем таймер при размонтировании компонента
+  if (timer) {
+    clearInterval(timer); // Очищаем интервал при размонтировании компонента
+  }
 });
 
 const handleAvatarUpload = (event: Event) => {
@@ -159,18 +227,62 @@ const refreshUsers = async () => {
 };
 
 // Функция для удаления пользователя
-const handleDeleteUser = async () => {
-  if (currentSection.value !== "Users") return;
+const handleDeleteRow = async () => {
   if (!selectedRow.value || !selectedRow.value.id) {
     alert("Выберите пользователя для удаления");
     return;
   }
+
   try {
-    await deleteUser(selectedRow.value.id);
-    await refreshUsers();
+    console.debug(currentSection.value);
+    await deleteDataAsync(selectedRow.value.id, currentSection.value);
+    getCurrentData();
   } catch (e) {
     alert("Ошибка при удалении пользователя");
     console.error(e);
+  }
+};
+
+const handleCreateModalWindow = () => {
+  // в конфиг добавляем название секции
+  const cfg = {
+    sectionName: currentSection.value,
+    endpoint: `${currentSection.value}/create`,
+  };
+
+  if (!cfg.sectionName) {
+    alert("Выберите таблицу для добавления!");
+    return;
+  }
+
+  ModalManager.getInstance().open(AddEntity, {
+    sectionName: currentSection.value,
+    onClose: ModalManager.getInstance().closeModal,
+    onSuccess: getCurrentData,
+  });
+};
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
+};
+
+const firstPage = () => {
+  currentPage.value = 1;
+};
+
+const gotoPage = (page: number) => {
+  currentPage.value = page;
+};
+
+const lastPage = () => {
+  currentPage.value = totalPages.value;
+};
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
   }
 };
 </script>
@@ -189,7 +301,10 @@ const handleDeleteUser = async () => {
           >
             {{ section }}
           </li>
-
+        </ul>
+      </nav>
+      <nav class="menu">
+        <ul>
           <li>
             <div @click="toggleMenu" class="menu-item-with-dropdown">
               [HEADER TEXT]
@@ -212,11 +327,12 @@ const handleDeleteUser = async () => {
       <!-- Header -->
       <header class="header">
         <div class="user-info">
-          <img :src="avatarImage" alt="User Avatar" class="avatar" />
+          <AvatarIcon class="avatar" />
           <div>
-            <div class="user-name">[First name]</div>
-            <div class="user-details">[Last name]</div>
+            <div class="user-name">{{ userFirstName }}</div>
+            <div class="user-details">{{ userLastName }}</div>
             <div class="user-details">{{ currentTime }}</div>
+            <div class="user-details">{{ currentDate }}</div>
           </div>
         </div>
         <button class="logout-button" @click="logout">Выйти</button>
@@ -224,44 +340,52 @@ const handleDeleteUser = async () => {
 
       <!-- Content -->
       <section class="content-section">
-        <h2>{{ currentSection }}</h2>
+        <h2 class="content-section__title">{{ currentSection }}</h2>
 
         <!-- Action Buttons, Search, and Filter Placeholder -->
         <div class="controls">
           <div class="action-buttons">
             <Button
+              @click="handleCreateModalWindow"
               text="Добавить"
               :image="PlusIcon"
-              buttonColor="button__buttonAdd"
+              :extraClasses="['action-button-style']"
             />
             <Button
               @click="handleEditModalWindow"
               text="Редактировать"
               :image="EditIcon"
-              :extraClasses="['button__buttonBlue']"
+              :extraClasses="['action-button-style']"
             />
             <Button
               text="Удалить"
               :image="DeleteIcon"
-              @click="handleDeleteUser"
+              @click="handleDeleteRow"
+              :extraClasses="['action-button-style']"
             />
             <Button
               text="Обновить"
               :image="RefreshIcon"
               @click="refreshUsers"
+              :extraClasses="['action-button-style']"
             />
           </div>
           <div class="search-filter">
-            <input type="text" placeholder="Поиск" class="search-input" />
+            <input
+              type="text"
+              placeholder="Поиск"
+              class="search-input"
+              v-model="searchQuery"
+            />
           </div>
         </div>
 
         <!-- Table -->
-        <div class="table-container" v-if="data.length">
+        <div class="table-container" v-if="paginatedData.length">
           <table class="data-table">
             <thead>
               <tr>
-                <template v-for="(value, key) in data[0]">
+                <template v-for="(value, key) in paginatedData[0]">
                   <th :key="key" v-if="key !== 'password'">
                     {{ key }}
                   </th>
@@ -270,7 +394,7 @@ const handleDeleteUser = async () => {
             </thead>
             <tbody>
               <tr
-                v-for="(item, index) in data"
+                v-for="(item, index) in paginatedData"
                 :data-js-section-data="JSON.stringify(item)"
                 :key="item.id || index"
                 @click="selectedRow = item"
@@ -294,13 +418,24 @@ const handleDeleteUser = async () => {
 
         <!-- Pagination -->
         <div class="pagination">
-          <button>&lt;</button>
-          <button>&lt;&lt;</button>
-          <button class="active">1</button>
-          <button>2</button>
-          <button>3</button>
-          <button>&gt;&gt;</button>
-          <button>&gt;</button>
+          <button @click="prevPage" :disabled="currentPage === 1">&lt;</button>
+          <button @click="firstPage" :disabled="currentPage === 1">
+            &lt;&lt;
+          </button>
+          <template v-for="page in totalPages" :key="page">
+            <button
+              @click="gotoPage(page)"
+              :class="{ active: currentPage === page }"
+            >
+              {{ page }}
+            </button>
+          </template>
+          <button @click="lastPage" :disabled="currentPage === totalPages">
+            &gt;&gt;
+          </button>
+          <button @click="nextPage" :disabled="currentPage === totalPages">
+            &gt;
+          </button>
         </div>
       </section>
     </main>

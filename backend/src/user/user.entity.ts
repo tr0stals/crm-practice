@@ -1,18 +1,20 @@
-import { Students } from 'src/students/students.entity';
-import { Tutors } from 'src/tutors/tutors.entity';
-import { UserRoles } from 'src/user-roles/user-roles.entity';
-import { Employees } from 'src/employees/employees.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Peoples } from 'src/peoples/peoples.entity';
+import { Professions } from 'src/professions/professions.entity';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
-  email: string;
-
-  @Column({ nullable: false })
+  @Column()
   userName: string;
 
   @Column()
@@ -21,24 +23,11 @@ export class User {
   @Column()
   passwordSalt?: string;
 
-  @Column()
-  firstName?: string;
+  @ManyToOne(() => Professions, (profession) => profession.users)
+  @JoinColumn({ name: 'professionId' })
+  profession: Professions;
 
-  @Column()
-  lastName?: string;
-
-  @Column({ nullable: true })
-  middleName: string;
-
-  @OneToMany(() => Tutors, (tutor) => tutor.users)
-  tutors: Tutors[];
-
-  @OneToMany(() => UserRoles, (userRoles) => userRoles.users)
-  userRoles: UserRoles[];
-
-  @OneToMany(() => Students, (student) => student.user)
-  students: Students[];
-
-  @OneToMany(() => Employees, (employee) => employee.user)
-  employees: Employees[];
+  @ManyToOne(() => Peoples, (people) => people.users)
+  @JoinColumn({ name: 'peopleId' })
+  peoples: Peoples;
 }

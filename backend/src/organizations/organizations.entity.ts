@@ -1,6 +1,8 @@
-import { Departments } from 'src/departments/departments.entity';
-import { Locations } from 'src/locations/locations.entity';
 import { OrganizationTypes } from 'src/organization-types/organization-types.entity';
+import { PcbOrders } from 'src/pcb-orders/pcb-orders.entity';
+import { Peoples } from 'src/peoples/peoples.entity';
+import { Shipments } from 'src/shipments/shipments.entity';
+import { WarehouseComponents } from 'src/warehouse-components/warehouse-components.entity';
 import {
   Column,
   Entity,
@@ -16,25 +18,76 @@ export class Organizations {
   id: number;
 
   @Column()
-  image: string;
+  parentId: string;
 
   @Column()
-  name: string;
+  fullName: string;
 
   @Column()
-  address: string;
+  shortName: string;
+
+  @Column()
+  lawAddress: string;
+
+  @Column()
+  factAddress: string;
+
+  @Column()
+  postAddress: string;
+
+  @Column()
+  inn: string;
+
+  @Column()
+  kpp: string;
+
+  @Column()
+  orgn: string;
+
+  @Column()
+  orgnDate: Date;
+
+  @Column()
+  phone: string;
+
+  @Column()
+  email: string;
+
+  @Column()
+  digitalDocs: number;
+
+  @Column()
+  rating: number;
 
   @Column()
   comment: string;
 
-  @ManyToOne(() => Locations, (location) => location.organizations)
-  @JoinColumn({ name: 'locationId' })
-  locations: Locations;
+  @ManyToOne(() => Peoples, (people) => people.organizations)
+  @JoinColumn({ name: 'contactPeopleId' })
+  peoples: Peoples;
 
-  @ManyToOne(() => OrganizationTypes, (orgType) => orgType.organizations)
-  @JoinColumn({ name: 'organizationTypeId' })
+  @ManyToOne(
+    () => OrganizationTypes,
+    (organizationType) => organizationType.organizations,
+  )
+  @JoinColumn({ name: 'organzationTypeId' })
   organizationTypes: OrganizationTypes;
 
-  @OneToMany(() => Departments, (department) => department.organizations)
-  departments: Departments[];
+  @OneToMany(() => Shipments, (shipment) => shipment.factory)
+  shipmentFactory: Shipments[];
+
+  @OneToMany(() => Shipments, (shipment) => shipment.transporter)
+  transporter: Shipments[];
+
+  @OneToMany(() => Shipments, (shipment) => shipment.client)
+  client: Shipments[];
+
+  @OneToMany(() => WarehouseComponents, (warehouse) => warehouse.organizations)
+  warehouseComponents: WarehouseComponents[];
+
+  @OneToMany(() => PcbOrders, (pcbOrder) => pcbOrder.manufacturer)
+  pcbManufacturer: PcbOrders[];
+
+  @OneToMany(() => PcbOrders, (pcbOrder) => pcbOrder.factory)
+  pcbFactory: PcbOrders[];
 }

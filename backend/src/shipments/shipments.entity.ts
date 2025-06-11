@@ -1,12 +1,17 @@
+import { EmployeeTasks } from 'src/employee-tasks/employee-tasks.entity';
 import { License } from 'src/license/license.entity';
-import { Stands } from 'src/stands/stands.entity';
-import { Tutors } from 'src/tutors/tutors.entity';
+import { Organizations } from 'src/organizations/organizations.entity';
+import { ShipmentPackage } from 'src/shipment-package/shipment-package.entity';
+import { ShipmentStates } from 'src/shipment-states/shipment-states.entity';
+import { ShipmentTrips } from 'src/shipment-trips/shipment-trips.entity';
+import { StandAssemblies } from 'src/stand-assemblies/stand-assemblies.entity';
 import {
   Column,
   Entity,
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -16,22 +21,59 @@ export class Shipments {
   id: number;
 
   @Column()
-  inventoryNumber: string;
+  price: number;
 
   @Column()
-  sendingDate: Date;
+  standNumber: string;
 
   @Column()
-  comment?: string;
+  addedDate: Date;
 
-  @OneToMany(() => License, (license) => license.shipments)
-  licenses: License[];
+  @Column()
+  shipmentDate: Date;
 
-  @ManyToOne(() => Tutors, (tutor) => tutor.shipments)
-  @JoinColumn({ name: 'tutorId' })
-  tutors: Tutors;
+  @Column()
+  specification: string;
 
-  @ManyToOne(() => Stands, (stand) => stand.shipments)
-  @JoinColumn({ name: 'standId' })
-  stands: Stands;
+  @Column()
+  comment: string;
+
+  @OneToMany(
+    () => ShipmentPackage,
+    (shipmentPackage) => shipmentPackage.shipments,
+  )
+  shipmentPackages: ShipmentPackage;
+
+  @ManyToOne(() => ShipmentStates, (state) => state.shipments)
+  @JoinColumn({ name: 'shipmentStateId' })
+  shipmentStates: ShipmentStates;
+
+  @OneToOne(() => License, (license) => license.shipments)
+  @JoinColumn({ name: 'licenseId' })
+  licenses: License;
+
+  @OneToMany(() => ShipmentTrips, (shipmentTrip) => shipmentTrip.shipments)
+  shipmentTrips: ShipmentTrips[];
+
+  @OneToMany(() => EmployeeTasks, (employeeTask) => employeeTask.shipments)
+  employeeTasks: EmployeeTasks[];
+
+  @ManyToOne(
+    () => Organizations,
+    (organization) => organization.shipmentFactory,
+  )
+  @JoinColumn({ name: 'factoryId' })
+  factory: Organizations;
+
+  @ManyToOne(() => Organizations, (organization) => organization.transporter)
+  @JoinColumn({ name: 'transporterId' })
+  transporter: Organizations;
+
+  @ManyToOne(() => Organizations, (organization) => organization.client)
+  @JoinColumn({ name: 'clientId' })
+  client: Organizations;
+
+  @ManyToOne(() => StandAssemblies, (standAssembly) => standAssembly.shipments)
+  @JoinColumn({ name: 'standAssemblyId' })
+  standAssemblies: StandAssemblies;
 }

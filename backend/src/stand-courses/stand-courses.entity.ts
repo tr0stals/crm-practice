@@ -6,9 +6,6 @@ export class StandCourses {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToMany(() => Stands, (stand) => stand.standCourses)
-  standCourses: Stands[];
-
   @Column()
   name: string;
 }

@@ -1,18 +1,4 @@
 .editModalWindow {
-  background-color: #fff;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 600px;
-  gap: 2rem;
-  padding: 25px;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-
   &__header {
     &__title {
       font-size: 2rem;
@@ -78,13 +64,17 @@
     gap: 2rem;
 
     &__btn {
-      background-color: #f4f4f4;
-      color: #0056b3;
-      border: 1px solid #ddd;
-      padding: 8px 15px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 1.5rem;
+      background-color: #f4f4f4; /* Серый фон */
+      color: #555; /* Цвет текста как у кнопки Выйти */
+      border: 1px solid #ddd; /* Рамка */
+      padding: 8px 15px; /* Отступы */
+      border-radius: 4px; /* Скругление углов */
+      cursor: pointer; /* Курсор */
+      font-size: 1.5em; /* Размер шрифта */
+
+      &:hover {
+        background-color: #e0e0e0; /* Темнее при наведении */
+      }
     }
   }
 }
