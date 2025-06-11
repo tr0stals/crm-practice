@@ -24,7 +24,7 @@ import type { IData } from "../interface/IData";
 import { DashboardModel } from "../model/DashboardModel";
 import { getUsers } from "@/shared/api/userApi";
 import { deleteDataAsync } from "../api/deleteDataAsync";
-import AddModalWindow from "@/features/AddModalWindow/ui/AddModalWindow.vue";
+import AddModalWindow from "@/features/AddEntity/ui/AddEntityModal.vue";
 import AvatarIcon from "@/shared/ui/AvatarIcon/ui/AvatarIcon.vue";
 import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
 
@@ -179,7 +179,7 @@ watch(currentSection, async (newSection: string) => {
   selectedRow.value = null;
   targetData.value = null;
 
-  getCurrentData(newSection);
+  getCurrentData();
 });
 
 watch(selectedRow, (newVal) => {
@@ -435,7 +435,7 @@ const nextPage = () => {
           <button @click="firstPage" :disabled="currentPage === 1">
             &lt;&lt;
           </button>
-          <template v-for="page in totalPages" :key="page">
+          <template v-for="(page: number) in totalPages" :key="page">
             <button
               @click="gotoPage(page)"
               :class="{ active: currentPage === page }"
