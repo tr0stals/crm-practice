@@ -1,4 +1,5 @@
 export class EmployeesDTO {
-  id: number;
+  peopleId: number;
+  professionId: number;
   birthDate: Date;
-}
+} 
