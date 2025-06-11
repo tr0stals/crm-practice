@@ -11,6 +11,8 @@
   padding: 20px;
   box-sizing: border-box;
   border-right: 1px solid #e0e0e0; /* Разделитель между сайдбаром и контентом */
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
@@ -19,6 +21,11 @@
   margin-bottom: 40px; /* Увеличил отступ после логотипа */
   color: #0056b3; /* Примерный синий цвет по изображению */
   text-align: center; /* Центрировал логотип */
+}
+
+.menu {
+  height: 50%;
+  overflow-y: auto;
 }
 
 .menu ul {
@@ -163,6 +170,11 @@
   display: flex; /* Делаем секцию flex-контейнером */
   flex-direction: column; /* Элементы внутри выстраиваем по вертикали */
   overflow: hidden; /* Скрываем содержимое, выходящее за пределы контейнера */
+
+  &__title {
+    font-size: 2.5rem;
+    letter-spacing: 1.25px;
+  }
 }
 
 .content-section h2 {
@@ -189,7 +201,7 @@
 /* Устанавливаю серый фон и синий текст для всех кнопок действий */
 .action-buttons .button {
   background-color: #f4f4f4;
-  color: #0056b3; /* Синий цвет из логотипа */
+  /* Убираем цвет отсюда, он будет в .action-button-style */
   border: 1px solid #ddd; /* Оставляем серую рамку */
 }
 
@@ -305,4 +317,25 @@
   /* Или альтернативный метод для полного скрытия, но сохранения кликабельности: */
   /* position: absolute; */
   /* left: -9999px; */
+}
+
+.action-button-style {
+  background-color: #f4f4f4;
+  color: #555; /* Цвет текста */
+  font-size: 1.5em; /* Размер шрифта */
+  /* Остальные стили как у .logout-button, если нужно */
+}
+
+.logout-button {
+  background-color: #f4f4f4;
+  color: #555;
+  border: 1px solid #ddd;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.5em;
+}
+
+.logout-button:hover {
+  background-color: #e0e0e0;
 }

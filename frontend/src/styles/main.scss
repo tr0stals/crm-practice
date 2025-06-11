@@ -19,3 +19,19 @@ body {
   height: 100%;
   background-color: rgb(128, 128, 128, 0.4);
 }
+
+.modalWindow {
+  background-color: #fff;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 600px;
+  gap: 2rem;
+  padding: 25px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}

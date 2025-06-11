@@ -1,7 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { TaskTypes } from '../task-types/task-types.entity';
 import { Employees } from '../employees/employees.entity';
 import { CurrentTasks } from '../current-tasks/current-tasks.entity';
+import { Shipments } from 'src/shipments/shipments.entity';
 
 @Entity()
 export class EmployeeTasks {
@@ -11,35 +19,23 @@ export class EmployeeTasks {
   @Column({ nullable: true })
   parentId: number;
 
-  @Column({ nullable: true })
-  standId: number;
-
   @Column()
-  employeeId: number;
-
-  @Column()
-  taskTypeId: number;
-
-  @Column()
-  name: string;
+  title: string;
 
   @Column({ nullable: true })
   photo: string;
 
   @Column()
-  requiredTime: number; // в минутах
+  timeout: string;
 
   @Column()
-  expectedCompletionDate: Date;
+  expectationTimeout: Date;
 
-  @ManyToOne(() => TaskTypes, { onDelete: 'NO ACTION' })
-  @JoinColumn({ name: 'taskTypeId' })
-  taskType: TaskTypes;
-
-  @ManyToOne(() => Employees)
+  @ManyToOne(() => Employees, (employee) => employee.employeeTasks)
   @JoinColumn({ name: 'employeeId' })
-  employee: Employees;
+  employees: Employees;
 
-  @OneToMany(() => CurrentTasks, currentTask => currentTask.task)
-  currentTasks: CurrentTasks[];
-} 
+  @ManyToOne(() => Shipments, (shipment) => shipment.employeeTasks)
+  @JoinColumn({ name: 'shipmentId' })
+  shipments: Shipments;
+}

@@ -1,12 +1,9 @@
-import e from 'express';
-import { Organizations } from 'src/organizations/organizations.entity';
 import { Region } from 'src/region/region.entity';
 import {
   Column,
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -24,7 +21,4 @@ export class Locations {
   @ManyToOne(() => Region, (region) => region.locations)
   @JoinColumn({ name: 'regionId' })
   region: Region;
-
-  @OneToMany(() => Organizations, (organization) => organization.locations)
-  organizations: Organizations[];
 }

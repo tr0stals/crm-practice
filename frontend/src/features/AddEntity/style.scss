@@ -1,0 +1,65 @@
+.addModalWindow {
+  &__closeIcon {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    color: #666;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    width: 100%;
+    gap: 15px;
+
+    &__field {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      gap: 15px;
+
+      &__label {
+        font-weight: bold;
+        color: #555;
+        flex-basis: 120px;
+        flex-shrink: 0;
+      }
+
+      &__input {
+        flex-grow: 1;
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1.5rem;
+      }
+    }
+  }
+
+  &__controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    gap: 2rem;
+
+    &__btn {
+      background-color: #f4f4f4; /* Серый фон */
+      color: #555; /* Цвет текста как у кнопки Выйти */
+      border: 1px solid #ddd; /* Рамка */
+      padding: 8px 15px; /* Отступы */
+      border-radius: 4px; /* Скругление углов */
+      cursor: pointer; /* Курсор */
+      font-size: 1.5em; /* Размер шрифта */
+
+      &:hover {
+        background-color: #e0e0e0; /* Темнее при наведении */
+      }
+    }
+  }
+}

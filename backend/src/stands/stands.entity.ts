@@ -1,6 +1,8 @@
-import { Shipments } from 'src/shipments/shipments.entity';
-import { StandCategories } from 'src/stand-categories/stand-categories.entity';
-import { StandCourses } from 'src/stand-courses/stand-courses.entity';
+import { Employees } from 'src/employees/employees.entity';
+import { OrderRequests } from 'src/order-requests/order-requests.entity';
+import { PCBS } from 'src/pcbs/pcbs.entity';
+import { StandAssemblies } from 'src/stand-assemblies/stand-assemblies.entity';
+import { StandPackages } from 'src/stand-packages/stand-packages.entity';
 import { StandsTypes } from 'src/stand-types/stand-types.entity';
 import {
   Column,
@@ -8,7 +10,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  PrimaryColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -17,32 +19,23 @@ export class Stands {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => StandCourses, (standCourse) => standCourse.standCourses)
-  @JoinColumn({ name: 'standCourseId' })
-  standCourses: StandCourses;
-
-  @ManyToOne(() => StandsTypes, (standType) => standType.standsTypes)
-  @JoinColumn({ name: 'standTypeId' })
-  standsTypes: StandsTypes;
-
-  @ManyToOne(
-    () => StandCategories,
-    (standcategory) => standcategory.standcategories,
-  )
-  @JoinColumn({ name: 'standCategoryId' })
-  standsCategories: StandCategories;
+  @Column()
+  parentId: number;
 
   @Column()
-  shortName: string;
-
-  @Column()
-  fullName: string;
-
-  @Column()
-  hyperLink: string;
+  title: string;
 
   @Column()
   image: string;
+
+  @Column()
+  size: string;
+
+  @Column()
+  weight: number;
+
+  @Column()
+  link: string;
 
   @Column()
   vendorCode: string;
@@ -50,6 +43,23 @@ export class Stands {
   @Column()
   comment: string;
 
-  @OneToMany(() => Shipments, (shipment) => shipment.stands)
-  shipments: Shipments[];
+  @OneToOne(() => StandsTypes, (type) => type.stands)
+  @JoinColumn({ name: 'standTypeId' })
+  standTypes: StandsTypes;
+
+  @ManyToOne(() => Employees, (employee) => employee.stands)
+  @JoinColumn({ name: 'employeeId' })
+  employees: Employees;
+
+  @OneToMany(() => StandAssemblies, (standAssembly) => standAssembly.stands)
+  standAssemblies: StandAssemblies[];
+
+  @OneToMany(() => StandPackages, (standPackages) => standPackages.stands)
+  standPackages: StandPackages[];
+
+  @OneToMany(() => OrderRequests, (orderReq) => orderReq.stands)
+  orderRequests: OrderRequests[];
+
+  @OneToMany(() => PCBS, (pcbs) => pcbs.stands)
+  pcbs: PCBS[];
 }

@@ -8,7 +8,4 @@ export class TaskTypes {
 
   @Column()
   name: string;
-
-  @OneToMany(() => EmployeeTasks, employeeTask => employeeTask.taskType)
-  employeeTasks: EmployeeTasks[];
-} 
+}

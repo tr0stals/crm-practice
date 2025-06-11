@@ -1,22 +1,20 @@
 <script setup lang="ts">
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
-import type { IData } from "@/views/Dashboard/interface/IData";
-import { getDataAsync } from "@/views/Dashboard/api/licenseApi";
 import "../style.scss";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import Button from "@/shared/ui/Button/ui/Button.vue";
 import { onMounted, reactive, ref } from "vue";
 import { EditModalWindowModel } from "../model/EditModalWindowModel";
-import { api } from "@/shared/api/axiosInstance";
-import { deleteUser } from "@/shared/api/userApi";
+import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 
 const data = ref<any[]>([]);
 
 const props = defineProps<{
-  config: IEdittingProps;
+  config?: IEdittingProps;
+  onApplyCallback: () => {};
 }>();
 
-const originalData = props.config.data;
+const originalData = props.config?.data;
 const formData = reactive({ ...originalData });
 
 console.debug("formData:", formData.target);
@@ -29,26 +27,14 @@ const getInputType = (key: string, value: any): string => {
 };
 
 onMounted(() => {
-  new EditModalWindowModel();
+  new EditModalWindowModel(props.onApplyCallback);
 });
 
 console.debug(originalData);
-
-const handleDeleteUser = async (id: number) => {
-  try {
-    await deleteUser(id);
-    // После удаления обновите данные
-    const config: IData = { endpoint: "users/get" };
-    const response = await getDataAsync(config);
-    data.value = response.data;
-  } catch (e) {
-    console.error("Ошибка при удалении пользователя:", e);
-  }
-};
 </script>
 
 <template>
-  <div class="editModalWindow">
+  <div id="modalWindow" class="modalWindow editModalWindow">
     <component
       class="editModalWindow__closeIcon"
       id="closeIcon"
@@ -56,7 +42,7 @@ const handleDeleteUser = async (id: number) => {
     />
     <div class="editModalWindow__header">
       <h1 class="editModalWindow__header__title">
-        {{ props.config.sectionName || "[Operation]" }}
+        {{ props.config?.sectionName || "[Operation]" }}
       </h1>
       <hr class="editModalWindow__header__hr" />
     </div>
@@ -71,7 +57,7 @@ const handleDeleteUser = async (id: number) => {
           class="editModalWindow__content__field__label"
           :for="String(key)"
         >
-          {{ key }}
+          {{ fieldDictionary[key] }}
         </label>
         <input
           class="editModalWindow__content__field__input"
@@ -91,7 +77,9 @@ const handleDeleteUser = async (id: number) => {
         :extra-classes="['editModalWindow__controls__btn']"
       />
       <Button
-        :data-js-save-btn="JSON.stringify(formData)"
+        :data-js-apply-btn="
+          JSON.stringify({ sectionName: props.config?.sectionName, formData })
+        "
         text="Сохранить"
         button-color="button__buttonBlue"
         :extra-classes="['editModalWindow__controls__btn']"
