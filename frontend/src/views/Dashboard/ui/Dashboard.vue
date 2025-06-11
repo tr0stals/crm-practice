@@ -10,6 +10,7 @@ import { ModalManager } from "@/shared/plugins/modalManager";
 import EditModalWindow from "@/features/EditModalWindow/ui/EditModalWindow.vue";
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
 import { getUserInfoAsync } from "../api/getUserInfoAsync";
+import CustomTreeview from "@/shared/ui/CustomTreeview/ui/CustomTreeview.vue";
 import {
   ref,
   onMounted,
@@ -41,6 +42,36 @@ const isMenuOpen = ref(false);
 const userFirstName = ref("[First name]");
 const userLastName = ref("[Last name]");
 // const userInfo = ref<any>();
+
+const nodes = ref<TreeNode[]>([
+  {
+    key: "0",
+    label: "Documents",
+    children: [
+      {
+        key: "0-0",
+        label: "Work",
+        children: [{ key: "0-0-0", label: "Resume.doc" }],
+      },
+      {
+        key: "0-1",
+        label: "Home",
+        children: [{ key: "0-1-0", label: "Invoices.txt" }],
+      },
+    ],
+  },
+  {
+    key: "1",
+    label: "Pictures",
+    children: [
+      {
+        key: "1-0",
+        label: "Vacation",
+        children: [{ key: "1-0-0", label: "photo.png" }],
+      },
+    ],
+  },
+]);
 
 const selectedRow = ref<any | null>(null);
 
@@ -288,6 +319,8 @@ const nextPage = () => {
 </script>
 
 <template>
+  <CustomTreeview />
+
   <div class="dashboard-layout">
     <!-- Sidebar -->
     <aside class="sidebar">
