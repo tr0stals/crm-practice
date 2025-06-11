@@ -6,6 +6,7 @@ import {
   Post,
   Body,
   Put,
+  Query,
 } from '@nestjs/common';
 import { DatabaseService } from './database.service';
 
@@ -29,6 +30,11 @@ export class DatabaseController {
     return await this.databaseService.getTableRows(tableName);
   }
 
+  @Get(':tableName/search')
+  async searchTableRows(@Param('tableName') tableName: string, @Query('query') query: string) {
+    return await this.databaseService.searchTableRows(tableName, query);
+  }
+
   @Get(':tableName/relations')
   async getTableRelations(@Param('tableName') tableName: string) {
     return this.databaseService.getTableRelations(tableName);
@@ -48,6 +54,11 @@ export class DatabaseController {
       tableName,
       columnName,
     );
+  }
+
+  @Get(':tableName/:id')
+  async getTableRowById(@Param('tableName') tableName: string, @Param('id') id: string) {
+    return await this.databaseService.getTableRowById(tableName, id);
   }
 
   @Delete(':tableName/:id')

@@ -31,6 +31,11 @@ export class UserController {
     }
   }
 
+  @Get('get/:id')
+  async getUserById(@Param('id') id: number) {
+    return await this.userService.getUserById(id);
+  }
+
   @Patch('update/:id')
   async update(@Param('id') id, @Body() updateUser: UserRegisterDTO) {
     return await this.userService.update(id, updateUser);

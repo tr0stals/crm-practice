@@ -7,6 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Peoples } from 'src/peoples/peoples.entity';
+import { Professions } from 'src/professions/professions.entity';
 
 @Entity()
 export class User {
@@ -21,6 +22,10 @@ export class User {
 
   @Column()
   passwordSalt?: string;
+
+  @ManyToOne(() => Professions, (profession) => profession.users)
+  @JoinColumn({ name: 'professionId' })
+  profession: Professions;
 
   @ManyToOne(() => Peoples, (people) => people.users)
   @JoinColumn({ name: 'peopleId' })

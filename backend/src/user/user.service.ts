@@ -18,6 +18,7 @@ export class UserService {
   async findByUsername(userName: string) {
     return this.usersRepository.findOne({
       where: { userName },
+      relations: ['profession', 'peoples'],
     });
   }
 
@@ -55,6 +56,13 @@ export class UserService {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  async getUserById(id: number) {
+    return await this.usersRepository.findOne({
+      where: { id: id },
+      relations: ['peoples'],
+    });
   }
 
   async cryptUserPasswordService(password: string) {

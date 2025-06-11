@@ -9,6 +9,8 @@ import RefreshIcon from "@/shared/ui/RefreshIcon/ui/RefreshIcon.vue";
 import { ModalManager } from "@/shared/plugins/modalManager";
 import EditModalWindow from "@/features/EditModalWindow/ui/EditModalWindow.vue";
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
+import { getUserInfoAsync } from "../api/getUserInfoAsync";
+import CustomTreeview from "@/shared/ui/CustomTreeview/ui/CustomTreeview.vue";
 import {
   ref,
   onMounted,
@@ -24,9 +26,13 @@ import type { IData } from "../interface/IData";
 import { DashboardModel } from "../model/DashboardModel";
 import { getUsers } from "@/shared/api/userApi";
 import { deleteDataAsync } from "../api/deleteDataAsync";
+<<<<<<< HEAD
 import AddModalWindow from "@/features/AddEntity/ui/AddEntityModal.vue";
+=======
+>>>>>>> main
 import AvatarIcon from "@/shared/ui/AvatarIcon/ui/AvatarIcon.vue";
 import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
+import type { TreeNode } from "primevue/treenode";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -40,6 +46,39 @@ const data = ref<any[]>([]);
 const isMenuOpen = ref(false);
 const userFirstName = ref("[First name]");
 const userLastName = ref("[Last name]");
+// const userInfo = ref<any>();
+
+const treeviewData = ref<TreeNode[]>([]);
+
+const nodes = ref<TreeNode[]>([
+  {
+    key: "0",
+    label: "Documents",
+    children: [
+      {
+        key: "0-0",
+        label: "Work",
+        children: [{ key: "0-0-0", label: "Resume.doc" }],
+      },
+      {
+        key: "0-1",
+        label: "Home",
+        children: [{ key: "0-1-0", label: "Invoices.txt" }],
+      },
+    ],
+  },
+  {
+    key: "1",
+    label: "Pictures",
+    children: [
+      {
+        key: "1-0",
+        label: "Vacation",
+        children: [{ key: "1-0-0", label: "photo.png" }],
+      },
+    ],
+  },
+]);
 
 const selectedRow = ref<any | null>(null);
 
@@ -116,7 +155,7 @@ const getCurrentData = async () => {
 };
 
 const onUpdateCallBack = async () => {
-  getCurrentData();
+  await getCurrentData();
 };
 
 /**
@@ -164,8 +203,14 @@ const updateTime = () => {
 let timer: ReturnType<typeof setInterval> | undefined;
 
 onMounted(async () => {
-  new DashboardModel();
+  // new DashboardModel();
   getSectionList();
+
+  // получаем имя, фамилию пользователя
+  const { firstName, lastName } = await getUserInfoAsync();
+
+  userFirstName.value = firstName;
+  userLastName.value = lastName;
 
   updateTime(); // Обновляем время и дату сразу при монтировании
   timer = setInterval(updateTime, 1000); // Обновляем время каждую секунду
@@ -175,15 +220,38 @@ onMounted(async () => {
  * Здесь мы следим за состоянием переменной currentSection,
  * для того, чтобы менять контент таблицы (Users, License, Stands, ...)
  */
-watch(currentSection, async (newSection: string) => {
+watch(currentSection, async (oldVal: string, newSection: string) => {
   selectedRow.value = null;
   targetData.value = null;
+  treeviewData.value = [];
 
+<<<<<<< HEAD
   getCurrentData();
+=======
+  await getCurrentData();
+
+  data.value.map((item, index) => {
+    if (index > Object.keys(item).length) return;
+
+    const obj: TreeNode = {
+      key: `${index}`,
+      label: Object.keys(item)[index] as string,
+      data: Object.keys(item)[index] as string,
+      children: [
+        {
+          key: `${index}-${index++}`,
+          label: Object.values(item)[index] as string,
+          data: Object.values(item)[index] as string,
+        },
+      ],
+    };
+
+    treeviewData.value.push(obj);
+  });
+>>>>>>> main
 });
 
 watch(selectedRow, (newVal) => {
-  console.debug(newVal);
   targetData.value = newVal;
 });
 
@@ -220,24 +288,6 @@ const refreshUsers = async () => {
   }
 };
 
-const getUserInfo = async () => {
-  const token = localStorage.getItem("token");
-
-  const cfg = {
-    endpoint: "auth/check",
-    data: {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  };
-
-  const response = getDataAsync(cfg);
-  response.then((res) => console.debug(res.data.user));
-};
-
-getUserInfo();
-
 // Функция для удаления пользователя
 const handleDeleteRow = async () => {
   if (!selectedRow.value || !selectedRow.value.id) {
@@ -255,7 +305,6 @@ const handleDeleteRow = async () => {
   }
 };
 
-// TODO: сделать добавление
 const handleCreateModalWindow = () => {
   // в конфиг добавляем название секции
   const cfg = {
@@ -301,6 +350,8 @@ const nextPage = () => {
 </script>
 
 <template>
+  <!-- <CustomTreeview :data="treeviewData" /> -->
+
   <div class="dashboard-layout">
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -316,23 +367,7 @@ const nextPage = () => {
           </li>
         </ul>
       </nav>
-      <nav class="menu">
-        <ul>
-          <li>
-            <div @click="toggleMenu" class="menu-item-with-dropdown">
-              [HEADER TEXT]
-              <span class="dropdown-icon" :class="{ rotated: isMenuOpen }"
-                >▼</span
-              >
-            </div>
-            <ul v-if="isMenuOpen" class="dropdown-menu">
-              <li>Пункт меню 1</li>
-              <li>Пункт меню 2</li>
-              <li>Пункт меню 3</li>
-            </ul>
-          </li>
-        </ul>
-      </nav>
+      <CustomTreeview :data="treeviewData" />
     </aside>
 
     <!-- Main Content Area -->
@@ -414,6 +449,9 @@ const nextPage = () => {
                 @dblclick="handleEditModalWindow"
                 :class="{ 'selected-row': selectedRow?.id === item.id }"
               >
+                {{
+                  console.debug()
+                }}
                 <template v-for="(value, title) in item">
                   <td v-if="title !== 'password'" :key="title">
                     <template v-if="typeof value === 'boolean'">
