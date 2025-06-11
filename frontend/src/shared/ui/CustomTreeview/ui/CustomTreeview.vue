@@ -1,23 +1,18 @@
-<script setup>
+<script setup lang="ts">
 import Tree from "primevue/tree";
 import { treeviewData as nodes } from "@/shared/config/treeviewData";
 import { ref } from "vue";
+import type { TreeNode } from "primevue/treenode";
 
-const expandedKeys = ref({});
+const props = defineProps<{
+  data: TreeNode;
+  extraClasses?: string[];
+  extraAttrs?: string[];
+}>();
 
-const expandAll = () => {
-  for (let node of nodes.value) {
-    expandNode(node);
-  }
+const expandedKeys = ref<any>({});
 
-  expandedKeys.value = { ...expandedKeys.value };
-};
-
-const collapseAll = () => {
-  expandedKeys.value = {};
-};
-
-const expandNode = (node) => {
+const expandNode = (node: any) => {
   if (node.children && node.children.length) {
     expandedKeys.value[node.key] = true;
 
@@ -30,11 +25,5 @@ console.debug(nodes);
 </script>
 
 <template>
-  <div class="card">
-    <Tree
-      v-model:expandedKeys="expandedKeys"
-      :value="nodes"
-      class="w-full md:w-[30rem]"
-    ></Tree>
-  </div>
+  <Tree :value="props.data" class=""></Tree>
 </template>
