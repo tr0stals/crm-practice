@@ -1,0 +1,347 @@
+{
+  "tables": {
+    "user": {
+      "displayName": "Пользователи",
+      "fields": {
+        "id": "ID",
+        "userName": "Имя пользователя",
+        "password": "Пароль",
+        "passwordSalt": "Хэшированный пароль",
+        "professionId": "ID профессии",
+        "peopleId": "ID человека"
+      }
+    },
+    "employees": {
+      "displayName": "Сотрудники",
+      "fields": {
+        "id": "ID",
+        "birthDate": "Дата рождения",
+        "professionId": "ID профессии",
+        "peopleId": "ID человека",
+        "employeeStateId": "ID состояния сотрудника"
+      }
+    },
+    "peoples": {
+      "displayName": "Люди",
+      "fields": {
+        "id": "ID",
+        "firstName": "Имя",
+        "middleName": "Отчество",
+        "lastName": "Фамилия",
+        "phone": "Телефон",
+        "email": "Email",
+        "comment": "Комментарий"
+      }
+    },
+    "professions": {
+      "displayName": "Профессии",
+      "fields": {
+        "id": "ID",
+        "title": "Название"
+      }
+    },
+    "employee_states": {
+      "displayName": "Состояния сотрудников",
+      "fields": {
+        "id": "ID",
+        "title": "Название"
+      }
+    },
+    "organizations": {
+      "displayName": "Организации",
+      "fields": {
+        "id": "ID",
+        "parentId": "ID родителя",
+        "fullName": "Полное название",
+        "shortName": "Краткое название",
+        "lawAddress": "Юридический адрес",
+        "factAddress": "Фактический адрес",
+        "postAddress": "Почтовый адрес",
+        "inn": "ИНН",
+        "kpp": "КПП",
+        "orgn": "ОГРН",
+        "orgnDate": "Дата ОГРН",
+        "phone": "Телефон",
+        "email": "Email",
+        "digitalDocs": "Электронный документооборот",
+        "rating": "Рейтинг",
+        "comment": "Комментарий",
+        "contactPeopleId": "ID контактного лица",
+        "organzationTypeId": "ID типа организации"
+      }
+    },
+    "organization_types": {
+      "displayName": "Типы организаций",
+      "fields": {
+        "id": "ID",
+        "name": "Название"
+      }
+    },
+    "license": {
+      "displayName": "Лицензии",
+      "fields": {
+        "id": "ID",
+        "licenseCode": "Код лицензии",
+        "start": "Дата начала",
+        "end": "Дата окончания",
+        "places": "Количество мест",
+        "timeout": "Таймаут",
+        "comment": "Комментарий",
+        "licenseTypeId": "ID типа лицензии"
+      }
+    },
+    "license_types": {
+      "displayName": "Типы лицензий",
+      "fields": {
+        "id": "ID",
+        "name": "Название"
+      }
+    },
+    "shipments": {
+      "displayName": "Отгрузки",
+      "fields": {
+        "id": "ID",
+        "price": "Цена",
+        "standNumber": "Номер стенда",
+        "addedDate": "Дата добавления",
+        "shipmentDate": "Дата отгрузки",
+        "specification": "Спецификация",
+        "comment": "Комментарий",
+        "shipmentStateId": "ID состояния отгрузки",
+        "licenseId": "ID лицензии",
+        "factoryId": "ID производителя",
+        "transporterId": "ID перевозчика",
+        "clientId": "ID клиента",
+        "standAssemblyId": "ID сборки стенда"
+      }
+    },
+    "shipment_states": {
+      "displayName": "Состояния отгрузок",
+      "fields": {
+        "id": "ID",
+        "name": "Название"
+      }
+    },
+    "stands": {
+      "displayName": "Стенды",
+      "fields": {
+        "id": "ID",
+        "parentId": "ID родителя",
+        "title": "Название",
+        "image": "Изображение",
+        "size": "Размер",
+        "weight": "Вес",
+        "link": "Ссылка",
+        "vendorCode": "Артикул",
+        "comment": "Комментарий",
+        "standTypeId": "ID типа стенда",
+        "employeeId": "ID сотрудника"
+      }
+    },
+    "stand_types": {
+      "displayName": "Типы стендов",
+      "fields": {
+        "id": "ID",
+        "title": "Название"
+      }
+    },
+    "stand_categories": {
+      "displayName": "Категории стендов",
+      "fields": {
+        "id": "ID",
+        "name": "Название",
+        "image": "Изображение",
+        "comment": "Комментарий"
+      }
+    },
+    "stand_courses": {
+      "displayName": "Курсы стендов",
+      "fields": {
+        "id": "ID",
+        "name": "Название"
+      }
+    },
+    "stand_assemblies": {
+      "displayName": "Сборки стендов",
+      "fields": {
+        "id": "ID",
+        "standId": "ID стенда"
+      }
+    },
+    "stand_packages": {
+      "displayName": "Пакеты стендов",
+      "fields": {
+        "id": "ID",
+        "standId": "ID стенда"
+      }
+    },
+    "pcbs": {
+      "displayName": "Печатные платы",
+      "fields": {
+        "id": "ID",
+        "standId": "ID стенда"
+      }
+    },
+    "pcb_orders": {
+      "displayName": "Заказы печатных плат",
+      "fields": {
+        "id": "ID",
+        "manufacturerId": "ID производителя"
+      }
+    },
+    "pcb_order_states": {
+      "displayName": "Состояния заказов печатных плат",
+      "fields": {
+        "id": "ID",
+        "name": "Название"
+      }
+    },
+    "warehouse_components": {
+      "displayName": "Компоненты склада",
+      "fields": {
+        "id": "ID",
+        "organizationId": "ID организации"
+      }
+    },
+    "suppliers": {
+      "displayName": "Поставщики",
+      "fields": {
+        "id": "ID",
+        "inn": "ИНН",
+        "kpp": "КПП",
+        "ogrn": "ОГРН",
+        "ogrnDate": "Дата ОГРН",
+        "name": "Название",
+        "shortName": "Краткое название",
+        "legalAddress": "Юридический адрес",
+        "postalAddress": "Почтовый адрес",
+        "hasElectronicDocumentFlow": "Электронный документооборот",
+        "contactPhones": "Контактные телефоны",
+        "email": "Email",
+        "contactPerson": "Контактное лицо"
+      }
+    },
+    "supplier_components": {
+      "displayName": "Компоненты поставщиков",
+      "fields": {
+        "id": "ID",
+        "supplierId": "ID поставщика"
+      }
+    },
+    "countries": {
+      "displayName": "Страны",
+      "fields": {
+        "id": "ID",
+        "name": "Название",
+        "image": "Изображение"
+      }
+    },
+    "region": {
+      "displayName": "Регионы",
+      "fields": {
+        "id": "ID",
+        "name": "Название",
+        "image": "Изображение",
+        "countryId": "ID страны"
+      }
+    },
+    "locations": {
+      "displayName": "Локации",
+      "fields": {
+        "id": "ID",
+        "name": "Название",
+        "timeZone": "Часовой пояс",
+        "regionId": "ID региона"
+      }
+    },
+    "employee_tasks": {
+      "displayName": "Задачи сотрудников",
+      "fields": {
+        "id": "ID",
+        "parentId": "ID родителя",
+        "title": "Название",
+        "photo": "Фото",
+        "timeout": "Таймаут",
+        "expectationTimeout": "Ожидаемый таймаут",
+        "employeeId": "ID сотрудника",
+        "shipmentId": "ID отгрузки"
+      }
+    },
+    "current_tasks": {
+      "displayName": "Текущие задачи",
+      "fields": {
+        "id": "ID",
+        "taskId": "ID задачи",
+        "quantity": "Количество",
+        "status": "Статус"
+      }
+    },
+    "task_types": {
+      "displayName": "Типы задач",
+      "fields": {
+        "id": "ID",
+        "name": "Название"
+      }
+    },
+    "order_requests": {
+      "displayName": "Заявки на заказ",
+      "fields": {
+        "id": "ID",
+        "standId": "ID стенда",
+        "employeeCreatorId": "ID создателя",
+        "employeeExecutorId": "ID исполнителя"
+      }
+    },
+    "order_types": {
+      "displayName": "Типы заказов",
+      "fields": {
+        "id": "ID",
+        "name": "Название"
+      }
+    },
+    "invoices_arrival": {
+      "displayName": "Входящие счета",
+      "fields": {
+        "id": "ID",
+        "date": "Дата",
+        "providerId": "ID поставщика",
+        "invoiceScan": "Скан счета"
+      }
+    },
+    "payment_invoice": {
+      "displayName": "Счета на оплату",
+      "fields": {
+        "id": "ID",
+        "name": "Название"
+      }
+    },
+    "components_invoice": {
+      "displayName": "Счета компонентов",
+      "fields": {
+        "id": "ID",
+        "name": "Название"
+      }
+    },
+    "components_arrival_invoice": {
+      "displayName": "Входящие счета компонентов",
+      "fields": {
+        "id": "ID",
+        "name": "Название"
+      }
+    },
+    "sending_boxes": {
+      "displayName": "Отправляемые коробки",
+      "fields": {
+        "id": "ID",
+        "sendId": "ID отправки",
+        "boxDrawingsId": "ID чертежа коробки"
+      }
+    },
+    "students": {
+      "displayName": "Студенты",
+      "fields": {
+        "id": "ID"
+      }
+    }
+  }
+} 
