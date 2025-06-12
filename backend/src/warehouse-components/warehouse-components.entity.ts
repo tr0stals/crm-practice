@@ -42,7 +42,7 @@ export class WarehouseComponents {
   @Column()
   minCount: string;
 
-  @Column()
+  @Column({ type: 'date' })
   arrivalDate: Date;
 
   @Column()

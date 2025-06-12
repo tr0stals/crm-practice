@@ -23,7 +23,7 @@ export class Peoples {
   @Column()
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   comment?: string;
 
   @OneToMany(() => Employees, (employee) => employee.peoples)

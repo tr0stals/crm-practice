@@ -44,7 +44,7 @@ export class Organizations {
   @Column()
   orgn: string;
 
-  @Column()
+  @Column({ type: 'date' })
   orgnDate: Date;
 
   @Column()

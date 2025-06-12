@@ -28,7 +28,7 @@ export class EmployeeTasks {
   @Column()
   timeout: string;
 
-  @Column()
+  @Column({ type: 'date' })
   expectationTimeout: Date;
 
   @ManyToOne(() => Employees, (employee) => employee.employeeTasks)

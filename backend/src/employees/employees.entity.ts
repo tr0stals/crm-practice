@@ -22,7 +22,7 @@ export class Employees {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'date' })
   birthDate: Date;
 
   @ManyToOne(() => Professions, (profession) => profession.employees)
