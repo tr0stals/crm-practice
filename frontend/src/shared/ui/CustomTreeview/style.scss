@@ -1,0 +1,30 @@
+.treeview {
+  margin-top: 2rem;
+  height: 40%;
+  max-width: 100%;
+  overflow-y: auto;
+
+  &__toggleButtonHidden {
+    display: none !important;
+  }
+
+  &__root {
+    height: 100%;
+  }
+
+  &__node {
+    height: 100%;
+    width: 100%;
+  }
+
+  &__data {
+    font-size: 2rem !important;
+    padding: 1rem 2rem !important;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+    }
+  }
+}

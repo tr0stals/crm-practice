@@ -29,6 +29,7 @@ import { deleteDataAsync } from "../api/deleteDataAsync";
 import AvatarIcon from "@/shared/ui/AvatarIcon/ui/AvatarIcon.vue";
 import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
 import type { TreeNode } from "primevue/treenode";
+import { useGetTreeviewData } from "@/shared/ui/CustomTreeview/model/useGetTreeviewData";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -223,24 +224,24 @@ watch(currentSection, async (oldVal: string, newSection: string) => {
 
   await getCurrentData();
 
-  data.value.map((item, index) => {
-    if (index > Object.keys(item).length) return;
+  // treeviewData.value = useGetTreeviewData(data.value, currentSection.value);
 
-    const obj: TreeNode = {
-      key: `${index}`,
-      label: Object.keys(item)[index] as string,
-      data: Object.keys(item)[index] as string,
-      children: [
-        {
-          key: `${index}-${index++}`,
-          label: Object.values(item)[index] as string,
-          data: Object.values(item)[index] as string,
-        },
-      ],
-    };
+  // treeviewData.value = data.value.map((item, index) => {
+  //   const children: TreeNode[] = Object.entries(item).map(
+  //     ([key, value], childIndex) => ({
+  //       key: `${index}-${childIndex}`,
+  //       label: `${key}: ${value}`,
+  //       data: `${key}: ${value}`,
+  //     })
+  //   );
 
-    treeviewData.value.push(obj);
-  });
+  //   return {
+  //     key: `${index}`,
+  //     label: `${currentSection.value} ${index + 1}`,
+  //     data: item,
+  //     children,
+  //   };
+  // });
 });
 
 watch(selectedRow, (newVal) => {
@@ -359,7 +360,10 @@ const nextPage = () => {
           </li>
         </ul>
       </nav>
-      <CustomTreeview :data="treeviewData" />
+      <template>
+        <!-- {{ console.debug(data) }} -->
+      </template>
+      <CustomTreeview :data="data" :currentSection="currentSection" />
     </aside>
 
     <!-- Main Content Area -->
