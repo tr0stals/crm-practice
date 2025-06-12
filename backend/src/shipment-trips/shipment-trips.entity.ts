@@ -13,10 +13,10 @@ export class ShipmentTrips {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'date' })
   tripStartDate: Date;
 
-  @Column()
+  @Column({ type: 'date' })
   tripEndDate: Date;
 
   @ManyToOne(() => Shipments, (shipment) => shipment.shipmentTrips)

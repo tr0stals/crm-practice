@@ -26,10 +26,10 @@ export class Shipments {
   @Column()
   standNumber: string;
 
-  @Column()
+  @Column({ type: 'date' })
   addedDate: Date;
 
-  @Column()
+  @Column({ type: 'date' })
   shipmentDate: Date;
 
   @Column()

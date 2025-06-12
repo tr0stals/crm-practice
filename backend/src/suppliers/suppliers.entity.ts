@@ -15,7 +15,7 @@ export class Suppliers {
   @Column()
   ogrn: string;
 
-  @Column()
+  @Column({ type: 'date' })
   ogrnDate: Date;
 
   @Column()

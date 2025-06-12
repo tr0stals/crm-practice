@@ -17,16 +17,16 @@ export class License {
   @Column()
   licenseCode: string;
 
-  @Column()
+  @Column({ type: 'date' })
   start: Date;
 
-  @Column()
+  @Column({ type: 'date' })
   end: Date;
 
   @Column()
   places: number;
 
-  @Column()
+  @Column({ type: 'date' })
   timeout: Date;
 
   @Column()

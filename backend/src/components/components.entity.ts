@@ -34,7 +34,7 @@ export class Components {
   @Column({ nullable: true })
   invoiceId: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'date' })
   receiptDate: Date;
 
   @Column({ nullable: true })

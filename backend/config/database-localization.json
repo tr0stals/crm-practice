@@ -74,7 +74,7 @@
       "displayName": "Типы организаций",
       "fields": {
         "id": "ID",
-        "name": "Название"
+        "title": "Название"
       }
     },
     "license": {
@@ -119,7 +119,7 @@
       "displayName": "Состояния отгрузок",
       "fields": {
         "id": "ID",
-        "name": "Название"
+        "title": "Название"
       }
     },
     "stands": {
@@ -172,6 +172,9 @@
       "displayName": "Пакеты стендов",
       "fields": {
         "id": "ID",
+        "size": "Размер",
+        "weight": "Вес",
+        "comment": "Комментарий",
         "standId": "ID стенда"
       }
     },
@@ -179,6 +182,7 @@
       "displayName": "Печатные платы",
       "fields": {
         "id": "ID",
+        "parentId": "ID родителя",
         "standId": "ID стенда"
       }
     },
@@ -186,21 +190,43 @@
       "displayName": "Заказы печатных плат",
       "fields": {
         "id": "ID",
-        "manufacturerId": "ID производителя"
+        "billNumber": "Номер счета",
+        "count": "Количество",
+        "size": "Размер",
+        "thickness": "Толщина",
+        "article": "Артикул",
+        "price": "Цена",
+        "pcbId": "ID печатной платы",
+        "pcbManufacturerId": "ID производителя",
+        "factoryId": "ID фабрики",
+        "orderTypeId": "ID типа заказа",
+        "employeeId": "ID сотрудника",
+        "pcbOrderStatusId": "ID статуса заказа"
       }
     },
     "pcb_order_states": {
       "displayName": "Состояния заказов печатных плат",
       "fields": {
         "id": "ID",
-        "name": "Название"
+        "state": "Состояние"
       }
     },
     "warehouse_components": {
       "displayName": "Компоненты склада",
       "fields": {
         "id": "ID",
-        "organizationId": "ID организации"
+        "parentId": "ID родителя",
+        "title": "Название",
+        "photo": "Фото",
+        "price": "Цена",
+        "count": "Количество",
+        "size": "Размер",
+        "weight": "Вес",
+        "material": "Материал",
+        "minCount": "Минимальное количество",
+        "arrivalDate": "Дата поступления",
+        "link": "Ссылка",
+        "factoryId": "ID производителя"
       }
     },
     "suppliers": {
@@ -225,7 +251,9 @@
       "displayName": "Компоненты поставщиков",
       "fields": {
         "id": "ID",
-        "supplierId": "ID поставщика"
+        "supplierId": "ID поставщика",
+        "componentId": "ID компонента",
+        "productUrl": "URL продукта"
       }
     },
     "countries": {
@@ -287,6 +315,13 @@
       "displayName": "Заявки на заказ",
       "fields": {
         "id": "ID",
+        "state": "Состояние",
+        "title": "Название",
+        "article": "Артикул",
+        "count": "Количество",
+        "priceForPcs": "Цена за штуку",
+        "link": "Ссылка",
+        "comment": "Комментарий",
         "standId": "ID стенда",
         "employeeCreatorId": "ID создателя",
         "employeeExecutorId": "ID исполнителя"
@@ -296,7 +331,7 @@
       "displayName": "Типы заказов",
       "fields": {
         "id": "ID",
-        "name": "Название"
+        "title": "Название"
       }
     },
     "invoices_arrival": {
@@ -312,21 +347,27 @@
       "displayName": "Счета на оплату",
       "fields": {
         "id": "ID",
-        "name": "Название"
-      }
-    },
-    "components_invoice": {
-      "displayName": "Счета компонентов",
-      "fields": {
-        "id": "ID",
-        "name": "Название"
+        "date": "Дата",
+        "providerId": "ID поставщика",
+        "invoiceScan": "Скан счета"
       }
     },
     "components_arrival_invoice": {
       "displayName": "Входящие счета компонентов",
       "fields": {
         "id": "ID",
-        "name": "Название"
+        "invoiceId": "ID счета",
+        "componentId": "ID компонента",
+        "quantity": "Количество"
+      }
+    },
+    "components_invoice": {
+      "displayName": "Счета компонентов",
+      "fields": {
+        "id": "ID",
+        "invoiceId": "ID счета",
+        "componentId": "ID компонента",
+        "quantity": "Количество"
       }
     },
     "sending_boxes": {
