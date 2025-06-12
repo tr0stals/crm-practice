@@ -1,5 +1,5 @@
 import { Stands } from 'src/stands/stands.entity';
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class StandsTypes {
@@ -9,6 +9,6 @@ export class StandsTypes {
   @Column()
   title: string;
 
-  @OneToOne(() => Stands, (stand) => stand.standTypes)
+  @OneToMany(() => Stands, (stand) => stand.standType)
   stands: Stands[];
 }

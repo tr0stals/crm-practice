@@ -43,9 +43,9 @@ export class Stands {
   @Column()
   comment: string;
 
-  @OneToOne(() => StandsTypes, (type) => type.stands)
+  @ManyToOne(() => StandsTypes, (type) => type.stands)
   @JoinColumn({ name: 'standTypeId' })
-  standTypes: StandsTypes;
+  standType: StandsTypes;
 
   @ManyToOne(() => Employees, (employee) => employee.stands)
   @JoinColumn({ name: 'employeeId' })

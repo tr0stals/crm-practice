@@ -100,6 +100,6 @@ import { DatabaseLocalizationModule } from './database-localization/database-loc
     DatabaseLocalizationModule,
   ],
   controllers: [AppController, StandsController, StandCoursesController],
-  providers: [AppService, StandCategoriesService, StandTypesService],
+  providers: [AppService, StandCategoriesService],
 })
 export class AppModule {}

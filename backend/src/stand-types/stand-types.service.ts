@@ -7,27 +7,27 @@ import { StandsTypes } from './stand-types.entity';
 export class StandTypesService {
   constructor(
     @InjectRepository(StandsTypes)
-    private readonly repo: Repository<StandsTypes>,
+    private readonly repository: Repository<StandsTypes>,
   ) {}
 
   create(data: Partial<StandsTypes>) {
-    const entity = this.repo.create(data);
-    return this.repo.save(entity);
+    const entity = this.repository.create(data);
+    return this.repository.save(entity);
   }
 
   findAll() {
-    return this.repo.find({ relations: ['stands'] });
+    return this.repository.find({ relations: ['stands'] });
   }
 
   findOne(id: number) {
-    return this.repo.findOne({ where: { id }, relations: ['stands'] });
+    return this.repository.findOne({ where: { id }, relations: ['stands'] });
   }
 
   update(id: number, data: Partial<StandsTypes>) {
-    return this.repo.update(id, data);
+    return this.repository.update(id, data);
   }
 
   remove(id: number) {
-    return this.repo.delete(id);
+    return this.repository.delete(id);
   }
 }
