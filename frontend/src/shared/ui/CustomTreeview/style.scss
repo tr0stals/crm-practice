@@ -23,8 +23,12 @@
     border: 1px solid rgba(0, 0, 0, 0.2);
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.1);
+      background-color: rgba(0, 0, 0, 0.05) !important;
       cursor: pointer;
+    }
+
+    &__selected {
+      background-color: #e0f0ff !important;
     }
   }
 }

@@ -1,57 +1,63 @@
 <script setup lang="ts">
-import "../style.scss";
 import Tree from "primevue/tree";
-import { treeviewData as nodes } from "@/shared/config/treeviewData";
 import { onMounted, ref, watch, type Ref } from "vue";
 import type { TreeNode } from "primevue/treenode";
 import { useGetTreeviewData } from "../model/useGetTreeviewData";
-import { node } from "@primeuix/themes/aura/organizationchart";
+import { event } from "@primeuix/themes/aura/timeline";
+import "../style.scss";
 
 const props = defineProps<{
+  onClick?: (node: TreeNode) => void;
   data: any[];
   currentSection: string;
   extraClasses?: string[];
   extraAttrs?: string[];
 }>();
 
-const treeviewData = ref<TreeNode[]>([]);
+const treeviewData: Ref<TreeNode[]> = ref([]);
 const selectedKey = ref();
 
+watch(selectedKey, (newVal) => {
+  console.debug(newVal);
+});
+
+// Следим за props и обновляем дерево асинхронно
 watch(
   () => [props.data, props.currentSection],
-  ([newData, newSection]) => {
-    treeviewData.value = useGetTreeviewData(newData, newSection).value;
-    console.debug(treeviewData.value);
-  }
+  async ([newData, newSection]) => {
+    treeviewData.value = await useGetTreeviewData(newData, newSection);
+    console.debug("treeviewData:", treeviewData.value);
+  },
+  { immediate: true }
 );
-
-const openNodes = ref(new Set());
-
-function toggleNode(node) {
-  if (openNodes.value.has(node.key)) {
-    openNodes.value.delete(node.key);
-  } else {
-    openNodes.value.add(node.key);
-  }
-}
-
-function isNodeOpen(node) {
-  return openNodes.value.has(node.key);
-}
 </script>
 
 <template>
   <Tree
     class="treeview"
     :value="treeviewData"
+    selectionMode="single"
+    v-model:selectionKeys="selectedKey"
     :pt="{
       root: { class: 'treeview__root' },
-
       nodeContent: { class: 'treeview__data' },
+      node: ({ context }) => ({
+        class: context.selected ? 'treeview__data__selected' : '',
+      }),
     }"
     :pt-options="{
       mergeProps: true,
     }"
+    @node-select="(event) => props.onClick?.(event)"
   >
+    <template #default="slotProps">
+      <span
+        v-if="slotProps.node.key.startsWith('child')"
+        :data-js-section-data="JSON.stringify(slotProps.node.data)"
+      >
+        {{ slotProps.node.label }}
+      </span>
+      <span v-else>{{ slotProps.node.label }}</span>
+    </template>
   </Tree>
 </template>

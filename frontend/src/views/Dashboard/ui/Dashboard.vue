@@ -47,36 +47,6 @@ const userLastName = ref("[Last name]");
 
 const treeviewData = ref<TreeNode[]>([]);
 
-const nodes = ref<TreeNode[]>([
-  {
-    key: "0",
-    label: "Documents",
-    children: [
-      {
-        key: "0-0",
-        label: "Work",
-        children: [{ key: "0-0-0", label: "Resume.doc" }],
-      },
-      {
-        key: "0-1",
-        label: "Home",
-        children: [{ key: "0-1-0", label: "Invoices.txt" }],
-      },
-    ],
-  },
-  {
-    key: "1",
-    label: "Pictures",
-    children: [
-      {
-        key: "1-0",
-        label: "Vacation",
-        children: [{ key: "1-0-0", label: "photo.png" }],
-      },
-    ],
-  },
-]);
-
 const selectedRow = ref<any | null>(null);
 
 /**
@@ -223,25 +193,6 @@ watch(currentSection, async (oldVal: string, newSection: string) => {
   treeviewData.value = [];
 
   await getCurrentData();
-
-  // treeviewData.value = useGetTreeviewData(data.value, currentSection.value);
-
-  // treeviewData.value = data.value.map((item, index) => {
-  //   const children: TreeNode[] = Object.entries(item).map(
-  //     ([key, value], childIndex) => ({
-  //       key: `${index}-${childIndex}`,
-  //       label: `${key}: ${value}`,
-  //       data: `${key}: ${value}`,
-  //     })
-  //   );
-
-  //   return {
-  //     key: `${index}`,
-  //     label: `${currentSection.value} ${index + 1}`,
-  //     data: item,
-  //     children,
-  //   };
-  // });
 });
 
 watch(selectedRow, (newVal) => {
@@ -340,6 +291,10 @@ const nextPage = () => {
     currentPage.value++;
   }
 };
+
+const handleClick = (node: any) => {
+  if (node.key.startsWith("child")) selectedRow.value = node.data;
+};
 </script>
 
 <template>
@@ -363,7 +318,7 @@ const nextPage = () => {
       <template>
         <!-- {{ console.debug(data) }} -->
       </template>
-      <CustomTreeview :data="data" :currentSection="currentSection" />
+      <!-- <CustomTreeview :data="data" :currentSection="currentSection" /> -->
     </aside>
 
     <!-- Main Content Area -->
@@ -426,7 +381,7 @@ const nextPage = () => {
 
         <!-- Table -->
         <div class="table-container" v-if="paginatedData.length">
-          <table class="data-table">
+          <table v-if="currentSection !== 'license'" class="data-table">
             <thead>
               <tr>
                 <template v-for="(value, key) in paginatedData[0]">
@@ -461,6 +416,13 @@ const nextPage = () => {
               </tr>
             </tbody>
           </table>
+
+          <CustomTreeview
+            v-else
+            :data="data"
+            :currentSection="currentSection"
+            :on-click="handleClick"
+          />
         </div>
 
         <!-- Pagination -->

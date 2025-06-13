@@ -14,10 +14,9 @@ const props = defineProps<{
   onApplyCallback: () => {};
 }>();
 
-const originalData = props.config?.data;
-const formData = reactive({ ...originalData });
-
-console.debug("formData:", formData.target);
+const { licenseTypeId, ...originalData } = props.config?.data;
+const formData = reactive(originalData);
+console.debug(originalData);
 
 const getInputType = (key: string, value: any): string => {
   if (key.toLowerCase().includes("date")) return "date";
@@ -29,8 +28,6 @@ const getInputType = (key: string, value: any): string => {
 onMounted(() => {
   new EditModalWindowModel(props.onApplyCallback);
 });
-
-console.debug(originalData);
 </script>
 
 <template>
