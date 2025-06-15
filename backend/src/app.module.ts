@@ -41,6 +41,7 @@ import { PcbsModule } from './pcbs/pcbs.module';
 import { PcbWarehouseComponentsModule } from './pcb-warehouse-components/pcb-warehouse-components.module';
 import { PcbOrdersModule } from './pcb-orders/pcb-orders.module';
 import { DatabaseLocalizationModule } from './database-localization/database-localization.module';
+import { DatabaseSeederModule } from './database-seeder/database-seeder.module';
 
 @Module({
   imports: [
@@ -96,6 +97,7 @@ import { DatabaseLocalizationModule } from './database-localization/database-loc
     PcbWarehouseComponentsModule,
     PcbOrdersModule,
     DatabaseLocalizationModule,
+    DatabaseSeederModule,
   ],
   controllers: [AppController, StandsController, StandCoursesController],
   providers: [AppService],

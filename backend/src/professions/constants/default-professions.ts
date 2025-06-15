@@ -20,5 +20,6 @@ export const DEFAULT_PROFESSIONS: string[] = [
   'Экономист',
   'Юрист',
   'HR-специалист',
-  'IT-специалист'
+  'IT-специалист',
+  'Test'
 ]; 
