@@ -8,5 +8,6 @@ import { InvoicesArrivalController } from './Invoices_arrival.controller';
   imports: [TypeOrmModule.forFeature([InvoicesArrival])],
   providers: [InvoicesArrivalService],
   controllers: [InvoicesArrivalController],
+  exports: [InvoicesArrivalService]
 })
 export class InvoicesArrivalModule {}

@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
-import { OrderRequestComponentsController } from './order-request-components.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { OrderRequestComponents } from './order-request-components.entity';
 import { OrderRequestComponentsService } from './order-request-components.service';
+import { OrderRequestComponentsController } from './order-request-components.controller';
 
 @Module({
+  imports: [TypeOrmModule.forFeature([OrderRequestComponents])],
+  providers: [OrderRequestComponentsService],
   controllers: [OrderRequestComponentsController],
-  providers: [OrderRequestComponentsService]
+  exports: [OrderRequestComponentsService]
 })
 export class OrderRequestComponentsModule {}

@@ -8,5 +8,6 @@ import { PaymentInvoiceService } from './Payment_invoice.service';
   imports: [TypeOrmModule.forFeature([PaymentInvoice])],
   providers: [PaymentInvoiceService],
   controllers: [PaymentInvoiceController],
+  exports: [PaymentInvoiceService]
 })
-export class SendingBoxesModule {}
+export class PaymentInvoiceModule {}

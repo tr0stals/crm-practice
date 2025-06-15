@@ -52,5 +52,5 @@ export class OrderRequests {
     () => OrderRequestComponents,
     (component) => component.orderRequests,
   )
-  orderRequestComponents: OrderRequestComponents;
+  orderRequestComponents: OrderRequestComponents[];
 }

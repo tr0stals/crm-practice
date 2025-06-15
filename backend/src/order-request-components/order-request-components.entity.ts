@@ -16,5 +16,5 @@ export class OrderRequestComponents {
     (warehouseComponent) => warehouseComponent.orderRequestComponents,
   )
   @JoinColumn({ name: 'componentId' })
-  components: OrderRequestComponents;
+  components: WarehouseComponents;
 }

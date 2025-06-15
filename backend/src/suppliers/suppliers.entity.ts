@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { SupplierComponents } from '../supplier-components/supplier-components.entity';
+import { InvoicesArrival } from '../Invoices_arrival/Invoices_arrival.entity';
 
 @Entity()
 export class Suppliers {
@@ -44,4 +45,7 @@ export class Suppliers {
 
   @OneToMany(() => SupplierComponents, supplierComponents => supplierComponents.supplier)
   supplierComponents: SupplierComponents[];
+
+  @OneToMany(() => InvoicesArrival, invoicesArrival => invoicesArrival.supplier)
+  invoicesArrival: InvoicesArrival[];
 }

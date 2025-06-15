@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common';
 import { StandPackagesService } from './stand-packages.service';
 import { StandPackages } from './stand-packages.entity';
 
@@ -6,28 +6,28 @@ import { StandPackages } from './stand-packages.entity';
 export class StandPackagesController {
   constructor(private readonly service: StandPackagesService) {}
 
-  @Post()
-  create(@Body() data: Partial<StandPackages>) {
-    return this.service.create(data);
+  @Post('create')
+  async create(@Body() data: Partial<StandPackages>) {
+    return await this.service.create(data);
   }
 
-  @Get()
-  findAll() {
-    return this.service.findAll();
+  @Get('get')
+  async findAll() {
+    return await this.service.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.service.findOne(+id);
+  @Get('get/:id')
+  async findOne(@Param('id') id: string) {
+    return await this.service.findOne(+id);
   }
 
-  @Put(':id')
-  update(@Param('id') id: string, @Body() data: Partial<StandPackages>) {
-    return this.service.update(+id, data);
+  @Patch('update/:id')
+  async update(@Param('id') id: string, @Body() data: Partial<StandPackages>) {
+    return await this.service.update(+id, data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.service.remove(+id);
+  @Delete('delete/:id')
+  async remove(@Param('id') id: string) {
+    return await this.service.remove(+id);
   }
 }

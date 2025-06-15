@@ -23,6 +23,7 @@ export class ShipmentTripsService {
           async update(id, shipmentTrips: ShipmentTripsDTO) {
             try {
               await this.shipmentTripsRepository.update(id, shipmentTrips);
+              return await this.findOne(id);
             } catch (e) {
               console.error(e);
             }
@@ -37,6 +38,15 @@ export class ShipmentTripsService {
           }
         
           async find() {
-            return this.shipmentTripsRepository.find();
+            return this.shipmentTripsRepository.find({
+              relations: ['shipments', 'employees']
+            });
+          }
+
+          async findOne(id: number) {
+            return this.shipmentTripsRepository.findOne({
+              where: { id },
+              relations: ['shipments', 'employees']
+            });
           }
 }

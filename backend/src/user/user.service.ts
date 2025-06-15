@@ -5,14 +5,17 @@ import { User } from './user.entity';
 import { UserRegisterDTO } from './dto/UserRegisterDTO';
 import * as bcrypt from 'bcrypt';
 import { PeoplesService } from 'src/peoples/peoples.service';
+import { EmployeesService } from 'src/employees/employees.service';
+import { ProfessionsService } from 'src/professions/professions.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-
     private peoplesService: PeoplesService,
+    private employeesService: EmployeesService,
+    private professionsService: ProfessionsService,
   ) {}
 
   async findByUsername(userName: string) {
@@ -43,18 +46,32 @@ export class UserService {
         throw new BadRequestException('Ошибка при регистрации пользователя');
       }
 
+      const itProfession = await this.professionsService.findByTitle('IT-специалист');
+      if (!itProfession) {
+        throw new BadRequestException('Профессия IT-специалист не найдена');
+      }
+
       const user = {
         userName: data.userName,
         password: data.password,
         passwordSalt: data.passwordSalt,
         peoples: people,
+        profession: itProfession,
       };
 
       const newUser = this.usersRepository.create(user);
+      const savedUser = await this.usersRepository.save(newUser);
 
-      return this.usersRepository.save(newUser);
+      try {
+        await this.employeesService.assignDefaultProfession(people.id);
+      } catch (error) {
+        console.error('Ошибка при создании сотрудника:', error);
+      }
+
+      return savedUser;
     } catch (e) {
-      console.error(e);
+      console.error('Ошибка при регистрации:', e);
+      throw new BadRequestException('Ошибка при регистрации пользователя: ' + e.message);
     }
   }
 

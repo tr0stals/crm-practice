@@ -37,5 +37,5 @@ export class License {
   licenseTypes: LicenseTypes;
 
   @OneToOne(() => Shipments, (shipment) => shipment.licenses)
-  shipments: Shipments[];
+  shipment: Shipments;
 }

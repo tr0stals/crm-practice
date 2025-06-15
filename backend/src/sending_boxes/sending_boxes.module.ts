@@ -8,5 +8,6 @@ import { SendingBoxesController } from './sending_boxes.controller';
   imports: [TypeOrmModule.forFeature([SendingBoxes])],
   providers: [SendingBoxesService],
   controllers: [SendingBoxesController],
+  exports: [SendingBoxesService]
 })
 export class SendingBoxesModule {}

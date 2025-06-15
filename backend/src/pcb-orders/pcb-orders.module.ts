@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
-import { PcbOrdersController } from './pcb-orders.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PcbOrders } from './pcb-orders.entity';
 import { PcbOrdersService } from './pcb-orders.service';
+import { PcbOrdersController } from './pcb-orders.controller';
 
 @Module({
+  imports: [TypeOrmModule.forFeature([PcbOrders])],
+  providers: [PcbOrdersService],
   controllers: [PcbOrdersController],
-  providers: [PcbOrdersService]
+  exports: [PcbOrdersService]
 })
 export class PcbOrdersModule {}

@@ -42,13 +42,13 @@ export class Shipments {
     () => ShipmentPackage,
     (shipmentPackage) => shipmentPackage.shipments,
   )
-  shipmentPackages: ShipmentPackage;
+  shipmentPackages: ShipmentPackage[];
 
   @ManyToOne(() => ShipmentStates, (state) => state.shipments)
   @JoinColumn({ name: 'shipmentStateId' })
   shipmentStates: ShipmentStates;
 
-  @OneToOne(() => License, (license) => license.shipments)
+  @OneToOne(() => License, (license) => license.shipment)
   @JoinColumn({ name: 'licenseId' })
   licenses: License;
 

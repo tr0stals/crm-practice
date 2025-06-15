@@ -8,5 +8,6 @@ import { StandsTypes } from './stand-types.entity';
   imports: [TypeOrmModule.forFeature([StandsTypes])],
   controllers: [StandTypesController],
   providers: [StandTypesService],
+  exports: [StandTypesService]
 })
 export class StandTypesModule {}

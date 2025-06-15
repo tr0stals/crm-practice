@@ -16,11 +16,9 @@ import { LicenseTypesModule } from './license-types/license-types.module';
 import { EmployeesModule } from './employees/employees.module';
 import { StandsController } from './stands/stands.controller';
 import { StandsModule } from './stands/stands.module';
-import { StandCategoriesService } from './stand-categories/stand-categories.service';
 import { StandCategoriesModule } from './stand-categories/stand-categories.module';
 import { StandCoursesController } from './stand-courses/stand-courses.controller';
 import { StandCoursesModule } from './stand-courses/stand-courses.module';
-import { StandTypesService } from './stand-types/stand-types.service';
 import { StandTypesModule } from './stand-types/stand-types.module';
 import { DatabaseModule } from './database/database.module';
 import { ShipmentPackageStatesModule } from './shipment-package-states/shipment-package-states.module';
@@ -100,6 +98,6 @@ import { DatabaseLocalizationModule } from './database-localization/database-loc
     DatabaseLocalizationModule,
   ],
   controllers: [AppController, StandsController, StandCoursesController],
-  providers: [AppService, StandCategoriesService],
+  providers: [AppService],
 })
 export class AppModule {}
