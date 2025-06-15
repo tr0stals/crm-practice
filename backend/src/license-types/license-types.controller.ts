@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { LicenseTypesService } from './license-types.service';
 import { LicenseTypeDTO } from './dto/LicenseTypeDTO';
 
@@ -19,5 +27,10 @@ export class LicenseTypesController {
   @Patch('update/:id')
   async update(@Param('id') id, @Body() updateLicense: LicenseTypeDTO) {
     return this.licenseTypesService.update(id, updateLicense);
+  }
+
+  @Delete('delete/:id')
+  async delete(@Param('id') id) {
+    return this.licenseTypesService.remove(id);
   }
 }

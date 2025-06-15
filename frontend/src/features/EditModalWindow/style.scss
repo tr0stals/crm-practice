@@ -1,4 +1,6 @@
 .editModalWindow {
+  height: 60%;
+  overflow-y: auto;
   &__header {
     &__title {
       font-size: 2rem;

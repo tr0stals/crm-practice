@@ -27,6 +27,8 @@ body {
   top: 50%;
   transform: translate(-50%, -50%);
   width: 90%;
+  height: 100%;
+  overflow-y: auto;
   max-width: 600px;
   gap: 2rem;
   padding: 25px;

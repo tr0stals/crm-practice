@@ -43,4 +43,12 @@ export class LicenseTypesService {
       console.error(e);
     }
   }
+
+  async remove(id: number) {
+    try {
+      return await this.licenseRepository.delete(id);
+    } catch (e) {
+      console.error('Ошибка при удалении типа лицензии', e);
+    }
+  }
 }

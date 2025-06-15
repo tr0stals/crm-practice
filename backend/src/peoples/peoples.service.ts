@@ -28,6 +28,14 @@ export class PeoplesService {
     return await this.peoplesRepository.save(people);
   }
 
+  async findById(data: number) {
+    try {
+      return await this.peoplesRepository.findOne({ where: { id: data } });
+    } catch (e) {
+      console.error('Ошибка при поиске по id', e);
+    }
+  }
+
   async getPeoples() {
     try {
       return await this.peoplesRepository.find();

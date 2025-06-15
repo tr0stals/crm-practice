@@ -70,7 +70,7 @@ export class Organizations {
     () => OrganizationTypes,
     (organizationType) => organizationType.organizations,
   )
-  @JoinColumn({ name: 'organzationTypeId' })
+  @JoinColumn({ name: 'organizationTypeId' })
   organizationTypes: OrganizationTypes;
 
   @OneToMany(() => Shipments, (shipment) => shipment.factory)

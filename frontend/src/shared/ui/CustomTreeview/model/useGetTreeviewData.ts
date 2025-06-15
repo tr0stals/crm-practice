@@ -2,56 +2,83 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import type { TreeNode } from "primevue/treenode";
 
 export async function useGetTreeviewData(
+  /**
+   * данные текущей таблицы
+   * currentTableData
+   */
   data?: any[],
-  currentSection?: string
+  currentSection?: string,
+  foreignConfig?: {
+    foreignTableName: string;
+  }
 ): Promise<TreeNode[]> {
+  const { foreignTableName } = foreignConfig;
+
   if (!data || data.length === 0) {
     console.warn("Empty data passed to useGetTreeviewData");
     return [];
   }
 
-  const licenseTypes = (
+  // данные внешней таблицы
+  const foreignTableData = (
     await Promise.all(
       data.map(async (item) => {
-        const res = await getDataAsync(`database/license_types/${item.id}`);
-        return res.data; // { id, name }
+        const res = await getDataAsync(`database/${foreignTableName}`);
+        return res.data;
       })
     )
   ).flat();
 
-  const licenses = (
+  const currentTableData = (
     await Promise.all(
       data.map(async (item) => {
-        const res = await getDataAsync(`database/license/${item.id}`);
-        return res.data; // массив лицензий
+        const res = await getDataAsync(`database/${currentSection}/${item.id}`);
+        return res.data;
       })
     )
   ).flat();
 
   const grouped = new Map<number, TreeNode[]>();
 
-  for (const license of licenses) {
-    const licenseTypeId = license.licenseTypeId;
-    if (!grouped.has(licenseTypeId)) {
-      grouped.set(licenseTypeId, []);
-    }
-    console.debug(licenseTypeId);
+  for (const item of currentTableData) {
+    console.debug(item);
+    const idKey = Object.keys(item).find(
+      (k) =>
+        k.endsWith("Id") && k.includes(String(currentSection?.slice(0, -1)))
+    );
+    const foreignDataId = idKey ? item[idKey] : undefined;
+    console.debug(idKey);
 
-    grouped.get(licenseTypeId)!.push({
-      key: `child-${license.id}`,
-      label: `Лицензия №${license.licenseCode}`,
-      data: license,
+    if (typeof foreignDataId !== "number") {
+      console.warn("foreignDataId is not a number or undefined", foreignDataId);
+      continue;
+    }
+
+    if (!grouped.has(foreignDataId)) {
+      grouped.set(foreignDataId, []);
+    }
+
+    grouped.get(foreignDataId)!.push({
+      key: `child-${item.id}`,
+      label: `${currentSection} №${
+        item.licenseCode || item.name || item.label || item.id
+      }`,
+      data: item,
       leaf: true,
     });
   }
 
-  const licenseTypeNodes: TreeNode[] = Array.from(grouped.entries()).map(
-    ([licenseTypeId, licenses]) => {
+  const foreignDataNodes: TreeNode[] = Array.from(grouped.entries()).map(
+    ([id, currentData]) => {
+      console.debug(foreignTableData, id);
       return {
-        key: `type-${licenseTypeId}`,
-        label: `${licenseTypes.find((item) => item.id === licenseTypeId).name}`,
-        data: licenseTypeId,
-        children: licenses,
+        key: `type-${id}`,
+        label: `${
+          foreignTableData.find((item) => item.id === id).title ||
+          foreignTableData.find((item) => item.id === id).name
+        }`,
+        data: id,
+        children: currentData,
       };
     }
   );
@@ -61,7 +88,7 @@ export async function useGetTreeviewData(
       key: "root",
       label: currentSection || "Раздел",
       data: currentSection,
-      children: licenseTypeNodes,
+      children: foreignDataNodes,
     },
   ];
 }

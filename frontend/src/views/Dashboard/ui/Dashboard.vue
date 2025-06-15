@@ -115,6 +115,7 @@ const getCurrentData = async () => {
 
   try {
     const response = await getDataAsync(config);
+    console.debug(response);
     data.value = response.data;
   } catch (e) {
     console.error(e);
@@ -381,7 +382,12 @@ const handleClick = (node: any) => {
 
         <!-- Table -->
         <div class="table-container" v-if="paginatedData.length">
-          <table v-if="currentSection !== 'license'" class="data-table">
+          <table
+            v-if="
+              currentSection !== 'license' && currentSection !== 'organizations'
+            "
+            class="data-table"
+          >
             <thead>
               <tr>
                 <template v-for="(value, key) in paginatedData[0]">
@@ -400,9 +406,6 @@ const handleClick = (node: any) => {
                 @dblclick="handleEditModalWindow"
                 :class="{ 'selected-row': selectedRow?.id === item.id }"
               >
-                {{
-                  console.debug()
-                }}
                 <template v-for="(value, title) in item">
                   <td v-if="title !== 'password'" :key="title">
                     <template v-if="typeof value === 'boolean'">

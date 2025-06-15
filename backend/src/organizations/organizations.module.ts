@@ -3,9 +3,15 @@ import { OrganizationsService } from './organizations.service';
 import { OrganizationsController } from './organizations.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Organizations } from './organizations.entity';
+import { OrganizationTypesModule } from 'src/organization-types/organization-types.module';
+import { PeoplesModule } from 'src/peoples/peoples.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Organizations])],
+  imports: [
+    TypeOrmModule.forFeature([Organizations]),
+    OrganizationTypesModule,
+    PeoplesModule,
+  ],
   providers: [OrganizationsService],
   controllers: [OrganizationsController],
   exports: [OrganizationsService],

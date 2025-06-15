@@ -25,7 +25,9 @@ watch(selectedKey, (newVal) => {
 watch(
   () => [props.data, props.currentSection],
   async ([newData, newSection]) => {
-    treeviewData.value = await useGetTreeviewData(newData, newSection);
+    treeviewData.value = await useGetTreeviewData(newData, newSection, {
+      foreignTableName: "organization_types",
+    });
     console.debug("treeviewData:", treeviewData.value);
   },
   { immediate: true }
