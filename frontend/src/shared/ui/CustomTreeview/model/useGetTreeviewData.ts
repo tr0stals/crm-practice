@@ -60,9 +60,11 @@ export async function useGetTreeviewData(
 
     grouped.get(foreignDataId)!.push({
       key: `child-${item.id}`,
-      label: `${currentSection} №${
-        item.licenseCode || item.name || item.label || item.id
-      }`,
+      label:
+        item.fullName ||
+        currentSection +
+          " " +
+          (item.licenseCode || item.name || item.label || item.id),
       data: item,
       leaf: true,
     });

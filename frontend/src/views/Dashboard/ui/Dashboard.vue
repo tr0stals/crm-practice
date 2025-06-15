@@ -307,7 +307,7 @@ const nextPage = () => {
 };
 
 const handleClick = (node: any) => {
-  if (node.key.startsWith("child")) selectedRow.value = node.data;
+  selectedRow.value = node.data;
 };
 
 const exportToCSV = () => {
@@ -402,7 +402,7 @@ const openAddEntityModal = () => {
       </header>
 
       <!-- Content -->
-      <section class="content-section">
+      <section class="content-section" v-if="currentSection">
         <h2 class="content-section__title">{{ currentSection }}</h2>
 
         <!-- Action Buttons, Search, and Filter Placeholder -->
@@ -496,6 +496,10 @@ const openAddEntityModal = () => {
           />
         </div>
 
+        <div v-if="paginatedData.length === 0">
+          <h1>Упс</h1>
+        </div>
+
         <!-- Pagination -->
         <div class="pagination">
           <Button @click="currentPage--" :disabled="currentPage === 1">
@@ -523,6 +527,9 @@ const openAddEntityModal = () => {
             </div>
           </div>
         </div>
+      </section>
+      <section v-else>
+        <h1>Добро пожаловать! Начните работу прямо сейчас!</h1>
       </section>
     </main>
   </div>

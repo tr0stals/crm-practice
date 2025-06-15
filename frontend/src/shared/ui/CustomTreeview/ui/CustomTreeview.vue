@@ -50,7 +50,9 @@ watch(
     :pt-options="{
       mergeProps: true,
     }"
-    @node-select="(event) => props.onClick?.(event)"
+    @node-select="
+      (event) => event.key.startsWith('child') && props.onClick?.(event)
+    "
   >
     <template #default="slotProps">
       <span
