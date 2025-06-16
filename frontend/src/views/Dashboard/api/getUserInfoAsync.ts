@@ -17,7 +17,7 @@ const getUserId = async (): Promise<number> => {
   };
 
   return await getDataAsync(cfg)
-    .then((res) => res.data.user.userId)
+    .then((res) => res.data.user.id)
     .catch((e) => console.error(e));
 };
 
