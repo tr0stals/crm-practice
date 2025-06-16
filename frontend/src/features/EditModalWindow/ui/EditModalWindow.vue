@@ -69,18 +69,20 @@ onMounted(() => {
     <div class="editModalWindow__controls">
       <Button
         data-js-cancel-btn=""
-        text="Отменить"
         button-color="button__buttonBlue"
         :extra-classes="['editModalWindow__controls__btn']"
-      />
+      >
+        Отмена
+      </Button>
       <Button
         :data-js-apply-btn="
           JSON.stringify({ sectionName: props.config?.sectionName, formData })
         "
-        text="Сохранить"
         button-color="button__buttonBlue"
         :extra-classes="['editModalWindow__controls__btn']"
-      />
+      >
+        Сохранить
+      </Button>
     </div>
   </div>
 </template>

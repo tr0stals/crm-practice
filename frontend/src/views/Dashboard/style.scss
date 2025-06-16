@@ -215,10 +215,11 @@
 }
 
 .search-input {
-  padding: 8px 12px; /* Оставляем внутренние отступы */
+  padding: 12px 18px; /* Увеличил внутренние отступы */
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 1.3em;
+  font-size: 1.8em; /* Увеличил размер шрифта */
+  width: 180px; /* Укоротил ширину поля еще больше */
 }
 
 .search-icon {
@@ -277,33 +278,83 @@
 
 .pagination {
   display: flex;
-  justify-content: center;
-  gap: 5px;
-  margin-top: 20px; /* Добавляем отступ сверху, чтобы отделить от таблицы */
-  padding-top: 15px;
+  justify-content: space-between; /* Распределяем элементы по краям */
+  align-items: center;
+  margin-top: 20px; /* Отступ сверху от таблицы */
+  padding: 10px 0;
   border-top: 1px solid #eee;
-  flex-shrink: 0; /* Пагинация не сжимается */
-}
 
-.pagination button {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  background-color: #fff;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 1.3em;
-  color: #555;
-}
+  .button {
+    background-color: #f4f4f4;
+    color: #555;
+    border: 1px solid #ddd;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.5em;
+    display: flex; /* Делаем кнопку flex-контейнером */
+    align-items: center; /* Выравниваем элементы по центру вертикали */
+    justify-content: center; /* Выравниваем элементы по центру горизонтали */
 
-.pagination button.active {
-  background-color: #007bff; /* Синий фон для активной кнопки */
-  color: white;
-  border-color: #007bff;
-}
+    svg {
+      width: 1.5em; /* Задаем размер SVG */
+      height: 1.5em;
+      stroke: #555; /* Цвет стрелки */
+    }
 
-.pagination button:hover:not(.active) {
-  background-color: #e9e9e9;
-  border-color: #bbb;
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  span {
+    font-size: 1.5em;
+    color: #666;
+  }
+
+  .items-per-page {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    label {
+      font-size: 1.5em;
+      color: #666;
+    }
+
+    select {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1.5em;
+      cursor: pointer;
+      background-color: #fff;
+      appearance: none; /* Убираем стандартный системный стиль для select */
+      min-width: 60px; /* Минимальная ширина для отображения всех чисел */
+      box-sizing: border-box; /* Включаем padding в общую ширину */
+    }
+
+    .select-wrapper {
+      position: relative;
+      display: inline-block; /* Для корректного позиционирования ::after */
+      vertical-align: middle; /* Для выравнивания с label */
+
+      /* &::after {
+        content: '▼';
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        transition: transform 0.2s ease;
+      } */
+
+      /* &.open::after {
+        transform: translateY(-50%) rotate(180deg);
+      } */
+    }
+  }
 }
 
 .avatar-container {
@@ -338,4 +389,14 @@
 
 .logout-button:hover {
   background-color: #e0e0e0;
+}
+
+.sidebar.expanded {
+  min-width: 250px;
+  .logo {
+    font-size: 30px;
+  }
+  .user-info {
+    // ... existing code ...
+  }
 }

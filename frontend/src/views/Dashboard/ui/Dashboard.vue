@@ -30,6 +30,7 @@ import AvatarIcon from "@/shared/ui/AvatarIcon/ui/AvatarIcon.vue";
 import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
 import type { TreeNode } from "primevue/treenode";
 import { useGetTreeviewData } from "@/shared/ui/CustomTreeview/model/useGetTreeviewData";
+import * as XLSX from "xlsx";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -43,6 +44,7 @@ const data = ref<any[]>([]);
 const isMenuOpen = ref(false);
 const userFirstName = ref("[First name]");
 const userLastName = ref("[Last name]");
+const avatarImage = ref(""); // Переменная для изображения аватара, изначально пустая
 // const userInfo = ref<any>();
 
 const treeviewData = ref<TreeNode[]>([]);
@@ -62,33 +64,46 @@ const targetData = ref();
 // Поисковый запрос для фильтрации
 const searchQuery = ref("");
 
-// Переменные для пагинации
 const currentPage = ref(1);
-const itemsPerPage = ref(3); // Для теста ставим 3 строки на странице
+const itemsPerPage = ref<number | null>(13); // Изменено на 13, чтобы быть по умолчанию
+
+const isSelectOpen = ref(false); // Добавляем реактивную переменную для отслеживания состояния select
 
 // Добавляем вычисляемое свойство для фильтрации данных
 const filteredData = computed(() => {
-  if (!searchQuery.value) return data.value;
+  const filtered = searchQuery.value
+    ? data.value.filter((item) => {
+        const query = searchQuery.value.toLowerCase();
+        return Object.values(item).some((value) => {
+          if (value === null || value === undefined) return false;
+          return String(value).toLowerCase().includes(query);
+        });
+      })
+    : data.value;
 
-  const query = searchQuery.value.toLowerCase();
-  return data.value.filter((item) => {
-    return Object.values(item).some((value) => {
-      if (value === null || value === undefined) return false;
-      return String(value).toLowerCase().includes(query);
-    });
+  // Сортировка по полю 'id' в возрастающем порядке
+  return [...filtered].sort((a, b) => {
+    if (typeof a.id === 'number' && typeof b.id === 'number') {
+      return a.id - b.id;
+    } else if (typeof a.id === 'string' && typeof b.id === 'string') {
+      return a.id.localeCompare(b.id);
+    }
+    return 0; // В случае, если 'id' имеет другой тип или отсутствует
   });
 });
 
 // Вычисляемое свойство для данных текущей страницы
 const paginatedData = computed(() => {
-  const startIndex = (currentPage.value - 1) * itemsPerPage.value;
-  const endIndex = startIndex + itemsPerPage.value;
+  const actualItemsPerPage = itemsPerPage.value ?? 13; // Используем 13, если itemsPerPage равно null
+  const startIndex = (currentPage.value - 1) * actualItemsPerPage;
+  const endIndex = startIndex + actualItemsPerPage;
   return filteredData.value.slice(startIndex, endIndex);
 });
 
 // Вычисляемое свойство для общего количества страниц
 const totalPages = computed(() => {
-  return Math.ceil(filteredData.value.length / itemsPerPage.value);
+  const actualItemsPerPage = itemsPerPage.value ?? 13; // Используем 13, если itemsPerPage равно null
+  return Math.ceil(filteredData.value.length / actualItemsPerPage);
 });
 
 const toggleMenu = () => {
@@ -147,25 +162,18 @@ const handleEditModalWindow = () => {
   });
 };
 
-const currentTime = ref("");
-const avatarImage = ref(""); // Переменная для изображения аватара, изначально пустая
-const currentDate = ref(""); // Переменная для текущей даты
-let today = ""; // Переменная для хранения текущего дня, чтобы обновлять дату только раз в день
+const currentDateTime = ref("");
 
 const updateTime = () => {
   const now = new Date();
-  currentTime.value = new Intl.DateTimeFormat("ru-RU", {
+  currentDateTime.value = now.toLocaleString("ru-RU", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit",
-  }).format(now);
-
-  // Обновляем дату только если день изменился
-  const newToday = new Intl.DateTimeFormat("ru-RU").format(now);
-  if (newToday !== today) {
-    today = newToday;
-    currentDate.value = today;
-  }
+    second: "2-digit"
+  });
 };
 
 let timer: ReturnType<typeof setInterval> | undefined;
@@ -173,15 +181,16 @@ let timer: ReturnType<typeof setInterval> | undefined;
 onMounted(async () => {
   // new DashboardModel();
   getSectionList();
-
-  // получаем имя, фамилию пользователя
-  const { firstName, lastName } = await getUserInfoAsync();
-
-  userFirstName.value = firstName;
-  userLastName.value = lastName;
-
-  updateTime(); // Обновляем время и дату сразу при монтировании
-  timer = setInterval(updateTime, 1000); // Обновляем время каждую секунду
+  let userInfo;
+  try {
+    userInfo = await getUserInfoAsync();
+  } catch (e) {
+    userInfo = undefined;
+  }
+  userFirstName.value = userInfo?.firstName || "[First name]";
+  userLastName.value = userInfo?.lastName || "[Last name]";
+  updateTime();
+  timer = setInterval(updateTime, 1000);
 });
 
 /**
@@ -198,6 +207,10 @@ watch(currentSection, async (oldVal: string, newSection: string) => {
 
 watch(selectedRow, (newVal) => {
   targetData.value = newVal;
+});
+
+watch(itemsPerPage, () => {
+  currentPage.value = 1;
 });
 
 onUnmounted(() => {
@@ -296,6 +309,57 @@ const nextPage = () => {
 const handleClick = (node: any) => {
   if (node.key.startsWith("child")) selectedRow.value = node.data;
 };
+
+const exportToCSV = () => {
+  const headers = Object.keys(filteredData.value[0]).join(',');
+  const rows = filteredData.value.map(row =>
+    Object.values(row).map(value => {
+      // Экранирование значений для CSV:
+      // если значение содержит запятую, кавычки или перевод строки,
+      // заключаем его в двойные кавычки и удваиваем внутренние двойные кавычки.
+      if (value === null || value === undefined) {
+        return '';
+      }
+      let stringValue = String(value);
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes('\r')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    }).join(',')
+  );
+
+  const csvContent = "\uFEFF" + [headers, ...rows].join('\n'); // Добавляем BOM для корректного отображения кириллицы
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', 'data.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const exportToExcel = () => {
+  if (!filteredData.value.length) {
+    alert('Нет данных для экспорта.');
+    return;
+  }
+  const header = Object.keys(filteredData.value[0]);
+  const data = filteredData.value.map(row => 
+    header.reduce((obj: Record<string, any>, key) => { 
+      obj[key] = row[key]; 
+      return obj; 
+    }, {})
+  );
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+  XLSX.writeFile(wb, "data.xlsx");
+};
+
+const openAddEntityModal = () => {
+  ModalManager.getInstance().open(AddEntity, { onApplyCallback: onUpdateCallBack });
+};
 </script>
 
 <template>
@@ -331,8 +395,7 @@ const handleClick = (node: any) => {
           <div>
             <div class="user-name">{{ userFirstName }}</div>
             <div class="user-details">{{ userLastName }}</div>
-            <div class="user-details">{{ currentTime }}</div>
-            <div class="user-details">{{ currentDate }}</div>
+            <div class="user-details">{{ currentDateTime }}</div>
           </div>
         </div>
         <button class="logout-button" @click="logout">Выйти</button>
@@ -345,30 +408,35 @@ const handleClick = (node: any) => {
         <!-- Action Buttons, Search, and Filter Placeholder -->
         <div class="controls">
           <div class="action-buttons">
+            <Button :onClick="handleCreateModalWindow" class="dashboard__button">
+              <PlusIcon /> добавить
+            </Button>
             <Button
-              @click="handleCreateModalWindow"
-              text="Добавить"
-              :image="PlusIcon"
-              :extraClasses="['action-button-style']"
-            />
+              :onClick="handleEditModalWindow"
+              class="dashboard__button"
+            >
+              <EditIcon /> редактировать
+            </Button>
             <Button
-              @click="handleEditModalWindow"
-              text="Редактировать"
-              :image="EditIcon"
-              :extraClasses="['action-button-style']"
-            />
+              :onClick="handleDeleteRow"
+              class="dashboard__button"
+            >
+              <DeleteIcon /> удалить
+            </Button>
             <Button
-              text="Удалить"
-              :image="DeleteIcon"
-              @click="handleDeleteRow"
-              :extraClasses="['action-button-style']"
-            />
+              :onClick="getCurrentData"
+              class="dashboard__button"
+            >
+              <RefreshIcon /> обновить
+            </Button>
             <Button
-              text="Обновить"
-              :image="RefreshIcon"
-              @click="refreshUsers"
-              :extraClasses="['action-button-style']"
-            />
+              :onClick="exportToCSV"
+              class="dashboard__button"
+            > выгрузить в csv</Button>
+            <Button
+              :onClick="exportToExcel"
+              class="dashboard__button"
+            > выгрузить в excel</Button>
           </div>
           <div class="search-filter">
             <input
@@ -404,7 +472,7 @@ const handleClick = (node: any) => {
                 :key="item.id || index"
                 @click="selectedRow = item"
                 @dblclick="handleEditModalWindow"
-                :class="{ 'selected-row': selectedRow?.id === item.id }"
+                :class="{ 'selected-row': String(selectedRow?.id) === String(item.id) }"
               >
                 <template v-for="(value, title) in item">
                   <td v-if="title !== 'password'" :key="title">
@@ -430,24 +498,30 @@ const handleClick = (node: any) => {
 
         <!-- Pagination -->
         <div class="pagination">
-          <button @click="prevPage" :disabled="currentPage === 1">&lt;</button>
-          <button @click="firstPage" :disabled="currentPage === 1">
-            &lt;&lt;
-          </button>
-          <template v-for="page in totalPages" :key="page">
-            <button
-              @click="gotoPage(page)"
-              :class="{ active: currentPage === page }"
-            >
-              {{ page }}
-            </button>
-          </template>
-          <button @click="lastPage" :disabled="currentPage === totalPages">
-            &gt;&gt;
-          </button>
-          <button @click="nextPage" :disabled="currentPage === totalPages">
-            &gt;
-          </button>
+          <Button @click="currentPage--" :disabled="currentPage === 1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-left"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </Button>
+          <span>Страница {{ currentPage }} из {{ totalPages }}</span>
+          <Button @click="currentPage++" :disabled="currentPage === totalPages">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </Button>
+          <div class="items-per-page">
+            <label for="itemsPerPage">Элементов на странице:</label>
+            <div class="select-wrapper" :class="{ open: isSelectOpen }">
+              <select
+                id="itemsPerPage"
+                v-model="itemsPerPage"
+                @focus="isSelectOpen = true"
+                @blur="isSelectOpen = false"
+                @change="isSelectOpen = false; currentPage = 1"
+              >
+                <option :value="null"></option>
+                <option :value="5">5</option>
+                <option :value="15">15</option>
+                <option :value="35">35</option>
+              </select>
+            </div>
+          </div>
         </div>
       </section>
     </main>

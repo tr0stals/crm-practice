@@ -26,7 +26,6 @@ const getUserId = async (): Promise<number> => {
  */
 export const getUserInfoAsync = async () => {
   const userId = ref<number>();
-  var userInfo = null;
 
   await getUserId()
     .then((res) => (userId.value = res))
@@ -34,13 +33,25 @@ export const getUserInfoAsync = async () => {
 
   if (!userId.value) {
     console.error("Пользователь не найден!");
-    return;
+    return {};
   }
 
   /**
    * Возвращаем объект Peoples
    */
   return await getDataAsync({ endpoint: `user/get/${userId.value}` })
-    .then((res) => res.data.peoples)
-    .catch((e) => console.error(e));
+    .then((res) => {
+      const user = res.data;
+      if (user && user.peoples) {
+        return {
+          firstName: user.peoples.firstName,
+          lastName: user.peoples.lastName,
+        };
+      }
+      return {};
+    })
+    .catch((e) => {
+      console.error(e);
+      return {};
+    });
 };

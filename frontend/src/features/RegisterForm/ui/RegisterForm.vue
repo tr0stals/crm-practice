@@ -1,9 +1,9 @@
 <template>
   <div class="register-form">
-    <h2 class="register-form__title">Register Form</h2>
+    <h2 class="register-form__title">Регистрация</h2>
     <form @submit.prevent="handleSubmit">
       <div class="form-group">
-        <label for="email">Email</label>
+        <label for="email">Электронная почта</label>
         <input type="text" id="email" v-model="userEmail" required />
       </div>
       <div class="form-group">
@@ -18,7 +18,6 @@
         <label for="firstName">Имя</label>
         <input type="text" id="firstName" v-model="firstName" required />
       </div>
-
       <div class="form-group">
         <label for="lastName">Фамилия</label>
         <input type="text" id="lastName" v-model="lastName" required />
@@ -31,8 +30,8 @@
         <label for="phone">Телефон</label>
         <input type="phone" id="phone" v-model="phone" required />
       </div>
-      <button type="submit" class="submit-button">Register</button>
-      <p v-if="authStore.error" class="error">{{ authStore.error }}</p>
+      <button type="submit" class="submit-button">Зарегистрироваться</button>
+      <p v-if="authStore.error" class="error">Ошибка регистрации</p>
     </form>
   </div>
 </template>
@@ -44,6 +43,7 @@ import { useAuthStore } from "@/shared/store/auth.store";
 import { useRouter } from "vue-router";
 import type { IUserRegister } from "../interface/IUserRegister";
 import { register } from "../api/registerApi";
+import { useToast } from "vue-toastification";
 
 const userEmail = ref("");
 const password = ref("");
@@ -56,6 +56,7 @@ const authStore = useAuthStore();
 const router = useRouter();
 const error = ref<string | null>(null);
 const phone = ref("");
+const toast = useToast();
 
 const handleSubmit = async () => {
   try {
@@ -71,9 +72,10 @@ const handleSubmit = async () => {
       comment: "",
     };
     await registerUser(user);
+    toast.success("Успешная регистрация!");
     router.push("/dashboard");
   } catch (error) {
-    // Ошибка уже будет выведена через authStore.error
+    toast.error("Ошибка регистрации");
     console.error("Registration failed:", error);
   }
 };

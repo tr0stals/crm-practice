@@ -9,7 +9,6 @@ const isLogin = ref(true);
 
 <template>
   <div class="auth-view">
-    <h1>Вход в CRM</h1>
     <div class="button-group">
       <button @click="isLogin = true" :class="{ active: isLogin }">Вход</button>
       <button @click="isLogin = false" :class="{ active: !isLogin }">

@@ -72,15 +72,17 @@ const handleSubmit = async () => {
     </div>
     <div class="addModalWindow__controls">
       <Button
-        text="Отменить"
         @click="props.onClose"
         :extra-classes="['addModalWindow__controls__btn']"
-      />
+      >
+        Отмена
+      </Button>
       <Button
-        text="Сохранить"
         @click="handleSubmit"
         :extra-classes="['addModalWindow__controls__btn']"
-      />
+      >
+        Добавить
+      </Button>
     </div>
   </div>
 </template>

@@ -1,17 +1,17 @@
 <template>
   <div class="login-form">
-    <h2 class="login-form__title">Login Form</h2>
+    <h2 class="login-form__title">Вход</h2>
     <form @submit.prevent="handleSubmit">
       <div class="form-group">
-        <label for="userName">UserName:</label>
+        <label for="userName">Имя пользователя:</label>
         <input type="text" id="userName" v-model="userName" required />
       </div>
       <div class="form-group">
-        <label for="password">Password:</label>
+        <label for="password">Пароль:</label>
         <input type="password" id="password" v-model="password" required />
       </div>
       <button type="submit" class="submit-button">Войти</button>
-      <p v-if="authStore.error" class="error">{{ authStore.error }}</p>
+      <p v-if="authStore.error" class="error">Ошибка авторизации</p>
     </form>
   </div>
 </template>
@@ -23,6 +23,7 @@ import { useAuthStore } from "@/shared/store/auth.store";
 import { useRouter } from "vue-router";
 import { loginApi } from "../api/loginApi";
 import { useUserStore } from "@/shared/store/user.store";
+import { useToast } from "vue-toastification";
 
 const userName = ref("");
 const password = ref("");
@@ -30,15 +31,15 @@ const authStore = useAuthStore();
 const router = useRouter();
 const token = ref<string | null>(localStorage.getItem("token") || null);
 const error = ref<string | null>(null);
+const toast = useToast();
 
 const handleSubmit = async () => {
   try {
     await loginUser(userName.value, password.value);
-
-    // переход после успешного входа
+    toast.success("Успешный вход!");
     router.push("/dashboard");
   } catch (error) {
-    // Ошибка уже будет выведена через authStore.error
+    toast.error("Ошибка авторизации");
     console.error("Login failed:", error);
   }
 };
@@ -46,10 +47,9 @@ const handleSubmit = async () => {
 const loginUser = async (userName: string, password: string) => {
   try {
     const response = await loginApi(userName, password);
-
+    
     if (response.data.token) {
       token.value = response.data.token;
-
       localStorage.setItem("token", response.data.token);
       authStore.token = token.value;
       error.value = null;

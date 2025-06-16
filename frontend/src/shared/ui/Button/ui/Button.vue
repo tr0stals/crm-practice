@@ -5,7 +5,7 @@
     :class="[buttonColor, ...(extraClasses || [])]"
   >
     <component v-if="image" :is="image" class="button__icon" />
-    {{ text }}
+    <slot />
   </button>
 </template>
 
@@ -18,13 +18,12 @@ import "../style.scss";
  * buttonColor - цвет фона кнопки (по умол. серый, необяз.)
  */
 const props = defineProps<{
-  text: string;
   image?: any;
   buttonColor?: string;
   extraClasses?: string[];
 }>();
 
 const printText = () => {
-  console.debug("!!!", props.text);
+  console.debug("!!!", "Кнопка нажата");
 };
 </script>
