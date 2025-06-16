@@ -528,9 +528,76 @@ const openAddEntityModal = () => {
           </div>
         </div>
       </section>
-      <section v-else>
-        <h1>Добро пожаловать! Начните работу прямо сейчас!</h1>
+      <section v-else class="welcome-container">
+        <div class="welcome-card">
+          <img src="/src/views/Dashboard/img/ukqawu62wctf9v072xi2c6yypvsjghcp.png" alt="Логотип" class="welcome-logo">
+          <h1 class="welcome-message-part1">Добро пожаловать!</h1>
+        </div>
       </section>
     </main>
   </div>
 </template>
+
+<style scoped>
+/* Стили для приветственного сообщения */
+.welcome-message-part1 {
+  text-align: center;
+  color: #0056b3; /* Изменен на #0056b3 */
+  font-size: 38px; /* Еще увеличенный размер шрифта */
+  font-weight: 800; /* Более жирный шрифт */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Немного более выраженная тень */
+  animation: fadeIn 2s ease-in-out; /* Убираю задержку анимации */
+  letter-spacing: 1px; /* Немного увеличенный межбуквенный интервал */
+}
+
+.welcome-logo {
+  display: block;
+  margin: 0 auto; /* Убираю все внешние отступы, кроме горизонтального центрирования */
+  max-width: 200px; /* Увеличенная максимальная ширина для логотипа */
+  height: auto;
+  animation: fadeIn 2s ease-in-out; /* Добавляю анимацию плавного появления */
+  filter: drop-shadow(0px 7px 10px rgba(0, 0, 0, 0.35)); /* Более выраженная тень для логотипа */
+}
+
+.welcome-container {
+  flex-grow: 1; /* Растягивает контейнер на всю доступную высоту */
+  display: flex;
+  justify-content: center; /* Центрирует содержимое по горизонтали */
+  align-items: stretch; /* Растягивает содержимое по вертикали */
+  padding: 20px; /* Небольшой отступ со всех сторон внутри контейнера */
+}
+
+.welcome-card {
+  background-color: #ffffff; /* Белый фон плашки */
+  border-radius: 15px; /* Скругленные углы */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); /* Более выраженная тень */
+  padding: 40px; /* Увеличенные отступы внутри плашки */
+  width: 100%; /* Занимает всю доступную ширину родителя */
+  height: 100%; /* Занимает всю доступную высоту родителя */
+  margin: 0; /* Удаляем внешние отступы, так как padding контейнера их заменит */
+  display: flex; /* Делаем плашку флекс-контейнером */
+  flex-direction: column; /* Элементы располагаются в столбец */
+  align-items: center; /* Выравниваем элементы по горизонтали по центру */
+  justify-content: center; /* Выравниваем элементы по вертикали по центру */
+  transform: translateY(-2%); /* Сдвигаем плашку чуть выше для визуального центрирования */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px); /* Небольшое смещение для эффекта */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30px;
+  color: #0056b3; /* Изменен на #0056b3 */
+}
+</style>
