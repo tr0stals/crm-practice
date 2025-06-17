@@ -17,14 +17,20 @@ export class ComponentsArrivalInvoiceService {
 
   async findAll(): Promise<ComponentsArrivalInvoice[]> {
     return await this.repository.find({
-      relations: ['component', 'invoice']
+      relations: [
+        'component',
+        'invoice'
+      ]
     });
   }
 
   async findOne(id: number): Promise<ComponentsArrivalInvoice> {
     const entity = await this.repository.findOne({
       where: { id },
-      relations: ['component', 'invoice']
+      relations: [
+        'component',
+        'invoice'
+      ]
     });
     if (!entity) {
       throw new NotFoundException(`Счет-фактура на поставку компонента с ID ${id} не найден`);

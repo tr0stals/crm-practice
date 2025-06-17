@@ -36,7 +36,12 @@ export class DatabaseService {
   }
 
   async getTableRows(tableName: string) {
-    return await this.dataSource.query(`SELECT * FROM \`${tableName}\``);
+    try {
+      return await this.dataSource.query(`SELECT * FROM \`${tableName}\``);
+    } catch (error) {
+      console.error(`Error fetching data for table ${tableName}:`, error);
+      throw error; // Перебрасываем ошибку, чтобы она дошла до контроллера и далее
+    }
   }
 
   async getTableColumnValues(tableName: string, columnName: string) {

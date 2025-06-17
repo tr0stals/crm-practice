@@ -3,7 +3,6 @@ import Tree from "primevue/tree";
 import { onMounted, ref, watch, type Ref } from "vue";
 import type { TreeNode } from "primevue/treenode";
 import { useGetTreeviewData } from "../model/useGetTreeviewData";
-import { event } from "@primeuix/themes/aura/timeline";
 import "../style.scss";
 
 const props = defineProps<{

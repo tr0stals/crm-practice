@@ -19,6 +19,7 @@ import {
   watch,
   type Ref,
   computed,
+  nextTick,
 } from "vue";
 import "../style.scss";
 import { getDataAsync } from "../api/getDataAsync";
@@ -90,6 +91,7 @@ const filteredData = computed(() => {
     }
     return 0; // В случае, если 'id' имеет другой тип или отсутствует
   });
+  console.debug(`filteredData for ${currentSection.value}:`, filteredData.value);
 });
 
 // Вычисляемое свойство для данных текущей страницы
@@ -97,7 +99,9 @@ const paginatedData = computed(() => {
   const actualItemsPerPage = itemsPerPage.value ?? 13; // Используем 13, если itemsPerPage равно null
   const startIndex = (currentPage.value - 1) * actualItemsPerPage;
   const endIndex = startIndex + actualItemsPerPage;
-  return filteredData.value.slice(startIndex, endIndex);
+  const result = filteredData.value.slice(startIndex, endIndex);
+  console.debug(`paginatedData for ${currentSection.value} (page ${currentPage.value}):`, result);
+  return result;
 });
 
 // Вычисляемое свойство для общего количества страниц
@@ -105,6 +109,8 @@ const totalPages = computed(() => {
   const actualItemsPerPage = itemsPerPage.value ?? 13; // Используем 13, если itemsPerPage равно null
   return Math.ceil(filteredData.value.length / actualItemsPerPage);
 });
+
+const showTableContainer = ref(true);
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
@@ -123,18 +129,76 @@ const logout = () => {
   router.push("/login");
 };
 
+// Универсальная функция для формирования endpoint
+function getSectionEndpoint(section: string): string {
+  // Список секций с кастомными контроллерами
+  const customSections = [
+    'user',
+    'license',
+    'organizations',
+    'countries',
+    'region',
+    'locations',
+    'departments',
+    'order_requests',
+    'order_types',
+    'peoples',
+    'professions',
+    'employees',
+    'employee_states',
+    'employee_departments',
+    // ... только те секции, для которых точно есть кастомные контроллеры ...
+  ];
+  const universalSections = [
+    'components_invoice',
+    'components_arrival_invoice',
+    'current_tasks',
+    'employee_tasks',
+    'invoices_arrival',
+    'license_types',
+    'organization_types',
+    'payment_invoice',
+    'sending_boxes',
+    'stand_categories',
+    'stand_courses',
+    'stands',
+    'students',
+    'supplier_components',
+    'suppliers',
+    'task_types',
+    'warehouse_components',
+    // ... все секции, которые должны идти через универсальный endpoint ...
+  ];
+  const sectionLower = section.toLowerCase();
+  if (universalSections.map(s => s.toLowerCase()).includes(sectionLower)) {
+    return `/database/${sectionLower}`;
+  }
+  if (customSections.map(s => s.toLowerCase()).includes(sectionLower)) {
+    return `/${sectionLower.replace(/_/g, '-')}/get`;
+  }
+  return `/database/${sectionLower}`;
+}
+
 const getCurrentData = async () => {
   const config: IData = {
-    endpoint: `${currentSection.value.toLowerCase()}/get`,
+    endpoint: getSectionEndpoint(currentSection.value),
   };
+
+  data.value = []; // Очищаем данные перед загрузкой
 
   try {
     const response = await getDataAsync(config);
     console.debug(response);
-    data.value = response.data;
+    if (Array.isArray(response.data)) {
+      data.value = response.data;
+    } else {
+      console.warn("API returned non-array data for current section", response.data);
+    }
   } catch (e) {
     console.error(e);
+    data.value = []; // Убедимся, что данные пустые в случае ошибки
   }
+  console.debug(`getCurrentData for ${currentSection.value}:`, data.value);
 };
 
 const onUpdateCallBack = async () => {
@@ -201,8 +265,13 @@ watch(currentSection, async (oldVal: string, newSection: string) => {
   selectedRow.value = null;
   targetData.value = null;
   treeviewData.value = [];
+  currentPage.value = 1;
 
+  showTableContainer.value = false;
+  await nextTick();
   await getCurrentData();
+  showTableContainer.value = true;
+  console.debug(`Section changed to ${newSection}. Data after update:`, data.value);
 });
 
 watch(selectedRow, (newVal) => {
@@ -211,6 +280,36 @@ watch(selectedRow, (newVal) => {
 
 watch(itemsPerPage, () => {
   currentPage.value = 1;
+});
+
+const currentTableHeaders = computed(() => {
+  if (data.value && data.value.length > 0) {
+    return Object.keys(data.value[0]).filter(key => key !== 'password');
+  }
+  switch (currentSection.value.toLowerCase()) {
+    case 'components':
+      return ['id', 'name', 'description'];
+    case 'countries':
+      return ['id', 'name', 'code'];
+    case 'departments':
+      return ['id', 'name'];
+    case 'invoices_arrival':
+      return ['id', 'invoiceNumber', 'date'];
+    case 'license':
+      return ['id', 'licenseCode', 'userId'];
+    case 'organizations':
+      return ['id', 'name', 'organizationTypeId'];
+    case 'users':
+      return ['id', 'firstName', 'lastName', 'email'];
+    default:
+      return ['id', 'name'];
+  }
+});
+
+console.debug(`currentTableHeaders for ${currentSection.value}:`, currentTableHeaders.value);
+
+const columnCount = computed(() => {
+  return currentTableHeaders.value.length;
 });
 
 onUnmounted(() => {
@@ -404,7 +503,6 @@ const openAddEntityModal = () => {
       <!-- Content -->
       <section class="content-section" v-if="currentSection">
         <h2 class="content-section__title">{{ currentSection }}</h2>
-
         <!-- Action Buttons, Search, and Filter Placeholder -->
         <div class="controls">
           <div class="action-buttons">
@@ -449,24 +547,25 @@ const openAddEntityModal = () => {
         </div>
 
         <!-- Table -->
-        <div class="table-container" v-if="paginatedData.length">
+        <div class="table-container" v-if="showTableContainer">
           <table
-            v-if="
-              currentSection !== 'license' && currentSection !== 'organizations'
-            "
+            :key="currentSection + '-table'"
+            v-if="currentSection !== 'license' && currentSection !== 'organizations'"
             class="data-table"
           >
             <thead>
               <tr>
-                <template v-for="(value, key) in paginatedData[0]">
-                  <th :key="key" v-if="key !== 'password'">
-                    {{ key }}
-                  </th>
-                </template>
+                <th v-for="key in currentTableHeaders" :key="key">
+                  {{ key }}
+                </th>
               </tr>
             </thead>
             <tbody>
+              <tr v-if="paginatedData.length === 0">
+                <td :colspan="columnCount">Нет данных для отображения.</td>
+              </tr>
               <tr
+                v-else
                 v-for="(item, index) in paginatedData"
                 :data-js-section-data="JSON.stringify(item)"
                 :key="item.id || index"
@@ -489,15 +588,12 @@ const openAddEntityModal = () => {
           </table>
 
           <CustomTreeview
-            v-else
+            v-if="currentSection.toLowerCase() === 'license' || currentSection.toLowerCase() === 'organizations'"
+            :key="currentSection + '-treeview'"
             :data="data"
             :currentSection="currentSection"
             :on-click="handleClick"
           />
-        </div>
-
-        <div v-if="paginatedData.length === 0">
-          <h1>Упс</h1>
         </div>
 
         <!-- Pagination -->
