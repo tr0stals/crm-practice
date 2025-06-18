@@ -482,49 +482,53 @@ export class DatabaseSeederService {
 
   private async seedOrganizations(peoples: Peoples[]): Promise<Organizations[]> {
     const organizationTypes = await this.organizationTypesRepository.find();
-    const organizationsData = Array.from({ length: 15 }, (_, index) => ({
-      parentId: index === 0 ? '0' : String(Math.floor(Math.random() * index) + 1),
-      fullName: faker.company.name(),
-      shortName: faker.company.name(),
-      lawAddress: faker.location.streetAddress(),
-      factAddress: faker.location.streetAddress(),
-      postAddress: faker.location.streetAddress(),
-      inn: faker.string.numeric(10),
-      kpp: faker.string.numeric(9),
-      orgn: faker.string.numeric(13),
-      orgnDate: faker.date.past(),
-      phone: this.generateRandomPhone(),
-      email: faker.internet.email(),
-      digitalDocs: faker.number.int({ min: 0, max: 1 }),
-      rating: faker.number.int({ min: 1, max: 5 }),
-      comment: faker.lorem.sentence(),
-      peoples: faker.helpers.arrayElement(peoples),
-      organizationTypes: faker.helpers.arrayElement(organizationTypes),
-    }));
+    const organizationsData = Array.from({ length: 15 }, (_, index) => {
+      const orgnDate = faker.date.past();
+      return {
+        parentId: index === 0 ? '0' : String(Math.floor(Math.random() * index) + 1),
+        fullName: faker.company.name(),
+        shortName: faker.company.name(),
+        lawAddress: faker.location.streetAddress(),
+        factAddress: faker.location.streetAddress(),
+        postAddress: faker.location.streetAddress(),
+        inn: faker.string.numeric(10),
+        kpp: faker.string.numeric(9),
+        orgn: faker.string.numeric(13),
+        orgnDate: new Date(orgnDate.getFullYear(), orgnDate.getMonth(), orgnDate.getDate()),
+        phone: this.generateRandomPhone(),
+        email: faker.internet.email(),
+        digitalDocs: faker.number.int({ min: 0, max: 1 }),
+        rating: faker.number.int({ min: 1, max: 5 }),
+        comment: faker.lorem.sentence(),
+        peoples: faker.helpers.arrayElement(peoples),
+        organizationTypes: faker.helpers.arrayElement(organizationTypes),
+      };
+    });
 
     const organizations = organizationsData.map(data => this.organizationsRepository.create(data));
     return await this.organizationsRepository.save(organizations);
   }
 
   private async seedSuppliers(): Promise<Suppliers[]> {
-    const suppliersData = Array.from({ length: 20 }, () => ({
-      inn: faker.string.numeric(10),
-      kpp: faker.string.numeric(9),
-      ogrn: faker.string.numeric(13),
-      ogrnDate: faker.date.past(),
-      name: faker.company.name(),
-      shortName: faker.company.name(),
-      legalAddress: faker.location.streetAddress(),
-      postalAddress: faker.location.streetAddress(),
-      hasElectronicDocumentFlow: faker.datatype.boolean(),
-      contactPhones: faker.phone.number(),
-      email: faker.internet.email(),
-      contactPerson: faker.person.fullName(),
-    }));
+    const suppliersData = Array.from({ length: 20 }, () => {
+      const ogrnDate = faker.date.past();
+      return {
+        inn: faker.string.numeric(10),
+        kpp: faker.string.numeric(9),
+        ogrn: faker.string.numeric(13),
+        ogrnDate: new Date(ogrnDate.getFullYear(), ogrnDate.getMonth(), ogrnDate.getDate()),
+        name: faker.company.name(),
+        shortName: faker.company.name(),
+        legalAddress: faker.location.streetAddress(),
+        postalAddress: faker.location.streetAddress(),
+        hasElectronicDocumentFlow: faker.datatype.boolean(),
+        contactPhones: this.generateRandomPhone(),
+        email: faker.internet.email(),
+        contactPerson: faker.person.fullName(),
+      };
+    });
 
-    const suppliers = suppliersData.map(data => 
-      this.suppliersRepository.create(data)
-    );
+    const suppliers = suppliersData.map(data => this.suppliersRepository.create(data));
     return await this.suppliersRepository.save(suppliers);
   }
 
@@ -541,9 +545,10 @@ export class DatabaseSeederService {
     const employees = peoples.map((people) => {
       const randomProfession = faker.helpers.arrayElement(professions);
       const randomState = faker.helpers.arrayElement(employeeStates);
-
+      const birthDate = faker.date.past({ years: 30 });
+      
       return this.employeesRepository.create({
-        birthDate: faker.date.past({ years: 30 }),
+        birthDate: new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate()),
         peoples: people, // объект people
         profession: randomProfession, // объект профессии
         employeeStates: randomState // объект состояния
@@ -572,15 +577,22 @@ export class DatabaseSeederService {
 
   private async seedLicenses(organizations: Organizations[]): Promise<License[]> {
     const licenseTypes = await this.licenseTypesRepository.find();
-    const licensesData = Array.from({ length: 10 }, () => ({
-      licenseCode: faker.string.alphanumeric(10).toUpperCase(),
-      start: faker.date.past(),
-      end: faker.date.future(),
-      places: faker.number.int({ min: 1, max: 100 }),
-      timeout: faker.date.future(),
-      comment: faker.lorem.sentence(),
-      licenseTypes: faker.helpers.arrayElement(licenseTypes),
-    }));
+    const licensesData = Array.from({ length: 10 }, () => {
+      // Генерируем только даты без времени
+      const startDate = faker.date.past();
+      const endDate = faker.date.future();
+      const timeoutDate = faker.date.future();
+      
+      return {
+        licenseCode: faker.string.alphanumeric(10).toUpperCase(),
+        start: new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()),
+        end: new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()),
+        places: faker.number.int({ min: 1, max: 100 }),
+        timeout: new Date(timeoutDate.getFullYear(), timeoutDate.getMonth(), timeoutDate.getDate()),
+        comment: faker.lorem.sentence(),
+        licenseTypes: faker.helpers.arrayElement(licenseTypes),
+      };
+    });
 
     const licenses = licensesData.map(data => this.licenseRepository.create(data));
     return await this.licenseRepository.save(licenses);
@@ -636,6 +648,7 @@ export class DatabaseSeederService {
   private async seedComponents(suppliers: Suppliers[]): Promise<Components[]> {
     const componentsData = Array.from({ length: 50 }, () => {
       const randomSupplier = suppliers[Math.floor(Math.random() * suppliers.length)];
+      const receiptDate = faker.date.past();
       
       return {
         parentId: undefined,
@@ -646,7 +659,7 @@ export class DatabaseSeederService {
         material: faker.commerce.productMaterial(),
         minimumStock: faker.number.int({ min: 1, max: 100 }),
         supplierId: randomSupplier.id,
-        receiptDate: faker.date.past(),
+        receiptDate: new Date(receiptDate.getFullYear(), receiptDate.getMonth(), receiptDate.getDate()),
         drawingReference: faker.string.alphanumeric(10),
       };
     });
@@ -662,6 +675,7 @@ export class DatabaseSeederService {
     
     const warehouseComponentsData = components.map(component => {
         const randomOrg = organizations[Math.floor(Math.random() * organizations.length)];
+        const arrivalDate = faker.date.past();
         return {
             parentId: component.id,
             title: component.name,
@@ -672,7 +686,7 @@ export class DatabaseSeederService {
             weight: faker.number.float({ min: 0.1, max: 10, fractionDigits: 2 }).toString(),
             material: faker.helpers.arrayElement(['Пластик', 'Металл', 'Дерево', 'Стекло']),
             minCount: faker.number.int({ min: 1, max: 10 }).toString(),
-            arrivalDate: faker.date.past(),
+            arrivalDate: new Date(arrivalDate.getFullYear(), arrivalDate.getMonth(), arrivalDate.getDate()),
             link: faker.internet.url(),
             organizations: randomOrg
         };
@@ -818,6 +832,8 @@ export class DatabaseSeederService {
     const standAssemblies = await this.standAssembliesRepository.find();
     const shipmentStates = await this.shipmentStatesRepository.find();
     const licenses = await this.licenseRepository.find();
+    const addedDate = faker.date.past();
+    const shipmentDate = faker.date.future();
 
     const usedLicenseIds = new Set<number>();
 
@@ -840,8 +856,8 @@ export class DatabaseSeederService {
       return {
         price: faker.number.float({ min: 1000, max: 100000, fractionDigits: 2 }),
         standNumber: faker.string.alphanumeric(8).toUpperCase(),
-        addedDate: faker.date.past(),
-        shipmentDate: faker.date.future(),
+        addedDate: new Date(addedDate.getFullYear(), addedDate.getMonth(), addedDate.getDate()),
+        shipmentDate: new Date(shipmentDate.getFullYear(), shipmentDate.getMonth(), shipmentDate.getDate()),
         specification: faker.lorem.sentence(),
         comment: faker.lorem.sentence(),
         factory: randomFactory,
@@ -853,9 +869,7 @@ export class DatabaseSeederService {
       };
     });
 
-    const shipments = shipmentsData.map(data => 
-      this.shipmentsRepository.create(data)
-    );
+    const shipments = shipmentsData.map(data => this.shipmentsRepository.create(data));
     return await this.shipmentsRepository.save(shipments);
   }
 
@@ -1012,11 +1026,12 @@ export class DatabaseSeederService {
     // Создаем родительские задачи
     const parentTasks: Array<Partial<EmployeeTasks>> = [];
     for (let i = 0; i < 10; i++) {
+      const expectationTimeout = faker.date.future();
       const parentTask: Partial<EmployeeTasks> = {
         title: faker.company.catchPhrase(),
         photo: faker.image.url(),
         timeout: faker.number.int({ min: 1, max: 24 }).toString() + 'h',
-        expectationTimeout: faker.date.future(),
+        expectationTimeout: new Date(expectationTimeout.getFullYear(), expectationTimeout.getMonth(), expectationTimeout.getDate()),
         employees: faker.helpers.arrayElement(employees),
         shipments: faker.helpers.arrayElement(shipments),
         parentId: undefined
@@ -1034,11 +1049,12 @@ export class DatabaseSeederService {
       // Для каждой родительской задачи создаем 2-4 подзадачи
       const numSubtasks = faker.number.int({ min: 2, max: 4 });
       for (let i = 0; i < numSubtasks; i++) {
+        const expectationTimeout = faker.date.future();
         const childTask: Partial<EmployeeTasks> = {
           title: faker.company.catchPhrase(),
           photo: faker.image.url(),
           timeout: faker.number.int({ min: 1, max: 12 }).toString() + 'h',
-          expectationTimeout: faker.date.future(),
+          expectationTimeout: new Date(expectationTimeout.getFullYear(), expectationTimeout.getMonth(), expectationTimeout.getDate()),
           employees: faker.helpers.arrayElement(employees),
           shipments: parentTask.shipments,
           parentId: parentTask.id
@@ -1057,11 +1073,12 @@ export class DatabaseSeederService {
   private async seedInvoicesArrival(suppliers: Suppliers[]): Promise<InvoicesArrival[]> {
     const invoicesData = Array.from({ length: 20 }, () => {
       const randomSupplier = suppliers[Math.floor(Math.random() * suppliers.length)];
+      const date = faker.date.past();
       
       return {
         supplierId: randomSupplier.id,
         number: faker.string.alphanumeric(10).toUpperCase(),
-        date: faker.date.past(),
+        date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
         comment: faker.lorem.sentence(),
       };
     });
@@ -1075,9 +1092,10 @@ export class DatabaseSeederService {
   private async seedPaymentInvoices(organizations: Organizations[]): Promise<PaymentInvoice[]> {
     const invoicesData = Array.from({ length: 20 }, () => {
       const randomOrg = organizations[Math.floor(Math.random() * organizations.length)];
+      const date = faker.date.past();
       
       return {
-        date: faker.date.past(),
+        date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
         providerId: randomOrg.id,
         invoiceScan: faker.image.url(),
       };

@@ -59,6 +59,7 @@ import { DatabaseSeederModule } from './database-seeder/database-seeder.module';
       extra: {
         charset: 'utf8mb4',
       },
+      timezone: 'Z',
     }),
     UserModule,
     AuthModule,

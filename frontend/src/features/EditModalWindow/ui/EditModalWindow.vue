@@ -35,7 +35,7 @@ const dateModel = reactive<Record<string, any>>({});
 dateFields.forEach(key => {
   dateModel[key] = formData[key] ? formData[key].slice(0, 10) : null;
   watch(() => dateModel[key], (val) => {
-    formData[key] = val ? new Date(val).toISOString() : null;
+    formData[key] = val ? val : null;
   });
 });
 

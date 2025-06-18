@@ -39,7 +39,7 @@ watch(dateFields, (fields) => {
     if (!(key in dateModel)) {
       dateModel[key] = formData[key] ? formData[key].slice(0, 10) : null;
       watch(() => dateModel[key], (val) => {
-        formData[key] = val ? new Date(val).toISOString() : null;
+        formData[key] = val ? val : null;
       });
     }
   });
