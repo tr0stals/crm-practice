@@ -6,8 +6,12 @@ import PrimeVue from "primevue/config";
 import "./styles/main.scss";
 import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
+import VueDatePicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
 
 const app = createApp(App);
+
+app.component('VueDatePicker', VueDatePicker);
 
 app.use(PrimeVue, {
   theme: {
