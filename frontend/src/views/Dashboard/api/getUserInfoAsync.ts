@@ -1,5 +1,5 @@
+import { getDataAsync } from "@/shared/api/getDataAsync";
 import { ref } from "vue";
-import { getDataAsync } from "./getDataAsync";
 
 /**
  * Получение с сервера ID зареганного юзера

@@ -10,12 +10,14 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
   const relationsMap = ref<Record<string, string>>({});
 
   const fetchColumnsAndRelations = async () => {
-    const columnsRes = await getDataAsync(`database/${sectionName}/columns`);
+    const columnsRes = await getDataAsync({
+      endpoint: `database/${sectionName}/columns`,
+    });
     tableColumns.value = columnsRes.data;
 
-    const relationsRes = await getDataAsync(
-      `database/${sectionName}/relations`
-    );
+    const relationsRes = await getDataAsync({
+      endpoint: `database/${sectionName}/relations`,
+    });
     for (const rel of relationsRes.data) {
       relationsMap.value[rel.foreignKey] = rel.referencedColumn;
     }
@@ -25,9 +27,9 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
         formData[column] = "";
 
         if (column.endsWith("Id") && relationsMap.value[column]) {
-          const relData = await getDataAsync(
-            `database/${relationsMap.value[column]}`
-          );
+          const relData = await getDataAsync({
+            endpoint: `database/${relationsMap.value[column]}`,
+          });
           selectOptions[column] = relData.data;
         }
       }

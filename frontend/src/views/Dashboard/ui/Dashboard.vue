@@ -22,7 +22,6 @@ import {
   nextTick,
 } from "vue";
 import "../style.scss";
-import { getDataAsync } from "../api/getDataAsync";
 import type { IData } from "../interface/IData";
 import { DashboardModel } from "../model/DashboardModel";
 import { getUsers } from "@/shared/api/userApi";
@@ -32,6 +31,7 @@ import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
 import type { TreeNode } from "primevue/treenode";
 import { useGetTreeviewData } from "@/shared/ui/CustomTreeview/model/useGetTreeviewData";
 import * as XLSX from "xlsx";
+import { getDataAsync } from "@/shared/api/getDataAsync";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -84,14 +84,17 @@ const filteredData = computed(() => {
 
   // Сортировка по полю 'id' в возрастающем порядке
   return [...filtered].sort((a, b) => {
-    if (typeof a.id === 'number' && typeof b.id === 'number') {
+    if (typeof a.id === "number" && typeof b.id === "number") {
       return a.id - b.id;
-    } else if (typeof a.id === 'string' && typeof b.id === 'string') {
+    } else if (typeof a.id === "string" && typeof b.id === "string") {
       return a.id.localeCompare(b.id);
     }
     return 0; // В случае, если 'id' имеет другой тип или отсутствует
   });
-  console.debug(`filteredData for ${currentSection.value}:`, filteredData.value);
+  console.debug(
+    `filteredData for ${currentSection.value}:`,
+    filteredData.value
+  );
 });
 
 // Вычисляемое свойство для данных текущей страницы
@@ -100,7 +103,10 @@ const paginatedData = computed(() => {
   const startIndex = (currentPage.value - 1) * actualItemsPerPage;
   const endIndex = startIndex + actualItemsPerPage;
   const result = filteredData.value.slice(startIndex, endIndex);
-  console.debug(`paginatedData for ${currentSection.value} (page ${currentPage.value}):`, result);
+  console.debug(
+    `paginatedData for ${currentSection.value} (page ${currentPage.value}):`,
+    result
+  );
   return result;
 });
 
@@ -133,48 +139,48 @@ const logout = () => {
 function getSectionEndpoint(section: string): string {
   // Список секций с кастомными контроллерами
   const customSections = [
-    'user',
-    'license',
-    'organizations',
-    'countries',
-    'region',
-    'locations',
-    'departments',
-    'order_requests',
-    'order_types',
-    'peoples',
-    'professions',
-    'employees',
-    'employee_states',
-    'employee_departments',
+    "user",
+    "license",
+    "organizations",
+    "countries",
+    "region",
+    "locations",
+    "departments",
+    "order_requests",
+    "order_types",
+    "peoples",
+    "professions",
+    "employees",
+    "employee_states",
+    "employee_departments",
     // ... только те секции, для которых точно есть кастомные контроллеры ...
   ];
   const universalSections = [
-    'components_invoice',
-    'components_arrival_invoice',
-    'current_tasks',
-    'employee_tasks',
-    'invoices_arrival',
-    'license_types',
-    'organization_types',
-    'payment_invoice',
-    'sending_boxes',
-    'stand_categories',
-    'stand_courses',
-    'stands',
-    'students',
-    'supplier_components',
-    'suppliers',
-    'task_types',
-    'warehouse_components',
+    "components_invoice",
+    "components_arrival_invoice",
+    "current_tasks",
+    "employee_tasks",
+    "invoices_arrival",
+    "license_types",
+    "organization_types",
+    "payment_invoice",
+    "sending_boxes",
+    "stand_categories",
+    "stand_courses",
+    "stands",
+    "students",
+    "supplier_components",
+    "suppliers",
+    "task_types",
+    "warehouse_components",
     // ... все секции, которые должны идти через универсальный endpoint ...
   ];
   const sectionLower = section.toLowerCase();
-  if (universalSections.map(s => s.toLowerCase()).includes(sectionLower)) {
+  if (universalSections.map((s) => s.toLowerCase()).includes(sectionLower)) {
     return `/database/${sectionLower}`;
   }
-  if (customSections.map(s => s.toLowerCase()).includes(sectionLower)) {
-    return `/${sectionLower.replace(/_/g, '-')}/get`;
+  if (customSections.map((s) => s.toLowerCase()).includes(sectionLower)) {
+    return `/${sectionLower.replace(/_/g, "-")}/get`;
   }
   return `/database/${sectionLower}`;
 }
@@ -192,7 +198,10 @@ const getCurrentData = async () => {
     if (Array.isArray(response.data)) {
       data.value = response.data;
     } else {
-      console.warn("API returned non-array data for current section", response.data);
+      console.warn(
+        "API returned non-array data for current section",
+        response.data
+      );
     }
   } catch (e) {
     console.error(e);
@@ -236,7 +245,7 @@ const updateTime = () => {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit"
+    second: "2-digit",
   });
 };
 
@@ -271,7 +280,10 @@ watch(currentSection, async (oldVal: string, newSection: string) => {
   await nextTick();
   await getCurrentData();
   showTableContainer.value = true;
-  console.debug(`Section changed to ${newSection}. Data after update:`, data.value);
+  console.debug(
+    `Section changed to ${newSection}. Data after update:`,
+    data.value
+  );
 });
 
 watch(selectedRow, (newVal) => {
@@ -284,29 +296,32 @@ watch(itemsPerPage, () => {
 
 const currentTableHeaders = computed(() => {
   if (data.value && data.value.length > 0) {
-    return Object.keys(data.value[0]).filter(key => key !== 'password');
+    return Object.keys(data.value[0]).filter((key) => key !== "password");
   }
   switch (currentSection.value.toLowerCase()) {
-    case 'components':
-      return ['id', 'name', 'description'];
-    case 'countries':
-      return ['id', 'name', 'code'];
-    case 'departments':
-      return ['id', 'name'];
-    case 'invoices_arrival':
-      return ['id', 'invoiceNumber', 'date'];
-    case 'license':
-      return ['id', 'licenseCode', 'userId'];
-    case 'organizations':
-      return ['id', 'name', 'organizationTypeId'];
-    case 'users':
-      return ['id', 'firstName', 'lastName', 'email'];
+    case "components":
+      return ["id", "name", "description"];
+    case "countries":
+      return ["id", "name", "code"];
+    case "departments":
+      return ["id", "name"];
+    case "invoices_arrival":
+      return ["id", "invoiceNumber", "date"];
+    case "license":
+      return ["id", "licenseCode", "userId"];
+    case "organizations":
+      return ["id", "name", "organizationTypeId"];
+    case "users":
+      return ["id", "firstName", "lastName", "email"];
     default:
-      return ['id', 'name'];
+      return ["id", "name"];
   }
 });
 
-console.debug(`currentTableHeaders for ${currentSection.value}:`, currentTableHeaders.value);
+console.debug(
+  `currentTableHeaders for ${currentSection.value}:`,
+  currentTableHeaders.value
+);
 
 const columnCount = computed(() => {
   return currentTableHeaders.value.length;
@@ -410,28 +425,35 @@ const handleClick = (node: any) => {
 };
 
 const exportToCSV = () => {
-  const headers = Object.keys(filteredData.value[0]).join(',');
-  const rows = filteredData.value.map(row =>
-    Object.values(row).map(value => {
-      // Экранирование значений для CSV:
-      // если значение содержит запятую, кавычки или перевод строки,
-      // заключаем его в двойные кавычки и удваиваем внутренние двойные кавычки.
-      if (value === null || value === undefined) {
-        return '';
-      }
-      let stringValue = String(value);
-      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes('\r')) {
-        return `"${stringValue.replace(/"/g, '""')}"`;
-      }
-      return stringValue;
-    }).join(',')
+  const headers = Object.keys(filteredData.value[0]).join(",");
+  const rows = filteredData.value.map((row) =>
+    Object.values(row)
+      .map((value) => {
+        // Экранирование значений для CSV:
+        // если значение содержит запятую, кавычки или перевод строки,
+        // заключаем его в двойные кавычки и удваиваем внутренние двойные кавычки.
+        if (value === null || value === undefined) {
+          return "";
+        }
+        let stringValue = String(value);
+        if (
+          stringValue.includes(",") ||
+          stringValue.includes('"') ||
+          stringValue.includes("\n") ||
+          stringValue.includes("\r")
+        ) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+      })
+      .join(",")
   );
 
-  const csvContent = "\uFEFF" + [headers, ...rows].join('\n'); // Добавляем BOM для корректного отображения кириллицы
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
+  const csvContent = "\uFEFF" + [headers, ...rows].join("\n"); // Добавляем BOM для корректного отображения кириллицы
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.setAttribute('download', 'data.csv');
+  link.setAttribute("download", "data.csv");
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -439,14 +461,14 @@ const exportToCSV = () => {
 
 const exportToExcel = () => {
   if (!filteredData.value.length) {
-    alert('Нет данных для экспорта.');
+    alert("Нет данных для экспорта.");
     return;
   }
   const header = Object.keys(filteredData.value[0]);
-  const data = filteredData.value.map(row => 
-    header.reduce((obj: Record<string, any>, key) => { 
-      obj[key] = row[key]; 
-      return obj; 
+  const data = filteredData.value.map((row) =>
+    header.reduce((obj: Record<string, any>, key) => {
+      obj[key] = row[key];
+      return obj;
     }, {})
   );
 
@@ -457,7 +479,9 @@ const exportToExcel = () => {
 };
 
 const openAddEntityModal = () => {
-  ModalManager.getInstance().open(AddEntity, { onApplyCallback: onUpdateCallBack });
+  ModalManager.getInstance().open(AddEntity, {
+    onApplyCallback: onUpdateCallBack,
+  });
 };
 </script>
 
@@ -506,35 +530,27 @@ const openAddEntityModal = () => {
         <!-- Action Buttons, Search, and Filter Placeholder -->
         <div class="controls">
           <div class="action-buttons">
-            <Button :onClick="handleCreateModalWindow" class="dashboard__button">
+            <Button
+              :onClick="handleCreateModalWindow"
+              class="dashboard__button"
+            >
               <PlusIcon /> добавить
             </Button>
-            <Button
-              :onClick="handleEditModalWindow"
-              class="dashboard__button"
-            >
+            <Button :onClick="handleEditModalWindow" class="dashboard__button">
               <EditIcon /> редактировать
             </Button>
-            <Button
-              :onClick="handleDeleteRow"
-              class="dashboard__button"
-            >
+            <Button :onClick="handleDeleteRow" class="dashboard__button">
               <DeleteIcon /> удалить
             </Button>
-            <Button
-              :onClick="getCurrentData"
-              class="dashboard__button"
-            >
+            <Button :onClick="getCurrentData" class="dashboard__button">
               <RefreshIcon /> обновить
             </Button>
-            <Button
-              :onClick="exportToCSV"
-              class="dashboard__button"
-            > выгрузить в csv</Button>
-            <Button
-              :onClick="exportToExcel"
-              class="dashboard__button"
-            > выгрузить в excel</Button>
+            <Button :onClick="exportToCSV" class="dashboard__button">
+              выгрузить в csv</Button
+            >
+            <Button :onClick="exportToExcel" class="dashboard__button">
+              выгрузить в excel</Button
+            >
           </div>
           <div class="search-filter">
             <input
@@ -550,7 +566,9 @@ const openAddEntityModal = () => {
         <div class="table-container" v-if="showTableContainer">
           <table
             :key="currentSection + '-table'"
-            v-if="currentSection !== 'license' && currentSection !== 'organizations'"
+            v-if="
+              currentSection !== 'license' && currentSection !== 'organizations'
+            "
             class="data-table"
           >
             <thead>
@@ -571,7 +589,9 @@ const openAddEntityModal = () => {
                 :key="item.id || index"
                 @click="selectedRow = item"
                 @dblclick="handleEditModalWindow"
-                :class="{ 'selected-row': String(selectedRow?.id) === String(item.id) }"
+                :class="{
+                  'selected-row': String(selectedRow?.id) === String(item.id),
+                }"
               >
                 <template v-for="(value, title) in item">
                   <td v-if="title !== 'password'" :key="title">
@@ -588,7 +608,10 @@ const openAddEntityModal = () => {
           </table>
 
           <CustomTreeview
-            v-if="currentSection.toLowerCase() === 'license' || currentSection.toLowerCase() === 'organizations'"
+            v-if="
+              currentSection.toLowerCase() === 'license' ||
+              currentSection.toLowerCase() === 'organizations'
+            "
             :key="currentSection + '-treeview'"
             :data="data"
             :currentSection="currentSection"
@@ -599,11 +622,37 @@ const openAddEntityModal = () => {
         <!-- Pagination -->
         <div class="pagination">
           <Button @click="currentPage--" :disabled="currentPage === 1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-left"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="feather feather-chevron-left"
+            >
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
           </Button>
           <span>Страница {{ currentPage }} из {{ totalPages }}</span>
           <Button @click="currentPage++" :disabled="currentPage === totalPages">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="feather feather-chevron-right"
+            >
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
           </Button>
           <div class="items-per-page">
             <label for="itemsPerPage">Элементов на странице:</label>
@@ -613,7 +662,10 @@ const openAddEntityModal = () => {
                 v-model="itemsPerPage"
                 @focus="isSelectOpen = true"
                 @blur="isSelectOpen = false"
-                @change="isSelectOpen = false; currentPage = 1"
+                @change="
+                  isSelectOpen = false;
+                  currentPage = 1;
+                "
               >
                 <option :value="null"></option>
                 <option :value="5">5</option>
@@ -626,7 +678,11 @@ const openAddEntityModal = () => {
       </section>
       <section v-else class="welcome-container">
         <div class="welcome-card">
-          <img src="/src/views/Dashboard/img/ukqawu62wctf9v072xi2c6yypvsjghcp.png" alt="Логотип" class="welcome-logo">
+          <img
+            src="/src/views/Dashboard/img/ukqawu62wctf9v072xi2c6yypvsjghcp.png"
+            alt="Логотип"
+            class="welcome-logo"
+          />
           <h1 class="welcome-message-part1">Добро пожаловать!</h1>
         </div>
       </section>
@@ -652,7 +708,9 @@ const openAddEntityModal = () => {
   max-width: 200px; /* Увеличенная максимальная ширина для логотипа */
   height: auto;
   animation: fadeIn 2s ease-in-out; /* Добавляю анимацию плавного появления */
-  filter: drop-shadow(0px 7px 10px rgba(0, 0, 0, 0.35)); /* Более выраженная тень для логотипа */
+  filter: drop-shadow(
+    0px 7px 10px rgba(0, 0, 0, 0.35)
+  ); /* Более выраженная тень для логотипа */
 }
 
 .welcome-container {
@@ -675,7 +733,9 @@ const openAddEntityModal = () => {
   flex-direction: column; /* Элементы располагаются в столбец */
   align-items: center; /* Выравниваем элементы по горизонтали по центру */
   justify-content: center; /* Выравниваем элементы по вертикали по центру */
-  transform: translateY(-2%); /* Сдвигаем плашку чуть выше для визуального центрирования */
+  transform: translateY(
+    -2%
+  ); /* Сдвигаем плашку чуть выше для визуального центрирования */
 }
 
 @keyframes fadeIn {
