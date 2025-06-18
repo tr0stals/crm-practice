@@ -391,7 +391,7 @@ const handleCreateModalWindow = () => {
 
   ModalManager.getInstance().open(AddEntity, {
     sectionName: currentSection.value,
-    onClose: ModalManager.getInstance().closeModal,
+    onClose: () => ModalManager.getInstance().closeModal(),
     onSuccess: getCurrentData,
   });
 };
@@ -516,8 +516,7 @@ const openAddEntityModal = () => {
         <div class="user-info">
           <AvatarIcon class="avatar" />
           <div>
-            <div class="user-name">{{ userFirstName }}</div>
-            <div class="user-details">{{ userLastName }}</div>
+            <div class="user-fullname">{{ userFirstName }} {{ userLastName }}</div>
             <div class="user-details">{{ currentDateTime }}</div>
           </div>
         </div>

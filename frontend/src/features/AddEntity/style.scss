@@ -30,14 +30,44 @@
         color: #555;
         flex-basis: 120px;
         flex-shrink: 0;
+        font-size: 1.3em;
       }
 
       &__input {
         flex-grow: 1;
-        padding: 8px 12px;
+        padding: 12px 18px;
         border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 1.5rem;
+        border-radius: 6px;
+        font-size: 1.5em;
+        min-width: 220px;
+        min-height: 44px;
+      }
+
+      // Стили для VueDatePicker
+      .vue-datepicker, .dp__main {
+        font-size: 1.3em;
+        min-width: 260px;
+      }
+      .dp__input {
+        font-size: 1.2em;
+        min-height: 44px;
+        padding: 12px 18px;
+      }
+      .dp__menu {
+        min-width: 340px;
+        min-height: 340px;
+        font-size: 1.2em;
+      }
+      .dp__calendar {
+        font-size: 1.1em;
+      }
+      .dp__cell_inner {
+        font-size: 1.1em;
+        min-width: 2.5em;
+        min-height: 2.5em;
+      }
+      .dp__month_year_row, .dp__calendar_header {
+        font-size: 1.1em;
       }
     }
   }
