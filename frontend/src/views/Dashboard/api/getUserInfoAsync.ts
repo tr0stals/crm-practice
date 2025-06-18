@@ -44,8 +44,7 @@ export const getUserInfoAsync = async () => {
       const user = res.data;
       if (user && user.peoples) {
         return {
-          firstName: user.peoples.firstName,
-          lastName: user.peoples.lastName,
+          user: user,
         };
       }
       return {};

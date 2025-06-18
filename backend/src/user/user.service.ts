@@ -31,22 +31,25 @@ export class UserService {
         await this.cryptUserPasswordService(data.password)
       ).toString();
 
-      const peopleData = {
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        middleName: data.middleName,
-        phone: data.phone,
-        comment: data.comment,
-      };
+      // Проверяем, если человек уже существует в базе - записываем его в people
+      let people = await this.peoplesService.findById(data.peopleId);
 
-      const people = await this.peoplesService.create(peopleData);
-
+      // если не существует, то создаем нового (актуально при регистрации)
       if (!people) {
-        throw new BadRequestException('Ошибка при регистрации пользователя');
+        const peopleData = {
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          middleName: data.middleName,
+          phone: data.phone,
+          comment: data.comment,
+        };
+
+        people = await this.peoplesService.create(peopleData);
       }
 
-      const itProfession = await this.professionsService.findByTitle('IT-специалист');
+      const itProfession =
+        await this.professionsService.findByTitle('IT-специалист');
       if (!itProfession) {
         throw new BadRequestException('Профессия IT-специалист не найдена');
       }
@@ -71,14 +74,16 @@ export class UserService {
       return savedUser;
     } catch (e) {
       console.error('Ошибка при регистрации:', e);
-      throw new BadRequestException('Ошибка при регистрации пользователя: ' + e.message);
+      throw new BadRequestException(
+        'Ошибка при регистрации пользователя: ' + e.message,
+      );
     }
   }
 
   async getUserById(id: number) {
     return await this.usersRepository.findOne({
       where: { id: id },
-      relations: ['peoples'],
+      relations: ['peoples', 'profession'],
     });
   }
 

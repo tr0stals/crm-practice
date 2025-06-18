@@ -24,8 +24,8 @@ export class UserController {
   async getUsers() {
     try {
       const users = await this.userService.getUsers();
-      // Удаляем поле password из каждого пользователя
-      return (users ?? []).map(({ password, ...rest }) => rest);
+      // Удаляем поле password и passwordSalt из каждого пользователя
+      return (users ?? []).map(({ password, passwordSalt, ...rest }) => rest);
     } catch (e) {
       console.error(e);
     }

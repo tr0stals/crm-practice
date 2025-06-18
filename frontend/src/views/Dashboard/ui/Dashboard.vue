@@ -32,6 +32,8 @@ import type { TreeNode } from "primevue/treenode";
 import { useGetTreeviewData } from "@/shared/ui/CustomTreeview/model/useGetTreeviewData";
 import * as XLSX from "xlsx";
 import { getDataAsync } from "@/shared/api/getDataAsync";
+import type { IAuthorizedUser } from "../interface/IAuthorizedUser";
+import { roleTables } from "@/shared/config/rolesTables";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -43,10 +45,13 @@ const router = useRouter();
  */
 const data = ref<any[]>([]);
 const isMenuOpen = ref(false);
+const authorizedUser = ref<IAuthorizedUser | null>(null);
+
 const userFirstName = ref("[First name]");
 const userLastName = ref("[Last name]");
 const avatarImage = ref(""); // Переменная для изображения аватара, изначально пустая
 // const userInfo = ref<any>();
+const localizatedSections = ref<any>([]);
 
 const treeviewData = ref<TreeNode[]>([]);
 
@@ -55,7 +60,7 @@ const selectedRow = ref<any | null>(null);
 /**
  * Наполняем этот массив по ходу
  */
-const sectionsList = ref([]);
+const sectionsList = ref<any[]>([]);
 /**
  * Текущая секция
  */
@@ -254,16 +259,37 @@ let timer: ReturnType<typeof setInterval> | undefined;
 onMounted(async () => {
   // new DashboardModel();
   getSectionList();
-  let userInfo;
-  try {
-    userInfo = await getUserInfoAsync();
-  } catch (e) {
-    userInfo = undefined;
+
+  const { user } = await getUserInfoAsync();
+  authorizedUser.value = {
+    user: user,
+  };
+
+  if (user.peoples) {
+    userFirstName.value = user.peoples.firstName;
+    userLastName.value = user.peoples.lastName;
   }
-  userFirstName.value = userInfo?.firstName || "[First name]";
-  userLastName.value = userInfo?.lastName || "[Last name]";
+
   updateTime();
   timer = setInterval(updateTime, 1000);
+
+  // localizatedSections.value = Object.fromEntries(
+  //   Object.entries(localizationResponse.data)
+  // );
+
+  console.debug(authorizedUser.value);
+
+  const localizationResponse = await getDataAsync({
+    endpoint: "localization/tables",
+  });
+  localizatedSections.value = localizationResponse.data;
+
+  const tables = roleTables
+    .filter((item) => item.profession === user.profession.title)
+    .map((item) => item.tables)
+    .flat();
+
+  sectionsList.value = tables;
 });
 
 /**
@@ -317,11 +343,6 @@ const currentTableHeaders = computed(() => {
       return ["id", "name"];
   }
 });
-
-console.debug(
-  `currentTableHeaders for ${currentSection.value}:`,
-  currentTableHeaders.value
-);
 
 const columnCount = computed(() => {
   return currentTableHeaders.value.length;
@@ -499,7 +520,7 @@ const openAddEntityModal = () => {
             :data-js-sectionName="section"
             v-for="section in sectionsList"
           >
-            {{ section }}
+            {{ localizatedSections[section] }}
           </li>
         </ul>
       </nav>
@@ -516,8 +537,13 @@ const openAddEntityModal = () => {
         <div class="user-info">
           <AvatarIcon class="avatar" />
           <div>
-            <div class="user-fullname">{{ userFirstName }} {{ userLastName }}</div>
+            <div class="user-fullname">
+              {{ userFirstName }} {{ userLastName }}
+            </div>
             <div class="user-details">{{ currentDateTime }}</div>
+            <div class="user-details">
+              {{ authorizedUser?.user.profession?.title }}
+            </div>
           </div>
         </div>
         <button class="logout-button" @click="logout">Выйти</button>

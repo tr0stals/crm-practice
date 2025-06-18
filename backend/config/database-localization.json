@@ -11,6 +11,20 @@
         "peopleId": "ID человека"
       }
     },
+    "departments": {
+      "displayName": "Отделы",
+      "fields": {
+        "id": "ID",
+        "title": "Наименование"
+      }
+    },
+    "employee_departments": {
+      "displayName": "Сотрудники отдела",
+      "fields": {
+        "departmentId": "ID отдела",
+        "employeeId": "ID сотрудника"
+      }
+    },
     "employees": {
       "displayName": "Сотрудники",
       "fields": {
@@ -385,4 +399,4 @@
       }
     }
   }
-} 
+}

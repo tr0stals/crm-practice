@@ -2,7 +2,7 @@ export class UserRegisterDTO {
   // Данные для user
   userName: string;
   password: string;
-  passwordSalt: string;
+  passwordSalt?: string;
   peopleId: number;
   professionId: number;
 

@@ -5,8 +5,8 @@ import Button from "@/shared/ui/Button/ui/Button.vue";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import "../style.scss";
 import { reactive, watch, computed } from "vue";
-import VueDatePicker from '@vuepic/vue-datepicker';
-import '@vuepic/vue-datepicker/dist/main.css';
+import VueDatePicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
 
 const props = defineProps<{
   sectionName: string;
@@ -25,25 +25,32 @@ const { formData, tableColumns, selectOptions, submit } = useAddEntity(
 function isDateField(key) {
   const lower = key.toLowerCase();
   return (
-    lower.includes('date') ||
-    lower === 'start' ||
-    lower === 'end' ||
-    lower === 'timeout'
+    lower.includes("date") ||
+    lower === "start" ||
+    lower === "end" ||
+    lower === "timeout"
   );
 }
 
 const dateFields = computed(() => tableColumns.value.filter(isDateField));
 const dateModel = reactive<Record<string, any>>({});
-watch(dateFields, (fields) => {
-  fields.forEach(key => {
-    if (!(key in dateModel)) {
-      dateModel[key] = formData[key] ? formData[key].slice(0, 10) : null;
-      watch(() => dateModel[key], (val) => {
-        formData[key] = val ? val : null;
-      });
-    }
-  });
-}, { immediate: true });
+watch(
+  dateFields,
+  (fields) => {
+    fields.forEach((key) => {
+      if (!(key in dateModel)) {
+        dateModel[key] = formData[key] ? formData[key].slice(0, 10) : null;
+        watch(
+          () => dateModel[key],
+          (val) => {
+            formData[key] = val ? new Date(val).toISOString() : null;
+          }
+        );
+      }
+    });
+  },
+  { immediate: true }
+);
 
 const handleSubmit = async () => {
   try {
@@ -64,7 +71,7 @@ const handleSubmit = async () => {
         :key="item"
         class="addModalWindow__content__field"
       >
-        <template v-if="item !== 'id'">
+        <template v-if="item !== 'id' && item !== 'passwordSalt'">
           <label :for="item">{{ fieldDictionary[item] || item }}</label>
           <template v-if="item.endsWith('Id')">
             <select v-model="formData[item]" :id="item" :name="item">
@@ -106,6 +113,7 @@ const handleSubmit = async () => {
               placeholder="+7 (___) ___-__-__"
             />
           </template>
+
           <template v-else>
             <input
               type="text"
