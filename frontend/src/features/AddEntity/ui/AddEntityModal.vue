@@ -43,7 +43,7 @@ watch(
         watch(
           () => dateModel[key],
           (val) => {
-            formData[key] = val ? new Date(val) : null;
+            formData[key] = val ? val : null;
           }
         );
       }
