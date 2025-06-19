@@ -33,7 +33,7 @@ export class UserController {
 
   @Get('get/:id')
   async getUserById(@Param('id') id: number) {
-    return await this.userService.getUserById(id);
+    return await this.userService.getUserWithProfessionTitle(id);
   }
 
   @Patch('update/:id')

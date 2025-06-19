@@ -29,16 +29,12 @@ export class AuthService {
 
     const payload = { userName: user.userName, sub: user.id };
     console.log(payload);
+    const fullUser = await this.userService.getUserWithProfessionTitle(user.id);
     return {
       token: await this.jwtService.signAsync(payload, {
         expiresIn: '24h', // токен действителен 24ч
       }),
-      user: {
-        id: user.id,
-        userName: user.userName,
-        firstName: user.peoples?.firstName,
-        lastName: user.peoples?.lastName,
-      },
+      user: fullUser,
     };
   }
 }

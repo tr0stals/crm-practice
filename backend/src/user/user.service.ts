@@ -69,11 +69,22 @@ export class UserService {
     }
   }
 
-  async getUserById(id: number) {
-    return await this.usersRepository.findOne({
-      where: { id: id },
-      relations: ['peoples'],
+  async getUserWithProfessionTitle(id: number) {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['peoples', 'peoples.employees', 'peoples.employees.profession'],
     });
+    if (!user) return null;
+    const employee = user.peoples?.employees?.[0];
+    const professionTitle = employee?.profession?.title || null;
+    return {
+      ...user,
+      professionTitle,
+    };
+  }
+
+  async getUserById(id: number) {
+    return await this.getUserWithProfessionTitle(id);
   }
 
   async cryptUserPasswordService(password: string) {
