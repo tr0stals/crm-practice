@@ -11,9 +11,11 @@ const props = defineProps<{
   currentSection: string;
   extraClasses?: string[];
   extraAttrs?: string[];
+  searchQuery?: string;
 }>();
 
 const treeviewData: Ref<TreeNode[]> = ref([]);
+const expandedKeys = ref<Record<string, boolean>>({});
 const selectedKey = ref();
 
 watch(selectedKey, (newVal) => {
@@ -22,11 +24,11 @@ watch(selectedKey, (newVal) => {
 
 // Следим за props и обновляем дерево асинхронно
 watch(
-  () => [props.data, props.currentSection],
-  async ([newData, newSection]) => {
-    treeviewData.value = await useGetTreeviewData(newData, newSection, {
-      foreignTableName: "organization_types",
-    });
+  () => [props.data, props.currentSection, props.searchQuery],
+  async ([newData, newSection, newSearch]) => {
+    const { tree, expandedKeys: expKeys } = await useGetTreeviewData(newData, newSection, { foreignTableName: "organization_types" }, newSearch);
+    treeviewData.value = tree;
+    expandedKeys.value = expKeys;
     console.debug("treeviewData:", treeviewData.value);
   },
   { immediate: true }
@@ -39,6 +41,7 @@ watch(
     :value="treeviewData"
     selectionMode="single"
     v-model:selectionKeys="selectedKey"
+    :expandedKeys="expandedKeys"
     :pt="{
       root: { class: 'treeview__root' },
       nodeContent: { class: 'treeview__data' },
