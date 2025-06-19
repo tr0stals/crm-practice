@@ -70,31 +70,67 @@ const itemsPerPage = ref<number | null>(13); // Изменено на 13, что
 
 const isSelectOpen = ref(false); // Добавляем реактивную переменную для отслеживания состояния select
 
-// Добавляем вычисляемое свойство для фильтрации данных
-const filteredData = computed(() => {
-  const filtered = searchQuery.value
-    ? data.value.filter((item) => {
-        const query = searchQuery.value.toLowerCase();
-        return Object.values(item).some((value) => {
-          if (value === null || value === undefined) return false;
-          return String(value).toLowerCase().includes(query);
-        });
-      })
-    : data.value;
+// --- Фильтры по столбцам ---
 
-  // Сортировка по полю 'id' в возрастающем порядке
-  return [...filtered].sort((a, b) => {
+const columnFilters = ref<Record<string, string | null>>({});
+const filterDropdownOpen = ref<Record<string, boolean>>({});
+
+function toggleFilterDropdown(col: string) {
+  // Закрыть все фильтры кроме текущего
+  Object.keys(filterDropdownOpen.value).forEach(k => {
+    filterDropdownOpen.value[k] = false;
+  });
+  // Открыть текущий (всегда)
+  filterDropdownOpen.value[col] = true;
+}
+function closeFilterDropdown(col: string) {
+  filterDropdownOpen.value[col] = false;
+}
+function setColumnFilter(col: string, value: string | null) {
+  columnFilters.value[col] = value;
+}
+function resetColumnFilter(col: string) {
+  columnFilters.value[col] = null;
+  filterDropdownOpen.value[col] = false;
+}
+
+const filteredData = computed(() => {
+  let result = data.value;
+  for (const [col, val] of Object.entries(columnFilters.value)) {
+    if (val) {
+      result = result.filter(row => {
+        const cell = row[col];
+        if (cell == null) return false;
+        let cellValue = cell;
+        if (typeof cell === 'object') {
+          if ('name' in cell) cellValue = cell.name;
+          else if ('title' in cell) cellValue = cell.title;
+          else if ('birthDate' in cell) cellValue = cell.birthDate;
+          else cellValue = Object.values(cell)[0];
+        }
+        return String(cellValue).toLowerCase().includes(String(val).toLowerCase());
+      });
+    }
+  }
+  // Поиск по строке (старый фильтр)
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    result = result.filter((item) => {
+      return Object.values(item).some((value) => {
+        if (value === null || value === undefined) return false;
+        return String(value).toLowerCase().includes(query);
+      });
+    });
+  }
+  // Сортировка по id
+  return [...result].sort((a, b) => {
     if (typeof a.id === "number" && typeof b.id === "number") {
       return a.id - b.id;
     } else if (typeof a.id === "string" && typeof b.id === "string") {
       return a.id.localeCompare(b.id);
     }
-    return 0; // В случае, если 'id' имеет другой тип или отсутствует
+    return 0;
   });
-  console.debug(
-    `filteredData for ${currentSection.value}:`,
-    filteredData.value
-  );
 });
 
 // Вычисляемое свойство для данных текущей страницы
@@ -264,12 +300,9 @@ onMounted(async () => {
   userLastName.value = userInfo?.lastName || "[Last name]";
   updateTime();
   timer = setInterval(updateTime, 1000);
+  document.addEventListener("click", handleClickOutside);
 });
 
-/**
- * Здесь мы следим за состоянием переменной currentSection,
- * для того, чтобы менять контент таблицы (Users, License, Stands, ...)
- */
 watch(currentSection, async (oldVal: string, newSection: string) => {
   selectedRow.value = null;
   targetData.value = null;
@@ -331,7 +364,21 @@ onUnmounted(() => {
   if (timer) {
     clearInterval(timer); // Очищаем интервал при размонтировании компонента
   }
+  document.removeEventListener("click", handleClickOutside);
 });
+
+function handleClickOutside(event: MouseEvent) {
+  const filterPopups = document.querySelectorAll(".column-filter-popup");
+  let inside = false;
+  filterPopups.forEach(popup => {
+    if (popup.contains(event.target as Node)) inside = true;
+  });
+  if (!inside) {
+    Object.keys(filterDropdownOpen.value).forEach(k => {
+      filterDropdownOpen.value[k] = false;
+    });
+  }
+}
 
 const handleAvatarUpload = (event: Event) => {
   const target = event.target as HTMLInputElement;
@@ -483,6 +530,17 @@ const openAddEntityModal = () => {
     onApplyCallback: onUpdateCallBack,
   });
 };
+
+const filteredTreeData = computed(() => {
+  if (!searchQuery.value) return data.value;
+  const q = searchQuery.value.toLowerCase();
+  return data.value.filter(item =>
+    Object.values(item)
+      .join(" ")
+      .toLowerCase()
+      .includes(q)
+  );
+});
 </script>
 
 <template>
@@ -572,8 +630,27 @@ const openAddEntityModal = () => {
           >
             <thead>
               <tr>
-                <th v-for="key in currentTableHeaders" :key="key">
+                <th v-for="key in currentTableHeaders" :key="key" style="position:relative;">
                   {{ key }}
+                  <button @click.stop="toggleFilterDropdown(key)" style="margin-left:4px;cursor:pointer;">
+                    &#x1F50D;
+                  </button>
+                  <div v-if="filterDropdownOpen[key]" :key="key" class="column-filter-popup" style="position:absolute;z-index:10;background:#fff;border:1px solid #ccc;padding:8px;min-width:180px;max-width:300px;max-height:200px;overflow:auto;">
+                    <button @click.stop="closeFilterDropdown(key)" style="position:absolute;top:4px;right:4px;font-size:18px;background:none;border:none;cursor:pointer;">&times;</button>
+                    <div style="margin-bottom:4px;font-weight:bold;">Поиск по столбцу</div>
+                    <input
+                      v-model="columnFilters[key]"
+                      @input="setColumnFilter(key, columnFilters[key])"
+                      @click.stop
+                      type="text"
+                      :placeholder="'Поиск по ' + key"
+                      style="width:100%;margin-bottom:8px;"
+                      autofocus
+                    />
+                    <div style="margin-top:6px;">
+                      <button @click="resetColumnFilter(key)" style="font-size:12px;">Сбросить</button>
+                    </div>
+                  </div>
                 </th>
               </tr>
             </thead>
@@ -606,16 +683,17 @@ const openAddEntityModal = () => {
             </tbody>
           </table>
 
-          <CustomTreeview
-            v-if="
-              currentSection.toLowerCase() === 'license' ||
-              currentSection.toLowerCase() === 'organizations'
-            "
-            :key="currentSection + '-treeview'"
-            :data="data"
-            :currentSection="currentSection"
-            :on-click="handleClick"
-          />
+          <!-- Поиск и TreeView -->
+          <div v-if="currentSection.toLowerCase() === 'license' || currentSection.toLowerCase() === 'organizations'">
+            <CustomTreeview
+              v-if="currentSection.toLowerCase() === 'license' || currentSection.toLowerCase() === 'organizations'"
+              :key="currentSection + '-treeview'"
+              :data="filteredTreeData"
+              :currentSection="currentSection"
+              :on-click="handleClick"
+              :searchQuery="searchQuery"
+            />
+          </div>
         </div>
 
         <!-- Pagination -->
