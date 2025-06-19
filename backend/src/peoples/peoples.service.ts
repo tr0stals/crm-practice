@@ -14,14 +14,15 @@ export class PeoplesService {
   async create(data: PeoplesDTO) {
     const { email } = data;
 
+    console.debug(data);
+
     const existing = await this.peoplesRepository.findOne({
       where: { email },
+      relations: ['employees'],
     });
 
     if (existing) {
-      throw new BadRequestException(
-        'Пользователь с таким email уже существует',
-      );
+      return existing;
     }
 
     const people = this.peoplesRepository.create(data);

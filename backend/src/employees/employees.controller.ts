@@ -1,17 +1,22 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Patch, 
-  Param, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
   Delete,
   UseGuards,
-  Request
+  Request,
 } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { EmployeesDTO } from './dto/EmployeesDTO';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @ApiTags('Сотрудники')
@@ -29,7 +34,10 @@ export class EmployeesController {
   }
 
   @ApiOperation({ summary: 'Получение списка всех сотрудников' })
-  @ApiResponse({ status: 200, description: 'Список сотрудников получен успешно' })
+  @ApiResponse({
+    status: 200,
+    description: 'Список сотрудников получен успешно',
+  })
   @Get('get')
   async getAll() {
     return await this.employeesService.getAll();
@@ -59,7 +67,9 @@ export class EmployeesController {
     return await this.employeesService.delete(+id);
   }
 
-  @ApiOperation({ summary: 'Автоматическое назначение профессии IT-специалист' })
+  @ApiOperation({
+    summary: 'Автоматическое назначение профессии IT-специалист',
+  })
   @ApiResponse({ status: 201, description: 'Профессия успешно назначена' })
   @ApiResponse({ status: 404, description: 'Человек не найден' })
   @ApiResponse({ status: 403, description: 'Сотрудник уже существует' })
@@ -70,18 +80,22 @@ export class EmployeesController {
 
   @ApiOperation({ summary: 'Изменение профессии сотрудника' })
   @ApiResponse({ status: 200, description: 'Профессия успешно изменена' })
-  @ApiResponse({ status: 404, description: 'Сотрудник или профессия не найдены' })
-  @ApiResponse({ status: 403, description: 'Недостаточно прав для изменения профессии' })
+  @ApiResponse({
+    status: 404,
+    description: 'Сотрудник или профессия не найдены',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Недостаточно прав для изменения профессии',
+  })
   @Patch('change-profession/:employeeId/:professionId')
   async changeProfession(
     @Param('employeeId') employeeId: string,
     @Param('professionId') professionId: string,
-    @Request() req
   ) {
     return await this.employeesService.changeEmployeeProfession(
       +employeeId,
       +professionId,
-      req.user
     );
   }
-} 
+}

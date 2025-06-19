@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Employees } from './employees.entity';
@@ -21,8 +25,12 @@ export class EmployeesService {
   ) {}
 
   async create(data: EmployeesDTO) {
-    const people = await this.peoplesRepository.findOne({ where: { id: data.peopleId } });
-    const profession = await this.professionsRepository.findOne({ where: { id: data.professionId } });
+    const people = await this.peoplesRepository.findOne({
+      where: { id: data.peopleId },
+    });
+    const profession = await this.professionsRepository.findOne({
+      where: { id: data.professionId },
+    });
     const employee = this.employeesRepository.create({
       birthDate: data.birthDate,
       peoples: people,
@@ -32,14 +40,20 @@ export class EmployeesService {
   }
 
   async getAll() {
-    return await this.employeesRepository.find({ relations: ['peoples', 'profession'] });
+    return await this.employeesRepository.find({
+      relations: ['peoples', 'profession'],
+    });
   }
 
   async update(id: number, data: EmployeesDTO) {
     const employee = await this.employeesRepository.findOne({ where: { id } });
     if (!employee) return null;
-    const people = await this.peoplesRepository.findOne({ where: { id: data.peopleId } });
-    const profession = await this.professionsRepository.findOne({ where: { id: data.professionId } });
+    const people = await this.peoplesRepository.findOne({
+      where: { id: data.peopleId },
+    });
+    const profession = await this.professionsRepository.findOne({
+      where: { id: data.professionId },
+    });
     Object.assign(employee, data, { peoples: people, profession: profession });
     return await this.employeesRepository.save(employee);
   }
@@ -49,9 +63,9 @@ export class EmployeesService {
   }
 
   async assignDefaultProfession(peopleId: number) {
-    const people = await this.peoplesRepository.findOne({ 
+    const people = await this.peoplesRepository.findOne({
       where: { id: peopleId },
-      relations: ['employees']
+      relations: ['employees'],
     });
 
     if (!people) {
@@ -65,7 +79,7 @@ export class EmployeesService {
 
     // Находим профессию IT-специалист
     const itProfession = await this.professionsRepository.findOne({
-      where: { title: 'IT-специалист' }
+      where: { title: 'IT-специалист' },
     });
 
     if (!itProfession) {
@@ -82,22 +96,27 @@ export class EmployeesService {
     return await this.employeesRepository.save(employee);
   }
 
-  async changeEmployeeProfession(employeeId: number, newProfessionId: number, currentUser: User) {
-    // Проверяем права доступа (только администратор или HR может менять профессии)
-    const allowedProfessions = ['Администратор', 'HR-специалист'];
-    const userProfession = await this.professionsRepository.findOne({
-      where: { id: currentUser.profession.id }
-    });
-
-    if (!userProfession || !allowedProfessions.includes(userProfession.title)) {
-      throw new ForbiddenException('У вас нет прав для изменения профессий сотрудников');
-    }
-
+  async changeEmployeeProfession(employeeId: number, newProfessionId: number) {
     // Проверяем существование сотрудника
     const employee = await this.employeesRepository.findOne({
       where: { id: employeeId },
-      relations: ['profession', 'peoples']
+      relations: ['profession', 'peoples'],
     });
+
+    // Проверяем права доступа (только администратор или HR может менять профессии)
+    const allowedProfessions = ['Администратор', 'HR-специалист'];
+    const employeeProfession = await this.professionsRepository.findOne({
+      where: { id: employee?.profession.id },
+    });
+
+    if (
+      !employeeProfession ||
+      !allowedProfessions.includes(employeeProfession.title)
+    ) {
+      throw new ForbiddenException(
+        'У вас нет прав для изменения профессий сотрудников',
+      );
+    }
 
     if (!employee) {
       throw new NotFoundException(`Сотрудник с ID ${employeeId} не найден`);
@@ -105,11 +124,13 @@ export class EmployeesService {
 
     // Проверяем существование новой профессии
     const newProfession = await this.professionsRepository.findOne({
-      where: { id: newProfessionId }
+      where: { id: newProfessionId },
     });
 
     if (!newProfession) {
-      throw new NotFoundException(`Профессия с ID ${newProfessionId} не найдена`);
+      throw new NotFoundException(
+        `Профессия с ID ${newProfessionId} не найдена`,
+      );
     }
 
     // Обновляем профессию
@@ -120,7 +141,7 @@ export class EmployeesService {
   async getEmployeeWithProfession(id: number) {
     const employee = await this.employeesRepository.findOne({
       where: { id },
-      relations: ['profession', 'peoples', 'employeeStates']
+      relations: ['profession', 'peoples', 'employeeStates'],
     });
 
     if (!employee) {

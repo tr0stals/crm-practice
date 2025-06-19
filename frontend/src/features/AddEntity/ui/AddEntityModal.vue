@@ -43,7 +43,7 @@ watch(
         watch(
           () => dateModel[key],
           (val) => {
-            formData[key] = val ? new Date(val).toISOString() : null;
+            formData[key] = val ? new Date(val) : null;
           }
         );
       }

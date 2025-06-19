@@ -42,6 +42,7 @@ export const getUserInfoAsync = async () => {
   return await getDataAsync({ endpoint: `user/get/${userId.value}` })
     .then((res) => {
       const user = res.data;
+      console.debug(user);
       if (user && user.peoples) {
         return {
           user: user,

@@ -6,7 +6,6 @@ import { UserRegisterDTO } from './dto/UserRegisterDTO';
 import * as bcrypt from 'bcrypt';
 import { PeoplesService } from 'src/peoples/peoples.service';
 import { EmployeesService } from 'src/employees/employees.service';
-import { ProfessionsService } from 'src/professions/professions.service';
 
 @Injectable()
 export class UserService {
@@ -15,13 +14,12 @@ export class UserService {
     private usersRepository: Repository<User>,
     private peoplesService: PeoplesService,
     private employeesService: EmployeesService,
-    private professionsService: ProfessionsService,
   ) {}
 
   async findByUsername(userName: string) {
     return this.usersRepository.findOne({
       where: { userName },
-      relations: ['profession', 'peoples'],
+      relations: ['peoples'],
     });
   }
 
@@ -31,27 +29,19 @@ export class UserService {
         await this.cryptUserPasswordService(data.password)
       ).toString();
 
-      // Проверяем, если человек уже существует в базе - записываем его в people
-      let people = await this.peoplesService.findById(data.peopleId);
+      const people = data.email
+        ? await this.peoplesService.create({
+            email: data.email,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            middleName: data.middleName,
+            phone: data.phone,
+            comment: data.comment,
+          })
+        : await this.peoplesService.findById(data.peopleId);
 
-      // если не существует, то создаем нового (актуально при регистрации)
       if (!people) {
-        const peopleData = {
-          email: data.email,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          middleName: data.middleName,
-          phone: data.phone,
-          comment: data.comment,
-        };
-
-        people = await this.peoplesService.create(peopleData);
-      }
-
-      const itProfession =
-        await this.professionsService.findByTitle('IT-специалист');
-      if (!itProfession) {
-        throw new BadRequestException('Профессия IT-специалист не найдена');
+        throw new BadRequestException('Ошибка при регистрации пользователя');
       }
 
       const user = {
@@ -59,7 +49,6 @@ export class UserService {
         password: data.password,
         passwordSalt: data.passwordSalt,
         peoples: people,
-        profession: itProfession,
       };
 
       const newUser = this.usersRepository.create(user);
@@ -83,7 +72,7 @@ export class UserService {
   async getUserById(id: number) {
     return await this.usersRepository.findOne({
       where: { id: id },
-      relations: ['peoples', 'profession'],
+      relations: ['peoples'],
     });
   }
 

@@ -4,7 +4,6 @@ export class UserRegisterDTO {
   password: string;
   passwordSalt?: string;
   peopleId: number;
-  professionId: number;
 
   // Данные для Peoples
   email: string;

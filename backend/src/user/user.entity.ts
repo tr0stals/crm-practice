@@ -23,10 +23,6 @@ export class User {
   @Column()
   passwordSalt?: string;
 
-  @ManyToOne(() => Professions, (profession) => profession.users)
-  @JoinColumn({ name: 'professionId' })
-  profession: Professions;
-
   @ManyToOne(() => Peoples, (people) => people.users)
   @JoinColumn({ name: 'peopleId' })
   peoples: Peoples;

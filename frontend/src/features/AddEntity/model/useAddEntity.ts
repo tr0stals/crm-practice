@@ -39,6 +39,7 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
   onMounted(fetchColumnsAndRelations);
 
   const submit = async () => {
+    console.debug(formData);
     await createEntityAsync(sectionName, formData);
     onSuccess();
   };

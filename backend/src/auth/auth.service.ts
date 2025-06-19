@@ -38,7 +38,6 @@ export class AuthService {
         userName: user.userName,
         firstName: user.peoples?.firstName,
         lastName: user.peoples?.lastName,
-        profession: user.profession ? { title: user.profession.title } : null,
       },
     };
   }

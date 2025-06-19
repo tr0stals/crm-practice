@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
 import { Professions } from './professions.entity';
@@ -15,12 +19,12 @@ export class ProfessionsService {
   async create(data: CreateProfessionDto) {
     // Проверяем, существует ли уже профессия с таким названием
     const existingProfession = await this.professionsRepository.findOne({
-      where: { title: data.title }
+      where: { title: data.title },
     });
 
     if (existingProfession) {
       throw new ConflictException(
-        `Профессия с названием "${data.title}" уже существует`
+        `Профессия с названием "${data.title}" уже существует`,
       );
     }
 
@@ -31,15 +35,15 @@ export class ProfessionsService {
   async getAll() {
     return await this.professionsRepository.find({
       order: {
-        title: 'ASC'
-      }
+        title: 'ASC',
+      },
     });
   }
 
   async findOne(id: number) {
     const profession = await this.professionsRepository.findOne({
       where: { id },
-      relations: ['employees', 'users']
+      relations: ['employees'],
     });
 
     if (!profession) {
@@ -56,15 +60,15 @@ export class ProfessionsService {
     // При обновлении также проверяем уникальность названия
     if (data.title) {
       const existingProfession = await this.professionsRepository.findOne({
-        where: { 
+        where: {
           title: data.title,
-          id: Not(id) // исключаем текущую запись
-        }
+          id: Not(id), // исключаем текущую запись
+        },
       });
 
       if (existingProfession) {
         throw new ConflictException(
-          `Профессия с названием "${data.title}" уже существует`
+          `Профессия с названием "${data.title}" уже существует`,
         );
       }
     }
@@ -76,9 +80,9 @@ export class ProfessionsService {
   async delete(id: number) {
     const profession = await this.findOne(id);
 
-    if (profession.employees.length > 0 || profession.users.length > 0) {
+    if (profession.employees.length > 0) {
       throw new ConflictException(
-        'Невозможно удалить профессию, так как она используется'
+        'Невозможно удалить профессию, так как она используется',
       );
     }
 
@@ -87,7 +91,7 @@ export class ProfessionsService {
 
   async findByTitle(title: string) {
     return await this.professionsRepository.findOne({
-      where: { title }
+      where: { title },
     });
   }
 }
