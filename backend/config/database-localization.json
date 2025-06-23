@@ -397,6 +397,23 @@
       "fields": {
         "id": "ID"
       }
+    },
+    "components": {
+      "displayName": "Компоненты",
+      "fields": {
+        "id": "ID",
+        "parentId": "ID родителя",
+        "name": "Название",
+        "appearance": "Внешний вид",
+        "dimensions": "Габариты",
+        "weight": "Вес",
+        "material": "Материал",
+        "minimumStock": "Минимальный запас",
+        "supplierId": "ID поставщика",
+        "invoiceId": "ID счета",
+        "receiptDate": "Дата поступления",
+        "drawingReference": "Ссылка на чертеж"
+      }
     }
   }
 }
