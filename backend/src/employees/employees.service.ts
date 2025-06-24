@@ -10,6 +10,7 @@ import { EmployeesDTO } from './dto/EmployeesDTO';
 import { Peoples } from 'src/peoples/peoples.entity';
 import { Professions } from 'src/professions/professions.entity';
 import { User } from 'src/user/user.entity';
+import { EmployeeDepartmentsService } from 'src/employee-departments/employee-departments.service';
 
 @Injectable()
 export class EmployeesService {
@@ -22,6 +23,7 @@ export class EmployeesService {
     private professionsRepository: Repository<Professions>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private employeeDepartmentsService: EmployeeDepartmentsService,
   ) {}
 
   async create(data: EmployeesDTO) {
@@ -149,5 +151,27 @@ export class EmployeesService {
     }
 
     return employee;
+  }
+
+  async getEmployeesTree() {
+    const employeeDepartments = await this.employeeDepartmentsService.findAll();
+    const depMap = new Map();
+    for (const ed of employeeDepartments) {
+      const depName = ed.departments?.title || 'Без названия';
+      if (!depMap.has(depName)) depMap.set(depName, []);
+      const people = ed.employees?.peoples;
+      const fio = people ? `${people.lastName} ${people.firstName} ${people.middleName}` : 'Без ФИО';
+      depMap.get(depName).push({ name: fio });
+    }
+    const result: any = {};
+    result.name = 'Сотрудники';
+    result.children = [];
+    for (const [depName, employees] of depMap.entries()) {
+      result.children.push({
+        name: depName,
+        children: employees,
+      });
+    }
+    return result;
   }
 }

@@ -51,6 +51,13 @@ export class EmployeesController {
     return await this.employeesService.getEmployeeWithProfession(+id);
   }
 
+  @ApiOperation({ summary: 'Получение дерева сотрудников' })
+  @ApiResponse({ status: 200, description: 'Дерево сотрудников получено успешно' })
+  @Get('tree')
+  async getEmployeesTree() {
+    return await this.employeesService.getEmployeesTree();
+  }
+
   @ApiOperation({ summary: 'Обновление данных сотрудника' })
   @ApiResponse({ status: 200, description: 'Данные сотрудника обновлены' })
   @ApiResponse({ status: 404, description: 'Сотрудник не найден' })

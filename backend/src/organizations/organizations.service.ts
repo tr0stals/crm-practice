@@ -76,4 +76,22 @@ export class OrganizationsService {
       console.error('Ошибка при удалении организации', e);
     }
   }
+
+  // Метод для построения дерева организаций по типам
+  async getOrganizationsTree() {
+    // Получаем все типы организаций с организациями
+    const orgTypes = await this.organizationTypesService.get(); // relations: ['organizations']
+    const result: any = {};
+    result.name = 'Организации'; // временно жёстко, потом заменить на локализацию
+    result.children = [];
+    for (const orgType of orgTypes || []) {
+      const orgTypeName = orgType.title;
+      const orgs = orgType.organizations || [];
+      result.children.push({
+        name: orgTypeName,
+        children: orgs.map(org => ({ name: org.fullName })),
+      });
+    }
+    return result;
+  }
 }

@@ -16,11 +16,11 @@ export class EmployeeDepartmentsService {
   }
 
   findAll() {
-    return this.repo.find({ relations: ['departments', 'employees'] });
+    return this.repo.find({ relations: ['departments', 'employees', "employees.peoples"] });
   }
 
   findOne(id: number) {
-    return this.repo.findOne({ where: { id }, relations: ['departments', 'employees'] });
+    return this.repo.findOne({ where: { id }, relations: ['departments', 'employees', "employees.peoples"] });
   }
 
   update(id: number, data: Partial<EmployeeDepartments>) {

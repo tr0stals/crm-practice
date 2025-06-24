@@ -6,10 +6,12 @@ import { EmployeesController } from './employees.controller';
 import { Peoples } from 'src/peoples/peoples.entity';
 import { Professions } from 'src/professions/professions.entity';
 import { User } from 'src/user/user.entity';
+import { EmployeeDepartmentsModule } from 'src/employee-departments/employee-departments.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Employees, Peoples, Professions, User])
+    TypeOrmModule.forFeature([Employees, Peoples, Professions, User]),
+    EmployeeDepartmentsModule,
   ],
   providers: [EmployeesService],
   controllers: [EmployeesController],

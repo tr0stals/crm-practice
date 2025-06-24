@@ -24,9 +24,11 @@ export class OrganizationTypesService {
 
   async get() {
     try {
-      return await this.organizationTypesRepository.find();
+      return await this.organizationTypesRepository.find({
+        relations: ['organizations'],
+      });
     } catch (e) {
-      console.error('Ошибка при получении типов организации', e);
+      console.error('Ошибка при получении типов организаций', e);
     }
   }
 

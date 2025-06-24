@@ -285,7 +285,7 @@ export class DatabaseSeederService {
     const typesData = [
       { title: 'Производитель' },
       { title: 'Поставщик' },
-      { title: 'Транспортная компания' },
+      { title: 'Перевозчик' },
       { title: 'Клиент' },
       { title: 'Партнер' },
     ];
@@ -482,27 +482,32 @@ export class DatabaseSeederService {
 
   private async seedOrganizations(peoples: Peoples[]): Promise<Organizations[]> {
     const organizationTypes = await this.organizationTypesRepository.find();
-    const organizationsData = Array.from({ length: 15 }, (_, index) => {
-      const orgnDate = faker.date.past();
-      return {
-        parentId: index === 0 ? '0' : String(Math.floor(Math.random() * index) + 1),
-        fullName: faker.company.name(),
-        shortName: faker.company.name(),
-        lawAddress: faker.location.streetAddress(),
-        factAddress: faker.location.streetAddress(),
-        postAddress: faker.location.streetAddress(),
-        inn: faker.string.numeric(10),
-        kpp: faker.string.numeric(9),
-        orgn: faker.string.numeric(13),
-        orgnDate: new Date(orgnDate.getFullYear(), orgnDate.getMonth(), orgnDate.getDate()),
-        phone: this.generateRandomPhone(),
-        email: faker.internet.email(),
-        digitalDocs: faker.number.int({ min: 0, max: 1 }),
-        rating: faker.number.int({ min: 1, max: 5 }),
-        comment: faker.lorem.sentence(),
-        peoples: faker.helpers.arrayElement(peoples),
-        organizationTypes: faker.helpers.arrayElement(organizationTypes),
-      };
+    
+    // Создаем по 3 организации каждого типа
+    const organizationsData = organizationTypes.flatMap((type, typeIndex) => {
+      return Array.from({ length: 3 }, (_, index) => {
+        const orgnDate = faker.date.past();
+        const globalIndex = typeIndex * 3 + index;
+        return {
+          parentId: globalIndex === 0 ? '0' : String(Math.floor(Math.random() * globalIndex) + 1),
+          fullName: faker.company.name(),
+          shortName: faker.company.name(),
+          lawAddress: faker.location.streetAddress(),
+          factAddress: faker.location.streetAddress(),
+          postAddress: faker.location.streetAddress(),
+          inn: faker.string.numeric(10),
+          kpp: faker.string.numeric(9),
+          orgn: faker.string.numeric(13),
+          orgnDate: new Date(orgnDate.getFullYear(), orgnDate.getMonth(), orgnDate.getDate()),
+          phone: this.generateRandomPhone(),
+          email: faker.internet.email(),
+          digitalDocs: faker.number.int({ min: 0, max: 1 }),
+          rating: faker.number.int({ min: 1, max: 5 }),
+          comment: faker.lorem.sentence(),
+          peoples: faker.helpers.arrayElement(peoples),
+          organizationTypes: type,
+        };
+      });
     });
 
     const organizations = organizationsData.map(data => this.organizationsRepository.create(data));
@@ -577,7 +582,9 @@ export class DatabaseSeederService {
 
   private async seedLicenses(organizations: Organizations[]): Promise<License[]> {
     const licenseTypes = await this.licenseTypesRepository.find();
-    const licensesData = Array.from({ length: 10 }, () => {
+    
+    // Создаем больше лицензий, чем организаций, чтобы хватило для отправок
+    const licensesData = Array.from({ length: organizations.length * 2 }, () => {
       // Генерируем только даты без времени
       const startDate = faker.date.past();
       const endDate = faker.date.future();
@@ -828,30 +835,49 @@ export class DatabaseSeederService {
   }
 
   private async seedShipments(): Promise<Shipments[]> {
-    const organizations = await this.organizationsRepository.find();
+    const organizations = await this.organizationsRepository.find({
+      relations: ['organizationTypes']
+    });
     const standAssemblies = await this.standAssembliesRepository.find();
     const shipmentStates = await this.shipmentStatesRepository.find();
-    const licenses = await this.licenseRepository.find();
+    const licenses = await this.licenseRepository.find({
+      relations: ['shipment']
+    });
     const addedDate = faker.date.past();
     const shipmentDate = faker.date.future();
 
-    const usedLicenseIds = new Set<number>();
+    // Фильтруем организации по типам
+    const factories = organizations.filter(org => 
+      org.organizationTypes?.title?.toLowerCase().includes('производитель') ||
+      org.organizationTypes?.title?.toLowerCase().includes('factory')
+    );
+    const transporters = organizations.filter(org => 
+      org.organizationTypes?.title?.toLowerCase().includes('перевозчик') ||
+      org.organizationTypes?.title?.toLowerCase().includes('transporter')
+    );
+    const clients = organizations.filter(org => 
+      org.organizationTypes?.title?.toLowerCase().includes('клиент') ||
+      org.organizationTypes?.title?.toLowerCase().includes('client')
+    );
 
-    const shipmentsData = standAssemblies.map(assembly => {
-      const randomFactory = organizations[Math.floor(Math.random() * organizations.length)];
-      const randomTransporter = organizations[Math.floor(Math.random() * organizations.length)];
-      const randomClient = organizations[Math.floor(Math.random() * organizations.length)];
-      const randomState = shipmentStates[Math.floor(Math.random() * shipmentStates.length)];
+    if (!factories.length || !transporters.length || !clients.length) {
+      this.logger.warn('Недостаточно организаций с нужными типами для создания отправок');
+      return [];
+    }
 
-      // Найти лицензию, которая еще не использовалась
-      let randomLicense: License | undefined = undefined;
-      if (licenses.length > 0) {
-        const availableLicenses = licenses.filter(l => !usedLicenseIds.has(l.id));
-        if (availableLicenses.length > 0) {
-          randomLicense = faker.helpers.arrayElement(availableLicenses);
-          usedLicenseIds.add(randomLicense.id);
-        }
-      }
+    // Находим неиспользованные лицензии
+    const unusedLicenses = licenses.filter(license => !license.shipment);
+    
+    // Создаем отправки только для количества доступных лицензий
+    const shipmentsCount = Math.min(standAssemblies.length, unusedLicenses.length);
+    const selectedAssemblies = faker.helpers.arrayElements(standAssemblies, shipmentsCount);
+
+    const shipmentsData = selectedAssemblies.map((assembly, index) => {
+      const randomFactory = faker.helpers.arrayElement(factories);
+      const randomTransporter = faker.helpers.arrayElement(transporters);
+      const randomClient = faker.helpers.arrayElement(clients);
+      const randomState = faker.helpers.arrayElement(shipmentStates);
+      const license = unusedLicenses[index];
 
       return {
         price: faker.number.float({ min: 1000, max: 100000, fractionDigits: 2 }),
@@ -865,7 +891,7 @@ export class DatabaseSeederService {
         client: randomClient,
         standAssemblies: assembly,
         shipmentStates: randomState,
-        licenses: randomLicense
+        licenses: license
       };
     });
 
