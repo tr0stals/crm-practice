@@ -49,6 +49,7 @@ const authorizedUser = ref<IAuthorizedUser | null>(null);
 
 const userFirstName = ref("[First name]");
 const userLastName = ref("[Last name]");
+const userProfession = ref<string>("");
 const avatarImage = ref(""); // Переменная для изображения аватара, изначально пустая
 // const userInfo = ref<any>();
 const localizatedSections = ref<any>([]);
@@ -82,7 +83,7 @@ const filterDropdownOpen = ref<Record<string, boolean>>({});
 
 function toggleFilterDropdown(col: string) {
   // Закрыть все фильтры кроме текущего
-  Object.keys(filterDropdownOpen.value).forEach(k => {
+  Object.keys(filterDropdownOpen.value).forEach((k) => {
     filterDropdownOpen.value[k] = false;
   });
   // Открыть текущий (всегда)
@@ -103,17 +104,19 @@ const filteredData = computed(() => {
   let result = data.value;
   for (const [col, val] of Object.entries(columnFilters.value)) {
     if (val) {
-      result = result.filter(row => {
+      result = result.filter((row) => {
         const cell = row[col];
         if (cell == null) return false;
         let cellValue = cell;
-        if (typeof cell === 'object') {
-          if ('name' in cell) cellValue = cell.name;
-          else if ('title' in cell) cellValue = cell.title;
-          else if ('birthDate' in cell) cellValue = cell.birthDate;
+        if (typeof cell === "object") {
+          if ("name" in cell) cellValue = cell.name;
+          else if ("title" in cell) cellValue = cell.title;
+          else if ("birthDate" in cell) cellValue = cell.birthDate;
           else cellValue = Object.values(cell)[0];
         }
-        return String(cellValue).toLowerCase().includes(String(val).toLowerCase());
+        return String(cellValue)
+          .toLowerCase()
+          .includes(String(val).toLowerCase());
       });
     }
   }
@@ -304,6 +307,7 @@ onMounted(async () => {
   if (user.peoples) {
     userFirstName.value = user.peoples.firstName;
     userLastName.value = user.peoples.lastName;
+    userProfession.value = user.peoples.employees[0].profession.title;
   }
 
   updateTime();
@@ -314,15 +318,13 @@ onMounted(async () => {
   //   Object.entries(localizationResponse.data)
   // );
 
-  console.debug(authorizedUser.value);
-
   const localizationResponse = await getDataAsync({
     endpoint: "localization/tables",
   });
   localizatedSections.value = localizationResponse.data;
 
   const tables = roleTables
-    .filter((item) => item.profession === user.profession.title)
+    .filter((item) => item.profession === userProfession.value)
     .map((item) => item.tables)
     .flat();
 
@@ -391,11 +393,11 @@ onUnmounted(() => {
 function handleClickOutside(event: MouseEvent) {
   const filterPopups = document.querySelectorAll(".column-filter-popup");
   let inside = false;
-  filterPopups.forEach(popup => {
+  filterPopups.forEach((popup) => {
     if (popup.contains(event.target as Node)) inside = true;
   });
   if (!inside) {
-    Object.keys(filterDropdownOpen.value).forEach(k => {
+    Object.keys(filterDropdownOpen.value).forEach((k) => {
       filterDropdownOpen.value[k] = false;
     });
   }
@@ -555,11 +557,8 @@ const openAddEntityModal = () => {
 const filteredTreeData = computed(() => {
   if (!searchQuery.value) return data.value;
   const q = searchQuery.value.toLowerCase();
-  return data.value.filter(item =>
-    Object.values(item)
-      .join(" ")
-      .toLowerCase()
-      .includes(q)
+  return data.value.filter((item) =>
+    Object.values(item).join(" ").toLowerCase().includes(q)
   );
 });
 </script>
@@ -600,7 +599,7 @@ const filteredTreeData = computed(() => {
             </div>
             <div class="user-details">{{ currentDateTime }}</div>
             <div class="user-details">
-              {{ authorizedUser?.user.profession?.title }}
+              {{ userProfession }}
             </div>
           </div>
         </div>
@@ -656,25 +655,67 @@ const filteredTreeData = computed(() => {
           >
             <thead>
               <tr>
-                <th v-for="key in currentTableHeaders" :key="key" style="position:relative;">
+                <th
+                  v-for="key in currentTableHeaders"
+                  :key="key"
+                  style="position: relative"
+                >
                   {{ key }}
-                  <button @click.stop="toggleFilterDropdown(key)" style="margin-left:4px;cursor:pointer;">
+                  <button
+                    @click.stop="toggleFilterDropdown(key)"
+                    style="margin-left: 4px; cursor: pointer"
+                  >
                     &#x1F50D;
                   </button>
-                  <div v-if="filterDropdownOpen[key]" :key="key" class="column-filter-popup" style="position:absolute;z-index:10;background:#fff;border:1px solid #ccc;padding:8px;min-width:180px;max-width:300px;max-height:200px;overflow:auto;">
-                    <button @click.stop="closeFilterDropdown(key)" style="position:absolute;top:4px;right:4px;font-size:18px;background:none;border:none;cursor:pointer;">&times;</button>
-                    <div style="margin-bottom:4px;font-weight:bold;">Поиск по столбцу</div>
+                  <div
+                    v-if="filterDropdownOpen[key]"
+                    :key="key"
+                    class="column-filter-popup"
+                    style="
+                      position: absolute;
+                      z-index: 10;
+                      background: #fff;
+                      border: 1px solid #ccc;
+                      padding: 8px;
+                      min-width: 180px;
+                      max-width: 300px;
+                      max-height: 200px;
+                      overflow: auto;
+                    "
+                  >
+                    <button
+                      @click.stop="closeFilterDropdown(key)"
+                      style="
+                        position: absolute;
+                        top: 4px;
+                        right: 4px;
+                        font-size: 18px;
+                        background: none;
+                        border: none;
+                        cursor: pointer;
+                      "
+                    >
+                      &times;
+                    </button>
+                    <div style="margin-bottom: 4px; font-weight: bold">
+                      Поиск по столбцу
+                    </div>
                     <input
                       v-model="columnFilters[key]"
                       @input="setColumnFilter(key, columnFilters[key])"
                       @click.stop
                       type="text"
                       :placeholder="'Поиск по ' + key"
-                      style="width:100%;margin-bottom:8px;"
+                      style="width: 100%; margin-bottom: 8px"
                       autofocus
                     />
-                    <div style="margin-top:6px;">
-                      <button @click="resetColumnFilter(key)" style="font-size:12px;">Сбросить</button>
+                    <div style="margin-top: 6px">
+                      <button
+                        @click="resetColumnFilter(key)"
+                        style="font-size: 12px"
+                      >
+                        Сбросить
+                      </button>
                     </div>
                   </div>
                 </th>
@@ -710,9 +751,17 @@ const filteredTreeData = computed(() => {
           </table>
 
           <!-- Поиск и TreeView -->
-          <div v-if="currentSection.toLowerCase() === 'license' || currentSection.toLowerCase() === 'organizations'">
+          <div
+            v-if="
+              currentSection.toLowerCase() === 'license' ||
+              currentSection.toLowerCase() === 'organizations'
+            "
+          >
             <CustomTreeview
-              v-if="currentSection.toLowerCase() === 'license' || currentSection.toLowerCase() === 'organizations'"
+              v-if="
+                currentSection.toLowerCase() === 'license' ||
+                currentSection.toLowerCase() === 'organizations'
+              "
               :key="currentSection + '-treeview'"
               :data="filteredTreeData"
               :currentSection="currentSection"
