@@ -161,7 +161,11 @@ export class EmployeesService {
       if (!depMap.has(depName)) depMap.set(depName, []);
       const people = ed.employees?.peoples;
       const fio = people ? `${people.lastName} ${people.firstName} ${people.middleName}` : 'Без ФИО';
-      depMap.get(depName).push({ name: fio });
+      depMap.get(depName).push({
+        name: fio,
+        ...ed.employees,
+        peoples: ed.employees?.peoples,
+      });
     }
     const result: any = {};
     result.name = 'Сотрудники';
