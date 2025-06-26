@@ -414,6 +414,72 @@
         "receiptDate": "Дата поступления",
         "drawingReference": "Ссылка на чертеж"
       }
+    },
+    "employees_vacations": {
+      "displayName": "Отпуска сотрудников",
+      "fields": {
+        "id": "ID",
+        "employeeId": "ID сотрудника",
+        "startDate": "Дата начала",
+        "endDate": "Дата окончания",
+        "factoryId": "ID фабрики"
+      }
+    },
+    "employees_professions": {
+      "displayName": "Профессии сотрудников",
+      "fields": {
+        "id": "ID",
+        "employeeId": "ID сотрудника",
+        "professionId": "ID профессии"
+      }
+    },
+    "pcb_warehouse_components": {
+      "displayName": "Компоненты склада ПП",
+      "fields": {
+        "id": "ID",
+        "pcbId": "ID печатной платы",
+        "componentId": "ID компонента",
+        "count": "Количество"
+      }
+    },
+    "order_request_components": {
+      "displayName": "Компоненты заявки на заказ",
+      "fields": {
+        "id": "ID",
+        "orderRequestId": "ID заявки на заказ",
+        "componentId": "ID компонента",
+        "count": "Количество"
+      }
+    },
+    "current_task_states": {
+      "displayName": "Состояния текущих задач",
+      "fields": {
+        "id": "ID",
+        "title": "Название"
+      }
+    },
+    "stand_tasks": {
+      "displayName": "Задачи стенда",
+      "fields": {
+        "id": "ID",
+        "parentId": "ID родителя",
+        "order": "Порядок",
+        "componentOutCount": "Количество компонентов на выходе",
+        "title": "Название",
+        "photo": "Фото",
+        "manufactureTime": "Время изготовления",
+        "standId": "ID стенда",
+        "professionId": "ID профессии",
+        "componentId": "ID компонента"
+      }
+    },
+    "shipments_stands": {
+      "displayName": "Стенды в отгрузках",
+      "fields": {
+        "id": "ID",
+        "shipmentId": "ID отгрузки",
+        "standId": "ID стенда"
+      }
     }
   }
 }

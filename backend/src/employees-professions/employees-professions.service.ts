@@ -75,6 +75,28 @@ export class EmployeesProfessionsService {
     }
   }
 
+  async create(data: Partial<EmployeesProfessions>) {
+    const entity = this.employeesProfessionsRepository.create(data);
+    return await this.employeesProfessionsRepository.save(entity);
+  }
+
+  async getAll() {
+    return await this.employeesProfessionsRepository.find({ relations: ['employees', 'professions'] });
+  }
+
+  async getOne(id: number) {
+    return await this.employeesProfessionsRepository.findOne({ where: { id }, relations: ['employees', 'professions'] });
+  }
+
+  async update(id: number, data: Partial<EmployeesProfessions>) {
+    await this.employeesProfessionsRepository.update(id, data);
+    return this.getOne(id);
+  }
+
+  async delete(id: number) {
+    return await this.employeesProfessionsRepository.delete(id);
+  }
+
   // async changeEmployee(employeeId: number, newEmployeeId: number) {
   //   const employee = await this.employeesRepository.findOne({
   //     where: { id: employeeId },
