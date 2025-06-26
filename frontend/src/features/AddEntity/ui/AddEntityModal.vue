@@ -22,6 +22,8 @@ const { formData, tableColumns, selectOptions, submit } = useAddEntity(
   }
 );
 
+console.debug(tableColumns);
+
 function isDateField(key) {
   const lower = key.toLowerCase();
   return (
@@ -59,6 +61,7 @@ const handleSubmit = async () => {
     console.error("Ошибка при добавлении", e);
   }
 };
+console.debug(formData);
 </script>
 
 <template>
@@ -84,7 +87,7 @@ const handleSubmit = async () => {
                   :value="option.id"
                 >
                   {{
-                    option.name ||
+                    option.peoples?.firstName ||
                     option.title ||
                     option.code ||
                     option.shortName ||

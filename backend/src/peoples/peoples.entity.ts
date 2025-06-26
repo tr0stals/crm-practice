@@ -26,11 +26,11 @@ export class Peoples {
   @Column({ nullable: true })
   comment?: string;
 
+  @Column({ nullable: true })
+  birthDate?: Date;
+
   @OneToMany(() => Employees, (employee) => employee.peoples)
   employees: Employees[];
-
-  @OneToMany(() => User, (user) => user.peoples)
-  users: User[];
 
   @OneToMany(() => Organizations, (organization) => organization.peoples)
   organizations: Organizations[];

@@ -1,8 +1,13 @@
+import { ArrivalInvoices } from 'src/arrival-invoices/arrival-invoices.entity';
+import { EmployeesVacations } from 'src/employees-vacations/employees-vacations.entity';
 import { OrganizationTypes } from 'src/organization-types/organization-types.entity';
 import { PcbOrders } from 'src/pcb-orders/pcb-orders.entity';
 import { Peoples } from 'src/peoples/peoples.entity';
+import { ServerArrivals } from 'src/server-arrivals/server-arrivals.entity';
+import { ServerWriteoff } from 'src/server-writeoff/server-writeoff.entity';
 import { Shipments } from 'src/shipments/shipments.entity';
 import { WarehouseComponents } from 'src/warehouse-components/warehouse-components.entity';
+import { Writeoff } from 'src/writeoff/writeoff.entity';
 import {
   Column,
   Entity,
@@ -90,4 +95,28 @@ export class Organizations {
 
   @OneToMany(() => PcbOrders, (pcbOrder) => pcbOrder.factory)
   pcbFactory: PcbOrders[];
+
+  @OneToMany(
+    () => EmployeesVacations,
+    (employeeVacation) => employeeVacation.factory,
+  )
+  employeesVacations: EmployeesVacations[];
+
+  @OneToMany(() => Writeoff, (writeoff) => writeoff.factory)
+  writeoffs: Writeoff[];
+
+  @OneToMany(() => ServerWriteoff, (serverWriteoff) => serverWriteoff.factory)
+  serverWriteoffs: ServerWriteoff[];
+
+  @OneToMany(
+    () => ArrivalInvoices,
+    (arrivalInvoice) => arrivalInvoice.suppliers,
+  )
+  arrivalInvoicesSupplier: ArrivalInvoices[];
+
+  @OneToMany(() => ArrivalInvoices, (arrivalInvoice) => arrivalInvoice.factory)
+  arrivalInvoicesFactory: ArrivalInvoices[];
+
+  @OneToMany(() => ServerArrivals, (serverArrival) => serverArrival.factory)
+  serverArrivals: ServerArrivals[];
 }

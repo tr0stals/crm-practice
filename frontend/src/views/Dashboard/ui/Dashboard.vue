@@ -304,10 +304,12 @@ onMounted(async () => {
     user: user,
   };
 
-  if (user.peoples) {
-    userFirstName.value = user.peoples.firstName;
-    userLastName.value = user.peoples.lastName;
-    userProfession.value = user.peoples.employees[0].profession.title;
+  console.debug(user);
+
+  if (user) {
+    userFirstName.value = user.employees.peoples.firstName;
+    userLastName.value = user.employees.peoples.lastName;
+    userProfession.value = user.employeeProfession.professions.title;
   }
 
   updateTime();
@@ -328,7 +330,7 @@ onMounted(async () => {
     .map((item) => item.tables)
     .flat();
 
-  sectionsList.value = tables;
+  // sectionsList.value = tables;
 });
 
 watch(currentSection, async (oldVal: string, newSection: string) => {
@@ -606,7 +608,7 @@ function handleSidebarClick(section: string) {
             :data-js-sectionName="section"
             @click="handleSidebarClick(section)"
           >
-            {{ localizatedSections[section] }}
+            {{ section }}
           </li>
         </ul>
       </nav>

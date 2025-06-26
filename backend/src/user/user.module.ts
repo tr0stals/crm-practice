@@ -6,13 +6,16 @@ import { UserController } from './user.controller';
 import { PeoplesModule } from 'src/peoples/peoples.module';
 import { EmployeesModule } from 'src/employees/employees.module';
 import { ProfessionsModule } from 'src/professions/professions.module';
+import { Employees } from 'src/employees/employees.entity';
+import { EmployeesProfessionsModule } from 'src/employees-professions/employees-professions.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Employees]),
     PeoplesModule,
     EmployeesModule,
-    ProfessionsModule
+    EmployeesProfessionsModule,
+    ProfessionsModule,
   ],
   providers: [UserService],
   controllers: [UserController],

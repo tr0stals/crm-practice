@@ -27,7 +27,6 @@ import { ShipmentsModule } from './shipments/shipments.module';
 import { ShipmentStatesModule } from './shipment-states/shipment-states.module';
 import { ShipmentTripsModule } from './shipment-trips/shipment-trips.module';
 import { PeoplesModule } from './peoples/peoples.module';
-import { EmployeeStatesModule } from './employee-states/employee-states.module';
 import { EmployeeDepartmentsModule } from './employee-departments/employee-departments.module';
 import { ProfessionsModule } from './professions/professions.module';
 import { StandAssembliesModule } from './stand-assemblies/stand-assemblies.module';
@@ -42,6 +41,17 @@ import { PcbWarehouseComponentsModule } from './pcb-warehouse-components/pcb-war
 import { PcbOrdersModule } from './pcb-orders/pcb-orders.module';
 import { DatabaseLocalizationModule } from './database-localization/database-localization.module';
 import { DatabaseSeederModule } from './database-seeder/database-seeder.module';
+import { CurrentTaskStatesModule } from './current-task-states/current-task-states.module';
+import { ShipmentsStandsModule } from './shipments-stands/shipments-stands.module';
+import { StandTasksModule } from './stand-tasks/stand-tasks.module';
+import { EmployeesProfessionsModule } from './employees-professions/employees-professions.module';
+import { EmployeesVacationsModule } from './employees-vacations/employees-vacations.module';
+import { WriteoffModule } from './writeoff/writeoff.module';
+import { WriteoffReasonsModule } from './writeoff-reasons/writeoff-reasons.module';
+import { ServerWriteoffModule } from './server-writeoff/server-writeoff.module';
+import { ArrivalInvoicesModule } from './arrival-invoices/arrival-invoices.module';
+import { InvoicesComponentsModule } from './invoices-components/invoices-components.module';
+import { ServerArrivalsModule } from './server-arrivals/server-arrivals.module';
 
 @Module({
   imports: [
@@ -84,7 +94,6 @@ import { DatabaseSeederModule } from './database-seeder/database-seeder.module';
     ShipmentStatesModule,
     ShipmentTripsModule,
     PeoplesModule,
-    EmployeeStatesModule,
     EmployeeDepartmentsModule,
     ProfessionsModule,
     StandAssembliesModule,
@@ -99,6 +108,17 @@ import { DatabaseSeederModule } from './database-seeder/database-seeder.module';
     PcbOrdersModule,
     DatabaseLocalizationModule,
     DatabaseSeederModule,
+    CurrentTaskStatesModule,
+    ShipmentsStandsModule,
+    StandTasksModule,
+    EmployeesProfessionsModule,
+    EmployeesVacationsModule,
+    WriteoffModule,
+    WriteoffReasonsModule,
+    ServerWriteoffModule,
+    ArrivalInvoicesModule,
+    InvoicesComponentsModule,
+    ServerArrivalsModule,
   ],
   controllers: [AppController, StandsController, StandCoursesController],
   providers: [AppService],

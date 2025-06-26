@@ -43,13 +43,13 @@ export class EmployeesController {
     return await this.employeesService.getAll();
   }
 
-  @ApiOperation({ summary: 'Получение сотрудника по ID' })
-  @ApiResponse({ status: 200, description: 'Сотрудник найден' })
-  @ApiResponse({ status: 404, description: 'Сотрудник не найден' })
-  @Get('get/:id')
-  async getOne(@Param('id') id: string) {
-    return await this.employeesService.getEmployeeWithProfession(+id);
-  }
+  // @ApiOperation({ summary: 'Получение сотрудника по ID' })
+  // @ApiResponse({ status: 200, description: 'Сотрудник найден' })
+  // @ApiResponse({ status: 404, description: 'Сотрудник не найден' })
+  // @Get('get/:id')
+  // async getOne(@Param('id') id: string) {
+  //   return await this.employeesService.getEmployeeWithProfession(+id);
+  // }
 
   @ApiOperation({ summary: 'Получение дерева сотрудников' })
   @ApiResponse({ status: 200, description: 'Дерево сотрудников получено успешно' })
@@ -74,35 +74,35 @@ export class EmployeesController {
     return await this.employeesService.delete(+id);
   }
 
-  @ApiOperation({
-    summary: 'Автоматическое назначение профессии IT-специалист',
-  })
-  @ApiResponse({ status: 201, description: 'Профессия успешно назначена' })
-  @ApiResponse({ status: 404, description: 'Человек не найден' })
-  @ApiResponse({ status: 403, description: 'Сотрудник уже существует' })
-  @Post('assign-default-profession/:peopleId')
-  async assignDefaultProfession(@Param('peopleId') peopleId: string) {
-    return await this.employeesService.assignDefaultProfession(+peopleId);
-  }
+  // @ApiOperation({
+  //   summary: 'Автоматическое назначение профессии IT-специалист',
+  // })
+  // @ApiResponse({ status: 201, description: 'Профессия успешно назначена' })
+  // @ApiResponse({ status: 404, description: 'Человек не найден' })
+  // @ApiResponse({ status: 403, description: 'Сотрудник уже существует' })
+  // @Post('assign-default-profession/:peopleId')
+  // async assignDefaultProfession(@Param('peopleId') peopleId: string) {
+  //   return await this.employeesService.assignDefaultProfession(+peopleId);
+  // }
 
-  @ApiOperation({ summary: 'Изменение профессии сотрудника' })
-  @ApiResponse({ status: 200, description: 'Профессия успешно изменена' })
-  @ApiResponse({
-    status: 404,
-    description: 'Сотрудник или профессия не найдены',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Недостаточно прав для изменения профессии',
-  })
-  @Patch('change-profession/:employeeId/:professionId')
-  async changeProfession(
-    @Param('employeeId') employeeId: string,
-    @Param('professionId') professionId: string,
-  ) {
-    return await this.employeesService.changeEmployeeProfession(
-      +employeeId,
-      +professionId,
-    );
-  }
+  // @ApiOperation({ summary: 'Изменение профессии сотрудника' })
+  // @ApiResponse({ status: 200, description: 'Профессия успешно изменена' })
+  // @ApiResponse({
+  //   status: 404,
+  //   description: 'Сотрудник или профессия не найдены',
+  // })
+  // @ApiResponse({
+  //   status: 403,
+  //   description: 'Недостаточно прав для изменения профессии',
+  // })
+  // @Patch('change-profession/:employeeId/:professionId')
+  // async changeProfession(
+  //   @Param('employeeId') employeeId: string,
+  //   @Param('professionId') professionId: string,
+  // ) {
+  //   return await this.employeesService.changeEmployeeProfession(
+  //     +employeeId,
+  //     +professionId,
+  //   );
+  // }
 }

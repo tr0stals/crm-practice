@@ -37,13 +37,13 @@ export const getUserInfoAsync = async () => {
   }
 
   /**
-   * Возвращаем объект Peoples
+   *
    */
   return await getDataAsync({ endpoint: `user/get/${userId.value}` })
     .then((res) => {
       const user = res.data;
-      console.debug(user);
-      if (user && user.peoples) {
+
+      if (user) {
         return {
           user: user,
         };

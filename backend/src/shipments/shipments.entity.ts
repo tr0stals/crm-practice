@@ -1,9 +1,9 @@
-import { EmployeeTasks } from 'src/employee-tasks/employee-tasks.entity';
 import { License } from 'src/license/license.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
 import { ShipmentPackage } from 'src/shipment-package/shipment-package.entity';
 import { ShipmentStates } from 'src/shipment-states/shipment-states.entity';
 import { ShipmentTrips } from 'src/shipment-trips/shipment-trips.entity';
+import { ShipmentsStands } from 'src/shipments-stands/shipments-stands.entity';
 import { StandAssemblies } from 'src/stand-assemblies/stand-assemblies.entity';
 import {
   Column,
@@ -55,9 +55,6 @@ export class Shipments {
   @OneToMany(() => ShipmentTrips, (shipmentTrip) => shipmentTrip.shipments)
   shipmentTrips: ShipmentTrips[];
 
-  @OneToMany(() => EmployeeTasks, (employeeTask) => employeeTask.shipments)
-  employeeTasks: EmployeeTasks[];
-
   @ManyToOne(
     () => Organizations,
     (organization) => organization.shipmentFactory,
@@ -76,4 +73,7 @@ export class Shipments {
   @ManyToOne(() => StandAssemblies, (standAssembly) => standAssembly.shipments)
   @JoinColumn({ name: 'standAssemblyId' })
   standAssemblies: StandAssemblies;
+
+  @OneToMany(() => ShipmentsStands, (shipmentStand) => shipmentStand.shipments)
+  shipmentsStands: ShipmentsStands[];
 }

@@ -7,7 +7,6 @@ import { RegionModule } from '../region/region.module';
 import { LocationsModule } from '../locations/locations.module';
 import { OrganizationTypesModule } from '../organization-types/organization-types.module';
 import { LicenseTypesModule } from '../license-types/license-types.module';
-import { EmployeeStatesModule } from '../employee-states/employee-states.module';
 import { ProfessionsModule } from '../professions/professions.module';
 import { DepartmentsModule } from '../departments/departments.module';
 import { StandTypesModule } from '../stand-types/stand-types.module';
@@ -40,7 +39,6 @@ import { Region } from '../region/region.entity';
 import { Locations } from '../locations/locations.entity';
 import { OrganizationTypes } from '../organization-types/organization-types.entity';
 import { LicenseTypes } from '../license-types/license-types.entity';
-import { EmployeeStates } from '../employee-states/employee-states.entity';
 import { Professions } from '../professions/professions.entity';
 import { Departments } from '../departments/departments.entity';
 import { StandsTypes } from '../stand-types/stand-types.entity';
@@ -70,14 +68,12 @@ import { ShipmentPackage } from '../shipment-package/shipment-package.entity';
 import { ComponentsArrivalInvoice } from '../components_arrival_invoice/components_arrival_invoice.entity';
 import { ComponentsInvoice } from '../components_invoice/components_invoice.entity';
 import { CurrentTasks } from '../current-tasks/current-tasks.entity';
-import { EmployeeTasks } from '../employee-tasks/employee-tasks.entity';
 import { InvoicesArrival } from '../Invoices_arrival/Invoices_arrival.entity';
 import { PaymentInvoice } from '../Payment_invoice/Payment_invoice.entity';
 import { SendingBoxes } from '../sending_boxes/sending_boxes.entity';
 import { StandCourses } from '../stand-courses/stand-courses.entity';
 import { SuppliersModule } from '../suppliers/suppliers.module';
 import { Suppliers } from '../suppliers/suppliers.entity';
-import { TaskTypes } from '../task-types/task-types.entity';
 import { SupplierComponents } from '../supplier-components/supplier-components.entity';
 
 @Module({
@@ -88,7 +84,6 @@ import { SupplierComponents } from '../supplier-components/supplier-components.e
       Locations,
       OrganizationTypes,
       LicenseTypes,
-      EmployeeStates,
       Professions,
       Departments,
       StandsTypes,
@@ -118,21 +113,18 @@ import { SupplierComponents } from '../supplier-components/supplier-components.e
       ComponentsArrivalInvoice,
       ComponentsInvoice,
       CurrentTasks,
-      EmployeeTasks,
       InvoicesArrival,
       PaymentInvoice,
       SendingBoxes,
       StandCourses,
       Suppliers,
-      TaskTypes,
-      SupplierComponents
+      SupplierComponents,
     ]),
     CountriesModule,
     RegionModule,
     LocationsModule,
     OrganizationTypesModule,
     LicenseTypesModule,
-    EmployeeStatesModule,
     ProfessionsModule,
     DepartmentsModule,
     StandTypesModule,
@@ -166,4 +158,4 @@ import { SupplierComponents } from '../supplier-components/supplier-components.e
   providers: [DatabaseSeederService],
   exports: [DatabaseSeederService],
 })
-export class DatabaseSeederModule {} 
+export class DatabaseSeederModule {}

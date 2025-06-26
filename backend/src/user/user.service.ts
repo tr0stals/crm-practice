@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -6,20 +10,24 @@ import { UserRegisterDTO } from './dto/UserRegisterDTO';
 import * as bcrypt from 'bcrypt';
 import { PeoplesService } from 'src/peoples/peoples.service';
 import { EmployeesService } from 'src/employees/employees.service';
+import { Employees } from 'src/employees/employees.entity';
+import { EmployeesProfessionsService } from 'src/employees-professions/employees-professions.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    private peoplesService: PeoplesService,
+    @InjectRepository(Employees)
+    private employeesRepository: Repository<Employees>,
     private employeesService: EmployeesService,
+    private employeeProfessionService: EmployeesProfessionsService,
   ) {}
 
   async findByUsername(userName: string) {
     return this.usersRepository.findOne({
       where: { userName },
-      relations: ['peoples'],
+      relations: ['employees'],
     });
   }
 
@@ -29,36 +37,25 @@ export class UserService {
         await this.cryptUserPasswordService(data.password)
       ).toString();
 
-      const people = data.email
-        ? await this.peoplesService.create({
-            email: data.email,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            middleName: data.middleName,
-            phone: data.phone,
-            comment: data.comment,
-          })
-        : await this.peoplesService.findById(data.peopleId);
+      const employee = await this.employeesRepository.findOne({
+        where: { id: data.employeeId },
+      });
 
-      if (!people) {
-        throw new BadRequestException('Ошибка при регистрации пользователя');
-      }
+      if (!employee) throw new Error('Employee not found!');
 
-      const user = {
+      const newUser = this.usersRepository.create({
         userName: data.userName,
         password: data.password,
         passwordSalt: data.passwordSalt,
-        peoples: people,
-      };
-
-      const newUser = this.usersRepository.create(user);
+        employees: employee,
+      });
       const savedUser = await this.usersRepository.save(newUser);
 
-      try {
-        await this.employeesService.assignDefaultProfession(people.id);
-      } catch (error) {
-        console.error('Ошибка при создании сотрудника:', error);
-      }
+      // try {
+      //   await this.employeesService.assignDefaultProfession(people.id);
+      // } catch (error) {
+      //   console.error('Ошибка при создании сотрудника:', error);
+      // }
 
       return savedUser;
     } catch (e) {
@@ -72,14 +69,22 @@ export class UserService {
   async getUserWithProfessionTitle(id: number) {
     const user = await this.usersRepository.findOne({
       where: { id },
-      relations: ['peoples', 'peoples.employees', 'peoples.employees.profession'],
+      relations: ['employees', 'employees.peoples'],
     });
     if (!user) return null;
-    const employee = user.peoples?.employees?.[0];
-    const professionTitle = employee?.profession?.title || null;
+
+    const employeeId = user.employees?.id;
+
+    if (!employeeId) throw new NotFoundException('EmployeeId не найден');
+
+    const employeeProfession =
+      await this.employeeProfessionService.findEmployeeProfessionByEmployeeId(
+        employeeId,
+      );
+
     return {
       ...user,
-      professionTitle,
+      employeeProfession,
     };
   }
 
@@ -94,7 +99,7 @@ export class UserService {
 
   async getUsers() {
     try {
-      return await this.usersRepository.find();
+      return await this.usersRepository.find({ relations: ['employees'] });
     } catch (e) {
       console.error(e);
     }

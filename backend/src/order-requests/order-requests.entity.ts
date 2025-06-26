@@ -44,10 +44,6 @@ export class OrderRequests {
   @JoinColumn({ name: 'employeeCreatorId' })
   employeeCreator: Employees;
 
-  @ManyToOne(() => Employees, (employee) => employee.executor)
-  @JoinColumn({ name: 'employeeExecutorId' })
-  employeeExecutor: Employees;
-
   @OneToMany(
     () => OrderRequestComponents,
     (component) => component.orderRequests,
