@@ -46,6 +46,12 @@ import { ShipmentsStandsModule } from './shipments-stands/shipments-stands.modul
 import { StandTasksModule } from './stand-tasks/stand-tasks.module';
 import { EmployeesProfessionsModule } from './employees-professions/employees-professions.module';
 import { EmployeesVacationsModule } from './employees-vacations/employees-vacations.module';
+import { WriteoffModule } from './writeoff/writeoff.module';
+import { WriteoffReasonsModule } from './writeoff-reasons/writeoff-reasons.module';
+import { ServerWriteoffModule } from './server-writeoff/server-writeoff.module';
+import { ArrivalInvoicesModule } from './arrival-invoices/arrival-invoices.module';
+import { InvoicesComponentsModule } from './invoices-components/invoices-components.module';
+import { ServerArrivalsModule } from './server-arrivals/server-arrivals.module';
 
 @Module({
   imports: [
@@ -107,6 +113,12 @@ import { EmployeesVacationsModule } from './employees-vacations/employees-vacati
     StandTasksModule,
     EmployeesProfessionsModule,
     EmployeesVacationsModule,
+    WriteoffModule,
+    WriteoffReasonsModule,
+    ServerWriteoffModule,
+    ArrivalInvoicesModule,
+    InvoicesComponentsModule,
+    ServerArrivalsModule,
   ],
   controllers: [AppController, StandsController, StandCoursesController],
   providers: [AppService],

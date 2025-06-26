@@ -10,6 +10,11 @@ import { Suppliers } from '../suppliers/suppliers.entity';
 import { SupplierComponents } from '../supplier-components/supplier-components.entity';
 import { ComponentsArrivalInvoice } from '../components_arrival_invoice/components_arrival_invoice.entity';
 import { StandTasks } from 'src/stand-tasks/stand-tasks.entity';
+import { Writeoff } from 'src/writeoff/writeoff.entity';
+import { ServerWriteoff } from 'src/server-writeoff/server-writeoff.entity';
+import { InvoicesArrival } from 'src/Invoices_arrival/Invoices_arrival.entity';
+import { InvoicesComponents } from 'src/invoices-components/invoices-components.entity';
+import { ServerArrivals } from 'src/server-arrivals/server-arrivals.entity';
 
 @Entity()
 export class Components {
@@ -67,4 +72,22 @@ export class Components {
 
   @OneToMany(() => StandTasks, (standTask) => standTask.components)
   standTasks: StandTasks[];
+
+  @OneToMany(() => Writeoff, (writeoff) => writeoff.components)
+  writeoffs: Writeoff[];
+
+  @OneToMany(
+    () => ServerWriteoff,
+    (serverWriteoff) => serverWriteoff.components,
+  )
+  serverWriteoffs: ServerWriteoff[];
+
+  @OneToMany(
+    () => InvoicesComponents,
+    (invoiceComponent) => invoiceComponent.components,
+  )
+  invoicesComponents: InvoicesComponents[];
+
+  @OneToMany(() => ServerArrivals, (serverArrival) => serverArrival.components)
+  serverArrivals: ServerArrivals[];
 }

@@ -58,6 +58,23 @@ export class EmployeesProfessionsService {
     }
   }
 
+  async getDataForAdditional() {
+    try {
+      const employees = await this.employeesRepository.find({
+        relations: ['peoples'],
+      });
+
+      const professions = await this.professionRepository.find();
+
+      return {
+        employees: employees,
+        professions,
+      };
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   // async changeEmployee(employeeId: number, newEmployeeId: number) {
   //   const employee = await this.employeesRepository.findOne({
   //     where: { id: employeeId },

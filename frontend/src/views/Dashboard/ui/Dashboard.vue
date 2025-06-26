@@ -330,7 +330,7 @@ onMounted(async () => {
     .map((item) => item.tables)
     .flat();
 
-  sectionsList.value = tables;
+  // sectionsList.value = tables;
 });
 
 watch(currentSection, async (oldVal: string, newSection: string) => {
@@ -579,7 +579,7 @@ const filteredTreeData = computed(() => {
             :data-js-sectionName="section"
             v-for="section in sectionsList"
           >
-            {{ localizatedSections[section] }}
+            {{ section }}
           </li>
         </ul>
       </nav>

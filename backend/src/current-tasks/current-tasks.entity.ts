@@ -4,11 +4,14 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { Employees } from 'src/employees/employees.entity';
 import { CurrentTaskStates } from 'src/current-task-states/current-task-states.entity';
 import { ShipmentsStands } from 'src/shipments-stands/shipments-stands.entity';
 import { StandTasks } from 'src/stand-tasks/stand-tasks.entity';
+import { ServerWriteoff } from 'src/server-writeoff/server-writeoff.entity';
+import { ServerArrivals } from 'src/server-arrivals/server-arrivals.entity';
 
 export enum TaskStatus {
   NOT_STARTED = 'NOT_STARTED',
@@ -49,4 +52,16 @@ export class CurrentTasks {
   @ManyToOne(() => StandTasks, (standTask) => standTask.currentTasks)
   @JoinColumn({ name: 'standTaskId' })
   standTasks: StandTasks;
+
+  @OneToMany(
+    () => ServerWriteoff,
+    (serverWriteoff) => serverWriteoff.currentTasks,
+  )
+  serverWriteoffs: ServerWriteoff[];
+
+  @OneToMany(
+    () => ServerArrivals,
+    (serverArrival) => serverArrival.currentTasks,
+  )
+  serverArrivals: ServerArrivals[];
 }
