@@ -29,6 +29,38 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/employees',
+    component: () => import('@/views/EmployeesTreeView.vue')
+  },
+  {
+    path: '/organizations',
+    component: () => import('@/views/OrganizationsTreeView.vue')
+  },
+  {
+    path: '/users',
+    component: () => import('@/views/UsersTreeView.vue')
+  },
+  {
+    path: '/license_types',
+    component: () => import('@/views/LicenseTypesTreeView.vue')
+  },
+  {
+    path: '/warehouse_components',
+    component: () => import('@/views/WarehouseComponentsTreeView.vue')
+  },
+  {
+    path: '/pcb-orders',
+    name: 'PcbOrdersTreeView',
+    component: () => import('@/views/PcbOrdersTreeView.vue'),
+    meta: { title: 'Заказы печатных плат' }
+  },
+  {
+    path: '/order-requests',
+    name: 'OrderRequestsTreeView',
+    component: () => import('@/views/OrderRequestsTreeView.vue'),
+    meta: { title: 'Заявки на заказ' }
+  },
+  {
     path: "/:pathMatch(.*)*",
     component: ErrorView,
   },

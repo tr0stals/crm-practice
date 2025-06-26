@@ -12,6 +12,7 @@
     "@primeuix/themes": "^1.1.1",
     "@vuepic/vue-datepicker": "^11.0.2",
     "axios": "^1.9.0",
+    "element-plus": "^2.10.2",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "maska": "^3.1.1",

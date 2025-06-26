@@ -17,14 +17,14 @@ export class WarehouseComponentsService {
 
   async findAll(): Promise<WarehouseComponents[]> {
     return await this.repository.find({
-      relations: ['component', 'location']
+      relations: ['orderRequestComponents', 'pcbWarehouseComponents', 'organizations']
     });
   }
 
   async findOne(id: number): Promise<WarehouseComponents> {
     const entity = await this.repository.findOne({
       where: { id },
-      relations: ['component', 'location']
+      relations: ['orderRequestComponents', 'pcbWarehouseComponents', 'organizations']
     });
     if (!entity) {
       throw new NotFoundException(`Компонент на складе с ID ${id} не найден`);

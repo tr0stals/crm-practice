@@ -561,6 +561,35 @@ const filteredTreeData = computed(() => {
     Object.values(item).join(" ").toLowerCase().includes(q)
   );
 });
+
+function handleSidebarClick(section: string) {
+  const lower = section.toLowerCase();
+  if (lower === 'employees') {
+    router.push('/employees')
+  } else if (lower === 'organizations') {
+    router.push('/organizations')
+  } else if (lower === 'user' || lower === 'users' || lower === 'пользователи') {
+    router.push('/users')
+  } else if (lower === 'license_types' || lower === 'license types' || lower === 'типы лицензий') {
+    router.push('/license_types')
+  } else if (lower === 'warehouse_components' || lower === 'warehouse components' || lower === 'компоненты склада') {
+    router.push('/warehouse_components')
+  } else if (
+    lower === 'pcb_orders' ||
+    lower === 'pcb-orders' ||
+    lower === 'заказы печатных плат'
+  ) {
+    router.push('/pcb-orders')
+  } else if (
+    lower === 'order_requests' ||
+    lower === 'order-requests' ||
+    lower === 'заявки на заказ'
+  ) {
+    router.push('/order-requests')
+  } else {
+    currentSection.value = section
+  }
+}
 </script>
 
 <template>
@@ -573,17 +602,14 @@ const filteredTreeData = computed(() => {
       <nav class="menu">
         <ul>
           <li
-            @click="currentSection = section"
-            :data-js-sectionName="section"
             v-for="section in sectionsList"
+            :data-js-sectionName="section"
+            @click="handleSidebarClick(section)"
           >
             {{ localizatedSections[section] }}
           </li>
         </ul>
       </nav>
-      <template>
-        <!-- {{ console.debug(data) }} -->
-      </template>
       <!-- <CustomTreeview :data="data" :currentSection="currentSection" /> -->
     </aside>
 

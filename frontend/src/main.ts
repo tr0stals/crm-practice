@@ -8,6 +8,8 @@ import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
 
 const app = createApp(App);
 
@@ -39,5 +41,7 @@ app.use(Toast, {
   icon: true,
   rtl: false,
 });
+
+app.use(ElementPlus)
 
 app.mount("#app");

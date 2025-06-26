@@ -62,82 +62,108 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="modalWindow addModalWindow">
-    <CloseIcon class="addModalWindow__closeIcon" @click="props.onClose" />
-    <h1>{{ props.sectionName }}</h1>
-    <div class="addModalWindow__content">
-      <div
-        v-for="item in tableColumns"
-        :key="item"
-        class="addModalWindow__content__field"
-      >
-        <template v-if="item !== 'id' && item !== 'passwordSalt'">
-          <label :for="item">{{ fieldDictionary[item] || item }}</label>
-          <template v-if="item.endsWith('Id')">
-            <select v-model="formData[item]" :id="item" :name="item">
-              <option value="" disabled>Выберите значение</option>
-              <option
-                v-for="option in selectOptions[item]"
-                :key="option.id"
-                :value="option.id"
-              >
-                {{
-                  option.name ||
-                  option.title ||
-                  option.code ||
-                  option.shortName ||
-                  option.firstName + " " + option.lastName ||
-                  "ID: " + option.id
-                }}
-              </option>
-            </select>
-          </template>
-          <template v-else-if="isDateField(item)">
-            <VueDatePicker
-              v-model="dateModel[item]"
-              :id="item"
-              :name="item"
-              format="yyyy-MM-dd"
-              model-type="yyyy-MM-dd"
-              input-class-name="addModalWindow__content__field__input"
-              placeholder="Выберите дату"
-              auto-apply
-            />
-          </template>
-          <template v-else-if="item === 'phone'">
-            <input
-              type="text"
-              v-model="formData[item]"
-              :id="item"
-              :name="item"
-              placeholder="+7 (___) ___-__-__"
-            />
-          </template>
+  <div>
+    <div class="modalWindow__overlay" @click="props.onClose"></div>
+    <div class="modalWindow addModalWindow">
+      <CloseIcon class="addModalWindow__closeIcon" @click="props.onClose" />
+      <h1>{{ props.sectionName }}</h1>
+      <div class="addModalWindow__content">
+        <div
+          v-for="item in tableColumns"
+          :key="item"
+          class="addModalWindow__content__field"
+        >
+          <template v-if="item !== 'id' && item !== 'passwordSalt'">
+            <label :for="item">{{ fieldDictionary[item] || item }}</label>
+            <template v-if="item.endsWith('Id')">
+              <select v-model="formData[item]" :id="item" :name="item">
+                <option value="" disabled>Выберите значение</option>
+                <option
+                  v-for="option in selectOptions[item]"
+                  :key="option.id"
+                  :value="option.id"
+                >
+                  {{
+                    option.name ||
+                    option.title ||
+                    option.code ||
+                    option.shortName ||
+                    option.firstName + " " + option.lastName ||
+                    "ID: " + option.id
+                  }}
+                </option>
+              </select>
+            </template>
+            <template v-else-if="isDateField(item)">
+              <VueDatePicker
+                v-model="dateModel[item]"
+                :id="item"
+                :name="item"
+                format="yyyy-MM-dd"
+                model-type="yyyy-MM-dd"
+                input-class-name="addModalWindow__content__field__input"
+                placeholder="Выберите дату"
+                auto-apply
+              />
+            </template>
+            <template v-else-if="item === 'phone'">
+              <input
+                type="text"
+                v-model="formData[item]"
+                :id="item"
+                :name="item"
+                placeholder="+7 (___) ___-__-__"
+              />
+            </template>
 
-          <template v-else>
-            <input
-              type="text"
-              v-model="formData[item]"
-              :id="item"
-              :name="item"
-            />
+            <template v-else>
+              <input
+                type="text"
+                v-model="formData[item]"
+                :id="item"
+                :name="item"
+              />
+            </template>
           </template>
-        </template>
+        </div>
       </div>
-    </div>
-    <div class="addModalWindow__controls">
-      <Button
-        @click="props.onClose"
-        :extra-classes="['addModalWindow__controls__btn']"
-      >
-        Отмена
-      </Button>
-      <Button
-        @click="handleSubmit"
-        :extra-classes="['addModalWindow__controls__btn']"
-      >
-        Добавить
-      </Button>
+      <div class="addModalWindow__controls">
+        <Button
+          @click="props.onClose"
+          :extra-classes="['addModalWindow__controls__btn']"
+        >
+          Отмена
+        </Button>
+        <Button
+          @click="handleSubmit"
+          :extra-classes="['addModalWindow__controls__btn']"
+        >
+          Добавить
+        </Button>
+      </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.modalWindow__overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.25);
+  z-index: 2000;
+}
+.modalWindow.addModalWindow {
+  position: fixed;
+  top: 50%; left: 50%;
+  z-index: 2100;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  min-width: 400px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 32px 24px;
+}
+</style>
