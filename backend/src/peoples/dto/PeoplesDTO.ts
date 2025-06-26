@@ -5,4 +5,5 @@ export class PeoplesDTO {
   lastName: string;
   middleName?: string;
   comment?: string;
+  birthDate?: Date;
 }

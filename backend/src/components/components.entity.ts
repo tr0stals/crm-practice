@@ -1,7 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { Suppliers } from '../suppliers/suppliers.entity';
 import { SupplierComponents } from '../supplier-components/supplier-components.entity';
 import { ComponentsArrivalInvoice } from '../components_arrival_invoice/components_arrival_invoice.entity';
+import { StandTasks } from 'src/stand-tasks/stand-tasks.entity';
 
 @Entity()
 export class Components {
@@ -45,9 +53,18 @@ export class Components {
   @JoinColumn({ name: 'supplierId' })
   supplier: Suppliers;
 
-  @OneToMany(() => SupplierComponents, supplierComponents => supplierComponents.component)
+  @OneToMany(
+    () => SupplierComponents,
+    (supplierComponents) => supplierComponents.component,
+  )
   supplierComponents: SupplierComponents[];
 
-  @OneToMany(() => ComponentsArrivalInvoice, componentsArrivalInvoice => componentsArrivalInvoice.component)
+  @OneToMany(
+    () => ComponentsArrivalInvoice,
+    (componentsArrivalInvoice) => componentsArrivalInvoice.component,
+  )
   componentsArrivalInvoice: ComponentsArrivalInvoice[];
-} 
+
+  @OneToMany(() => StandTasks, (standTask) => standTask.components)
+  standTasks: StandTasks[];
+}

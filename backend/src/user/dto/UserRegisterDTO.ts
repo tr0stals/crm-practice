@@ -1,9 +1,11 @@
+import { Employees } from 'src/employees/employees.entity';
+
 export class UserRegisterDTO {
   // Данные для user
   userName: string;
   password: string;
   passwordSalt?: string;
-  peopleId: number;
+  employeeId: number;
 
   // Данные для Peoples
   email: string;

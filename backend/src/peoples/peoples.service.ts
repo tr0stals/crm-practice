@@ -18,12 +18,9 @@ export class PeoplesService {
 
     const existing = await this.peoplesRepository.findOne({
       where: { email },
-      relations: ['employees'],
     });
 
-    if (existing) {
-      return existing;
-    }
+    if (existing) return existing;
 
     const people = this.peoplesRepository.create(data);
     return await this.peoplesRepository.save(people);

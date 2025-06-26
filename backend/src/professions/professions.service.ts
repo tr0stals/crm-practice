@@ -78,14 +78,6 @@ export class ProfessionsService {
   }
 
   async delete(id: number) {
-    const profession = await this.findOne(id);
-
-    if (profession.employees.length > 0) {
-      throw new ConflictException(
-        'Невозможно удалить профессию, так как она используется',
-      );
-    }
-
     return await this.professionsRepository.delete(id);
   }
 

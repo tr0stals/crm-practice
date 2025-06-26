@@ -1,5 +1,4 @@
 export class EmployeesDTO {
+  dismissalDate?: Date;
   peopleId: number;
-  professionId: number;
-  birthDate: Date;
-} 
+}

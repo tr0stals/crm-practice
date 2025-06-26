@@ -304,10 +304,12 @@ onMounted(async () => {
     user: user,
   };
 
-  if (user.peoples) {
-    userFirstName.value = user.peoples.firstName;
-    userLastName.value = user.peoples.lastName;
-    userProfession.value = user.peoples.employees[0].profession.title;
+  console.debug(user);
+
+  if (user) {
+    userFirstName.value = user.employees.peoples.firstName;
+    userLastName.value = user.employees.peoples.lastName;
+    userProfession.value = user.employeeProfession.professions.title;
   }
 
   updateTime();

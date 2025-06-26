@@ -1,3 +1,4 @@
+import { EmployeesVacations } from 'src/employees-vacations/employees-vacations.entity';
 import { OrganizationTypes } from 'src/organization-types/organization-types.entity';
 import { PcbOrders } from 'src/pcb-orders/pcb-orders.entity';
 import { Peoples } from 'src/peoples/peoples.entity';
@@ -90,4 +91,10 @@ export class Organizations {
 
   @OneToMany(() => PcbOrders, (pcbOrder) => pcbOrder.factory)
   pcbFactory: PcbOrders[];
+
+  @OneToMany(
+    () => EmployeesVacations,
+    (employeeVacation) => employeeVacation.factory,
+  )
+  employeesVacations: EmployeesVacations[];
 }

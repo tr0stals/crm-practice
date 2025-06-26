@@ -34,12 +34,12 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
         }
       }
     }
+    console.debug(relationsMap.value);
   };
 
   onMounted(fetchColumnsAndRelations);
 
   const submit = async () => {
-    console.debug(formData);
     await createEntityAsync(sectionName, formData);
     onSuccess();
   };

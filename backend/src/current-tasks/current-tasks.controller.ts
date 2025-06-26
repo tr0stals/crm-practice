@@ -1,13 +1,22 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { CurrentTasksService } from './current-tasks.service';
 import { CurrentTasks } from './current-tasks.entity';
+import { CurrentTasksDTO } from './dto/CurrentTasksDTO';
 
 @Controller('current-tasks')
 export class CurrentTasksController {
   constructor(private readonly service: CurrentTasksService) {}
 
   @Post('create')
-  async create(@Body() data: Partial<CurrentTasks>) {
+  async create(@Body() data: CurrentTasksDTO) {
     return await this.service.create(data);
   }
 
@@ -30,4 +39,4 @@ export class CurrentTasksController {
   async remove(@Param('id') id: string) {
     return await this.service.remove(+id);
   }
-} 
+}

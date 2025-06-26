@@ -1,8 +1,10 @@
 import { Employees } from 'src/employees/employees.entity';
 import { OrderRequests } from 'src/order-requests/order-requests.entity';
 import { PCBS } from 'src/pcbs/pcbs.entity';
+import { ShipmentsStands } from 'src/shipments-stands/shipments-stands.entity';
 import { StandAssemblies } from 'src/stand-assemblies/stand-assemblies.entity';
 import { StandPackages } from 'src/stand-packages/stand-packages.entity';
+import { StandTasks } from 'src/stand-tasks/stand-tasks.entity';
 import { StandsTypes } from 'src/stand-types/stand-types.entity';
 import {
   Column,
@@ -10,7 +12,6 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -62,4 +63,10 @@ export class Stands {
 
   @OneToMany(() => PCBS, (pcbs) => pcbs.stands)
   pcbs: PCBS[];
+
+  @OneToMany(() => ShipmentsStands, (shipmentStand) => shipmentStand.stands)
+  shipmentsStands: ShipmentsStands[];
+
+  @OneToMany(() => StandTasks, (standTask) => standTask.stands)
+  standTasks: StandTasks[];
 }
