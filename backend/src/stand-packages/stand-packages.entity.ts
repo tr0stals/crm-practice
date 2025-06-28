@@ -12,13 +12,22 @@ export class StandPackages {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  size: string;
+  @Column({ type: 'float'})
+  width: number;
 
-  @Column()
-  weight: string;
+  @Column({ type: 'float'})
+  height: number;
 
-  @Column()
+  @Column({ type: 'float'})
+  thickness: number;
+
+  @Column({ type: 'float'})
+  weight: number;
+
+  @Column({ length: 100 })
+  image: string;
+
+  @Column({ length: 45})
   comment: string;
 
   @ManyToOne(() => Stands, (stand) => stand.standPackages)

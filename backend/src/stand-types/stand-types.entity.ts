@@ -6,7 +6,7 @@ export class StandsTypes {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ length: 45})
   title: string;
 
   @OneToMany(() => Stands, (stand) => stand.standType)

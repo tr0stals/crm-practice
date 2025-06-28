@@ -25,13 +25,13 @@ export class StandTasks {
   @Column()
   componentOutCount: number;
 
-  @Column()
+  @Column({ length: 45})
   title: string;
 
-  @Column()
+  @Column({ length: 100})
   photo: string;
 
-  @Column()
+  @Column({ type: 'date'})
   manufactureTime: Date;
 
   @ManyToOne(() => Stands, (stand) => stand.standTasks)

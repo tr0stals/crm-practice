@@ -2,7 +2,6 @@ import { Employees } from 'src/employees/employees.entity';
 import { OrderRequests } from 'src/order-requests/order-requests.entity';
 import { PCBS } from 'src/pcbs/pcbs.entity';
 import { ShipmentsStands } from 'src/shipments-stands/shipments-stands.entity';
-import { StandAssemblies } from 'src/stand-assemblies/stand-assemblies.entity';
 import { StandPackages } from 'src/stand-packages/stand-packages.entity';
 import { StandTasks } from 'src/stand-tasks/stand-tasks.entity';
 import { StandsTypes } from 'src/stand-types/stand-types.entity';
@@ -29,19 +28,31 @@ export class Stands {
   @Column()
   image: string;
 
-  @Column()
-  size: string;
+  @Column({ length: 100})
+  width: string;
 
-  @Column()
-  weight: number;
+  @Column({ length: 100})
+  height: string;
 
-  @Column()
+  @Column({ length: 100})
+  thickness: string;
+
+  @Column({ type: 'float'})
+  weightNetto: number;
+
+  @Column({ type: 'float'})
+  weightBrutto: number;
+
+  @Column({ length: 100})
   link: string;
 
   @Column()
   vendorCode: string;
 
-  @Column()
+  @Column({ type: 'date'})
+  manufactureTime: Date;
+
+  @Column({ length: 45})
   comment: string;
 
   @ManyToOne(() => StandsTypes, (type) => type.stands)
@@ -51,9 +62,6 @@ export class Stands {
   @ManyToOne(() => Employees, (employee) => employee.stands)
   @JoinColumn({ name: 'employeeId' })
   employees: Employees;
-
-  @OneToMany(() => StandAssemblies, (standAssembly) => standAssembly.stands)
-  standAssemblies: StandAssemblies[];
 
   @OneToMany(() => StandPackages, (standPackages) => standPackages.stands)
   standPackages: StandPackages[];

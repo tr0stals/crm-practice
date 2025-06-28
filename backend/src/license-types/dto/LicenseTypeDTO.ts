@@ -1,3 +1,3 @@
 export class LicenseTypeDTO {
-  name: string;
+  title: string;
 }

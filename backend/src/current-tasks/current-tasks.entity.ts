@@ -25,10 +25,10 @@ export class CurrentTasks {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'date'})
   deadline: Date;
 
-  @Column()
+  @Column({ length: 45})
   title: string;
 
   @ManyToOne(() => Employees, (employee) => employee.currentTasks)

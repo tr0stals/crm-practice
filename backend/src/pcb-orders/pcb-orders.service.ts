@@ -17,14 +17,14 @@ export class PcbOrdersService {
 
   async findAll(): Promise<PcbOrders[]> {
     return await this.repository.find({
-      relations: ['pcbs', 'pcbOrderState', 'manufacturer', 'factory', 'orderTypes', 'employees']
+      relations: ['pcb', 'pcbOrderState', 'pcbManufacturer', 'factory', 'employees']
     });
   }
 
   async findOne(id: number): Promise<PcbOrders> {
     const entity = await this.repository.findOne({
       where: { id },
-      relations: ['pcbs', 'pcbOrderState', 'manufacturer', 'factory', 'orderTypes', 'employees']
+      relations: ['pcb', 'pcbOrderState', 'pcbManufacturer', 'factory', 'employees']
     });
     if (!entity) {
       throw new NotFoundException(`Заказ ПП с ID ${id} не найден`);

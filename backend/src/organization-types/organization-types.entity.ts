@@ -6,7 +6,10 @@ export class OrganizationTypes {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ length: 100, nullable: true})
+  icon: string;
+
+  @Column({ length: 45})
   title: string;
 
   @OneToMany(

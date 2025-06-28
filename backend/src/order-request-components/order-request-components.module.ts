@@ -6,8 +6,8 @@ import { OrderRequestComponentsController } from './order-request-components.con
 
 @Module({
   imports: [TypeOrmModule.forFeature([OrderRequestComponents])],
-  providers: [OrderRequestComponentsService],
   controllers: [OrderRequestComponentsController],
-  exports: [OrderRequestComponentsService]
+  providers: [OrderRequestComponentsService],
+  exports: [TypeOrmModule],
 })
-export class OrderRequestComponentsModule {}
+export class OrderRequestComponentsModule {} 

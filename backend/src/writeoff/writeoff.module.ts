@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
-import { WriteoffController } from './writeoff.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Writeoff } from './writeoff.entity';
 import { WriteoffService } from './writeoff.service';
+import { WriteoffController } from './writeoff.controller';
 
 @Module({
+  imports: [TypeOrmModule.forFeature([Writeoff])],
+  providers: [WriteoffService],
   controllers: [WriteoffController],
-  providers: [WriteoffService]
+  exports: [WriteoffService],
 })
 export class WriteoffModule {}

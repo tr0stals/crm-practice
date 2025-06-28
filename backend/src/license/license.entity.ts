@@ -14,7 +14,7 @@ export class License {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ length: 45 })
   licenseCode: string;
 
   @Column({ type: 'date' })
@@ -29,7 +29,7 @@ export class License {
   @Column({ type: 'date' })
   timeout: Date;
 
-  @Column()
+  @Column({ length: 45 })
   comment: string;
 
   @ManyToOne(() => LicenseTypes, (licenseType) => licenseType.licenses)

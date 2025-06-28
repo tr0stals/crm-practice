@@ -6,7 +6,6 @@ import { Peoples } from 'src/peoples/peoples.entity';
 import { ServerArrivals } from 'src/server-arrivals/server-arrivals.entity';
 import { ServerWriteoff } from 'src/server-writeoff/server-writeoff.entity';
 import { Shipments } from 'src/shipments/shipments.entity';
-import { WarehouseComponents } from 'src/warehouse-components/warehouse-components.entity';
 import { Writeoff } from 'src/writeoff/writeoff.entity';
 import {
   Column,
@@ -22,49 +21,49 @@ export class Organizations {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ length: 80})
   parentId: string;
 
-  @Column()
+  @Column( {length: 80})
   fullName: string;
 
-  @Column()
+  @Column({ length: 80})
   shortName: string;
 
-  @Column()
+  @Column({ length: 100})
   lawAddress: string;
 
-  @Column()
+  @Column({ length: 100})
   factAddress: string;
 
-  @Column()
+  @Column({ length: 100})
   postAddress: string;
 
-  @Column()
+  @Column({ length: 12})
   inn: string;
 
-  @Column()
+  @Column({ length: 9})
   kpp: string;
 
-  @Column()
+  @Column({ length: 13})
   orgn: string;
 
   @Column({ type: 'date' })
   orgnDate: Date;
 
-  @Column()
+  @Column({ length: 12})
   phone: string;
 
-  @Column()
+  @Column({ length: 80})
   email: string;
 
   @Column()
-  digitalDocs: number;
+  digitalDocs: boolean;
 
-  @Column()
+  @Column({ type: 'float'})
   rating: number;
 
-  @Column()
+  @Column({ length: 45})
   comment: string;
 
   @ManyToOne(() => Peoples, (people) => people.organizations)
@@ -87,10 +86,7 @@ export class Organizations {
   @OneToMany(() => Shipments, (shipment) => shipment.client)
   client: Shipments[];
 
-  @OneToMany(() => WarehouseComponents, (warehouse) => warehouse.organizations)
-  warehouseComponents: WarehouseComponents[];
-
-  @OneToMany(() => PcbOrders, (pcbOrder) => pcbOrder.manufacturer)
+  @OneToMany(() => PcbOrders, (pcbOrder) => pcbOrder.pcbManufacturer)
   pcbManufacturer: PcbOrders[];
 
   @OneToMany(() => PcbOrders, (pcbOrder) => pcbOrder.factory)

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderRequestComponents } from './order-request-components.entity';
@@ -7,39 +7,28 @@ import { OrderRequestComponents } from './order-request-components.entity';
 export class OrderRequestComponentsService {
   constructor(
     @InjectRepository(OrderRequestComponents)
-    private repository: Repository<OrderRequestComponents>,
+    private readonly repo: Repository<OrderRequestComponents>,
   ) {}
 
-  async create(data: Partial<OrderRequestComponents>): Promise<OrderRequestComponents> {
-    const entity = this.repository.create(data);
-    return await this.repository.save(entity);
+  findAll() {
+    return this.repo.find();
   }
 
-  async findAll(): Promise<OrderRequestComponents[]> {
-    return await this.repository.find({
-      relations: ['components', 'orderRequests']
-    });
+  findOne(id: number) {
+    return this.repo.findOne({ where: { id } });
   }
 
-  async findOne(id: number): Promise<OrderRequestComponents> {
-    const entity = await this.repository.findOne({
-      where: { id },
-      relations: ['components', 'orderRequests']
-    });
-    if (!entity) {
-      throw new NotFoundException(`Компонент заявки на заказ с ID ${id} не найден`);
-    }
-    return entity;
+  create(data: Partial<OrderRequestComponents>) {
+    const entity = this.repo.create(data);
+    return this.repo.save(entity);
   }
 
-  async update(id: number, data: Partial<OrderRequestComponents>): Promise<OrderRequestComponents> {
-    await this.findOne(id); // Проверяем существование
-    await this.repository.update(id, data);
-    return await this.findOne(id);
+  async update(id: number, data: Partial<OrderRequestComponents>) {
+    await this.repo.update(id, data);
+    return this.repo.findOne({ where: { id } });
   }
 
-  async remove(id: number): Promise<void> {
-    await this.findOne(id); // Проверяем существование
-    await this.repository.delete(id);
+  remove(id: number) {
+    return this.repo.delete(id);
   }
-}
+} 

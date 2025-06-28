@@ -1,6 +1,7 @@
 import { PcbOrders } from 'src/pcb-orders/pcb-orders.entity';
-import { PcbWarehouseComponents } from 'src/pcb-warehouse-components/pcb-warehouse-components.entity';
 import { Stands } from 'src/stands/stands.entity';
+import { Components } from '../components/components.entity';
+import { PcbsComponents } from '../pcbs-components/pcbs-components.entity';
 import {
   Column,
   Entity,
@@ -18,13 +19,17 @@ export class PCBS {
   @Column()
   parentId: number;
 
+  @ManyToOne(() => Components)
+  @JoinColumn({ name: 'componentId' })
+  component: Components;
+
   @ManyToOne(() => Stands, (stand) => stand.pcbs)
   @JoinColumn({ name: 'standId' })
   stands: Stands;
 
-  @OneToMany(() => PcbWarehouseComponents, (pwc) => pwc.pcbs)
-  pcbWarehouseComponents: PcbWarehouseComponents[];
-
-  @OneToMany(() => PcbOrders, (pcbOrder) => pcbOrder.pcbs)
+  @OneToMany(() => PcbOrders, (pcbOrder) => pcbOrder.pcb)
   pcbOrders: PcbOrders[];
+
+  @OneToMany(() => PcbsComponents, (pcbsComponent) => pcbsComponent.pcb)
+  pcbsComponents: PcbsComponents[];
 }

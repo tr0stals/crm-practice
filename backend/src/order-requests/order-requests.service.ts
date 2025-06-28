@@ -17,14 +17,14 @@ export class OrderRequestsService {
 
   async findAll(): Promise<OrderRequests[]> {
     return await this.repository.find({
-      relations: ['stands', 'employeeCreator', 'employeeExecutor', 'orderRequestComponents']
+      relations: ['stands', 'employeeCreator', 'orderRequestComponents']
     });
   }
 
   async findOne(id: number): Promise<OrderRequests> {
     const orderRequest = await this.repository.findOne({
       where: { id },
-      relations: ['stands', 'employeeCreator', 'employeeExecutor', 'orderRequestComponents']
+      relations: ['stands', 'employeeCreator', 'orderRequestComponents']
     });
     if (!orderRequest) {
       throw new NotFoundException(`Заявка на заказ с ID ${id} не найдена`);

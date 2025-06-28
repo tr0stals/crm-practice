@@ -1,4 +1,6 @@
 import { Employees } from 'src/employees/employees.entity';
+import { Organizations } from 'src/organizations/organizations.entity';
+import { OrderRequestsComponents } from 'src/order-requests-components/order-requests-components.entity';
 import { OrderRequestComponents } from 'src/order-request-components/order-request-components.entity';
 import { Stands } from 'src/stands/stands.entity';
 import {
@@ -10,31 +12,27 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+
 @Entity()
 export class OrderRequests {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  state: number;
-
-  @Column()
+  @Column({ length: 45 })
   title: string;
 
-  @Column()
-  article: string;
+  @Column({ type: 'date' })
+  requestDatetime: Date;
 
-  @Column()
-  count: number;
+  @Column({ type: 'date' })
+  executionDatetime: Date;
 
-  @Column()
-  priceForPcs: number;
-
-  @Column()
-  link: string;
-
-  @Column()
+  @Column({ length: 45 })
   comment: string;
+
+  @ManyToOne(() => Organizations)
+  @JoinColumn({ name: 'factoryId' })
+  factory: Organizations;
 
   @ManyToOne(() => Stands, (stand) => stand.orderRequests)
   @JoinColumn({ name: 'standId' })
@@ -45,8 +43,14 @@ export class OrderRequests {
   employeeCreator: Employees;
 
   @OneToMany(
+    () => OrderRequestsComponents,
+    (orderRequestsComponents) => orderRequestsComponents.orderRequests,
+  )
+  orderRequestsComponents: OrderRequestsComponents[];
+
+  @OneToMany(
     () => OrderRequestComponents,
-    (component) => component.orderRequests,
+    (orderRequestComponents) => orderRequestComponents.orderRequests,
   )
   orderRequestComponents: OrderRequestComponents[];
 }

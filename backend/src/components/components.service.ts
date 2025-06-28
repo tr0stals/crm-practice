@@ -19,7 +19,6 @@ export class ComponentsService {
     return await this.repository.find({
       relations: [
         'supplierComponents',
-        'componentsArrivalInvoice'
       ]
     });
   }
@@ -29,7 +28,6 @@ export class ComponentsService {
       where: { id },
       relations: [
         'supplierComponents',
-        'componentsArrivalInvoice'
       ]
     });
     if (!entity) {

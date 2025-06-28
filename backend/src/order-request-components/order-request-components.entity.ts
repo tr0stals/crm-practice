@@ -1,5 +1,5 @@
+import { Components } from 'src/components/components.entity';
 import { OrderRequests } from 'src/order-requests/order-requests.entity';
-import { WarehouseComponents } from 'src/warehouse-components/warehouse-components.entity';
 import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
@@ -11,10 +11,7 @@ export class OrderRequestComponents {
   @JoinColumn({ name: 'orderRequestId' })
   orderRequests: OrderRequests;
 
-  @ManyToOne(
-    () => WarehouseComponents,
-    (warehouseComponent) => warehouseComponent.orderRequestComponents,
-  )
+  @ManyToOne(() => Components)
   @JoinColumn({ name: 'componentId' })
-  components: WarehouseComponents;
+  component: Components;
 }

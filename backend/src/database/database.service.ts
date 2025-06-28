@@ -129,8 +129,8 @@ export class DatabaseService {
         row.title ||
         row.name ||
         (row.peoples
-          ? `${row.peoples.firstName} ${row.peoples.lastName}`
-          : row.code || `${row.firstName} ${row.lastName}`),
+          ? `${row.peoples.firstName} ${row.peoples.lastName} ${row.peoples.middleName}`
+          : row.code || `${row.firstName} ${row.lastName} ${row.middleName}`),
     }));
   }
 

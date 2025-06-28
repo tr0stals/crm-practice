@@ -6,8 +6,8 @@ export class LicenseTypes {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  name: string;
+  @Column({ length: 45 })
+  title: string;
 
   @OneToMany(() => License, (license) => license.licenseTypes)
   licenses: License[];

@@ -4,40 +4,28 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { CountriesModule } from './countries/countries.module';
-import { RegionModule } from './region/region.module';
-import { LocationsModule } from './locations/locations.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { OrganizationTypesModule } from './organization-types/organization-types.module';
 import { DepartmentsModule } from './departments/departments.module';
-import { StudentsModule } from './students/students.module';
 import { LicenseModule } from './license/license.module';
 import { LicenseTypesModule } from './license-types/license-types.module';
 import { EmployeesModule } from './employees/employees.module';
 import { StandsController } from './stands/stands.controller';
 import { StandsModule } from './stands/stands.module';
-import { StandCategoriesModule } from './stand-categories/stand-categories.module';
-import { StandCoursesController } from './stand-courses/stand-courses.controller';
-import { StandCoursesModule } from './stand-courses/stand-courses.module';
 import { StandTypesModule } from './stand-types/stand-types.module';
 import { DatabaseModule } from './database/database.module';
 import { ShipmentPackageStatesModule } from './shipment-package-states/shipment-package-states.module';
 import { ShipmentPackageModule } from './shipment-package/shipment-package.module';
 import { ShipmentsModule } from './shipments/shipments.module';
-import { ShipmentStatesModule } from './shipment-states/shipment-states.module';
 import { ShipmentTripsModule } from './shipment-trips/shipment-trips.module';
 import { PeoplesModule } from './peoples/peoples.module';
 import { EmployeeDepartmentsModule } from './employee-departments/employee-departments.module';
 import { ProfessionsModule } from './professions/professions.module';
-import { StandAssembliesModule } from './stand-assemblies/stand-assemblies.module';
 import { StandPackagesModule } from './stand-packages/stand-packages.module';
-import { WarehouseComponentsModule } from './warehouse-components/warehouse-components.module';
 import { OrderRequestsModule } from './order-requests/order-requests.module';
-import { OrderRequestComponentsModule } from './order-request-components/order-request-components.module';
-import { OrderTypesModule } from './order-types/order-types.module';
+import { OrderRequestComponentsModule } from './order-requests-components/order-requests-components.module';
 import { PcbOrderStatesModule } from './pcb-order-states/pcb-order-states.module';
 import { PcbsModule } from './pcbs/pcbs.module';
-import { PcbWarehouseComponentsModule } from './pcb-warehouse-components/pcb-warehouse-components.module';
 import { PcbOrdersModule } from './pcb-orders/pcb-orders.module';
 import { DatabaseLocalizationModule } from './database-localization/database-localization.module';
 import { DatabaseSeederModule } from './database-seeder/database-seeder.module';
@@ -52,6 +40,14 @@ import { ServerWriteoffModule } from './server-writeoff/server-writeoff.module';
 import { ArrivalInvoicesModule } from './arrival-invoices/arrival-invoices.module';
 import { InvoicesComponentsModule } from './invoices-components/invoices-components.module';
 import { ServerArrivalsModule } from './server-arrivals/server-arrivals.module';
+import { ComponentPlacementsModule } from './component_placements/component_placements.module';
+import { CurrentTasksComponentsModule } from './current-tasks-components/current-tasks-components.module';
+import { ComponentPlacementTypeModule } from './component_placement_type/component_placement_type.module';
+import { BillsForPayModule } from './bills-for-pay/bills-for-pay.module';
+import { BillsComponentsModule } from './bills-components/bills-components.module';
+import { InventarizationModule } from './inventarization/inventarization.module';
+import { PcbsComponentsModule } from './pcbs-components/pcbs-components.module';
+import { StandTasksComponentsModule } from './stand-tasks-components/stand-tasks-components.module';
 
 @Module({
   imports: [
@@ -73,38 +69,27 @@ import { ServerArrivalsModule } from './server-arrivals/server-arrivals.module';
     }),
     UserModule,
     AuthModule,
-    CountriesModule,
-    RegionModule,
-    LocationsModule,
     OrganizationsModule,
     OrganizationTypesModule,
     DepartmentsModule,
-    StudentsModule,
     LicenseModule,
     LicenseTypesModule,
     EmployeesModule,
     StandsModule,
-    StandCategoriesModule,
-    StandCoursesModule,
     StandTypesModule,
     ShipmentsModule,
     DatabaseModule,
     ShipmentPackageStatesModule,
     ShipmentPackageModule,
-    ShipmentStatesModule,
     ShipmentTripsModule,
     PeoplesModule,
     EmployeeDepartmentsModule,
     ProfessionsModule,
-    StandAssembliesModule,
     StandPackagesModule,
-    WarehouseComponentsModule,
     OrderRequestsModule,
     OrderRequestComponentsModule,
-    OrderTypesModule,
     PcbOrderStatesModule,
     PcbsModule,
-    PcbWarehouseComponentsModule,
     PcbOrdersModule,
     DatabaseLocalizationModule,
     DatabaseSeederModule,
@@ -119,8 +104,17 @@ import { ServerArrivalsModule } from './server-arrivals/server-arrivals.module';
     ArrivalInvoicesModule,
     InvoicesComponentsModule,
     ServerArrivalsModule,
+    ComponentPlacementsModule,
+    CurrentTasksComponentsModule,
+    ComponentPlacementTypeModule,
+    BillsForPayModule,
+    BillsComponentsModule,
+    InventarizationModule,
+    PcbsComponentsModule,
+    StandTasksComponentsModule,
+    ArrivalInvoicesModule,
   ],
-  controllers: [AppController, StandsController, StandCoursesController],
+  controllers: [AppController, StandsController],
   providers: [AppService],
 })
 export class AppModule {}

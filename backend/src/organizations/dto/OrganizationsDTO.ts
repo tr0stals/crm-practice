@@ -11,7 +11,7 @@ export class OrganizationsDTO {
   orgnDate: Date;
   phone: string;
   email: string;
-  digitalDocs: number;
+  digitalDocs: boolean;
   rating: number;
   comment: string;
   contactPeopleId: number;

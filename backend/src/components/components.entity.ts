@@ -6,15 +6,14 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { Suppliers } from '../suppliers/suppliers.entity';
 import { SupplierComponents } from '../supplier-components/supplier-components.entity';
-import { ComponentsArrivalInvoice } from '../components_arrival_invoice/components_arrival_invoice.entity';
 import { StandTasks } from 'src/stand-tasks/stand-tasks.entity';
 import { Writeoff } from 'src/writeoff/writeoff.entity';
 import { ServerWriteoff } from 'src/server-writeoff/server-writeoff.entity';
-import { InvoicesArrival } from 'src/Invoices_arrival/Invoices_arrival.entity';
 import { InvoicesComponents } from 'src/invoices-components/invoices-components.entity';
 import { ServerArrivals } from 'src/server-arrivals/server-arrivals.entity';
+import { OrderRequestsComponents } from 'src/order-requests-components/order-requests-components.entity';
+import { ComponentPlacements } from 'src/component_placements/component_placements.entity';
 
 @Entity()
 export class Components {
@@ -24,29 +23,26 @@ export class Components {
   @Column({ nullable: true })
   parentId: number;
 
-  @Column()
-  name: string;
+  @Column({ length: 45 })
+  title: string;
 
-  @Column({ nullable: true })
-  appearance: string; // Путь к фото или описание внешнего вида
+  @Column({ length: 45, nullable: true })
+  photo: string;
 
-  @Column({ nullable: true })
-  dimensions: string;
+  @Column({ type: 'float', nullable: true })
+  width: number;
 
-  @Column({ nullable: true })
+  @Column({ type: 'float', nullable: true })
+  height: number;
+
+  @Column({ type: 'float', nullable: true })
+  thickness: number;
+
+  @Column({ type: 'float', nullable: true })
   weight: number;
 
-  @Column({ nullable: true })
+  @Column({ length: 45, nullable: true })
   material: string;
-
-  @Column()
-  minimumStock: number;
-
-  @Column({ nullable: true })
-  supplierId: number;
-
-  @Column({ nullable: true })
-  invoiceId: number;
 
   @Column({ nullable: true, type: 'date' })
   receiptDate: Date;
@@ -54,21 +50,15 @@ export class Components {
   @Column({ nullable: true })
   drawingReference: string;
 
-  @ManyToOne(() => Suppliers, { onDelete: 'NO ACTION' })
-  @JoinColumn({ name: 'supplierId' })
-  supplier: Suppliers;
+  @ManyToOne(() => ComponentPlacements)
+  @JoinColumn({ name: 'placementId' })
+  placement: ComponentPlacements;
 
   @OneToMany(
     () => SupplierComponents,
     (supplierComponents) => supplierComponents.component,
   )
   supplierComponents: SupplierComponents[];
-
-  @OneToMany(
-    () => ComponentsArrivalInvoice,
-    (componentsArrivalInvoice) => componentsArrivalInvoice.component,
-  )
-  componentsArrivalInvoice: ComponentsArrivalInvoice[];
 
   @OneToMany(() => StandTasks, (standTask) => standTask.components)
   standTasks: StandTasks[];
@@ -90,4 +80,10 @@ export class Components {
 
   @OneToMany(() => ServerArrivals, (serverArrival) => serverArrival.components)
   serverArrivals: ServerArrivals[];
+
+  @OneToMany(
+    () => OrderRequestsComponents,
+    (orderRequestsComponent) => orderRequestsComponent.component,
+  )
+  orderRequestsComponents: OrderRequestsComponents[];
 }

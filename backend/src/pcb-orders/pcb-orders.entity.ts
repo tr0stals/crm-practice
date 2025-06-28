@@ -1,5 +1,4 @@
 import { Employees } from 'src/employees/employees.entity';
-import { OrderTypes } from 'src/order-types/order-types.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
 import { PcbOrderStates } from 'src/pcb-order-states/pcb-order-states.entity';
 import { PCBS } from 'src/pcbs/pcbs.entity';
@@ -16,44 +15,40 @@ export class PcbOrders {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  billNumber: number;
+  @Column({ length: 45 })
+  billNumber: string;
 
   @Column()
-  count: string;
+  count: number;
 
-  @Column()
-  size: string;
+  @Column({ type: 'float' })
+  width: number;
 
-  @Column()
+  @Column({ type: 'float' })
+  height: number;
+
+  @Column({ type: 'float' })
   thickness: number;
 
-  @Column()
+  @Column({ length: 45 })
   article: string;
 
-  @Column()
-  price: string;
-
+  @Column({ type: 'float' })
+  price: number;
+  
   @ManyToOne(() => PCBS, (pcb) => pcb.pcbOrders)
   @JoinColumn({ name: 'pcbId' })
-  pcbs: PCBS;
+  pcb: PCBS;
 
-  @ManyToOne(
-    () => Organizations,
-    (organization) => organization.pcbManufacturer,
-  )
+  @ManyToOne(() => Organizations)
   @JoinColumn({ name: 'pcbManufacturerId' })
-  manufacturer: Organizations;
+  pcbManufacturer: Organizations;
 
-  @ManyToOne(() => Organizations, (organization) => organization.pcbFactory)
+  @ManyToOne(() => Organizations)
   @JoinColumn({ name: 'factoryId' })
   factory: Organizations;
 
-  @ManyToOne(() => OrderTypes, (orderType) => orderType.pcbOrders)
-  @JoinColumn({ name: 'orderTypeId' })
-  orderTypes: OrderTypes;
-
-  @ManyToOne(() => Employees, (employee) => employee.pcbOrders)
+  @ManyToOne(() => Employees)
   @JoinColumn({ name: 'employeeId' })
   employees: Employees;
 
