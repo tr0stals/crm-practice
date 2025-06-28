@@ -86,14 +86,7 @@ console.debug(formData);
                   :key="option.id"
                   :value="option.id"
                 >
-                  {{
-                    option.peoples?.firstName ||
-                    option.title ||
-                    option.code ||
-                    option.shortName ||
-                    option.firstName + " " + option.lastName ||
-                    "ID: " + option.id
-                  }}
+                  {{ option.label }}
                 </option>
               </select>
             </template>
@@ -151,18 +144,22 @@ console.debug(formData);
 <style scoped>
 .modalWindow__overlay {
   position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.25);
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.25);
   z-index: 2000;
 }
 .modalWindow.addModalWindow {
   position: fixed;
-  top: 50%; left: 50%;
+  top: 50%;
+  left: 50%;
   z-index: 2100;
   transform: translate(-50%, -50%);
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
   min-width: 400px;
   max-width: 90vw;
   max-height: 90vh;

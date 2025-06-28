@@ -69,7 +69,10 @@ export class DatabaseService {
   }
 
   async getTableRowById(tableName: string, id: string) {
-    return await this.dataSource.query(`SELECT * FROM \`${tableName}\` WHERE id = ? LIMIT 1`, [id]);
+    return await this.dataSource.query(
+      `SELECT * FROM \`${tableName}\` WHERE id = ? LIMIT 1`,
+      [id],
+    );
   }
 
   async deleteTableRecord(tableName: string, id: string) {
@@ -96,9 +99,63 @@ export class DatabaseService {
     const columns = await this.getTableColumns(tableName);
     if (!columns || columns.length === 0) return [];
     // Формируем WHERE для поиска по всем колонкам
-    const likeStatements = columns.map(col => `CAST(\`${col}\` AS CHAR) LIKE ?`).join(' OR ');
+    const likeStatements = columns
+      .map((col) => `CAST(\`${col}\` AS CHAR) LIKE ?`)
+      .join(' OR ');
     const params = columns.map(() => `%${query}%`);
     const sql = `SELECT * FROM \`${tableName}\` WHERE ${likeStatements}`;
     return await this.dataSource.query(sql, params);
+  }
+
+  private async inferRelatedTable(tableName: string, column: string) {
+    const relatedTables = await this.getTableRelations(tableName);
+
+    const found = relatedTables.find((item) => item.foreignKey === column);
+
+    return found?.referencedColumn ?? null;
+  }
+
+  private async getSelectOptions(relatedTable: any) {
+    const metadata = this.dataSource.getMetadata(relatedTable);
+    const relationNames = metadata.relations.map((rel) => rel.propertyName);
+
+    const rows = await this.dataSource.getRepository(relatedTable).find({
+      relations: relationNames,
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      label:
+        row.title ||
+        row.name ||
+        (row.peoples
+          ? `${row.peoples.firstName} ${row.peoples.lastName}`
+          : row.code || `${row.firstName} ${row.lastName}`),
+    }));
+  }
+
+  async getFormMetadata(tableName: string) {
+    const columns = await this.getTableColumns(tableName);
+
+    const formStructure: Record<string, any> = {};
+
+    for (const column of columns) {
+      if (column.endsWith('Id')) {
+        const relatedTable = await this.inferRelatedTable(tableName, column);
+
+        formStructure[column] = {
+          type: 'select',
+          options: relatedTable
+            ? await this.getSelectOptions(relatedTable)
+            : [],
+        };
+      } else if (column.toLowerCase().includes('date')) {
+        formStructure[column] = { type: 'date' };
+      } else {
+        formStructure[column] = { type: 'input' };
+      }
+    }
+
+    return formStructure;
   }
 }

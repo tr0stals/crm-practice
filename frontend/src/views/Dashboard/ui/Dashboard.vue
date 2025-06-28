@@ -330,7 +330,7 @@ onMounted(async () => {
     .map((item) => item.tables)
     .flat();
 
-  // sectionsList.value = tables;
+  sectionsList.value = tables;
 });
 
 watch(currentSection, async (oldVal: string, newSection: string) => {
@@ -566,30 +566,42 @@ const filteredTreeData = computed(() => {
 
 function handleSidebarClick(section: string) {
   const lower = section.toLowerCase();
-  if (lower === 'employees') {
-    router.push('/employees')
-  } else if (lower === 'organizations') {
-    router.push('/organizations')
-  } else if (lower === 'user' || lower === 'users' || lower === 'пользователи') {
-    router.push('/users')
-  } else if (lower === 'license_types' || lower === 'license types' || lower === 'типы лицензий') {
-    router.push('/license_types')
-  } else if (lower === 'warehouse_components' || lower === 'warehouse components' || lower === 'компоненты склада') {
-    router.push('/warehouse_components')
+  if (lower === "employees") {
+    router.push("/employees");
+  } else if (lower === "organizations") {
+    router.push("/organizations");
   } else if (
-    lower === 'pcb_orders' ||
-    lower === 'pcb-orders' ||
-    lower === 'заказы печатных плат'
+    lower === "user" ||
+    lower === "users" ||
+    lower === "пользователи"
   ) {
-    router.push('/pcb-orders')
+    router.push("/users");
   } else if (
-    lower === 'order_requests' ||
-    lower === 'order-requests' ||
-    lower === 'заявки на заказ'
+    lower === "license_types" ||
+    lower === "license types" ||
+    lower === "типы лицензий"
   ) {
-    router.push('/order-requests')
+    router.push("/license_types");
+  } else if (
+    lower === "warehouse_components" ||
+    lower === "warehouse components" ||
+    lower === "компоненты склада"
+  ) {
+    router.push("/warehouse_components");
+  } else if (
+    lower === "pcb_orders" ||
+    lower === "pcb-orders" ||
+    lower === "заказы печатных плат"
+  ) {
+    router.push("/pcb-orders");
+  } else if (
+    lower === "order_requests" ||
+    lower === "order-requests" ||
+    lower === "заявки на заказ"
+  ) {
+    router.push("/order-requests");
   } else {
-    currentSection.value = section
+    currentSection.value = section;
   }
 }
 </script>
@@ -608,7 +620,7 @@ function handleSidebarClick(section: string) {
             :data-js-sectionName="section"
             @click="handleSidebarClick(section)"
           >
-            {{ section }}
+            {{ localizatedSections[section] }}
           </li>
         </ul>
       </nav>

@@ -2,9 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Employees } from 'src/employees/employees.entity';
 import { Professions } from 'src/professions/professions.entity';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { AssignProfessionDTO } from './dto/AssignProfessionDTO';
 import { EmployeesProfessions } from './employees-professions.entity';
+import { EmployeesProfessionsDTO } from './dto/EmployeesProfessionsDTO';
 
 @Injectable()
 export class EmployeesProfessionsService {
@@ -75,17 +76,37 @@ export class EmployeesProfessionsService {
     }
   }
 
-  async create(data: Partial<EmployeesProfessions>) {
-    const entity = this.employeesProfessionsRepository.create(data);
+  async create(data: EmployeesProfessionsDTO) {
+    const employee = await this.employeesRepository.findOne({
+      where: {
+        id: data.employeeId,
+      },
+      relations: ['peoples'],
+    });
+
+    const profession = await this.professionRepository.findOne({
+      where: { id: data.professionId },
+    });
+
+    const entity = this.employeesProfessionsRepository.create({
+      employees: employee,
+      professions: profession,
+    } as DeepPartial<EmployeesProfessions>);
+
     return await this.employeesProfessionsRepository.save(entity);
   }
 
   async getAll() {
-    return await this.employeesProfessionsRepository.find({ relations: ['employees', 'professions'] });
+    return await this.employeesProfessionsRepository.find({
+      relations: ['employees', 'professions'],
+    });
   }
 
   async getOne(id: number) {
-    return await this.employeesProfessionsRepository.findOne({ where: { id }, relations: ['employees', 'professions'] });
+    return await this.employeesProfessionsRepository.findOne({
+      where: { id },
+      relations: ['employees', 'professions'],
+    });
   }
 
   async update(id: number, data: Partial<EmployeesProfessions>) {

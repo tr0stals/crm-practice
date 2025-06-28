@@ -31,7 +31,10 @@ export class DatabaseController {
   }
 
   @Get(':tableName/search')
-  async searchTableRows(@Param('tableName') tableName: string, @Query('query') query: string) {
+  async searchTableRows(
+    @Param('tableName') tableName: string,
+    @Query('query') query: string,
+  ) {
     return await this.databaseService.searchTableRows(tableName, query);
   }
 
@@ -56,8 +59,16 @@ export class DatabaseController {
     );
   }
 
+  @Get('getFormMetaData/:tableName')
+  async getFormMetaData(@Param('tableName') tableName: string) {
+    return await this.databaseService.getFormMetadata(tableName);
+  }
+
   @Get(':tableName/:id')
-  async getTableRowById(@Param('tableName') tableName: string, @Param('id') id: string) {
+  async getTableRowById(
+    @Param('tableName') tableName: string,
+    @Param('id') id: string,
+  ) {
     return await this.databaseService.getTableRowById(tableName, id);
   }
 

@@ -1,16 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { EmployeesProfessionsService } from './employees-professions.service';
 import { EmployeesProfessions } from './employees-professions.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AssignProfessionDTO } from './dto/AssignProfessionDTO';
+import { EmployeesProfessionsDTO } from './dto/EmployeesProfessionsDTO';
 
 @UseGuards(JwtAuthGuard)
-@Controller('employees-professions')
+@Controller('employees_professions')
 export class EmployeesProfessionsController {
   constructor(private readonly service: EmployeesProfessionsService) {}
 
   @Post('create')
-  async create(@Body() data: Partial<EmployeesProfessions>) {
+  async create(@Body() data: EmployeesProfessionsDTO) {
     return await this.service.create(data);
   }
 
@@ -25,7 +35,10 @@ export class EmployeesProfessionsController {
   }
 
   @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() data: Partial<EmployeesProfessions>) {
+  async update(
+    @Param('id') id: string,
+    @Body() data: Partial<EmployeesProfessions>,
+  ) {
     return await this.service.update(+id, data);
   }
 
