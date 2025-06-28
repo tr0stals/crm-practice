@@ -7,22 +7,27 @@ export class ShipmentTripsController {
     constructor(private readonly shipmentTripsService: ShipmentTripsService) {}
         
           @Post('create')
-          async create(@Body() createshipmentTrips: ShipmentTripsDTO) {
-            return this.shipmentTripsService.create(createshipmentTrips);
+          async create(@Body() data: ShipmentTripsDTO) {
+            return await this.shipmentTripsService.create(data);
           }
         
           @Patch('update/:id')
-          async update(@Param('id') id, @Body() updateshipmentTrips: ShipmentTripsDTO) {
-            return this.shipmentTripsService.update(id, updateshipmentTrips);
+          async update(@Param('id') id:string, @Body() data: ShipmentTripsDTO) {
+            return await this.shipmentTripsService.update(+id, data);
           }
         
           @Delete('delete/:id')
-          async remove(@Param('id') id) {
-            return this.shipmentTripsService.remove(id);
+          async remove(@Param('id') id: string) {
+            return await this.shipmentTripsService.remove(+id);
           }
         
+          @Get('get/:id')
+          async findOne(@Param('id') id: string) {
+            return await this.shipmentTripsService.findOne(+id);
+          }
+
           @Get('get')
-          async find() {
-            return this.shipmentTripsService.find();
+          async findAll() {
+            return await this.shipmentTripsService.findAll();
           }
 }

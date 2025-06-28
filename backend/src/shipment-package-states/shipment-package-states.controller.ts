@@ -1,23 +1,33 @@
-import { Controller, Param, Post, Body, Delete, Get } from '@nestjs/common';
+import { Controller, Param, Post, Body, Delete, Get, Patch } from '@nestjs/common';
 import { ShipmentPackageStatesService } from './shipment-package-states.service';
 import { ShipmentPackageStatesDTO } from './dto/shipment-package-statesDTO';
 
 @Controller('shipment-package-states')
 export class ShipmentPackageStatesController {
-    constructor(private readonly shipmentPackageStatesService: ShipmentPackageStatesService) {}
+    constructor(private readonly service: ShipmentPackageStatesService) {}
                 
         @Post('create')
-            async create(@Body() createShipmentPackageStates: ShipmentPackageStatesDTO) {
-                return this.shipmentPackageStatesService.create(createShipmentPackageStates);
+        async create(@Body() data: ShipmentPackageStatesDTO) {
+            return await this.service.create(data);
         }
         
-        @Delete('delete/:id')
-            async remove(@Param('id') id) {
-                return this.shipmentPackageStatesService.remove(id);
+        @Patch('update/:id')
+        async update(@Param('id') id: string, @Body() data: ShipmentPackageStatesDTO) {
+            return await this.service.update(+id, data);
         }
-                
+
+        @Delete('delete/:id')
+        async remove(@Param('id') id: string) {
+            return this.service.remove(+id);
+        }
+           
+        @Get('get/:id')
+        async findOne(@Param('id') id:string) {
+            return await this.service.findOne(+id);
+        }
+
         @Get('get')
-            async find() {
-                return this.shipmentPackageStatesService.find();
+        async findAll() {
+            return await this.service.findAll();
         }
 }

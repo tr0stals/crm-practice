@@ -4,25 +4,30 @@ import { ShipmentPackageDTO } from './dto/shipmentPackageDTO';
 
 @Controller('shipment-package')
 export class ShipmentPackageController {
-  constructor(private readonly shipmentPackageService: ShipmentPackageService) {}
+  constructor(private readonly service: ShipmentPackageService) {}
         
   @Post('create')
-    async create(@Body() createShipmentPackage: ShipmentPackageDTO) {
-      return this.shipmentPackageService.create(createShipmentPackage);
+    async create(@Body() data: ShipmentPackageDTO) {
+      return await this.service.create(data);
     }
         
     @Patch('update/:id')
-    async update(@Param('id') id, @Body() updateShipmentPackage: ShipmentPackageDTO) {
-      return this.shipmentPackageService.update(id, updateShipmentPackage);
+    async update(@Param('id') id: string, @Body() data: ShipmentPackageDTO) {
+      return await this.service.update(+id, data);
     }
         
     @Delete('delete/:id')
-    async remove(@Param('id') id) {
-      return this.shipmentPackageService.remove(id);
+    async remove(@Param('id') id: string) {
+      return await this.service.remove(+id);
     }
-        
+    
+    @Get('get/:id')
+    async findOne(@Param('id') id: string) {
+      return await this.service.findOne(+id);
+    }
+
     @Get('get')
-    async find() {
-      return this.shipmentPackageService.find();
+    async findAll() {
+      return await this.service.findAll();
     }
 }

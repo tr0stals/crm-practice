@@ -13,10 +13,19 @@ export class ShipmentPackage {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  size: string;
+  @Column({length: 100})
+  width: string;
 
-  @Column()
+  @Column({length: 100})
+  height: string;
+
+  @Column({length: 100})
+  thickness: string;
+
+  @Column({length: 100})
+  weight: string;
+
+  @Column({nullable: true, length: 200})
   photo: string;
 
   @ManyToOne(() => ShipmentPackageStates, (state) => state.shipmentPackages)

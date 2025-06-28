@@ -1,10 +1,7 @@
 import { License } from 'src/license/license.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
 import { ShipmentPackage } from 'src/shipment-package/shipment-package.entity';
-import { ShipmentStates } from 'src/shipment-states/shipment-states.entity';
 import { ShipmentTrips } from 'src/shipment-trips/shipment-trips.entity';
-import { ShipmentsStands } from 'src/shipments-stands/shipments-stands.entity';
-import { StandAssemblies } from 'src/stand-assemblies/stand-assemblies.entity';
 import {
   Column,
   Entity,
@@ -23,19 +20,19 @@ export class Shipments {
   @Column()
   price: number;
 
-  @Column()
-  standNumber: string;
-
   @Column({ type: 'date' })
   addedDate: Date;
 
   @Column({ type: 'date' })
   shipmentDate: Date;
 
-  @Column()
-  specification: string;
+  @Column({ type: 'date' })
+  arrivalDate: Date;
 
-  @Column()
+  @Column({nullable: true, length: 200})
+  specificationImage: string;
+
+  @Column({nullable: true, length:200})
   comment: string;
 
   @OneToMany(
@@ -43,10 +40,6 @@ export class Shipments {
     (shipmentPackage) => shipmentPackage.shipments,
   )
   shipmentPackages: ShipmentPackage[];
-
-  @ManyToOne(() => ShipmentStates, (state) => state.shipments)
-  @JoinColumn({ name: 'shipmentStateId' })
-  shipmentStates: ShipmentStates;
 
   @OneToOne(() => License, (license) => license.shipment)
   @JoinColumn({ name: 'licenseId' })
@@ -69,11 +62,4 @@ export class Shipments {
   @ManyToOne(() => Organizations, (organization) => organization.client)
   @JoinColumn({ name: 'clientId' })
   client: Organizations;
-
-  @ManyToOne(() => StandAssemblies, (standAssembly) => standAssembly.shipments)
-  @JoinColumn({ name: 'standAssemblyId' })
-  standAssemblies: StandAssemblies;
-
-  @OneToMany(() => ShipmentsStands, (shipmentStand) => shipmentStand.shipments)
-  shipmentsStands: ShipmentsStands[];
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ShipmentTrips } from './shipment-trips.entity';
 import { Repository } from 'typeorm';
@@ -8,45 +8,61 @@ import { ShipmentTripsDTO } from './dto/shipment-tripsDTO';
 export class ShipmentTripsService {
     constructor(
             @InjectRepository(ShipmentTrips)
-            private shipmentTripsRepository: Repository<ShipmentTrips>,
+            private repository: Repository<ShipmentTrips>,
           ) {}
         
-          async create(shipmentTrips: ShipmentTripsDTO) {
+          async create(data: ShipmentTripsDTO) : Promise<ShipmentTrips> {
             try {
-              const newshipmentTrips = this.shipmentTripsRepository.create(shipmentTrips);
-              return this.shipmentTripsRepository.save(newshipmentTrips);
+              const entity = this.repository.create(data);
+              return await this.repository.save(entity);
             } catch (e) {
-              console.error(e);
+              console.error("Ошибка при создании Командировки отправок", e);
+              throw e;
             }
           }
         
-          async update(id, shipmentTrips: ShipmentTripsDTO) {
+          async update(id: number, data: ShipmentTripsDTO): Promise<ShipmentTrips> {
             try {
-              await this.shipmentTripsRepository.update(id, shipmentTrips);
+              await this.findOne(id);
+              await this.repository.update(id, data);
               return await this.findOne(id);
             } catch (e) {
-              console.error(e);
+              console.error("Ошибка при обновлении командировке отправок", e);
+              throw e;
             }
           }
         
-          async remove(id) {
+          async remove(id: number): Promise<void> {
             try {
-              await this.shipmentTripsRepository.delete(id);
+              await this.findOne(id);
+              await this.repository.delete(id);
             } catch (e) {
-              console.error(e);
+              console.error("Ошибка при удалении командировки отправок", e);
+              throw e;
             }
           }
         
-          async find() {
-            return this.shipmentTripsRepository.find({
+          async findAll(): Promise<ShipmentTrips[]> {
+            try{
+              return await this.repository.find({
               relations: ['shipments', 'employees']
             });
+            }
+            catch(e){
+              console.error("Командировки отправок не найдены", e);
+              throw e;
+            }
           }
 
-          async findOne(id: number) {
-            return this.shipmentTripsRepository.findOne({
+          async findOne(id: number): Promise<ShipmentTrips> {
+            const entity = await this.repository.findOne({
               where: { id },
               relations: ['shipments', 'employees']
             });
+
+            if(!entity)
+              throw new NotFoundException(`Командировка с ${id} не найдена`);
+
+            return entity;
           }
 }
