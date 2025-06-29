@@ -15,7 +15,7 @@ import { AssignProfessionDTO } from './dto/AssignProfessionDTO';
 import { EmployeesProfessionsDTO } from './dto/EmployeesProfessionsDTO';
 
 @UseGuards(JwtAuthGuard)
-@Controller('employees_professions')
+@Controller('employees-professions')
 export class EmployeesProfessionsController {
   constructor(private readonly service: EmployeesProfessionsService) {}
 

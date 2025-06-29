@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { OrderRequestsComponentsService } from './order-requests-components.service';
 import { OrderRequestsComponents } from './order-requests-components.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -33,7 +41,10 @@ export class OrderRequestsComponentsController {
   @ApiOperation({ summary: 'Обновить связь' })
   @ApiResponse({ status: 200, description: 'Связь обновлена' })
   @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() data: Partial<OrderRequestsComponents>) {
+  async update(
+    @Param('id') id: string,
+    @Body() data: Partial<OrderRequestsComponents>,
+  ) {
     return await this.service.update(+id, data);
   }
 

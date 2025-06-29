@@ -197,6 +197,7 @@ function getSectionEndpoint(section: string): string {
     "employees",
     "employee_states",
     "employee_departments",
+    "employees_professions",
     // ... только те секции, для которых точно есть кастомные контроллеры ...
   ];
   const universalSections = [
@@ -304,8 +305,6 @@ onMounted(async () => {
     user: user,
   };
 
-  console.debug(user);
-
   if (user) {
     userFirstName.value = user.employees.peoples.firstName;
     userLastName.value = user.employees.peoples.lastName;
@@ -324,6 +323,7 @@ onMounted(async () => {
     endpoint: "localization/tables",
   });
   localizatedSections.value = localizationResponse.data;
+  console.debug(localizatedSections.value);
 
   const tables = roleTables
     .filter((item) => item.profession === userProfession.value)
@@ -570,10 +570,7 @@ function handleSidebarClick(section: string) {
     router.push("/employees");
   } else if (lower === "organizations") {
     router.push("/organizations");
-  } else if (
-    lower === "components" ||
-    lower === "компоненты"
-  ) {
+  } else if (lower === "components" || lower === "компоненты") {
     router.push("/components");
   } else if (
     lower === "user" ||
@@ -605,15 +602,9 @@ function handleSidebarClick(section: string) {
     lower === "заявки на заказ"
   ) {
     router.push("/order-requests");
-  } else if (
-    lower === "current_tasks" ||
-    lower === "текущие задачи"
-  ) {
+  } else if (lower === "current_tasks" || lower === "текущие задачи") {
     router.push("/current_tasks");
-  } else if (
-    lower === "departments" ||
-    lower === "отделы"
-  ) {
+  } else if (lower === "departments" || lower === "отделы") {
     router.push("/departments");
   } else {
     currentSection.value = section;

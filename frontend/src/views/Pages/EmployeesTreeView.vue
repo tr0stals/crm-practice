@@ -8,7 +8,13 @@
       <button @click="handleRefresh">⟳ Обновить</button>
       <button @click="exportExcel">Выгрузить в Excel</button>
       <button @click="triggerImport">Импорт из Excel</button>
-      <input ref="importInput" type="file" accept=".xlsx,.xls" style="display:none" @change="handleImportFile" />
+      <input
+        ref="importInput"
+        type="file"
+        accept=".xlsx,.xls"
+        style="display: none"
+        @change="handleImportFile"
+      />
       <input v-model="search" placeholder="Поиск" class="search-input" />
     </div>
     <Tree
@@ -30,11 +36,21 @@
           <div class="emp-card-wrap">
             <div class="emp-card">
               <div class="emp-fio">{{ slotProps.node.label }}</div>
-              <div class="emp-row"><span>Дата рождения:</span> {{ slotProps.node.birthDate }}</div>
-              <div class="emp-row"><span>Должность:</span> {{ slotProps.node.profession }}</div>
-              <div class="emp-row"><span>Телефон:</span> {{ slotProps.node.phone }}</div>
-              <div class="emp-row"><span>Email:</span> {{ slotProps.node.email }}</div>
-              <div class="emp-row"><span>Комментарий:</span> {{ slotProps.node.comment }}</div>
+              <div class="emp-row">
+                <span>Дата рождения:</span> {{ slotProps.node.birthDate }}
+              </div>
+              <div class="emp-row">
+                <span>Должность:</span> {{ slotProps.node.profession }}
+              </div>
+              <div class="emp-row">
+                <span>Телефон:</span> {{ slotProps.node.phone }}
+              </div>
+              <div class="emp-row">
+                <span>Email:</span> {{ slotProps.node.email }}
+              </div>
+              <div class="emp-row">
+                <span>Комментарий:</span> {{ slotProps.node.comment }}
+              </div>
             </div>
           </div>
         </template>
@@ -47,298 +63,327 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, shallowRef } from 'vue'
-import { getDataAsync } from '@/shared/api/getDataAsync'
-import Tree from 'primevue/tree'
-import AddEntity from '@/features/AddEntity/ui/AddEntityModal.vue'
-import EditModalWindow from '@/features/EditModalWindow/ui/EditModalWindow.vue'
-import { ModalManager } from '@/shared/plugins/modalManager'
-import { deleteDataAsync } from '@/views/Dashboard/api/deleteDataAsync'
-import * as XLSX from 'xlsx'
+import { ref, computed, onMounted, shallowRef } from "vue";
+import { getDataAsync } from "@/shared/api/getDataAsync";
+import Tree from "primevue/tree";
+import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
+import EditModalWindow from "@/features/EditModalWindow/ui/EditModalWindow.vue";
+import { ModalManager } from "@/shared/plugins/modalManager";
+import { deleteDataAsync } from "@/views/Dashboard/api/deleteDataAsync";
+import * as XLSX from "xlsx";
 
-const treeData = ref([])
-const search = ref('')
-const selectedKey = ref(null)
-const selectedEmployee = shallowRef(null)
-const importInput = ref(null)
-const organizations = ref([])
-const departments = ref([])
+const treeData = ref([]);
+const search = ref("");
+const selectedKey = ref(null);
+const selectedEmployee = shallowRef(null);
+const importInput = ref(null);
+const organizations = ref([]);
+const departments = ref([]);
 
 onMounted(async () => {
-  await fetchAll()
-})
+  await fetchAll();
+});
 
 async function fetchAll() {
   const [emps, orgs, depts] = await Promise.all([
-    getDataAsync({ endpoint: '/employees/get' }),
-    getDataAsync({ endpoint: '/organizations/get' }),
-    getDataAsync({ endpoint: '/departments/get' })
-  ])
-  organizations.value = orgs.data
-  departments.value = depts.data
-  treeData.value = groupEmployees(emps.data, orgs.data, depts.data)
+    getDataAsync({ endpoint: "/employees/get" }),
+    getDataAsync({ endpoint: "/organizations/get" }),
+    getDataAsync({ endpoint: "/departments/get" }),
+  ]);
+  organizations.value = orgs.data;
+  departments.value = depts.data;
+  treeData.value = groupEmployees(emps.data, orgs.data, depts.data);
 }
 
 function groupEmployees(employees, allOrganizations, allDepartments) {
-  const tree = []
+  const tree = [];
 
-  allOrganizations.forEach(org => {
+  allOrganizations.forEach((org) => {
     const orgNode = {
       label: org.fullName,
-      key: 'org-' + org.id,
+      key: "org-" + org.id,
       children: [],
       id: org.id,
       isOrganization: true,
       selectable: false,
-      icon: 'pi pi-folder',
-    }
+      icon: "pi pi-folder",
+    };
 
     // Все отделы этой организации
-    const orgDepartments = allDepartments.filter(dept => !dept.organizationId || dept.organizationId === org.id)
+    const orgDepartments = allDepartments.filter(
+      (dept) => !dept.organizationId || dept.organizationId === org.id
+    );
     if (orgDepartments.length) {
-      orgDepartments.forEach(dept => {
+      orgDepartments.forEach((dept) => {
         // Сотрудники этого отдела
-        const deptEmployees = employees.filter(emp =>
-          Array.isArray(emp.employeeDepartments) &&
-          emp.employeeDepartments.some(ed => ed.departments?.id === dept.id)
-        )
+        const deptEmployees = employees.filter(
+          (emp) =>
+            Array.isArray(emp.employeeDepartments) &&
+            emp.employeeDepartments.some((ed) => ed.departments?.id === dept.id)
+        );
         const deptNode = {
           label: dept.title,
           key: `org-${org.id}-dept-${dept.id}`,
-          children: deptEmployees.map(emp => ({
-            label: `${emp.peoples?.lastName || ''} ${emp.peoples?.firstName || ''} ${emp.peoples?.middleName || ''}`.trim(),
+          children: deptEmployees.map((emp) => ({
+            label: `${emp.peoples?.lastName || ""} ${
+              emp.peoples?.firstName || ""
+            } ${emp.peoples?.middleName || ""}`.trim(),
             isEmployee: true,
             birthDate: emp.birthDate,
             profession: emp.profession?.title,
             phone: emp.peoples?.phone,
             email: emp.peoples?.email,
             comment: emp.peoples?.comment,
-            key: 'emp-' + emp.id,
+            key: "emp-" + emp.id,
             id: emp.id,
             raw: emp,
-            icon: 'pi pi-user',
+            icon: "pi pi-user",
           })),
           id: dept.id,
           isDepartment: true,
-          icon: 'pi pi-folder',
-        }
-        orgNode.children.push(deptNode)
-      })
+          icon: "pi pi-folder",
+        };
+        orgNode.children.push(deptNode);
+      });
     } else {
       // Если нет отделов — "Без отдела"
-      const deptEmployees = employees.filter(emp =>
-        (!emp.employeeDepartments || !emp.employeeDepartments.length) && emp.organization?.id === org.id
-      )
+      const deptEmployees = employees.filter(
+        (emp) =>
+          (!emp.employeeDepartments || !emp.employeeDepartments.length) &&
+          emp.organization?.id === org.id
+      );
       orgNode.children.push({
-        label: 'Без отдела',
+        label: "Без отдела",
         key: `org-${org.id}-dept-none`,
-        children: deptEmployees.map(emp => ({
-          label: `${emp.peoples?.lastName || ''} ${emp.peoples?.firstName || ''} ${emp.peoples?.middleName || ''}`.trim(),
+        children: deptEmployees.map((emp) => ({
+          label: `${emp.peoples?.lastName || ""} ${
+            emp.peoples?.firstName || ""
+          } ${emp.peoples?.middleName || ""}`.trim(),
           isEmployee: true,
           birthDate: emp.birthDate,
           profession: emp.profession?.title,
           phone: emp.peoples?.phone,
           email: emp.peoples?.email,
           comment: emp.peoples?.comment,
-          key: 'emp-' + emp.id,
+          key: "emp-" + emp.id,
           id: emp.id,
           raw: emp,
-          icon: 'pi pi-user',
+          icon: "pi pi-user",
         })),
         isDepartment: true,
-        icon: 'pi pi-folder',
-      })
+        icon: "pi pi-folder",
+      });
     }
-    tree.push(orgNode)
-  })
+    tree.push(orgNode);
+  });
 
   // "Без организации"
-  const noOrgEmployees = employees.filter(emp => !emp.organization)
+  const noOrgEmployees = employees.filter((emp) => !emp.organization);
   tree.push({
-    label: 'Без организации',
-    key: 'org-none',
-    children: [{
-      label: 'Без отдела',
-      key: 'org-none-dept-none',
-      children: noOrgEmployees.map(emp => ({
-        label: `${emp.peoples?.lastName || ''} ${emp.peoples?.firstName || ''} ${emp.peoples?.middleName || ''}`.trim(),
-        isEmployee: true,
-        birthDate: emp.birthDate,
-        profession: emp.profession?.title,
-        phone: emp.peoples?.phone,
-        email: emp.peoples?.email,
-        comment: emp.peoples?.comment,
-        key: 'emp-' + emp.id,
-        id: emp.id,
-        raw: emp,
-        icon: 'pi pi-user',
-      })),
-      isDepartment: true,
-      icon: 'pi pi-folder',
-    }],
+    label: "Без организации",
+    key: "org-none",
+    children: [
+      {
+        label: "Без отдела",
+        key: "org-none-dept-none",
+        children: noOrgEmployees.map((emp) => ({
+          label: `${emp.peoples?.lastName || ""} ${
+            emp.peoples?.firstName || ""
+          } ${emp.peoples?.middleName || ""}`.trim(),
+          isEmployee: true,
+          birthDate: emp.birthDate,
+          profession: emp.profession?.title,
+          phone: emp.peoples?.phone,
+          email: emp.peoples?.email,
+          comment: emp.peoples?.comment,
+          key: "emp-" + emp.id,
+          id: emp.id,
+          raw: emp,
+          icon: "pi pi-user",
+        })),
+        isDepartment: true,
+        icon: "pi pi-folder",
+      },
+    ],
     isOrganization: true,
     selectable: false,
-    icon: 'pi pi-folder',
-  })
+    icon: "pi pi-folder",
+  });
 
-  return tree
+  return tree;
 }
 
 const filteredTreeData = computed(() => {
-  if (!search.value) return treeData.value
-  const filter = (nodes) => nodes
-    .map(node => {
-      if (node.children) {
-        const children = filter(node.children)
-        if (children.length) return { ...node, children }
-      }
-      if (
-        node.label?.toLowerCase().includes(search.value.toLowerCase()) ||
-        node.profession?.toLowerCase().includes(search.value.toLowerCase()) ||
-        node.phone?.toLowerCase().includes(search.value.toLowerCase()) ||
-        node.email?.toLowerCase().includes(search.value.toLowerCase())
-      ) return node
-      return null
-    })
-    .filter(Boolean)
-  return filter(treeData.value)
-})
+  if (!search.value) return treeData.value;
+  const filter = (nodes) =>
+    nodes
+      .map((node) => {
+        if (node.children) {
+          const children = filter(node.children);
+          if (children.length) return { ...node, children };
+        }
+        if (
+          node.label?.toLowerCase().includes(search.value.toLowerCase()) ||
+          node.profession?.toLowerCase().includes(search.value.toLowerCase()) ||
+          node.phone?.toLowerCase().includes(search.value.toLowerCase()) ||
+          node.email?.toLowerCase().includes(search.value.toLowerCase())
+        )
+          return node;
+        return null;
+      })
+      .filter(Boolean);
+  return filter(treeData.value);
+});
 
 function getSelectedEmployee() {
   // selectedKey — объект с ключами выбранных узлов
-  if (!selectedKey.value) return null
-  const key = Object.keys(selectedKey.value)[0]
-  let found = null
+  if (!selectedKey.value) return null;
+  const key = Object.keys(selectedKey.value)[0];
+  let found = null;
   function find(nodes) {
     for (const node of nodes) {
-      if (node.key === key && node.isEmployee) return node
+      if (node.key === key && node.isEmployee) return node;
       if (node.children) {
-        const res = find(node.children)
-        if (res) return res
+        const res = find(node.children);
+        if (res) return res;
       }
     }
-    return null
+    return null;
   }
-  found = find(treeData.value)
-  return found
+  found = find(treeData.value);
+  return found;
 }
 
 function handleAdd() {
   ModalManager.getInstance().open(AddEntity, {
-    sectionName: 'employees',
+    sectionName: "employees",
     onClose: () => ModalManager.getInstance().closeModal(),
-    onSuccess: () => { ModalManager.getInstance().closeModal(); fetchAll(); }
-  })
+    onSuccess: () => {
+      ModalManager.getInstance().closeModal();
+      fetchAll();
+    },
+  });
 }
 function handleEdit() {
-  const emp = getSelectedEmployee()
-  if (!emp) return alert('Выберите сотрудника для редактирования')
+  const emp = getSelectedEmployee();
+  if (!emp) return alert("Выберите сотрудника для редактирования");
   ModalManager.getInstance().open(EditModalWindow, {
-    config: { sectionName: 'employees', data: emp.raw },
-    onApplyCallback: () => { ModalManager.getInstance().closeModal(); fetchAll(); }
-  })
+    config: { sectionName: "employees", data: emp.raw },
+    onApplyCallback: () => {
+      ModalManager.getInstance().closeModal();
+      fetchAll();
+    },
+  });
 }
 function handleDelete() {
-  const emp = getSelectedEmployee()
-  if (!emp) return alert('Выберите сотрудника для удаления')
-  if (!confirm('Точно удалить сотрудника?')) return
-  deleteDataAsync(emp.id, 'employees').then(fetchAll)
+  const emp = getSelectedEmployee();
+  if (!emp) return alert("Выберите сотрудника для удаления");
+  if (!confirm("Точно удалить сотрудника?")) return;
+  deleteDataAsync(emp.id, "employees").then(fetchAll);
 }
 function handleRefresh() {
-  fetchAll()
+  fetchAll();
 }
 function exportExcel() {
-  const flat = getFlatEmployees()
-  if (!flat.length) return alert('Нет данных для экспорта.')
-  const ws = XLSX.utils.json_to_sheet(flat)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, 'Employees')
-  XLSX.writeFile(wb, 'employees.xlsx')
+  const flat = getFlatEmployees();
+  if (!flat.length) return alert("Нет данных для экспорта.");
+  const ws = XLSX.utils.json_to_sheet(flat);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Employees");
+  XLSX.writeFile(wb, "employees.xlsx");
 }
 function getFlatEmployees() {
   // Собираем всех сотрудников в плоский массив для экспорта
-  const flat = []
+  const flat = [];
   function walk(nodes) {
     for (const node of nodes) {
       if (node.isEmployee) {
         flat.push({
           ФИО: node.label,
-          'Дата рождения': node.birthDate,
+          "Дата рождения": node.birthDate,
           Должность: node.profession,
           Телефон: node.phone,
           Email: node.email,
-          Комментарий: node.comment
-        })
+          Комментарий: node.comment,
+        });
       }
-      if (node.children) walk(node.children)
+      if (node.children) walk(node.children);
     }
   }
-  walk(treeData.value)
-  return flat
+  walk(treeData.value);
+  return flat;
 }
 
 function triggerImport() {
-  importInput.value && importInput.value.click()
+  importInput.value && importInput.value.click();
 }
 
 async function handleImportFile(e) {
-  const file = e.target.files[0]
-  if (!file) return
-  const reader = new FileReader()
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
   reader.onload = async (evt) => {
-    const data = new Uint8Array(evt.target.result)
-    const workbook = XLSX.read(data, { type: 'array' })
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
-    const excelRows = XLSX.utils.sheet_to_json(sheet)
+    const data = new Uint8Array(evt.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const excelRows = XLSX.utils.sheet_to_json(sheet);
     // Преобразуем Excel в [{email, ...}]
-    const excelEmployees = excelRows.map(row => ({
-      email: row.Email || row.email,
-      lastName: row['Фамилия'] || row['ФИО']?.split(' ')[0] || '',
-      firstName: row['Имя'] || row['ФИО']?.split(' ')[1] || '',
-      middleName: row['Отчество'] || row['ФИО']?.split(' ')[2] || '',
-      birthDate: row['Дата рождения'] || '',
-      profession: row['Должность'] || '',
-      phone: row['Телефон'] || '',
-      comment: row['Комментарий'] || '',
-    })).filter(e => e.email)
+    const excelEmployees = excelRows
+      .map((row) => ({
+        email: row.Email || row.email,
+        lastName: row["Фамилия"] || row["ФИО"]?.split(" ")[0] || "",
+        firstName: row["Имя"] || row["ФИО"]?.split(" ")[1] || "",
+        middleName: row["Отчество"] || row["ФИО"]?.split(" ")[2] || "",
+        birthDate: row["Дата рождения"] || "",
+        profession: row["Должность"] || "",
+        phone: row["Телефон"] || "",
+        comment: row["Комментарий"] || "",
+      }))
+      .filter((e) => e.email);
     // Получаем сотрудников из CRM
-    const { data: crmEmployees } = await getDataAsync({ endpoint: '/employees/get' })
-    const crmMap = new Map(crmEmployees.map(e => [e.peoples?.email, e]))
-    const excelMap = new Map(excelEmployees.map(e => [e.email, e]))
-    let added = 0, updated = 0, deleted = 0
+    const { data: crmEmployees } = await getDataAsync({
+      endpoint: "/employees/get",
+    });
+    const crmMap = new Map(crmEmployees.map((e) => [e.peoples?.email, e]));
+    const excelMap = new Map(excelEmployees.map((e) => [e.email, e]));
+    let added = 0,
+      updated = 0,
+      deleted = 0;
     // Добавить новых
     for (const [email, excelEmp] of excelMap) {
       if (!crmMap.has(email)) {
-        await addEmployeeFromExcel(excelEmp)
-        added++
+        await addEmployeeFromExcel(excelEmp);
+        added++;
       }
     }
     // Обновить существующих
     for (const [email, excelEmp] of excelMap) {
       if (crmMap.has(email)) {
-        await updateEmployeeFromExcel(crmMap.get(email), excelEmp)
-        updated++
+        await updateEmployeeFromExcel(crmMap.get(email), excelEmp);
+        updated++;
       }
     }
     // Удалить отсутствующих в Excel
     for (const [email, crmEmp] of crmMap) {
       if (!excelMap.has(email)) {
-        await deleteDataAsync(crmEmp.id, 'employees')
-        deleted++
+        await deleteDataAsync(crmEmp.id, "employees");
+        deleted++;
       }
     }
-    alert(`Импорт завершён. Добавлено: ${added}, обновлено: ${updated}, удалено: ${deleted}`)
-    fetchAll()
-    e.target.value = '' // сброс input
-  }
-  reader.readAsArrayBuffer(file)
+    alert(
+      `Импорт завершён. Добавлено: ${added}, обновлено: ${updated}, удалено: ${deleted}`
+    );
+    fetchAll();
+    e.target.value = ""; // сброс input
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 async function addEmployeeFromExcel(emp) {
   // Преобразуй под твой API, если нужно
-  await fetch('/api/employees/create', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  await fetch("/api/employees/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       peoples: {
         lastName: emp.lastName,
@@ -350,15 +395,15 @@ async function addEmployeeFromExcel(emp) {
       },
       birthDate: emp.birthDate,
       professionTitle: emp.profession,
-    })
-  })
+    }),
+  });
 }
 
 async function updateEmployeeFromExcel(crmEmp, excelEmp) {
   // Преобразуй под твой API, если нужно
   await fetch(`/api/employees/update/${crmEmp.id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       peoples: {
         lastName: excelEmp.lastName,
@@ -370,8 +415,8 @@ async function updateEmployeeFromExcel(crmEmp, excelEmp) {
       },
       birthDate: excelEmp.birthDate,
       professionTitle: excelEmp.profession,
-    })
-  })
+    }),
+  });
 }
 </script>
 
@@ -404,18 +449,21 @@ async function updateEmployeeFromExcel(crmEmp, excelEmp) {
   min-width: 220px;
   height: 44px;
 }
-.tree-page { padding: 32px; }
+.tree-page {
+  padding: 32px;
+}
 .tree-page h1 {
   font-size: 3em;
   font-weight: bold;
   margin-bottom: 18px;
 }
-.custom-tree .tree-label { font-weight: 600; }
+.custom-tree .tree-label {
+  font-weight: 600;
+}
 .emp-card-wrap {
   width: 100%;
   display: block;
   position: relative;
-  z-index: 1;
 }
 .emp-card {
   background: #f8f9fa;
@@ -460,11 +508,12 @@ async function updateEmployeeFromExcel(crmEmp, excelEmp) {
   color: #4a6fa1;
   font-weight: 500;
 }
-:deep(.pi-folder), :deep(.pi-user) {
+:deep(.pi-folder),
+:deep(.pi-user) {
   color: #4a6fa1;
 }
 :deep(.p-treenode-children) {
   padding-left: 24px;
   border-left: 1px solid #bfc6d1;
 }
-</style> 
+</style>

@@ -19,6 +19,7 @@ export class EditModalWindowModel {
   }
 
   private async applyData() {
+    // console.debug("!!!!!", this.endpoint, this.data);
     if (this.data && this.endpoint) {
       return await updateAsync(this.endpoint.toLowerCase(), this.data);
     }

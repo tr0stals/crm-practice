@@ -43,7 +43,6 @@ export class ProfessionsService {
   async findOne(id: number) {
     const profession = await this.professionsRepository.findOne({
       where: { id },
-      relations: ['employees'],
     });
 
     if (!profession) {
