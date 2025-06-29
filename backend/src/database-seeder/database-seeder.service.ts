@@ -199,7 +199,9 @@ export class DatabaseSeederService {
 
     // Заполнение статусов текущих задач
     const currentTaskStates = await this.seedCurrentTaskStates();
-    this.logger.log(`Создано ${currentTaskStates.length} статусов текущих задач`);
+    this.logger.log(
+      `Создано ${currentTaskStates.length} статусов текущих задач`,
+    );
 
     // Заполнение компонентов
     const components = await this.seedComponents();
@@ -333,7 +335,9 @@ export class DatabaseSeederService {
       drawingReference: faker.string.alphanumeric(10).toUpperCase(),
     }));
 
-    const components = componentsData.map((data) => this.componentsRepository.create(data));
+    const components = componentsData.map((data) =>
+      this.componentsRepository.create(data),
+    );
     return await this.componentsRepository.save(components);
   }
 
@@ -354,7 +358,9 @@ export class DatabaseSeederService {
 
     // Заполнение связей сотрудников с отделами
     const employeeDepartments = await this.seedEmployeeDepartments(employees);
-    this.logger.log(`Создано ${employeeDepartments.length} связей сотрудников с отделами`);
+    this.logger.log(
+      `Создано ${employeeDepartments.length} связей сотрудников с отделами`,
+    );
 
     // Заполнение лицензий
     const licenses = await this.seedLicenses(organizations);
@@ -531,8 +537,16 @@ export class DatabaseSeederService {
       width: `${faker.number.int({ min: 100, max: 1000 })}`,
       height: `${faker.number.int({ min: 100, max: 1000 })}`,
       thickness: `${faker.number.int({ min: 10, max: 100 })}`,
-      weightNetto: faker.number.float({ min: 10, max: 1000, fractionDigits: 2 }),
-      weightBrutto: faker.number.float({ min: 10, max: 1000, fractionDigits: 2 }),
+      weightNetto: faker.number.float({
+        min: 10,
+        max: 1000,
+        fractionDigits: 2,
+      }),
+      weightBrutto: faker.number.float({
+        min: 10,
+        max: 1000,
+        fractionDigits: 2,
+      }),
       link: faker.internet.url().substring(0, 100),
       vendorCode: faker.string.alphanumeric(10).toUpperCase(),
       manufactureTime: faker.date.future(),
@@ -581,7 +595,9 @@ export class DatabaseSeederService {
     console.log(`Создано ${orderRequests.length} заявок на заказ`);
 
     const orderRequestComponents = await this.seedOrderRequestsComponents();
-    console.log(`Создано ${orderRequestComponents.length} компонентов заявок на заказ`);
+    console.log(
+      `Создано ${orderRequestComponents.length} компонентов заявок на заказ`,
+    );
 
     const pcbOrders = await this.seedPcbOrders();
     console.log(`Создано ${pcbOrders.length} заказов PCB`);
@@ -631,11 +647,13 @@ export class DatabaseSeederService {
     return await this.orderRequestsRepository.save(orderRequests);
   }
 
-  private async seedOrderRequestsComponents(): Promise<OrderRequestsComponents[]> {
+  private async seedOrderRequestsComponents(): Promise<
+    OrderRequestsComponents[]
+  > {
     const orderRequests = await this.orderRequestsRepository.find();
     const components = await this.componentsRepository.find();
     const organizations = await this.organizationsRepository.find();
-    
+
     const data = Array.from({ length: 30 }, () => ({
       orderRequests: faker.helpers.arrayElement(orderRequests),
       component: faker.helpers.arrayElement(components),
@@ -644,19 +662,25 @@ export class DatabaseSeederService {
       comment: faker.lorem.sentence().substring(0, 45),
       supplier: faker.helpers.arrayElement(organizations),
     }));
-    const entities = data.map((d) => this.orderRequestsComponentsRepository.create(d));
+    const entities = data.map((d) =>
+      this.orderRequestsComponentsRepository.create(d),
+    );
     return await this.orderRequestsComponentsRepository.save(entities);
   }
 
-  private async seedOrderRequestComponents(): Promise<OrderRequestComponents[]> {
+  private async seedOrderRequestComponents(): Promise<
+    OrderRequestComponents[]
+  > {
     const orderRequests = await this.orderRequestsRepository.find();
     const components = await this.componentsRepository.find();
-    
+
     const data = Array.from({ length: 25 }, () => ({
       orderRequests: faker.helpers.arrayElement(orderRequests),
       component: faker.helpers.arrayElement(components),
     }));
-    const entities = data.map((d) => this.orderRequestComponentsRepository.create(d));
+    const entities = data.map((d) =>
+      this.orderRequestComponentsRepository.create(d),
+    );
     return await this.orderRequestComponentsRepository.save(entities);
   }
 
@@ -673,7 +697,10 @@ export class DatabaseSeederService {
       const randomState = faker.helpers.arrayElement(pcbOrderStates);
 
       return {
-        billNumber: faker.string.alphanumeric(10).toUpperCase().substring(0, 45),
+        billNumber: faker.string
+          .alphanumeric(10)
+          .toUpperCase()
+          .substring(0, 45),
         count: faker.number.int({ min: 1, max: 100 }),
         width: faker.number.float({ min: 10, max: 500, fractionDigits: 2 }),
         height: faker.number.float({ min: 10, max: 500, fractionDigits: 2 }),
@@ -728,11 +755,17 @@ export class DatabaseSeederService {
     const existingShipments = await this.shipmentsRepository.find({
       relations: ['licenses'],
     });
-    const usedLicenseIds = new Set(existingShipments.map(s => s.licenses?.id).filter(id => id !== undefined));
-    
+    const usedLicenseIds = new Set(
+      existingShipments
+        .map((s) => s.licenses?.id)
+        .filter((id) => id !== undefined),
+    );
+
     // Фильтруем только неиспользованные лицензии
-    const availableLicenses = licenses.filter(license => !usedLicenseIds.has(license.id));
-    
+    const availableLicenses = licenses.filter(
+      (license) => !usedLicenseIds.has(license.id),
+    );
+
     if (availableLicenses.length === 0) {
       this.logger.warn('Все лицензии уже используются в отправках');
       return [];
@@ -741,7 +774,10 @@ export class DatabaseSeederService {
     // Используем только доступные лицензии и стенды
     const shipmentsCount = Math.min(stands.length, availableLicenses.length);
     const selectedStands = faker.helpers.arrayElements(stands, shipmentsCount);
-    const selectedLicenses = faker.helpers.arrayElements(availableLicenses, shipmentsCount);
+    const selectedLicenses = faker.helpers.arrayElements(
+      availableLicenses,
+      shipmentsCount,
+    );
 
     const shipmentsData = selectedStands.map((stand, index) => {
       const randomFactory = faker.helpers.arrayElement(factories);
@@ -755,6 +791,7 @@ export class DatabaseSeederService {
           max: 100000,
           fractionDigits: 2,
         }),
+        arrivalDate: faker.date.past(),
         standNumber: faker.string.alphanumeric(8).toUpperCase(),
         addedDate: faker.date.past(),
         shipmentDate: faker.date.future(),
@@ -797,7 +834,8 @@ export class DatabaseSeederService {
   private async seedShipmentPackages(
     shipments: Shipments[],
   ): Promise<ShipmentPackage[]> {
-    const shipmentPackageStates = await this.shipmentPackageStatesRepository.find();
+    const shipmentPackageStates =
+      await this.shipmentPackageStatesRepository.find();
 
     const shipmentPackagesData = shipments.flatMap((shipment) => {
       const packageCount = faker.number.int({ min: 1, max: 5 });
@@ -806,7 +844,10 @@ export class DatabaseSeederService {
         .map(() => {
           const randomState = faker.helpers.arrayElement(shipmentPackageStates);
           return {
-            size: `${faker.number.int({ min: 1, max: 100 })}x${faker.number.int({ min: 1, max: 100 })}x${faker.number.int({ min: 1, max: 100 })}`.substring(0, 100),
+            width: faker.number.int({ min: 1, max: 45 }).toString(),
+            height: faker.number.int({ min: 1, max: 45 }).toString(),
+            thickness: faker.number.int({ min: 1, max: 45 }).toString(),
+            weight: faker.number.int({ min: 1, max: 45 }).toString(),
             photo: faker.image.url(),
             shipments: shipment,
             shipmentPackageStates: randomState,
@@ -836,10 +877,14 @@ export class DatabaseSeederService {
     this.logger.log(`Создано ${writeoffReasons.length} причин списания`);
 
     const componentPlacementTypes = await this.seedComponentPlacementTypes();
-    this.logger.log(`Создано ${componentPlacementTypes.length} типов размещения компонентов`);
+    this.logger.log(
+      `Создано ${componentPlacementTypes.length} типов размещения компонентов`,
+    );
 
     const componentPlacements = await this.seedComponentPlacements();
-    this.logger.log(`Создано ${componentPlacements.length} размещений компонентов`);
+    this.logger.log(
+      `Создано ${componentPlacements.length} размещений компонентов`,
+    );
 
     // Заполнение задач стендов
     const standTasks = await this.seedStandTasks(mainEntities.stands);
@@ -847,7 +892,9 @@ export class DatabaseSeederService {
 
     // Заполнение связей отправок и стендов
     const shipmentsStands = await this.seedShipmentsStands();
-    this.logger.log(`Создано ${shipmentsStands.length} связей отправок и стендов`);
+    this.logger.log(
+      `Создано ${shipmentsStands.length} связей отправок и стендов`,
+    );
 
     // Теперь можно создавать текущие задачи
     const currentTasks = await this.seedCurrentTasks(mainEntities.employees);
@@ -870,11 +917,15 @@ export class DatabaseSeederService {
     this.logger.log(`Создано ${billsComponents.length} компонентов счетов`);
 
     const invoicesComponents = await this.seedInvoicesComponents();
-    this.logger.log(`Создано ${invoicesComponents.length} компонентов накладных`);
+    this.logger.log(
+      `Создано ${invoicesComponents.length} компонентов накладных`,
+    );
 
     // Заполнение отпусков сотрудников
     const employeesVacations = await this.seedEmployeesVacations();
-    this.logger.log(`Создано ${employeesVacations.length} отпусков сотрудников`);
+    this.logger.log(
+      `Создано ${employeesVacations.length} отпусков сотрудников`,
+    );
 
     // Заполнение инвентаризации
     const inventarization = await this.seedInventarization();
@@ -889,7 +940,9 @@ export class DatabaseSeederService {
 
     // Заполнение поставщиков компонентов
     const supplierComponents = await this.seedSupplierComponents();
-    this.logger.log(`Создано ${supplierComponents.length} поставщиков компонентов`);
+    this.logger.log(
+      `Создано ${supplierComponents.length} поставщиков компонентов`,
+    );
 
     // Заполнение списаний
     const writeoff = await this.seedWriteoff();
@@ -897,7 +950,9 @@ export class DatabaseSeederService {
 
     // Заполнение компонентов заявок (простая связь)
     const orderRequestComponents = await this.seedOrderRequestComponents();
-    this.logger.log(`Создано ${orderRequestComponents.length} простых связей компонентов заявок`);
+    this.logger.log(
+      `Создано ${orderRequestComponents.length} простых связей компонентов заявок`,
+    );
   }
 
   private async seedCurrentTasks(
@@ -908,7 +963,12 @@ export class DatabaseSeederService {
     const standTasks = await this.standTasksRepository.find();
 
     // Проверяем, что есть все необходимые данные
-    if (!employees.length || !currentTaskStates.length || !shipmentsStands.length || !standTasks.length) {
+    if (
+      !employees.length ||
+      !currentTaskStates.length ||
+      !shipmentsStands.length ||
+      !standTasks.length
+    ) {
       this.logger.warn('Недостаточно данных для создания текущих задач');
       return [];
     }
@@ -931,13 +991,13 @@ export class DatabaseSeederService {
   private async seedPcbsComponents(): Promise<PcbsComponents[]> {
     const pcbs = await this.pcbsRepository.find();
     const components = await this.componentsRepository.find();
-    
+
     // Проверяем, что есть PCB и компоненты
     if (!pcbs.length || !components.length) {
       this.logger.warn('Нет PCB или компонентов для создания компонентов PCB');
       return [];
     }
-    
+
     const data = Array.from({ length: 30 }, () => ({
       pcb: faker.helpers.arrayElement(pcbs),
       component: faker.helpers.arrayElement(components),
@@ -947,42 +1007,52 @@ export class DatabaseSeederService {
     return await this.pcbsComponentsRepository.save(entities);
   }
 
-  private async seedCurrentTasksComponents(): Promise<CurrentTasksComponents[]> {
+  private async seedCurrentTasksComponents(): Promise<
+    CurrentTasksComponents[]
+  > {
     const tasks = await this.currentTasksRepository.find();
     const components = await this.componentsRepository.find();
-    
+
     // Проверяем, что есть задачи и компоненты
     if (!tasks.length || !components.length) {
-      this.logger.warn('Нет задач или компонентов для создания компонентов текущих задач');
+      this.logger.warn(
+        'Нет задач или компонентов для создания компонентов текущих задач',
+      );
       return [];
     }
-    
+
     const data = Array.from({ length: 30 }, () => ({
       currentTask: faker.helpers.arrayElement(tasks),
       component: faker.helpers.arrayElement(components),
       componentCount: faker.number.int({ min: 1, max: 10 }),
       warehouseComponentCount: faker.number.int({ min: 0, max: 10 }),
     }));
-    const entities = data.map((d) => this.currentTasksComponentsRepository.create(d));
+    const entities = data.map((d) =>
+      this.currentTasksComponentsRepository.create(d),
+    );
     return await this.currentTasksComponentsRepository.save(entities);
   }
 
   private async seedStandTasksComponents(): Promise<StandTasksComponents[]> {
     const standTasks = await this.standTasksRepository.find();
     const components = await this.componentsRepository.find();
-    
+
     // Проверяем, что есть задачи стендов и компоненты
     if (!standTasks.length || !components.length) {
-      this.logger.warn('Нет задач стендов или компонентов для создания компонентов задач стендов');
+      this.logger.warn(
+        'Нет задач стендов или компонентов для создания компонентов задач стендов',
+      );
       return [];
     }
-    
+
     const data = Array.from({ length: 30 }, () => ({
       standTask: faker.helpers.arrayElement(standTasks),
       component: faker.helpers.arrayElement(components),
       componentCount: faker.number.int({ min: 1, max: 10 }),
     }));
-    const entities = data.map((d) => this.standTasksComponentsRepository.create(d));
+    const entities = data.map((d) =>
+      this.standTasksComponentsRepository.create(d),
+    );
     return await this.standTasksComponentsRepository.save(entities);
   }
 
@@ -992,7 +1062,9 @@ export class DatabaseSeederService {
 
     // Проверяем, что есть профессии и компоненты
     if (!stands.length || !professions.length || !components.length) {
-      this.logger.warn('Нет стендов, профессий или компонентов для создания задач стендов');
+      this.logger.warn(
+        'Нет стендов, профессий или компонентов для создания задач стендов',
+      );
       return [];
     }
 
@@ -1008,7 +1080,9 @@ export class DatabaseSeederService {
       components: faker.helpers.arrayElement(components),
     }));
 
-    const standTasks = standTasksData.map((data) => this.standTasksRepository.create(data));
+    const standTasks = standTasksData.map((data) =>
+      this.standTasksRepository.create(data),
+    );
     return await this.standTasksRepository.save(standTasks);
   }
 
@@ -1021,7 +1095,9 @@ export class DatabaseSeederService {
       stands: faker.helpers.arrayElement(stands),
     }));
 
-    const shipmentsStands = shipmentsStandsData.map((data) => this.shipmentsStandsRepository.create(data));
+    const shipmentsStands = shipmentsStandsData.map((data) =>
+      this.shipmentsStandsRepository.create(data),
+    );
     return await this.shipmentsStandsRepository.save(shipmentsStands);
   }
 
@@ -1035,11 +1111,15 @@ export class DatabaseSeederService {
       { title: 'Несоответствие спецификации' },
     ];
 
-    const reasons = reasonsData.map((data) => this.writeoffReasonsRepository.create(data));
+    const reasons = reasonsData.map((data) =>
+      this.writeoffReasonsRepository.create(data),
+    );
     return await this.writeoffReasonsRepository.save(reasons);
   }
 
-  private async seedComponentPlacementTypes(): Promise<ComponentPlacementType[]> {
+  private async seedComponentPlacementTypes(): Promise<
+    ComponentPlacementType[]
+  > {
     const typesData = [
       { title: 'Склад A' },
       { title: 'Склад B' },
@@ -1048,34 +1128,42 @@ export class DatabaseSeederService {
       { title: 'Лаборатория' },
     ];
 
-    const types = typesData.map((data) => this.componentPlacementTypeRepository.create(data));
+    const types = typesData.map((data) =>
+      this.componentPlacementTypeRepository.create(data),
+    );
     return await this.componentPlacementTypeRepository.save(types);
   }
 
   private async seedComponentPlacements(): Promise<ComponentPlacements[]> {
     const placementTypes = await this.componentPlacementTypeRepository.find();
-    
+
     const placementsData = Array.from({ length: 20 }, () => ({
       building: faker.location.buildingNumber().substring(0, 45),
       room: faker.string.numeric(3).substring(0, 45),
       placementType: faker.helpers.arrayElement(placementTypes),
     }));
 
-    const placements = placementsData.map((data) => this.componentPlacementsRepository.create(data));
+    const placements = placementsData.map((data) =>
+      this.componentPlacementsRepository.create(data),
+    );
     return await this.componentPlacementsRepository.save(placements);
   }
 
   private async seedArrivalInvoices(): Promise<ArrivalInvoices[]> {
     const organizations = await this.organizationsRepository.find();
-    
+
     const invoicesData = Array.from({ length: 30 }, () => {
       const date = faker.date.past();
       const warehouseDate = faker.date.future();
-      
+
       return {
         date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
         scanPhoto: faker.image.url().substring(0, 100),
-        dateTimeToWarehouse: new Date(warehouseDate.getFullYear(), warehouseDate.getMonth(), warehouseDate.getDate()),
+        dateTimeToWarehouse: new Date(
+          warehouseDate.getFullYear(),
+          warehouseDate.getMonth(),
+          warehouseDate.getDate(),
+        ),
         price: faker.number.float({ min: 1000, max: 50000, fractionDigits: 2 }),
         vat: faker.datatype.boolean(),
         suppliers: faker.helpers.arrayElement(organizations),
@@ -1083,22 +1171,32 @@ export class DatabaseSeederService {
       };
     });
 
-    const invoices = invoicesData.map((data) => this.arrivalInvoicesRepository.create(data));
+    const invoices = invoicesData.map((data) =>
+      this.arrivalInvoicesRepository.create(data),
+    );
     return await this.arrivalInvoicesRepository.save(invoices);
   }
 
   private async seedBillsForPay(): Promise<BillsForPay[]> {
     const organizations = await this.organizationsRepository.find();
-    
+
     const billsData = Array.from({ length: 25 }, () => {
       const date = faker.date.past();
       const supplyDate = faker.date.future();
-      
+
       return {
         date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
         scanPhoto: faker.image.url().substring(0, 45),
-        expectedSupplyDate: new Date(supplyDate.getFullYear(), supplyDate.getMonth(), supplyDate.getDate()),
-        totalAmount: faker.number.float({ min: 5000, max: 100000, fractionDigits: 2 }),
+        expectedSupplyDate: new Date(
+          supplyDate.getFullYear(),
+          supplyDate.getMonth(),
+          supplyDate.getDate(),
+        ),
+        totalAmount: faker.number.float({
+          min: 5000,
+          max: 100000,
+          fractionDigits: 2,
+        }),
         vat: faker.datatype.boolean(),
         link: faker.internet.url().substring(0, 45),
         supplier: faker.helpers.arrayElement(organizations),
@@ -1106,14 +1204,16 @@ export class DatabaseSeederService {
       };
     });
 
-    const bills = billsData.map((data) => this.billsForPayRepository.create(data));
+    const bills = billsData.map((data) =>
+      this.billsForPayRepository.create(data),
+    );
     return await this.billsForPayRepository.save(bills);
   }
 
   private async seedBillsComponents(): Promise<BillsComponents[]> {
     const bills = await this.billsForPayRepository.find();
     const components = await this.componentsRepository.find();
-    
+
     const billsComponentsData = bills.flatMap((bill) => {
       const componentCount = faker.number.int({ min: 1, max: 5 });
       return Array(componentCount)
@@ -1123,18 +1223,20 @@ export class DatabaseSeederService {
           price: faker.number.float({ min: 10, max: 1000, fractionDigits: 2 }),
           link: faker.internet.url().substring(0, 255),
           bill: bill,
-      component: faker.helpers.arrayElement(components),
+          component: faker.helpers.arrayElement(components),
         }));
     });
 
-    const billsComponents = billsComponentsData.map((data) => this.billsComponentsRepository.create(data));
+    const billsComponents = billsComponentsData.map((data) =>
+      this.billsComponentsRepository.create(data),
+    );
     return await this.billsComponentsRepository.save(billsComponents);
   }
 
   private async seedInvoicesComponents(): Promise<InvoicesComponents[]> {
     const arrivalInvoices = await this.arrivalInvoicesRepository.find();
     const components = await this.componentsRepository.find();
-    
+
     const invoicesComponentsData = arrivalInvoices.flatMap((invoice) => {
       const componentCount = faker.number.int({ min: 1, max: 5 });
       return Array(componentCount)
@@ -1146,39 +1248,55 @@ export class DatabaseSeederService {
         }));
     });
 
-    const invoicesComponents = invoicesComponentsData.map((data) => this.invoicesComponentsRepository.create(data));
+    const invoicesComponents = invoicesComponentsData.map((data) =>
+      this.invoicesComponentsRepository.create(data),
+    );
     return await this.invoicesComponentsRepository.save(invoicesComponents);
   }
 
   private async seedEmployeesVacations(): Promise<EmployeesVacations[]> {
     const employees = await this.employeesRepository.find();
     const organizations = await this.organizationsRepository.find();
-    
+
     const vacationsData = Array.from({ length: 50 }, () => {
       const startDate = faker.date.past();
       const endDate = faker.date.future();
-      
+
       return {
-        startDate: new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()),
-        endDate: new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()),
+        startDate: new Date(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate(),
+        ),
+        endDate: new Date(
+          endDate.getFullYear(),
+          endDate.getMonth(),
+          endDate.getDate(),
+        ),
         employees: faker.helpers.arrayElement(employees),
         factory: faker.helpers.arrayElement(organizations),
       };
     });
 
-    const vacations = vacationsData.map((data) => this.employeesVacationsRepository.create(data));
+    const vacations = vacationsData.map((data) =>
+      this.employeesVacationsRepository.create(data),
+    );
     return await this.employeesVacationsRepository.save(vacations);
   }
 
   private async seedInventarization(): Promise<Inventarization[]> {
     const components = await this.componentsRepository.find();
     const organizations = await this.organizationsRepository.find();
-    
+
     const inventarizationData = Array.from({ length: 40 }, () => {
       const date = faker.date.past();
-      
+
       return {
-        inventarizationDate: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+        inventarizationDate: new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+        ),
         componentCount: faker.number.int({ min: 1, max: 1000 }),
         inventarizationQuality: faker.number.int({ min: 1, max: 100 }),
         component: faker.helpers.arrayElement(components),
@@ -1186,7 +1304,9 @@ export class DatabaseSeederService {
       };
     });
 
-    const inventarization = inventarizationData.map((data) => this.inventarizationRepository.create(data));
+    const inventarization = inventarizationData.map((data) =>
+      this.inventarizationRepository.create(data),
+    );
     return await this.inventarizationRepository.save(inventarization);
   }
 
@@ -1194,12 +1314,16 @@ export class DatabaseSeederService {
     const components = await this.componentsRepository.find();
     const organizations = await this.organizationsRepository.find();
     const currentTasks = await this.currentTasksRepository.find();
-    
+
     const serverArrivalsData = Array.from({ length: 30 }, () => {
       const dateTime = faker.date.past();
-      
+
       return {
-        dateTime: new Date(dateTime.getFullYear(), dateTime.getMonth(), dateTime.getDate()),
+        dateTime: new Date(
+          dateTime.getFullYear(),
+          dateTime.getMonth(),
+          dateTime.getDate(),
+        ),
         componentCount: faker.number.int({ min: 1, max: 100 }),
         components: faker.helpers.arrayElement(components),
         factory: faker.helpers.arrayElement(organizations),
@@ -1207,7 +1331,9 @@ export class DatabaseSeederService {
       };
     });
 
-    const serverArrivals = serverArrivalsData.map((data) => this.serverArrivalsRepository.create(data));
+    const serverArrivals = serverArrivalsData.map((data) =>
+      this.serverArrivalsRepository.create(data),
+    );
     return await this.serverArrivalsRepository.save(serverArrivals);
   }
 
@@ -1215,12 +1341,16 @@ export class DatabaseSeederService {
     const components = await this.componentsRepository.find();
     const organizations = await this.organizationsRepository.find();
     const currentTasks = await this.currentTasksRepository.find();
-    
+
     const serverWriteoffData = Array.from({ length: 25 }, () => {
       const dateTime = faker.date.past();
-      
+
       return {
-        dateTime: new Date(dateTime.getFullYear(), dateTime.getMonth(), dateTime.getDate()),
+        dateTime: new Date(
+          dateTime.getFullYear(),
+          dateTime.getMonth(),
+          dateTime.getDate(),
+        ),
         componentCount: faker.number.int({ min: 1, max: 50 }).toString(),
         components: faker.helpers.arrayElement(components),
         factory: faker.helpers.arrayElement(organizations),
@@ -1228,20 +1358,24 @@ export class DatabaseSeederService {
       };
     });
 
-    const serverWriteoff = serverWriteoffData.map((data) => this.serverWriteoffRepository.create(data));
+    const serverWriteoff = serverWriteoffData.map((data) =>
+      this.serverWriteoffRepository.create(data),
+    );
     return await this.serverWriteoffRepository.save(serverWriteoff);
   }
 
   private async seedSupplierComponents(): Promise<SupplierComponents[]> {
     const components = await this.componentsRepository.find();
-    
+
     const supplierComponentsData = Array.from({ length: 60 }, () => ({
       componentId: faker.helpers.arrayElement(components).id,
       productUrl: faker.internet.url(),
       component: faker.helpers.arrayElement(components),
     }));
 
-    const supplierComponents = supplierComponentsData.map((data) => this.supplierComponentsRepository.create(data));
+    const supplierComponents = supplierComponentsData.map((data) =>
+      this.supplierComponentsRepository.create(data),
+    );
     return await this.supplierComponentsRepository.save(supplierComponents);
   }
 
@@ -1249,12 +1383,16 @@ export class DatabaseSeederService {
     const components = await this.componentsRepository.find();
     const organizations = await this.organizationsRepository.find();
     const writeoffReasons = await this.writeoffReasonsRepository.find();
-    
+
     const writeoffData = Array.from({ length: 35 }, () => {
       const dateTime = faker.date.past();
-      
+
       return {
-        dateTime: new Date(dateTime.getFullYear(), dateTime.getMonth(), dateTime.getDate()),
+        dateTime: new Date(
+          dateTime.getFullYear(),
+          dateTime.getMonth(),
+          dateTime.getDate(),
+        ),
         count: faker.number.int({ min: 1, max: 100 }),
         comment: faker.lorem.sentence(),
         writeoffReasons: faker.helpers.arrayElement(writeoffReasons),
@@ -1263,7 +1401,9 @@ export class DatabaseSeederService {
       };
     });
 
-    const writeoff = writeoffData.map((data) => this.writeoffRepository.create(data));
+    const writeoff = writeoffData.map((data) =>
+      this.writeoffRepository.create(data),
+    );
     return await this.writeoffRepository.save(writeoff);
   }
 }

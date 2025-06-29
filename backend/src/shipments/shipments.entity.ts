@@ -30,10 +30,10 @@ export class Shipments {
   @Column({ type: 'date' })
   arrivalDate: Date;
 
-  @Column({nullable: true, length: 200})
+  @Column({ nullable: true, length: 200 })
   specificationImage: string;
 
-  @Column({nullable: true, length:200})
+  @Column({ nullable: true, length: 200 })
   comment: string;
 
   @OneToMany(
@@ -63,4 +63,7 @@ export class Shipments {
   @ManyToOne(() => Organizations, (organization) => organization.client)
   @JoinColumn({ name: 'clientId' })
   client: Organizations;
+
+  @OneToMany(() => ShipmentsStands, (shipmentStand) => shipmentStand.shipments)
+  shipmentStands: ShipmentsStands[];
 }
