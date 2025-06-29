@@ -14,7 +14,7 @@ export class ShipmentsStands {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Shipments, (shipment) => shipment.shipmentsStands)
+  @ManyToOne(() => Shipments, (shipment) => shipment.shipmentStands)
   @JoinColumn({ name: 'shipmentId' })
   shipments: Shipments;
 
