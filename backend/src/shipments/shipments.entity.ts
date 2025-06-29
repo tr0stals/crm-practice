@@ -49,9 +49,6 @@ export class Shipments {
   @OneToMany(() => ShipmentTrips, (shipmentTrip) => shipmentTrip.shipments)
   shipmentTrips: ShipmentTrips[];
 
-  @OneToMany(() => ShipmentsStands, (shipmentStand) => shipmentStand.shipments)
-  shipmentStands: ShipmentsStands[];
-
   @ManyToOne(
     () => Organizations,
     (organization) => organization.shipmentFactory,

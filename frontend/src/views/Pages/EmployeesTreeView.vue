@@ -61,32 +61,106 @@ const search = ref('')
 const selectedKey = ref(null)
 const selectedEmployee = shallowRef(null)
 const importInput = ref(null)
+const organizations = ref([])
+const departments = ref([])
 
 onMounted(async () => {
-  await fetchEmployees()
+  await fetchAll()
 })
 
-async function fetchEmployees() {
-  const { data } = await getDataAsync({ endpoint: '/employees/get' })
-  treeData.value = groupEmployees(data)
+async function fetchAll() {
+  const [emps, orgs, depts] = await Promise.all([
+    getDataAsync({ endpoint: '/employees/get' }),
+    getDataAsync({ endpoint: '/organizations/get' }),
+    getDataAsync({ endpoint: '/departments/get' })
+  ])
+  organizations.value = orgs.data
+  departments.value = depts.data
+  treeData.value = groupEmployees(emps.data, orgs.data, depts.data)
 }
 
-function groupEmployees(employees) {
-  const orgMap = {}
-  employees.forEach(emp => {
-    const org = emp.organization?.fullName || 'Без организации'
-    const dept = emp.employeeDepartments?.[0]?.departments?.title || 'Без отдела'
-    if (!orgMap[org]) orgMap[org] = {}
-    if (!orgMap[org][dept]) orgMap[org][dept] = []
-    orgMap[org][dept].push(emp)
+function groupEmployees(employees, allOrganizations, allDepartments) {
+  const tree = []
+
+  allOrganizations.forEach(org => {
+    const orgNode = {
+      label: org.fullName,
+      key: 'org-' + org.id,
+      children: [],
+      id: org.id,
+      isOrganization: true,
+      selectable: false,
+      icon: 'pi pi-folder',
+    }
+
+    // Все отделы этой организации
+    const orgDepartments = allDepartments.filter(dept => !dept.organizationId || dept.organizationId === org.id)
+    if (orgDepartments.length) {
+      orgDepartments.forEach(dept => {
+        // Сотрудники этого отдела
+        const deptEmployees = employees.filter(emp =>
+          Array.isArray(emp.employeeDepartments) &&
+          emp.employeeDepartments.some(ed => ed.departments?.id === dept.id)
+        )
+        const deptNode = {
+          label: dept.title,
+          key: `org-${org.id}-dept-${dept.id}`,
+          children: deptEmployees.map(emp => ({
+            label: `${emp.peoples?.lastName || ''} ${emp.peoples?.firstName || ''} ${emp.peoples?.middleName || ''}`.trim(),
+            isEmployee: true,
+            birthDate: emp.birthDate,
+            profession: emp.profession?.title,
+            phone: emp.peoples?.phone,
+            email: emp.peoples?.email,
+            comment: emp.peoples?.comment,
+            key: 'emp-' + emp.id,
+            id: emp.id,
+            raw: emp,
+            icon: 'pi pi-user',
+          })),
+          id: dept.id,
+          isDepartment: true,
+          icon: 'pi pi-folder',
+        }
+        orgNode.children.push(deptNode)
+      })
+    } else {
+      // Если нет отделов — "Без отдела"
+      const deptEmployees = employees.filter(emp =>
+        (!emp.employeeDepartments || !emp.employeeDepartments.length) && emp.organization?.id === org.id
+      )
+      orgNode.children.push({
+        label: 'Без отдела',
+        key: `org-${org.id}-dept-none`,
+        children: deptEmployees.map(emp => ({
+          label: `${emp.peoples?.lastName || ''} ${emp.peoples?.firstName || ''} ${emp.peoples?.middleName || ''}`.trim(),
+          isEmployee: true,
+          birthDate: emp.birthDate,
+          profession: emp.profession?.title,
+          phone: emp.peoples?.phone,
+          email: emp.peoples?.email,
+          comment: emp.peoples?.comment,
+          key: 'emp-' + emp.id,
+          id: emp.id,
+          raw: emp,
+          icon: 'pi pi-user',
+        })),
+        isDepartment: true,
+        icon: 'pi pi-folder',
+      })
+    }
+    tree.push(orgNode)
   })
-  return Object.entries(orgMap).map(([org, depts]) => ({
-    label: org,
-    key: org,
-    children: Object.entries(depts).map(([dept, emps]) => ({
-      label: dept,
-      key: org + '-' + dept,
-      children: emps.map(emp => ({
+
+  // "Без организации"
+  const noOrgEmployees = employees.filter(emp => !emp.organization)
+  tree.push({
+    label: 'Без организации',
+    key: 'org-none',
+    children: [{
+      label: 'Без отдела',
+      key: 'org-none-dept-none',
+      children: noOrgEmployees.map(emp => ({
         label: `${emp.peoples?.lastName || ''} ${emp.peoples?.firstName || ''} ${emp.peoples?.middleName || ''}`.trim(),
         isEmployee: true,
         birthDate: emp.birthDate,
@@ -96,10 +170,18 @@ function groupEmployees(employees) {
         comment: emp.peoples?.comment,
         key: 'emp-' + emp.id,
         id: emp.id,
-        raw: emp
-      }))
-    }))
-  }))
+        raw: emp,
+        icon: 'pi pi-user',
+      })),
+      isDepartment: true,
+      icon: 'pi pi-folder',
+    }],
+    isOrganization: true,
+    selectable: false,
+    icon: 'pi pi-folder',
+  })
+
+  return tree
 }
 
 const filteredTreeData = computed(() => {
@@ -145,7 +227,7 @@ function handleAdd() {
   ModalManager.getInstance().open(AddEntity, {
     sectionName: 'employees',
     onClose: () => ModalManager.getInstance().closeModal(),
-    onSuccess: () => { ModalManager.getInstance().closeModal(); fetchEmployees(); }
+    onSuccess: () => { ModalManager.getInstance().closeModal(); fetchAll(); }
   })
 }
 function handleEdit() {
@@ -153,17 +235,17 @@ function handleEdit() {
   if (!emp) return alert('Выберите сотрудника для редактирования')
   ModalManager.getInstance().open(EditModalWindow, {
     config: { sectionName: 'employees', data: emp.raw },
-    onApplyCallback: () => { ModalManager.getInstance().closeModal(); fetchEmployees(); }
+    onApplyCallback: () => { ModalManager.getInstance().closeModal(); fetchAll(); }
   })
 }
 function handleDelete() {
   const emp = getSelectedEmployee()
   if (!emp) return alert('Выберите сотрудника для удаления')
   if (!confirm('Точно удалить сотрудника?')) return
-  deleteDataAsync(emp.id, 'employees').then(fetchEmployees)
+  deleteDataAsync(emp.id, 'employees').then(fetchAll)
 }
 function handleRefresh() {
-  fetchEmployees()
+  fetchAll()
 }
 function exportExcel() {
   const flat = getFlatEmployees()
@@ -246,7 +328,7 @@ async function handleImportFile(e) {
       }
     }
     alert(`Импорт завершён. Добавлено: ${added}, обновлено: ${updated}, удалено: ${deleted}`)
-    fetchEmployees()
+    fetchAll()
     e.target.value = '' // сброс input
   }
   reader.readAsArrayBuffer(file)
@@ -366,5 +448,23 @@ async function updateEmployeeFromExcel(crmEmp, excelEmp) {
   color: #888;
   min-width: 110px;
   display: inline-block;
+}
+:deep(.p-treenode-children) {
+  padding-left: 32px;
+}
+:deep(.p-tree) {
+  background: #f6f8fc;
+  color: #4a6fa1;
+}
+:deep(.p-treenode-label) {
+  color: #4a6fa1;
+  font-weight: 500;
+}
+:deep(.pi-folder), :deep(.pi-user) {
+  color: #4a6fa1;
+}
+:deep(.p-treenode-children) {
+  padding-left: 24px;
+  border-left: 1px solid #bfc6d1;
 }
 </style> 
