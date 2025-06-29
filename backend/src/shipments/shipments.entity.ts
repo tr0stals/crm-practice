@@ -2,6 +2,7 @@ import { License } from 'src/license/license.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
 import { ShipmentPackage } from 'src/shipment-package/shipment-package.entity';
 import { ShipmentTrips } from 'src/shipment-trips/shipment-trips.entity';
+import { ShipmentsStands } from 'src/shipments-stands/shipments-stands.entity';
 import {
   Column,
   Entity,
@@ -47,6 +48,9 @@ export class Shipments {
 
   @OneToMany(() => ShipmentTrips, (shipmentTrip) => shipmentTrip.shipments)
   shipmentTrips: ShipmentTrips[];
+
+  @OneToMany(() => ShipmentsStands, (shipmentsStands) => shipmentsStands.shipments)
+  shipmentsStands: ShipmentsStands[];
 
   @ManyToOne(
     () => Organizations,

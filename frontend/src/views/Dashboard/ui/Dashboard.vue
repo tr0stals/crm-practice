@@ -571,6 +571,11 @@ function handleSidebarClick(section: string) {
   } else if (lower === "organizations") {
     router.push("/organizations");
   } else if (
+    lower === "components" ||
+    lower === "компоненты"
+  ) {
+    router.push("/components");
+  } else if (
     lower === "user" ||
     lower === "users" ||
     lower === "пользователи"
@@ -600,6 +605,16 @@ function handleSidebarClick(section: string) {
     lower === "заявки на заказ"
   ) {
     router.push("/order-requests");
+  } else if (
+    lower === "current_tasks" ||
+    lower === "текущие задачи"
+  ) {
+    router.push("/current_tasks");
+  } else if (
+    lower === "departments" ||
+    lower === "отделы"
+  ) {
+    router.push("/departments");
   } else {
     currentSection.value = section;
   }

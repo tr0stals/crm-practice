@@ -45,7 +45,7 @@ export class EmployeesService {
 
   async getAll() {
     return await this.employeesRepository.find({
-      relations: ['peoples'],
+      relations: ['peoples', 'employeeDepartments', 'employeeDepartments.departments'],
     });
   }
 

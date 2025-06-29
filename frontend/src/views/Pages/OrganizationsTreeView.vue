@@ -30,11 +30,19 @@
           <div class="org-card-wrap">
             <div class="org-card">
               <div class="org-title">{{ slotProps.node.label }}</div>
-              <div class="org-row"><span>Тип:</span> {{ slotProps.node.type }}</div>
-              <div class="org-row"><span>ИНН:</span> {{ slotProps.node.inn }}</div>
-              <div class="org-row"><span>Телефон:</span> {{ slotProps.node.phone }}</div>
-              <div class="org-row"><span>Email:</span> {{ slotProps.node.email }}</div>
-              <div class="org-row"><span>Комментарий:</span> {{ slotProps.node.comment }}</div>
+              <div class="org-row"><span>Тип:</span> {{ slotProps.node.type || '—' }}</div>
+              <div class="org-row"><span>ИНН:</span> {{ slotProps.node.inn || '—' }}</div>
+              <div class="org-row"><span>КПП:</span> {{ slotProps.node.kpp || '—' }}</div>
+              <div class="org-row"><span>ОГРН:</span> {{ slotProps.node.orgn || '—' }}</div>
+              <div class="org-row"><span>Дата ОГРН:</span> {{ slotProps.node.orgnDate || '—' }}</div>
+              <div class="org-row"><span>Юр. адрес:</span> {{ slotProps.node.lawAddress || '—' }}</div>
+              <div class="org-row"><span>Факт. адрес:</span> {{ slotProps.node.factAddress || '—' }}</div>
+              <div class="org-row"><span>Почтовый адрес:</span> {{ slotProps.node.postAddress || '—' }}</div>
+              <div class="org-row"><span>Телефон:</span> {{ slotProps.node.phone || '—' }}</div>
+              <div class="org-row"><span>Email:</span> {{ slotProps.node.email || '—' }}</div>
+              <div class="org-row"><span>Комментарий:</span> {{ slotProps.node.comment || '—' }}</div>
+              <div class="org-row"><span>Рейтинг:</span> {{ slotProps.node.rating ?? '—' }}</div>
+              <div class="org-row"><span>Электронные доки:</span> {{ slotProps.node.digitalDocs ? 'Да' : 'Нет' }}</div>
             </div>
           </div>
         </template>
@@ -75,25 +83,33 @@ function groupOrganizations(orgs) {
   // Группируем по типу организации
   const typeMap = {}
   orgs.forEach(org => {
-    const type = org.organizationType?.title || 'Без типа'
-    if (!typeMap[type]) typeMap[type] = []
-    typeMap[type].push(org)
+    const typeKey = org.organizationTypes?.title || 'Без типа'
+    if (!typeMap[typeKey]) typeMap[typeKey] = []
+    typeMap[typeKey].push({
+      label: org.fullName,
+      isOrganization: true,
+      type: org.organizationTypes?.title || 'Без типа',
+      inn: org.inn,
+      kpp: org.kpp,
+      orgn: org.orgn,
+      orgnDate: org.orgnDate,
+      lawAddress: org.lawAddress,
+      factAddress: org.factAddress,
+      postAddress: org.postAddress,
+      phone: org.phone,
+      email: org.email,
+      comment: org.comment,
+      rating: org.rating,
+      digitalDocs: org.digitalDocs,
+      key: 'org-' + org.id,
+      id: org.id,
+      raw: org
+    })
   })
   return Object.entries(typeMap).map(([type, orgs]) => ({
     label: type,
     key: type,
-    children: orgs.map(org => ({
-      label: org.fullName,
-      isOrganization: true,
-      type: org.organizationType?.title,
-      inn: org.inn,
-      phone: org.phone,
-      email: org.email,
-      comment: org.comment,
-      key: 'org-' + org.id,
-      id: org.id,
-      raw: org
-    }))
+    children: orgs
   }))
 }
 

@@ -9,6 +9,16 @@ import { useAuthStore } from "@/shared/store/auth.store";
 import AuthView from "@/views/AuthView/ui/AuthView.vue";
 import ErrorView from "@/views/ErrorView/ui/ErrorView.vue";
 import Dashboard from "@/views/Dashboard/ui/Dashboard.vue";
+import EmployeesTreeView from '@/views/Pages/EmployeesTreeView.vue'
+import DepartmentsTreeView from '@/views/Pages/DepartmentsTreeView.vue'
+import OrganizationsTreeView from '@/views/Pages/OrganizationsTreeView.vue'
+import ComponentsTreeView from '@/views/Pages/ComponentsTreeView.vue'
+import CurrentTasksTreeView from '@/views/Pages/CurrentTasksTreeView.vue'
+import LicenseTypesTreeView from '@/views/Pages/LicenseTypesTreeView.vue'
+import OrderRequestsTreeView from '@/views/Pages/OrderRequestsTreeView.vue'
+import PcbOrdersTreeView from '@/views/Pages/PcbOrdersTreeView.vue'
+import UsersTreeView from '@/views/Pages/UsersTreeView.vue'
+import WarehouseComponentsTreeView from '@/views/Pages/WarehouseComponentsTreeView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -30,35 +40,43 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/employees',
-    component: () => import('@/views/EmployeesTreeView.vue')
+    component: EmployeesTreeView
+  },
+  {
+    path: '/departments',
+    component: DepartmentsTreeView
   },
   {
     path: '/organizations',
-    component: () => import('@/views/OrganizationsTreeView.vue')
+    component: OrganizationsTreeView
   },
   {
-    path: '/users',
-    component: () => import('@/views/UsersTreeView.vue')
+    path: '/components',
+    component: ComponentsTreeView
+  },
+  {
+    path: '/current-tasks',
+    component: CurrentTasksTreeView
   },
   {
     path: '/license_types',
-    component: () => import('@/views/LicenseTypesTreeView.vue')
+    component: LicenseTypesTreeView
+  },
+  {
+    path: '/order_requests',
+    component: OrderRequestsTreeView
+  },
+  {
+    path: '/pcb_orders',
+    component: PcbOrdersTreeView
+  },
+  {
+    path: '/users',
+    component: UsersTreeView
   },
   {
     path: '/warehouse_components',
-    component: () => import('@/views/WarehouseComponentsTreeView.vue')
-  },
-  {
-    path: '/pcb-orders',
-    name: 'PcbOrdersTreeView',
-    component: () => import('@/views/PcbOrdersTreeView.vue'),
-    meta: { title: 'Заказы печатных плат' }
-  },
-  {
-    path: '/order-requests',
-    name: 'OrderRequestsTreeView',
-    component: () => import('@/views/OrderRequestsTreeView.vue'),
-    meta: { title: 'Заявки на заказ' }
+    component: WarehouseComponentsTreeView
   },
   {
     path: "/:pathMatch(.*)*",
