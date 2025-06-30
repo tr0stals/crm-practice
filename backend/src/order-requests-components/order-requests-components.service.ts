@@ -17,14 +17,14 @@ export class OrderRequestsComponentsService {
 
   async findAll(): Promise<OrderRequestsComponents[]> {
     return await this.repository.find({
-      relations: ['components', 'orderRequests']
+      relations: ['component', 'orderRequests']
     });
   }
 
   async findOne(id: number): Promise<OrderRequestsComponents> {
     const entity = await this.repository.findOne({
       where: { id },
-      relations: ['components', 'orderRequests']
+      relations: ['component', 'orderRequests']
     });
     if (!entity) {
       throw new NotFoundException(`Компонент заявки на заказ с ID ${id} не найден`);

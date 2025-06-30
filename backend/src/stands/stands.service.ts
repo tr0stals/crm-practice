@@ -16,7 +16,7 @@ export class StandsService {
   }
 
   findAll() {
-    return this.repo.find({ relations: ['standTypes', 'employees', 'standAssemblies', 'standPackages', 'orderRequests', 'pcbs'] });
+    return this.repo.find({ relations: ['standType', 'employees', 'standPackages', 'orderRequests', 'pcbs'] });
   }
 
   findOne(id: number) {

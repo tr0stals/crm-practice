@@ -23,7 +23,8 @@ import { EmployeeDepartmentsModule } from './employee-departments/employee-depar
 import { ProfessionsModule } from './professions/professions.module';
 import { StandPackagesModule } from './stand-packages/stand-packages.module';
 import { OrderRequestsModule } from './order-requests/order-requests.module';
-import { OrderRequestComponentsModule } from './order-requests-components/order-requests-components.module';
+import { OrderRequestsComponentsModule } from './order-requests-components/order-requests-components.module';
+import { OrderRequestComponentsModule } from './order-request-components/order-request-components.module';
 import { PcbOrderStatesModule } from './pcb-order-states/pcb-order-states.module';
 import { PcbsModule } from './pcbs/pcbs.module';
 import { PcbOrdersModule } from './pcb-orders/pcb-orders.module';
@@ -88,6 +89,7 @@ import { StandTasksComponentsModule } from './stand-tasks-components/stand-tasks
     StandPackagesModule,
     OrderRequestsModule,
     OrderRequestComponentsModule,
+    OrderRequestsComponentsModule,
     PcbOrderStatesModule,
     PcbsModule,
     PcbOrdersModule,

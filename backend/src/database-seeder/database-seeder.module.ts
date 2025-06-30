@@ -20,7 +20,8 @@ import { ComponentsModule } from '../components/components.module';
 import { PcbsModule } from '../pcbs/pcbs.module';
 import { PcbOrdersModule } from '../pcb-orders/pcb-orders.module';
 import { OrderRequestsModule } from '../order-requests/order-requests.module';
-import { OrderRequestComponentsModule } from '../order-requests-components/order-requests-components.module';
+import { OrderRequestsComponentsModule } from '../order-requests-components/order-requests-components.module';
+import { OrderRequestComponentsModule } from 'src/order-request-components/order-request-components.module';
 import { ShipmentsModule } from '../shipments/shipments.module';
 import { ShipmentTripsModule } from '../shipment-trips/shipment-trips.module';
 import { ShipmentPackageModule } from '../shipment-package/shipment-package.module';
@@ -138,6 +139,7 @@ import { WriteoffReasons } from '../writeoff-reasons/writeoff-reasons.entity';
     PcbOrdersModule,
     OrderRequestsModule,
     OrderRequestComponentsModule,
+    OrderRequestsComponentsModule,
     ShipmentsModule,
     ShipmentTripsModule,
     ShipmentPackageModule,

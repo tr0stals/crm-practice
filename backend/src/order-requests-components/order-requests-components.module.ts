@@ -10,4 +10,4 @@ import { OrderRequestsComponentsController } from './order-requests-components.c
   controllers: [OrderRequestsComponentsController],
   exports: [OrderRequestsComponentsService]
 })
-export class OrderRequestComponentsModule {}
+export class OrderRequestsComponentsModule {}
