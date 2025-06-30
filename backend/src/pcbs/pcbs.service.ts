@@ -17,14 +17,14 @@ export class PcbsService {
 
   async findAll(): Promise<PCBS[]> {
     return await this.repository.find({
-      relations: ['pcbOrders', 'stands']
+      relations: ['pcbOrders', 'stands', 'component']
     });
   }
 
   async findOne(id: number): Promise<PCBS> {
     const entity = await this.repository.findOne({
       where: { id },
-      relations: ['pcbOrders', 'stands']
+      relations: ['pcbOrders', 'stands', 'component']
     });
     if (!entity) {
       throw new NotFoundException(`Печатная плата с ID ${id} не найдена`);

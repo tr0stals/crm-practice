@@ -19,6 +19,20 @@ export class ComponentsService {
     return await this.repository.find({
       relations: [
         'supplierComponents',
+        'standTasks',
+        'writeoffs',
+        'serverWriteoffs',
+        'invoicesComponents',
+        'serverArrivals',
+        'orderRequestsComponents',
+        'componentPlacements',
+        'orderRequestComponents',
+        'pcbs',
+        'pcbsComponents',
+        'billsComponents',
+        'currentTasksComponents',
+        'standTasksComponents',
+        'inventarizations',
       ]
     });
   }
@@ -28,6 +42,20 @@ export class ComponentsService {
       where: { id },
       relations: [
         'supplierComponents',
+        'standTasks',
+        'writeoffs',
+        'serverWriteoffs',
+        'invoicesComponents',
+        'serverArrivals',
+        'orderRequestsComponents',
+        'componentPlacements',
+        'orderRequestComponents',
+        'pcbs',
+        'pcbsComponents',
+        'billsComponents',
+        'currentTasksComponents',
+        'standTasksComponents',
+        'inventarizations',
       ]
     });
     if (!entity) {

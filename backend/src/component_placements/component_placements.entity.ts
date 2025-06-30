@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { ComponentPlacementType } from '../component_placement_type/component_placement_type.entity';
+import { Components } from 'src/components/components.entity';
 
 @Entity()
 export class ComponentPlacements {
@@ -15,4 +16,7 @@ export class ComponentPlacements {
   @ManyToOne(() => ComponentPlacementType)
   @JoinColumn({ name: 'placementTypeId' })
   placementType: ComponentPlacementType;
+
+  @OneToMany(() => Components, (component) => component.componentPlacements)
+  components: Components[];
 } 

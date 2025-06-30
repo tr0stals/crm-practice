@@ -14,6 +14,13 @@ import { InvoicesComponents } from 'src/invoices-components/invoices-components.
 import { ServerArrivals } from 'src/server-arrivals/server-arrivals.entity';
 import { OrderRequestsComponents } from 'src/order-requests-components/order-requests-components.entity';
 import { ComponentPlacements } from 'src/component_placements/component_placements.entity';
+import { OrderRequestComponents } from 'src/order-request-components/order-request-components.entity';
+import { Inventarization } from 'src/inventarization/inventarization.entity';
+import { StandTasksComponents } from 'src/stand-tasks-components/stand-tasks-components.entity';
+import { BillsComponents } from 'src/bills-components/bills-components.entity';
+import { CurrentTasksComponents } from 'src/current-tasks-components/current-tasks-components.entity';
+import { PcbsComponents } from 'src/pcbs-components/pcbs-components.entity';
+import { PCBS } from 'src/pcbs/pcbs.entity';
 
 @Entity()
 export class Components {
@@ -52,7 +59,7 @@ export class Components {
 
   @ManyToOne(() => ComponentPlacements)
   @JoinColumn({ name: 'placementId' })
-  placement: ComponentPlacements;
+  componentPlacements: ComponentPlacements;
 
   @OneToMany(
     () => SupplierComponents,
@@ -86,4 +93,25 @@ export class Components {
     (orderRequestsComponent) => orderRequestsComponent.component,
   )
   orderRequestsComponents: OrderRequestsComponents[];
+
+  @OneToMany(() => PCBS, (pcb) => pcb.component)
+  pcbs: PCBS[];
+
+  @OneToMany(() => PcbsComponents, (pcbsComponent) => pcbsComponent.component)
+  pcbsComponents: PcbsComponents[];
+
+  @OneToMany(() => BillsComponents, (billsComponent) => billsComponent.component)
+  billsComponents: BillsComponents[];
+
+  @OneToMany(() => CurrentTasksComponents, (currentTasksComponent) => currentTasksComponent.component)
+  currentTasksComponents: CurrentTasksComponents[];
+
+  @OneToMany(() => StandTasksComponents, (standTasksComponent) => standTasksComponent.component)
+  standTasksComponents: StandTasksComponents[];
+
+  @OneToMany(() => Inventarization, (inventarization) => inventarization.component)
+  inventarizations: Inventarization[];
+
+  @OneToMany(() => OrderRequestComponents, (orderRequestComponent) => orderRequestComponent.component)
+  orderRequestComponents: OrderRequestComponents[];
 }

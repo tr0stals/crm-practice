@@ -43,6 +43,7 @@ import { InvoicesComponentsModule } from './invoices-components/invoices-compone
 import { ServerArrivalsModule } from './server-arrivals/server-arrivals.module';
 import { ComponentPlacementsModule } from './component_placements/component_placements.module';
 import { CurrentTasksComponentsModule } from './current-tasks-components/current-tasks-components.module';
+import { CurrentTasksModule } from './current-tasks/current-tasks.module';
 import { ComponentPlacementTypeModule } from './component_placement_type/component_placement_type.module';
 import { BillsForPayModule } from './bills-for-pay/bills-for-pay.module';
 import { BillsComponentsModule } from './bills-components/bills-components.module';
@@ -115,6 +116,7 @@ import { StandTasksComponentsModule } from './stand-tasks-components/stand-tasks
     PcbsComponentsModule,
     StandTasksComponentsModule,
     ArrivalInvoicesModule,
+    CurrentTasksModule,
   ],
   controllers: [AppController, StandsController],
   providers: [AppService],

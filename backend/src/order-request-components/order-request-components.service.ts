@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderRequestComponents } from './order-request-components.entity';
@@ -10,25 +10,36 @@ export class OrderRequestComponentsService {
     private readonly repo: Repository<OrderRequestComponents>,
   ) {}
 
-  findAll() {
-    return this.repo.find();
-  }
-
-  findOne(id: number) {
-    return this.repo.findOne({ where: { id } });
-  }
-
-  create(data: Partial<OrderRequestComponents>) {
+  async create(data: Partial<OrderRequestComponents>): Promise<OrderRequestComponents> {
     const entity = this.repo.create(data);
-    return this.repo.save(entity);
+    return await this.repo.save(entity);
   }
 
-  async update(id: number, data: Partial<OrderRequestComponents>) {
+  async findAll(): Promise<OrderRequestComponents[]> {
+    return await this.repo.find({
+      relations: ['component', 'orderRequests']
+    });
+  }
+
+  async findOne(id: number): Promise<OrderRequestComponents> {
+    const entity = await this.repo.findOne({
+      where: { id },
+      relations: ['component', 'orderRequests']
+    });
+    if (!entity) {
+      throw new NotFoundException(`Компонент заявки на заказ с ID ${id} не найден`);
+    }
+    return entity;
+  }
+
+  async update(id: number, data: Partial<OrderRequestComponents>): Promise<OrderRequestComponents> {
+    await this.findOne(id); // Проверяем существование
     await this.repo.update(id, data);
-    return this.repo.findOne({ where: { id } });
+    return await this.findOne(id);
   }
 
-  remove(id: number) {
-    return this.repo.delete(id);
+  async remove(id: number): Promise<void> {
+    await this.findOne(id); // Проверяем существование
+    await this.repo.delete(id);
   }
 } 
