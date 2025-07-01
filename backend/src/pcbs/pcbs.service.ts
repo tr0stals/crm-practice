@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PCBS } from './pcbs.entity';
+import { PCB_CATEGORIES } from './pcbs-categories';
 
 @Injectable()
 export class PcbsService {
@@ -41,5 +42,35 @@ export class PcbsService {
   async remove(id: number): Promise<void> {
     await this.findOne(id); // Проверяем существование
     await this.repository.delete(id);
+  }
+
+  async getPcbsTree() {
+    const pcbs = await this.repository.find({ relations: ['pcbsComponents', 'pcbsComponents.component'] });
+  
+    function buildPcbChildren(parentId) {
+      return pcbs
+        .filter(pcb => pcb.parentId === parentId)
+        .map(pcb => ({
+          name: `Плата #${pcb.id}`,
+          children: Array.isArray(pcb.pcbsComponents)
+            ? pcb.pcbsComponents.map(comp => ({
+                name: `${comp.component?.title || `Компонент #${comp.id}`} (${comp.componentCount} шт)`,
+                id: comp.id,
+                componentCount: comp.componentCount,
+                component: comp.component,
+              }))
+            : [],
+        }));
+    }
+  
+    const tree = PCB_CATEGORIES.map(cat => ({
+      name: cat.name,
+      children: cat.subcategories.map(subcat => ({
+        name: subcat.name,
+        children: buildPcbChildren(subcat.id),
+      })),
+    }));
+  
+    return { name: 'Платы', children: tree };
   }
 }

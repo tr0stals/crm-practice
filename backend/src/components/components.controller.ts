@@ -33,4 +33,9 @@ export class ComponentsController {
   async remove(@Param('id') id: number): Promise<void> {
     await this.service.remove(id);
   }
+
+  @Get('tree')
+  async getComponentsTree() {
+    return this.service.getComponentsTree();
+  }
 } 

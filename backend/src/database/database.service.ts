@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { databaseParentIdStrategies } from './database-parent-id-strategies';
 
 @Injectable()
 export class DatabaseService {
@@ -115,7 +116,8 @@ export class DatabaseService {
     return found?.referencedColumn ?? null;
   }
 
-  private async getSelectOptions(relatedTable: any) {
+  private async getSelectOptions(relatedTable: any, currentId?: number, columnName?: string, tableName?: string) {
+ 
     const metadata = this.dataSource.getMetadata(relatedTable);
     const relationNames = metadata.relations.map((rel) => rel.propertyName);
 
@@ -123,30 +125,56 @@ export class DatabaseService {
       relations: relationNames,
     });
 
+    // Стандартная логика для остальных случаев
     return rows.map((row) => ({
       id: row.id,
       label:
         row.title ||
         row.name ||
+        (row.placementType && row.placementType.title
+          ? `${row.placementType.title} `
+          : '') +
+          (row.building ? `${row.building} ` : '') +
+          (row.room ? `${row.room}` : '') ||
         (row.peoples
           ? `${row.peoples.firstName} ${row.peoples.lastName} ${row.peoples.middleName}`
           : row.code || `${row.firstName} ${row.lastName} ${row.middleName}`),
     }));
   }
 
-  async getFormMetadata(tableName: string) {
+  async getFormMetadata(tableName: string, currentId?: number) {
     const columns = await this.getTableColumns(tableName);
 
     const formStructure: Record<string, any> = {};
 
     for (const column of columns) {
+      // Для organizations parentId — асинхронно получаем типы организаций
+      if (tableName === 'organizations' && column === 'parentId') {
+        const orgTypes = await this.dataSource.getRepository('organization_types').find();
+        formStructure[column] = {
+          type: 'select',
+          options: orgTypes.map(t => ({ id: t.id, label: t.title })),
+        };
+        continue;
+      }
+      // Универсальная обработка parentId для всех таблиц из стратегии
+      if (column === 'parentId' && databaseParentIdStrategies[tableName]) {
+        const strategy = databaseParentIdStrategies[tableName];
+        formStructure[column] = {
+          type: 'select',
+          options: typeof strategy.options === 'function'
+            ? strategy.options()
+            : [],
+        };
+        continue;
+      }
       if (column.endsWith('Id')) {
         const relatedTable = await this.inferRelatedTable(tableName, column);
 
         formStructure[column] = {
           type: 'select',
           options: relatedTable
-            ? await this.getSelectOptions(relatedTable)
+            ? await this.getSelectOptions(relatedTable, currentId, column, tableName)
             : [],
         };
       } else if (column.toLowerCase().includes('date')) {

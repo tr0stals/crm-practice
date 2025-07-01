@@ -50,6 +50,7 @@ import { BillsComponentsModule } from './bills-components/bills-components.modul
 import { InventarizationModule } from './inventarization/inventarization.module';
 import { PcbsComponentsModule } from './pcbs-components/pcbs-components.module';
 import { StandTasksComponentsModule } from './stand-tasks-components/stand-tasks-components.module';
+import { DatabaseEagerCachingModule } from './database-eager-caching/database-eager-caching.module';
 
 @Module({
   imports: [
@@ -80,6 +81,7 @@ import { StandTasksComponentsModule } from './stand-tasks-components/stand-tasks
     StandsModule,
     StandTypesModule,
     ShipmentsModule,
+    DatabaseEagerCachingModule,
     DatabaseModule,
     ShipmentPackageStatesModule,
     ShipmentPackageModule,

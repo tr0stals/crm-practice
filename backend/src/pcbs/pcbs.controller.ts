@@ -30,4 +30,9 @@ export class PcbsController {
   async remove(@Param('id') id: string) {
     return await this.service.remove(+id);
   }
+
+  @Get('tree')
+  async getPcbsTree() {
+    return this.service.getPcbsTree();
+  }
 }

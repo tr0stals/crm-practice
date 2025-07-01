@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Components } from './components.entity';
+import { COMPONENT_CATEGORIES } from './component-categories';
 
 @Injectable()
 export class ComponentsService {
@@ -18,21 +19,7 @@ export class ComponentsService {
   async findAll(): Promise<Components[]> {
     return await this.repository.find({
       relations: [
-        'supplierComponents',
-        'standTasks',
-        'writeoffs',
-        'serverWriteoffs',
-        'invoicesComponents',
-        'serverArrivals',
-        'orderRequestsComponents',
-        'componentPlacements',
-        'orderRequestComponents',
-        'pcbs',
-        'pcbsComponents',
-        'billsComponents',
-        'currentTasksComponents',
-        'standTasksComponents',
-        'inventarizations',
+        'componentPlacements'
       ]
     });
   }
@@ -41,21 +28,7 @@ export class ComponentsService {
     const entity = await this.repository.findOne({
       where: { id },
       relations: [
-        'supplierComponents',
-        'standTasks',
-        'writeoffs',
-        'serverWriteoffs',
-        'invoicesComponents',
-        'serverArrivals',
-        'orderRequestsComponents',
         'componentPlacements',
-        'orderRequestComponents',
-        'pcbs',
-        'pcbsComponents',
-        'billsComponents',
-        'currentTasksComponents',
-        'standTasksComponents',
-        'inventarizations',
       ]
     });
     if (!entity) {
@@ -73,5 +46,31 @@ export class ComponentsService {
   async remove(id: number): Promise<void> {
     await this.findOne(id); // Проверяем существование
     await this.repository.delete(id);
+  }
+
+  async getComponentsTree() {
+    const components = await this.repository.find();
+
+    // Рекурсивная функция для поиска дочерних компонентов
+    function buildComponentChildren(parentId) {
+      return components
+        .filter(c => c.parentId === parentId)
+        .map(c => ({
+          name: c.title,
+          ...c,
+          children: buildComponentChildren(c.id),
+        }));
+    }
+
+    // Строим дерево по категориям и подкатегориям
+    const tree = COMPONENT_CATEGORIES.map(category => ({
+      name: category.name,
+      children: category.subcategories.map(subcat => ({
+        name: subcat.name,
+        children: buildComponentChildren(subcat.id),
+      })),
+    }));
+
+    return { name: 'Актуальный склад', children: tree };
   }
 } 

@@ -47,6 +47,8 @@ import { ShipmentsStands } from '../shipments-stands/shipments-stands.entity';
 import { User } from '../user/user.entity';
 import { Writeoff } from '../writeoff/writeoff.entity';
 import { WriteoffReasons } from '../writeoff-reasons/writeoff-reasons.entity';
+import { COMPONENT_CATEGORIES } from '../components/component-categories';
+import { PCB_CATEGORIES } from '../pcbs/pcbs-categories';
 
 @Injectable()
 export class DatabaseSeederService {
@@ -203,7 +205,14 @@ export class DatabaseSeederService {
       `Создано ${currentTaskStates.length} статусов текущих задач`,
     );
 
-    // Заполнение компонентов
+    // Сначала сидируем типы и размещения компонентов
+    const componentPlacementTypes = await this.seedComponentPlacementTypes();
+    this.logger.log(`Создано ${componentPlacementTypes.length} типов размещения компонентов`);
+
+    const componentPlacements = await this.seedComponentPlacements();
+    this.logger.log(`Создано ${componentPlacements.length} размещений компонентов`);
+
+    // Теперь сидируем компоненты
     const components = await this.seedComponents();
     this.logger.log(`Создано ${components.length} компонентов`);
 
@@ -215,6 +224,8 @@ export class DatabaseSeederService {
       shipmentPackageStates,
       pcbOrderStates,
       currentTaskStates,
+      componentPlacementTypes,
+      componentPlacements,
       components,
     };
   }
@@ -323,18 +334,26 @@ export class DatabaseSeederService {
   }
 
   private async seedComponents(): Promise<Components[]> {
-    const componentsData = Array.from({ length: 100 }, () => ({
-      title: faker.commerce.productName().substring(0, 45),
-      photo: faker.image.url().substring(0, 45),
-      width: faker.number.float({ min: 10, max: 1000, fractionDigits: 2 }),
-      height: faker.number.float({ min: 10, max: 1000, fractionDigits: 2 }),
-      thickness: faker.number.float({ min: 1, max: 100, fractionDigits: 2 }),
-      weight: faker.number.float({ min: 10, max: 1000, fractionDigits: 2 }),
-      material: faker.commerce.productMaterial().substring(0, 45),
-      receiptDate: faker.date.past(),
-      drawingReference: faker.string.alphanumeric(10).toUpperCase(),
-    }));
-
+    // Собираем все подкатегории
+    const allSubcategories = COMPONENT_CATEGORIES.flatMap(cat => cat.subcategories);
+    const placements = await this.componentPlacementsRepository.find();
+    const componentsData = Array.from({ length: 100 }, (_, i) => {
+      const subcat = faker.helpers.arrayElement(allSubcategories);
+      const placement = faker.helpers.arrayElement(placements);
+      return {
+        title: faker.commerce.productName().substring(0, 45),
+        photo: faker.image.url().substring(0, 45),
+        width: faker.number.float({ min: 10, max: 1000, fractionDigits: 2 }),
+        height: faker.number.float({ min: 10, max: 1000, fractionDigits: 2 }),
+        thickness: faker.number.float({ min: 1, max: 100, fractionDigits: 2 }),
+        weight: faker.number.float({ min: 10, max: 1000, fractionDigits: 2 }),
+        material: faker.commerce.productMaterial().substring(0, 45),
+        receiptDate: faker.date.past(),
+        drawingReference: faker.string.alphanumeric(10).toUpperCase(),
+        parentId: subcat.id,
+        componentPlacements: placement,
+      };
+    });
     const components = componentsData.map((data) =>
       this.componentsRepository.create(data),
     );
@@ -417,11 +436,11 @@ export class DatabaseSeederService {
     peoples: Peoples[],
   ): Promise<Organizations[]> {
     const organizationTypes = await this.organizationTypesRepository.find();
-
     const organizationsData = Array.from({ length: 50 }, () => {
       const ogrnDate = faker.date.past();
+      const orgType = faker.helpers.arrayElement(organizationTypes);
       return {
-        parentId: faker.string.alphanumeric(10),
+        parentId: String(orgType.id),
         fullName: faker.company.name().substring(0, 80),
         shortName: faker.company.name().substring(0, 80),
         lawAddress: faker.location.streetAddress().substring(0, 100),
@@ -441,7 +460,7 @@ export class DatabaseSeederService {
         rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }),
         comment: faker.lorem.sentence().substring(0, 45),
         peoples: faker.helpers.arrayElement(peoples),
-        organizationTypes: faker.helpers.arrayElement(organizationTypes),
+        organizationTypes: orgType,
       };
     });
 
@@ -578,12 +597,17 @@ export class DatabaseSeederService {
 
   private async seedPCBS(stands: Stands[]): Promise<PCBS[]> {
     const components = await this.componentsRepository.find();
-    const pcbsData = stands.map((stand) => ({
-      parentId: faker.number.int({ min: 0, max: 10 }),
-      component: faker.helpers.arrayElement(components),
-      stands: stand,
-    }));
-
+    const allPcbSubcategories = PCB_CATEGORIES.flatMap(cat => cat.subcategories);
+    // Для синхронизации componentId между pcbs и pcbs-components
+    const pcbsData = stands.map((stand, i) => {
+      const subcat = faker.helpers.arrayElement(allPcbSubcategories);
+      const component = faker.helpers.arrayElement(components);
+      return {
+        parentId: subcat.id,
+        component: component,
+        stands: stand,
+      };
+    });
     const pcbs = pcbsData.map((data) => this.pcbsRepository.create(data));
     return await this.pcbsRepository.save(pcbs);
   }
@@ -618,11 +642,10 @@ export class DatabaseSeederService {
   private async seedOrderRequests(): Promise<OrderRequests[]> {
     const employees = await this.employeesRepository.find();
     const organizations = await this.organizationsRepository.find();
-
+    const stands = await this.standsRepository.find();
     const orderRequestsData = Array.from({ length: 30 }, () => {
       const requestDate = faker.date.past();
       const completionDate = faker.date.future();
-
       return {
         title: faker.commerce.productName().substring(0, 45),
         requestDatetime: new Date(
@@ -638,9 +661,9 @@ export class DatabaseSeederService {
         comment: faker.lorem.sentence().substring(0, 45),
         employeeCreator: faker.helpers.arrayElement(employees),
         factory: faker.helpers.arrayElement(organizations),
+        stands: faker.helpers.arrayElement(stands),
       };
     });
-
     const orderRequests = orderRequestsData.map((data) =>
       this.orderRequestsRepository.create(data),
     );
