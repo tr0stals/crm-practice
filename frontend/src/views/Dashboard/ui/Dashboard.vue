@@ -23,7 +23,6 @@ import {
 } from "vue";
 import "../style.scss";
 import type { IData } from "../interface/IData";
-import { DashboardModel } from "../model/DashboardModel";
 import { getUsers } from "@/shared/api/userApi";
 import { deleteDataAsync } from "../api/deleteDataAsync";
 import AvatarIcon from "@/shared/ui/AvatarIcon/ui/AvatarIcon.vue";
@@ -34,6 +33,7 @@ import * as XLSX from "xlsx";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import type { IAuthorizedUser } from "../interface/IAuthorizedUser";
 import { roleTables } from "@/shared/config/rolesTables";
+import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -225,7 +225,7 @@ function getSectionEndpoint(section: string): string {
     return `/database/${sectionLower}`;
   }
   if (customSections.map((s) => s.toLowerCase()).includes(sectionLower)) {
-    return `/${sectionLower.replace(/_/g, "-")}/get`;
+    return `/${sectionLower.replace(/_/g, "-")}/generateData`;
   }
   return `/database/${sectionLower}`;
 }
@@ -266,10 +266,10 @@ const onUpdateCallBack = async () => {
 const handleEditModalWindow = () => {
   const cfg: IEdittingProps = {
     sectionName: currentSection.value,
-    data: targetData.value,
+    entityId: targetData.value.id,
   };
 
-  if (!cfg.data) {
+  if (!cfg.entityId) {
     alert("Выберите строку для редактирования");
     return;
   }
@@ -565,6 +565,8 @@ const filteredTreeData = computed(() => {
 });
 
 function handleSidebarClick(section: string) {
+  if (!section) return;
+
   const lower = section.toLowerCase();
   if (lower === "employees") {
     router.push("/employees");
@@ -624,7 +626,7 @@ function handleSidebarClick(section: string) {
           <li
             v-for="section in sectionsList"
             :data-js-sectionName="section"
-            @click="handleSidebarClick(section)"
+            @click="currentSection = section"
           >
             {{ localizatedSections[section] }}
           </li>
@@ -654,7 +656,9 @@ function handleSidebarClick(section: string) {
 
       <!-- Content -->
       <section class="content-section" v-if="currentSection">
-        <h2 class="content-section__title">{{ currentSection }}</h2>
+        <h2 class="content-section__title">
+          {{ localizatedSections[currentSection] }}
+        </h2>
         <!-- Action Buttons, Search, and Filter Placeholder -->
         <div class="controls">
           <div class="action-buttons">
@@ -692,13 +696,7 @@ function handleSidebarClick(section: string) {
 
         <!-- Table -->
         <div class="table-container" v-if="showTableContainer">
-          <table
-            :key="currentSection + '-table'"
-            v-if="
-              currentSection !== 'license' && currentSection !== 'organizations'
-            "
-            class="data-table"
-          >
+          <table :key="currentSection + '-table'" class="data-table">
             <thead>
               <tr>
                 <th
@@ -707,6 +705,7 @@ function handleSidebarClick(section: string) {
                   style="position: relative"
                 >
                   {{ key }}
+                  <!-- {{ key }} -->
                   <button
                     @click.stop="toggleFilterDropdown(key)"
                     style="margin-left: 4px; cursor: pointer"
@@ -804,10 +803,6 @@ function handleSidebarClick(section: string) {
             "
           >
             <CustomTreeview
-              v-if="
-                currentSection.toLowerCase() === 'license' ||
-                currentSection.toLowerCase() === 'organizations'
-              "
               :key="currentSection + '-treeview'"
               :data="filteredTreeData"
               :currentSection="currentSection"

@@ -43,6 +43,7 @@ export class ModalManager {
     modalInstanceNode.classList.add("modalInstance");
 
     this.#appInstance = createApp(component, props);
+
     this.#appInstance.mount(modalInstanceNode);
 
     document.querySelector("body")?.appendChild(modalInstanceNode);

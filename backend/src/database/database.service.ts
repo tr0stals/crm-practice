@@ -116,14 +116,19 @@ export class DatabaseService {
     return found?.referencedColumn ?? null;
   }
 
-  private async getSelectOptions(relatedTable: any, currentId?: number, columnName?: string, tableName?: string) {
- 
+  private async getSelectOptions(
+    relatedTable: any,
+    currentId?: number,
+    columnName?: string,
+    tableName?: string,
+  ) {
     const metadata = this.dataSource.getMetadata(relatedTable);
     const relationNames = metadata.relations.map((rel) => rel.propertyName);
 
     const rows = await this.dataSource.getRepository(relatedTable).find({
       relations: relationNames,
     });
+    console.log('ROWSSSSSSS!!!', rows);
 
     // Стандартная логика для остальных случаев
     return rows.map((row) => ({
@@ -150,10 +155,12 @@ export class DatabaseService {
     for (const column of columns) {
       // Для organizations parentId — асинхронно получаем типы организаций
       if (tableName === 'organizations' && column === 'parentId') {
-        const orgTypes = await this.dataSource.getRepository('organization_types').find();
+        const orgTypes = await this.dataSource
+          .getRepository('organization_types')
+          .find();
         formStructure[column] = {
           type: 'select',
-          options: orgTypes.map(t => ({ id: t.id, label: t.title })),
+          options: orgTypes.map((t) => ({ id: t.id, label: t.title })),
         };
         continue;
       }
@@ -162,9 +169,8 @@ export class DatabaseService {
         const strategy = databaseParentIdStrategies[tableName];
         formStructure[column] = {
           type: 'select',
-          options: typeof strategy.options === 'function'
-            ? strategy.options()
-            : [],
+          options:
+            typeof strategy.options === 'function' ? strategy.options() : [],
         };
         continue;
       }
@@ -174,7 +180,12 @@ export class DatabaseService {
         formStructure[column] = {
           type: 'select',
           options: relatedTable
-            ? await this.getSelectOptions(relatedTable, currentId, column, tableName)
+            ? await this.getSelectOptions(
+                relatedTable,
+                currentId,
+                column,
+                tableName,
+              )
             : [],
         };
       } else if (column.toLowerCase().includes('date')) {

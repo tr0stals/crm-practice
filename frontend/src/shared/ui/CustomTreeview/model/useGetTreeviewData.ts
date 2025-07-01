@@ -27,7 +27,12 @@ export async function useGetTreeviewData(
   },
   searchQuery?: string
 ): Promise<{ tree: TreeNode[]; expandedKeys: Record<string, boolean> }> {
-  console.debug("useGetTreeviewData called with:", { data, currentSection, foreignConfig, searchQuery });
+  console.debug("useGetTreeviewData called with:", {
+    data,
+    currentSection,
+    foreignConfig,
+    searchQuery,
+  });
 
   if (!data || data.length === 0) {
     console.warn("Empty data passed to useGetTreeviewData");
@@ -35,10 +40,14 @@ export async function useGetTreeviewData(
   }
 
   // --- Фильтрация дерева по поиску ---
-  function filterTree(nodes: TreeNode[], query: string, expanded: Record<string, boolean>): TreeNode[] {
+  function filterTree(
+    nodes: TreeNode[],
+    query: string,
+    expanded: Record<string, boolean>
+  ): TreeNode[] {
     const q = query.toLowerCase();
     return nodes
-      .map(node => {
+      .map((node) => {
         let match = false;
         // Проверяем совпадение в label или data
         if (
@@ -65,14 +74,21 @@ export async function useGetTreeviewData(
 
   // --- Сборка дерева как раньше ---
   let tree: TreeNode[];
-  if (currentSection?.toLowerCase() === 'license' || currentSection?.toLowerCase() === 'organizations') {
+  if (
+    currentSection?.toLowerCase() === "license" ||
+    currentSection?.toLowerCase() === "organizations"
+  ) {
     const allKeys = data.reduce((acc: string[], item: Record<string, any>) => {
       Object.keys(item).forEach((key: string) => {
         if (!acc.includes(key)) acc.push(key);
       });
       return acc;
     }, [] as string[]);
-    const commonKeys = allKeys.filter((key: string) => data.every((item: Record<string, any>) => key in item));
+
+    const commonKeys = allKeys.filter((key: string) =>
+      data.every((item: Record<string, any>) => key in item)
+    );
+
     const rootNode: TreeNode = {
       key: "root",
       label: currentSection || "Раздел",
@@ -85,9 +101,9 @@ export async function useGetTreeviewData(
           key: `col-${columnName}-val-${item.id}`,
           label: String(item[columnName]),
           data: item[columnName],
-          leaf: true
-        }))
-      }))
+          leaf: true,
+        })),
+      })),
     };
     tree = [rootNode];
   } else {
@@ -96,7 +112,7 @@ export async function useGetTreeviewData(
         key: "root",
         label: currentSection || "Раздел",
         data: currentSection,
-        children: data.map(item => ({
+        children: data.map((item) => ({
           key: `child-${item.id}`,
           label: item.fullName || item.name || item.label || item.id,
           data: item,

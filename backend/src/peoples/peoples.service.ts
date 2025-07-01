@@ -34,6 +34,30 @@ export class PeoplesService {
     }
   }
 
+  async generateData() {
+    try {
+      const peoples = await this.getPeoples();
+      const data: any[] = [];
+
+      peoples?.map((item) => {
+        const fullname = `${item.firstName} ${item.middleName} ${item.lastName}`;
+
+        data.push({
+          id: item.id,
+          fullname: fullname,
+          phone: item.phone,
+          email: item.email,
+          birthDate: item.birthDate,
+          comment: item.comment,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async getPeoples() {
     try {
       return await this.peoplesRepository.find();

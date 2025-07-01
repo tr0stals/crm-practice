@@ -29,8 +29,16 @@ export class OrganizationsController {
     return await this.organizationsService.get();
   }
 
+  @Get('get/:id')
+  async getById(@Param('id') id: number) {
+    return await this.organizationsService.getById(id);
+  }
+
   @ApiOperation({ summary: 'Получение дерева организаций' })
-  @ApiResponse({ status: 200, description: 'Дерево организаций получено успешно' })
+  @ApiResponse({
+    status: 200,
+    description: 'Дерево организаций получено успешно',
+  })
   @Get('tree')
   async getOrganizationsTree() {
     return await this.organizationsService.getOrganizationsTree();
@@ -49,5 +57,4 @@ export class OrganizationsController {
   async delete(@Param('id') id: number) {
     return await this.organizationsService.remove(id);
   }
-
 }

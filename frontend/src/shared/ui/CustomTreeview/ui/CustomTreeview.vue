@@ -9,6 +9,7 @@ const props = defineProps<{
   onClick?: (node: TreeNode) => void;
   data: any[];
   currentSection: string;
+  component?: any;
   extraClasses?: string[];
   extraAttrs?: string[];
   searchQuery?: string;
@@ -26,7 +27,12 @@ watch(selectedKey, (newVal) => {
 watch(
   () => [props.data, props.currentSection, props.searchQuery],
   async ([newData, newSection, newSearch]) => {
-    const { tree, expandedKeys: expKeys } = await useGetTreeviewData(newData, newSection, { foreignTableName: "organization_types" }, newSearch);
+    const { tree, expandedKeys: expKeys } = await useGetTreeviewData(
+      newData,
+      newSection,
+      { foreignTableName: "organization_types" },
+      newSearch
+    );
     treeviewData.value = tree;
     expandedKeys.value = expKeys;
     console.debug("treeviewData:", treeviewData.value);
@@ -63,6 +69,9 @@ watch(
       >
         {{ slotProps.node.label }}
       </span>
+      <template v-else-if="component">
+        <component></component>
+      </template>
       <span v-else>{{ slotProps.node.label }}</span>
     </template>
   </Tree>

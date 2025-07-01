@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LicenseTypes } from './license-types.entity';
@@ -34,6 +34,17 @@ export class LicenseTypesService {
     } catch (e) {
       console.error('Ошибка при получении LicenseTypes');
     }
+  }
+
+  async getLicenseTypeById(incomingId: number) {
+    const licenseType = await this.licenseRepository.findOne({
+      where: { id: incomingId },
+    });
+
+    if (!licenseType)
+      throw new NotFoundException(`Тип лицензия с id ${incomingId} не найден`);
+
+    return licenseType;
   }
 
   async update(id: number, license: LicenseTypeDTO) {

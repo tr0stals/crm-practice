@@ -36,11 +36,13 @@ export class EditModalWindowModel {
       if (target && target === document.querySelector(this.attrs.applyBtn)) {
         const attr = getAttr(this.attrs.applyBtn).toString();
         const key = JSON.parse(target.getAttribute(attr));
+        console.debug(key);
 
         this.endpoint = key.sectionName;
         this.data = key.formData;
 
         const response = this.applyData();
+        console.debug("response!!!!!", response);
 
         response
           .then((res) => {

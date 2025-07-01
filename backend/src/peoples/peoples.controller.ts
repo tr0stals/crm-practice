@@ -24,6 +24,16 @@ export class PeoplesController {
     return await this.peoplesService.getPeoples();
   }
 
+  @Get('get/:id')
+  async getById(@Param('id') id: number) {
+    return await this.peoplesService.findById(id);
+  }
+
+  @Get('generateData')
+  async generateData() {
+    return await this.peoplesService.generateData();
+  }
+
   @Patch('update/:id')
   async updatePeople(@Param('id') id: number, @Body() people: PeoplesDTO) {
     return await this.peoplesService.update(id, people);

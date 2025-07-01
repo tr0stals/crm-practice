@@ -43,6 +43,16 @@ export class EmployeesController {
     return await this.employeesService.getAll();
   }
 
+  @Get('get/:id')
+  async getById(@Param('id') id: number) {
+    return await this.employeesService.findById(id);
+  }
+
+  @Get('generateData')
+  async generateData() {
+    return await this.employeesService.generateData();
+  }
+
   // @ApiOperation({ summary: 'Получение сотрудника по ID' })
   // @ApiResponse({ status: 200, description: 'Сотрудник найден' })
   // @ApiResponse({ status: 404, description: 'Сотрудник не найден' })
@@ -52,7 +62,10 @@ export class EmployeesController {
   // }
 
   @ApiOperation({ summary: 'Получение дерева сотрудников' })
-  @ApiResponse({ status: 200, description: 'Дерево сотрудников получено успешно' })
+  @ApiResponse({
+    status: 200,
+    description: 'Дерево сотрудников получено успешно',
+  })
   @Get('tree')
   async getEmployeesTree() {
     return await this.employeesService.getEmployeesTree();

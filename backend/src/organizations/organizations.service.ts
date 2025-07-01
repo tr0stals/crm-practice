@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Organizations } from './organizations.entity';
 import { Repository } from 'typeorm';
@@ -63,6 +63,21 @@ export class OrganizationsService {
     }
   }
 
+  async getById(incomingId: number) {
+    try {
+      const organization = await this.organizationRepository.findOne({
+        where: { id: incomingId },
+        relations: ['organizationTypes'],
+      });
+
+      if (!organization) throw new NotFoundException('Организация не найдена');
+
+      return organization;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async update(id: number, data: OrganizationsDTO) {
     try {
       return await this.organizationRepository.update(id, data);
@@ -91,7 +106,7 @@ export class OrganizationsService {
       const orgs = orgType.organizations || [];
       result.children.push({
         name: orgTypeName,
-        children: orgs.map(org => ({ name: org.fullName, ...org })),
+        children: orgs.map((org) => ({ name: org.fullName, ...org })),
       });
     }
     return result;

@@ -36,6 +36,11 @@ export class UserController {
     return await this.userService.getUserWithProfessionTitle(id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.userService.generateData();
+  }
+
   @Patch('update/:id')
   async update(@Param('id') id, @Body() updateUser: UserRegisterDTO) {
     return await this.userService.update(id, updateUser);

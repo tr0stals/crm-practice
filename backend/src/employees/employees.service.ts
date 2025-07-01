@@ -31,7 +31,7 @@ export class EmployeesService {
 
   async create(data: EmployeesDTO) {
     const people = await this.peoplesRepository.findOne({
-      where: { id: data.peopleId },
+      where: { id: data.peoples.id },
     });
 
     if (!people) throw new Error('Target people not found');
@@ -45,15 +45,49 @@ export class EmployeesService {
 
   async getAll() {
     return await this.employeesRepository.find({
-      relations: ['peoples', 'employeeDepartments', 'employeeDepartments.departments'],
+      relations: [
+        'peoples',
+        'employeeDepartments',
+        'employeeDepartments.departments',
+      ],
+    });
+  }
+
+  async generateData() {
+    const data = await this.getAll();
+
+    return data.map((item: any) => {
+      const peoples = item.peoples;
+      const fullname = [
+        peoples?.lastName,
+        peoples?.firstName,
+        peoples?.middleName,
+      ]
+        .filter(Boolean)
+        .join(' ');
+
+      const departmentTitles =
+        item.employeeDepartments?.map((dep: any) => dep.departments?.title) ||
+        [];
+
+      return {
+        id: item.id,
+        dismissalDate: item.dismissalDate,
+        fullname: fullname,
+        departmentTitle: departmentTitles.join(', '), // если нужно все департаменты через запятую
+        // Если только первый: departmentTitle: departmentTitles[0] || ''
+      };
     });
   }
 
   async update(id: number, data: EmployeesDTO) {
     const employee = await this.employeesRepository.findOne({ where: { id } });
     if (!employee) return null;
+
+    console.log('data.peopleId type:', typeof data.peoples.id);
+
     const people = await this.peoplesRepository.findOne({
-      where: { id: data.peopleId },
+      where: { id: data.peoples.id },
     });
 
     Object.assign(employee, data, { peoples: people });
@@ -64,6 +98,7 @@ export class EmployeesService {
     try {
       return await this.employeesRepository.findOne({
         where: { id: incomingId },
+        relations: ['peoples'],
       });
     } catch (e) {
       throw new Error('Не удалось найти сотрудника по ID');

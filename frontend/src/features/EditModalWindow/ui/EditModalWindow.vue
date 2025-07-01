@@ -8,20 +8,22 @@ import { EditModalWindowModel } from "../model/EditModalWindowModel";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
+import { getDataAsync } from "@/shared/api/getDataAsync";
 
-const data = ref<any[]>([]);
+const data = ref<any>();
+const formData = ref<any>({});
+const dateModel = reactive<Record<string, any>>({});
+const relatedOptions = reactive<Record<string, any[]>>({});
 
 const props = defineProps<{
   config?: IEdittingProps;
   onApplyCallback: () => {};
 }>();
 
-console.debug(props.onApplyCallback);
+const { sectionName, entityId } = props?.config;
+// const { licenseTypeId, ...originalData } = props.config?.data;
 
-const { licenseTypeId, ...originalData } = props.config?.data;
-const formData = reactive(originalData);
-
-function isDateField(key) {
+function isDateField(key: any) {
   const lower = key.toLowerCase();
   return (
     lower.includes("date") ||
@@ -31,27 +33,63 @@ function isDateField(key) {
   );
 }
 
-const dateFields = Object.keys(formData).filter(isDateField);
-const dateModel = reactive<Record<string, any>>({});
-dateFields.forEach((key) => {
-  dateModel[key] = formData[key] ? formData[key].slice(0, 10) : null;
-  watch(
-    () => dateModel[key],
-    (val) => {
-      formData[key] = val ? val : null;
-    }
-  );
+watch(data, async (newValue) => {
+  console.debug(newValue);
 });
 
+function isObjectField(value: any) {
+  return value && typeof value === "object" && !Array.isArray(value);
+}
+
 const getInputType = (key: string, value: any): string => {
-  if (isDateField(key)) return "date";
   if (typeof value === "boolean") return "checkbox";
   if (typeof value === "number") return "number";
+  if (isObjectField(value)) return "select";
   return "text";
 };
 
-onMounted(() => {
+async function loadRelatedOptions(key: string) {
+  try {
+    const response = await getDataAsync({ endpoint: `${key}/get` });
+    relatedOptions[key] = response?.data ?? [];
+  } catch (error) {
+    console.error(`Не удалось загрузить справочник для ${key}`, error);
+    relatedOptions[key] = [];
+  }
+}
+
+onMounted(async () => {
   new EditModalWindowModel(props.onApplyCallback);
+
+  const response = await getDataAsync({
+    endpoint: `${sectionName}/get/${entityId}`,
+  });
+
+  data.value = response.data;
+  formData.value = { ...response.data };
+
+  // Поиск полей с датами
+  const dateFields = Object.keys(formData.value).filter(isDateField);
+  dateFields.forEach((key) => {
+    dateModel[key] = formData.value[key]
+      ? formData.value[key].slice(0, 10)
+      : null;
+    watch(
+      () => dateModel[key],
+      (val) => {
+        formData.value[key] = val || null;
+      }
+    );
+  });
+
+  // Поиск полей-объектов (foreign keys)
+  const objectFields = Object.entries(formData.value).filter(([, value]) =>
+    isObjectField(value)
+  );
+
+  for (const [key] of objectFields) {
+    await loadRelatedOptions(key);
+  }
 });
 </script>
 
@@ -76,8 +114,10 @@ onMounted(() => {
         class="editModalWindow__content__field"
       >
         <label class="editModalWindow__content__field__label" :for="key">
-          {{ fieldDictionary[key] }}
+          {{ fieldDictionary[key] || key }}
         </label>
+
+        <!-- Date -->
         <VueDatePicker
           v-if="isDateField(key)"
           v-model="dateModel[key]"
@@ -90,6 +130,40 @@ onMounted(() => {
           placeholder="Выберите дату"
           auto-apply
         />
+
+        <!-- Select for object (relation) -->
+        <select
+          v-else-if="isObjectField(value)"
+          class="editModalWindow__content__field__input"
+          :id="key"
+          :name="key"
+          :value="formData[key]?.id"
+          @change="
+            (e) => {
+              const selected = relatedOptions[key]?.find(
+                (item) => item.id === Number(e.target.value)
+              );
+              formData[key] = selected || null;
+            }
+          "
+        >
+          <option value="">Не выбрано</option>
+          <option
+            v-for="item in relatedOptions[key]"
+            :key="item.id"
+            :value="item.id"
+          >
+            {{ item.lastName || "" }} {{ item.firstName || "" }}
+            {{ item.middleName || "" }}
+            {{
+              !item.firstName && !item.lastName
+                ? item.name || item.title || "Без названия"
+                : ""
+            }}
+          </option>
+        </select>
+
+        <!-- Phone mask -->
         <input
           v-else-if="key === 'phone'"
           class="editModalWindow__content__field__input"
@@ -100,6 +174,8 @@ onMounted(() => {
           :name="key"
           placeholder="+7 (___) ___-__-__"
         />
+
+        <!-- Generic input -->
         <input
           v-else
           class="editModalWindow__content__field__input"

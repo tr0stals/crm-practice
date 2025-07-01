@@ -334,10 +334,10 @@
       "fields": {
         "id": "ID",
         "price": "Цена",
-        "standNumber": "Номер стенда",
+        "arrivalDate": "Дата прибытия",
         "addedDate": "Дата добавления",
         "shipmentDate": "Дата отгрузки",
-        "specification": "Спецификация",
+        "specificationImage": "Спецификация",
         "comment": "Комментарий",
         "licenseId": "ID лицензии",
         "factoryId": "ID производителя",

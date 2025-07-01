@@ -105,6 +105,24 @@ export class UserService {
     }
   }
 
+  async generateData() {
+    try {
+      const users = await this.getUsers();
+      const data: any[] = [];
+
+      users?.map((user) => {
+        data.push({
+          id: user.id,
+          userName: user.userName,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async update(id: any, updateUser: UserRegisterDTO) {
     try {
       await this.usersRepository.update(id, updateUser);
