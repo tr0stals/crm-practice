@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { License } from './license.entity';
 import { Repository } from 'typeorm';
@@ -55,6 +55,30 @@ export class LicenseService {
   }
 
   async find() {
-    return this.licenseRepository.find();
+    return this.licenseRepository.find({
+      relations: ['licenseTypes'],
+    });
+  }
+
+  async generateData() {
+    try {
+      const licenses = await this.find();
+      const data: any[] = [];
+      if (!licenses) throw new NotFoundException('Лицензии не найдены');
+
+      licenses.map((item) => {
+        const { licenseTypes, ...defaultData } = item;
+        const licenseTypeTitle = licenseTypes.title;
+
+        data.push({
+          ...defaultData,
+          licenseTypeTitle,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 }

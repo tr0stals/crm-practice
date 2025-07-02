@@ -33,4 +33,9 @@ export class LicenseController {
   async find() {
     return this.licenseService.find();
   }
+
+  @Get('generateData')
+  async generateData() {
+    return await this.licenseService.generateData();
+  }
 }

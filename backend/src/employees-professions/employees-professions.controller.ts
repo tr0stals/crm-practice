@@ -34,6 +34,11 @@ export class EmployeesProfessionsController {
     return await this.service.getOne(+id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @Patch('update/:id')
   async update(
     @Param('id') id: string,

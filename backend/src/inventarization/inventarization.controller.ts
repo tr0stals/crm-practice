@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { InventarizationService } from './inventarization.service';
 import { Inventarization } from './inventarization.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -30,10 +38,18 @@ export class InventarizationController {
     return await this.service.findOne(+id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @ApiOperation({ summary: 'Обновить запись инвентаризации' })
   @ApiResponse({ status: 200, description: 'Запись обновлена' })
   @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() data: Partial<Inventarization>) {
+  async update(
+    @Param('id') id: string,
+    @Body() data: Partial<Inventarization>,
+  ) {
     return await this.service.update(+id, data);
   }
 
@@ -43,4 +59,4 @@ export class InventarizationController {
   async delete(@Param('id') id: string) {
     return await this.service.remove(+id);
   }
-} 
+}

@@ -18,19 +18,44 @@ export class PcbsService {
 
   async findAll(): Promise<PCBS[]> {
     return await this.repository.find({
-      relations: ['pcbOrders', 'stands', 'component']
+      relations: ['stands', 'component'],
     });
   }
 
   async findOne(id: number): Promise<PCBS> {
     const entity = await this.repository.findOne({
       where: { id },
-      relations: ['pcbOrders', 'stands', 'component']
+      relations: ['stands', 'component'],
     });
     if (!entity) {
       throw new NotFoundException(`Печатная плата с ID ${id} не найдена`);
     }
     return entity;
+  }
+
+  async generateData() {
+    try {
+      const pcbs = await this.findAll();
+      const data: any[] = [];
+
+      if (!pcbs) throw new NotFoundException('Ошибка при поиске печатных плат');
+
+      pcbs.map((item) => {
+        const { component, stands, ...defaultData } = item;
+        const componentTitle = component.title;
+        const standTitle = stands.title;
+
+        data.push({
+          ...defaultData,
+          standTitle: standTitle,
+          componentTitle: componentTitle,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async update(id: number, data: Partial<PCBS>): Promise<PCBS> {

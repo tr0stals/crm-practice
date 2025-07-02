@@ -18,23 +18,45 @@ export class ComponentsService {
 
   async findAll(): Promise<Components[]> {
     return await this.repository.find({
-      relations: [
-        'componentPlacements'
-      ]
+      relations: ['componentPlacements'],
     });
   }
 
   async findOne(id: number): Promise<Components> {
     const entity = await this.repository.findOne({
       where: { id },
-      relations: [
-        'componentPlacements',
-      ]
+      relations: ['componentPlacements'],
     });
     if (!entity) {
       throw new NotFoundException(`Компонент с ID ${id} не найден`);
     }
     return entity;
+  }
+
+  async generateData() {
+    try {
+      const components = await this.findAll();
+      const data: any[] = [];
+
+      if (!components)
+        throw new NotFoundException('Ошибка при поиске компонентов');
+
+      components.map((item) => {
+        const { componentPlacements, ...defaultData } = item;
+        const componentPlacementData = componentPlacements
+          ? `Здание ${componentPlacements.building}, комната${componentPlacements.room}`
+          : 'Место не указано';
+
+        data.push({
+          ...defaultData,
+          componentPlacementData,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async update(id: number, data: Partial<Components>): Promise<Components> {
@@ -54,8 +76,8 @@ export class ComponentsService {
     // Рекурсивная функция для поиска дочерних компонентов
     function buildComponentChildren(parentId) {
       return components
-        .filter(c => c.parentId === parentId)
-        .map(c => ({
+        .filter((c) => c.parentId === parentId)
+        .map((c) => ({
           name: c.title,
           ...c,
           children: buildComponentChildren(c.id),
@@ -63,9 +85,9 @@ export class ComponentsService {
     }
 
     // Строим дерево по категориям и подкатегориям
-    const tree = COMPONENT_CATEGORIES.map(category => ({
+    const tree = COMPONENT_CATEGORIES.map((category) => ({
       name: category.name,
-      children: category.subcategories.map(subcat => ({
+      children: category.subcategories.map((subcat) => ({
         name: subcat.name,
         children: buildComponentChildren(subcat.id),
       })),
@@ -73,4 +95,4 @@ export class ComponentsService {
 
     return { name: 'Актуальный склад', children: tree };
   }
-} 
+}

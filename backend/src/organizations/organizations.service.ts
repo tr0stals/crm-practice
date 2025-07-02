@@ -63,6 +63,23 @@ export class OrganizationsService {
     }
   }
 
+  async generateData() {
+    const organizations = await this.get();
+    const data: any[] = [];
+
+    organizations?.map((item) => {
+      const organizationTypeTitle = item.organizationTypes.title;
+      const { parentId, organizationTypes, ...defaultData } = item;
+
+      data.push({
+        ...defaultData,
+        organizationTypeTitle: organizationTypeTitle,
+      });
+    });
+
+    return data;
+  }
+
   async getById(incomingId: number) {
     try {
       const organization = await this.organizationRepository.findOne({

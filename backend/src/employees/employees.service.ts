@@ -31,7 +31,7 @@ export class EmployeesService {
 
   async create(data: EmployeesDTO) {
     const people = await this.peoplesRepository.findOne({
-      where: { id: data.peoples.id },
+      where: { id: data.peopleId },
     });
 
     if (!people) throw new Error('Target people not found');
@@ -84,10 +84,10 @@ export class EmployeesService {
     const employee = await this.employeesRepository.findOne({ where: { id } });
     if (!employee) return null;
 
-    console.log('data.peopleId type:', typeof data.peoples.id);
+    console.log('data.peopleId type:', typeof data.peoples?.id);
 
     const people = await this.peoplesRepository.findOne({
-      where: { id: data.peoples.id },
+      where: { id: data.peoples?.id },
     });
 
     Object.assign(employee, data, { peoples: people });

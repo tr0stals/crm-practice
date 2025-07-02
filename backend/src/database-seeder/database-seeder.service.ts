@@ -207,10 +207,14 @@ export class DatabaseSeederService {
 
     // Сначала сидируем типы и размещения компонентов
     const componentPlacementTypes = await this.seedComponentPlacementTypes();
-    this.logger.log(`Создано ${componentPlacementTypes.length} типов размещения компонентов`);
+    this.logger.log(
+      `Создано ${componentPlacementTypes.length} типов размещения компонентов`,
+    );
 
     const componentPlacements = await this.seedComponentPlacements();
-    this.logger.log(`Создано ${componentPlacements.length} размещений компонентов`);
+    this.logger.log(
+      `Создано ${componentPlacements.length} размещений компонентов`,
+    );
 
     // Теперь сидируем компоненты
     const components = await this.seedComponents();
@@ -335,7 +339,9 @@ export class DatabaseSeederService {
 
   private async seedComponents(): Promise<Components[]> {
     // Собираем все подкатегории
-    const allSubcategories = COMPONENT_CATEGORIES.flatMap(cat => cat.subcategories);
+    const allSubcategories = COMPONENT_CATEGORIES.flatMap(
+      (cat) => cat.subcategories,
+    );
     const placements = await this.componentPlacementsRepository.find();
     const componentsData = Array.from({ length: 100 }, (_, i) => {
       const subcat = faker.helpers.arrayElement(allSubcategories);
@@ -597,7 +603,9 @@ export class DatabaseSeederService {
 
   private async seedPCBS(stands: Stands[]): Promise<PCBS[]> {
     const components = await this.componentsRepository.find();
-    const allPcbSubcategories = PCB_CATEGORIES.flatMap(cat => cat.subcategories);
+    const allPcbSubcategories = PCB_CATEGORIES.flatMap(
+      (cat) => cat.subcategories,
+    );
     // Для синхронизации componentId между pcbs и pcbs-components
     const pcbsData = stands.map((stand, i) => {
       const subcat = faker.helpers.arrayElement(allPcbSubcategories);

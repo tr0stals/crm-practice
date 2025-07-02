@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { DepartmentsService } from './departments.service';
 import { Departments } from './departments.entity';
 
@@ -14,6 +22,11 @@ export class DepartmentsController {
   @Get('get')
   async findAll() {
     return await this.service.findAll();
+  }
+
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
   }
 
   @Patch('update/:id')

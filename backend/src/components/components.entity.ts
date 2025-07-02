@@ -57,7 +57,7 @@ export class Components {
   @Column({ nullable: true })
   drawingReference: string;
 
-  @ManyToOne(() => ComponentPlacements)
+  @ManyToOne(() => ComponentPlacements, (placement) => placement.components)
   @JoinColumn({ name: 'placementId' })
   componentPlacements: ComponentPlacements;
 
@@ -100,18 +100,33 @@ export class Components {
   @OneToMany(() => PcbsComponents, (pcbsComponent) => pcbsComponent.component)
   pcbsComponents: PcbsComponents[];
 
-  @OneToMany(() => BillsComponents, (billsComponent) => billsComponent.component)
+  @OneToMany(
+    () => BillsComponents,
+    (billsComponent) => billsComponent.component,
+  )
   billsComponents: BillsComponents[];
 
-  @OneToMany(() => CurrentTasksComponents, (currentTasksComponent) => currentTasksComponent.component)
+  @OneToMany(
+    () => CurrentTasksComponents,
+    (currentTasksComponent) => currentTasksComponent.component,
+  )
   currentTasksComponents: CurrentTasksComponents[];
 
-  @OneToMany(() => StandTasksComponents, (standTasksComponent) => standTasksComponent.component)
+  @OneToMany(
+    () => StandTasksComponents,
+    (standTasksComponent) => standTasksComponent.component,
+  )
   standTasksComponents: StandTasksComponents[];
 
-  @OneToMany(() => Inventarization, (inventarization) => inventarization.component)
+  @OneToMany(
+    () => Inventarization,
+    (inventarization) => inventarization.component,
+  )
   inventarizations: Inventarization[];
 
-  @OneToMany(() => OrderRequestComponents, (orderRequestComponent) => orderRequestComponent.component)
+  @OneToMany(
+    () => OrderRequestComponents,
+    (orderRequestComponent) => orderRequestComponent.component,
+  )
   orderRequestComponents: OrderRequestComponents[];
 }

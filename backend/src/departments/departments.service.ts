@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Departments } from './departments.entity';
@@ -10,24 +10,46 @@ export class DepartmentsService {
     private readonly repo: Repository<Departments>,
   ) {}
 
-  create(data: Partial<Departments>) {
+  async create(data: Partial<Departments>) {
     const entity = this.repo.create(data);
-    return this.repo.save(entity);
+    return await this.repo.save(entity);
   }
 
-  findAll() {
-    return this.repo.find({ relations: ['employeeDepartments'] });
+  async findAll() {
+    return await this.repo.find();
   }
 
-  findOne(id: number) {
-    return this.repo.findOne({ where: { id }, relations: ['employeeDepartments'] });
+  async generateData() {
+    try {
+      const departments = await this.findAll();
+      const data: any[] = [];
+
+      if (!departments)
+        throw new NotFoundException('Ошибка при поиске отделов');
+
+      departments.map((item) => {
+        data.push({
+          ...item,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
-  update(id: number, data: Partial<Departments>) {
-    return this.repo.update(id, data);
+  async findOne(id: number) {
+    return await this.repo.findOne({
+      where: { id },
+    });
   }
 
-  remove(id: number) {
-    return this.repo.delete(id);
+  async update(id: number, data: Partial<Departments>) {
+    return await this.repo.update(id, data);
+  }
+
+  async remove(id: number) {
+    return await this.repo.delete(id);
   }
 }

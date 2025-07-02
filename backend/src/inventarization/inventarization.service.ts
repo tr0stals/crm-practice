@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Inventarization } from './inventarization.entity';
@@ -10,17 +10,46 @@ export class InventarizationService {
     private readonly repo: Repository<Inventarization>,
   ) {}
 
-  findAll() {
-    return this.repo.find({ relations: ['component', 'factory'] });
+  async findAll() {
+    return await this.repo.find({ relations: ['component', 'factory'] });
   }
 
-  findOne(id: number) {
-    return this.repo.findOne({ where: { id }, relations: ['component', 'factory'] });
+  async findOne(id: number) {
+    return await this.repo.findOne({
+      where: { id },
+      relations: ['component', 'factory'],
+    });
   }
 
-  create(data: Partial<Inventarization>) {
+  async generateData() {
+    try {
+      const inventarizations = await this.findAll();
+      const data: any[] = [];
+
+      if (!inventarizations)
+        throw new NotFoundException('Ошибка при поиске инвентаризации');
+
+      inventarizations.map((item) => {
+        const { component, factory, ...defaultData } = item;
+        const componentTitle = component.title;
+        const factoryTitle = factory.shortName;
+
+        data.push({
+          ...defaultData,
+          componentTitle,
+          factoryTitle,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
+  async create(data: Partial<Inventarization>) {
     const entity = this.repo.create(data);
-    return this.repo.save(entity);
+    return await this.repo.save(entity);
   }
 
   async update(id: number, data: Partial<Inventarization>) {
@@ -28,7 +57,7 @@ export class InventarizationService {
     return this.repo.findOne({ where: { id } });
   }
 
-  remove(id: number) {
-    return this.repo.delete(id);
+  async remove(id: number) {
+    return await this.repo.delete(id);
   }
-} 
+}

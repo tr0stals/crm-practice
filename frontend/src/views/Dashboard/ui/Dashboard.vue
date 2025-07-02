@@ -190,6 +190,7 @@ function getSectionEndpoint(section: string): string {
     "region",
     "locations",
     "departments",
+    "stands",
     "order_requests",
     "order_types",
     "peoples",
@@ -198,6 +199,11 @@ function getSectionEndpoint(section: string): string {
     "employee_states",
     "employee_departments",
     "employees_professions",
+    "writeoff",
+    "shipments",
+    "pcbs",
+    "inventarization",
+    "components",
     // ... только те секции, для которых точно есть кастомные контроллеры ...
   ];
   const universalSections = [
@@ -212,7 +218,6 @@ function getSectionEndpoint(section: string): string {
     "sending_boxes",
     "stand_categories",
     "stand_courses",
-    "stands",
     "students",
     "supplier_components",
     "suppliers",
@@ -704,8 +709,8 @@ function handleSidebarClick(section: string) {
                   :key="key"
                   style="position: relative"
                 >
+                  <!-- {{ fieldDictionary[key] }} -->
                   {{ key }}
-                  <!-- {{ key }} -->
                   <button
                     @click.stop="toggleFilterDropdown(key)"
                     style="margin-left: 4px; cursor: pointer"

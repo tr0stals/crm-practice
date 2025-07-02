@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { ComponentsService } from './components.service';
 import { Components } from './components.entity';
 
@@ -21,6 +29,11 @@ export class ComponentsController {
     return await this.service.findOne(id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @Patch('update/:id')
   async update(
     @Param('id') id: number,
@@ -38,4 +51,4 @@ export class ComponentsController {
   async getComponentsTree() {
     return this.service.getComponentsTree();
   }
-} 
+}

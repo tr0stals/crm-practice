@@ -10,17 +10,20 @@ export class ComponentPlacementsService {
     private readonly repo: Repository<ComponentPlacements>,
   ) {}
 
-  findAll() {
-    return this.repo.find({ relations: ['placementType'] });
+  async findAll() {
+    return await this.repo.find({ relations: ['placementType'] });
   }
 
-  findOne(id: number) {
-    return this.repo.findOne({ where: { id }, relations: ['placementType'] });
+  async findOne(id: number) {
+    return await this.repo.findOne({
+      where: { id },
+      relations: ['placementType'],
+    });
   }
 
-  create(data: Partial<ComponentPlacements>) {
+  async create(data: Partial<ComponentPlacements>) {
     const entity = this.repo.create(data);
-    return this.repo.save(entity);
+    return await this.repo.save(entity);
   }
 
   async update(id: number, data: Partial<ComponentPlacements>) {
@@ -28,7 +31,7 @@ export class ComponentPlacementsService {
     return this.repo.findOne({ where: { id } });
   }
 
-  remove(id: number) {
-    return this.repo.delete(id);
+  async remove(id: number) {
+    return await this.repo.delete(id);
   }
-} 
+}

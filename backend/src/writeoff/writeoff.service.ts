@@ -11,11 +11,39 @@ export class WriteoffService {
   ) {}
 
   async getAll() {
-    return this.repo.find({ relations: ['writeoffReasons', 'components', 'factory'] });
+    return this.repo.find({
+      relations: ['writeoffReasons', 'components', 'factory'],
+    });
   }
 
   async getOne(id: number) {
-    return this.repo.findOne({ where: { id }, relations: ['writeoffReasons', 'components', 'factory'] });
+    return this.repo.findOne({
+      where: { id },
+      relations: ['writeoffReasons', 'components', 'factory'],
+    });
+  }
+
+  async generateData() {
+    const writeOffs = await this.getAll();
+    const data: any[] = [];
+
+    if (!writeOffs) throw new Error('Ошибка при поиске списаний!');
+
+    writeOffs.map((item) => {
+      const { components, factory, writeoffReasons, ...defaultData } = item;
+      const componentsTitle = item.components.title;
+      const factoryTitle = item.factory.shortName;
+      const writeoffReasonTitle = item.writeoffReasons.title;
+
+      data.push({
+        ...defaultData,
+        componentsTitle,
+        factoryTitle,
+        writeoffReasonTitle,
+      });
+    });
+
+    return data;
   }
 
   async create(data: Partial<Writeoff>) {

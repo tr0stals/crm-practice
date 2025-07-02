@@ -1,13 +1,13 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Patch, 
-  Param, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
   Delete,
   HttpCode,
-  HttpStatus
+  HttpStatus,
 } from '@nestjs/common';
 import { ProfessionsService } from './professions.service';
 import { CreateProfessionDto } from './dto/create-profession.dto';
@@ -20,13 +20,13 @@ export class ProfessionsController {
   constructor(private readonly professionsService: ProfessionsService) {}
 
   @ApiOperation({ summary: 'Создание новой профессии' })
-  @ApiResponse({ 
-    status: 201, 
-    description: 'Профессия успешно создана' 
+  @ApiResponse({
+    status: 201,
+    description: 'Профессия успешно создана',
   })
-  @ApiResponse({ 
-    status: 409, 
-    description: 'Профессия с таким названием уже существует' 
+  @ApiResponse({
+    status: 409,
+    description: 'Профессия с таким названием уже существует',
   })
   @Post('create')
   @HttpCode(HttpStatus.CREATED)
@@ -35,9 +35,9 @@ export class ProfessionsController {
   }
 
   @ApiOperation({ summary: 'Получение списка всех профессий' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Список профессий получен успешно' 
+  @ApiResponse({
+    status: 200,
+    description: 'Список профессий получен успешно',
   })
   @Get('get')
   async getAll() {
@@ -45,52 +45,57 @@ export class ProfessionsController {
   }
 
   @ApiOperation({ summary: 'Получение профессии по ID' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Профессия найдена' 
+  @ApiResponse({
+    status: 200,
+    description: 'Профессия найдена',
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Профессия не найдена' 
+  @ApiResponse({
+    status: 404,
+    description: 'Профессия не найдена',
   })
   @Get('get/:id')
   async findOne(@Param('id') id: string) {
     return await this.professionsService.findOne(+id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.professionsService.generateData();
+  }
+
   @ApiOperation({ summary: 'Обновление профессии' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Профессия успешно обновлена' 
+  @ApiResponse({
+    status: 200,
+    description: 'Профессия успешно обновлена',
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Профессия не найдена' 
+  @ApiResponse({
+    status: 404,
+    description: 'Профессия не найдена',
   })
-  @ApiResponse({ 
-    status: 409, 
-    description: 'Профессия с таким названием уже существует' 
+  @ApiResponse({
+    status: 409,
+    description: 'Профессия с таким названием уже существует',
   })
   @Patch('update/:id')
   async update(
     @Param('id') id: string,
-    @Body() updateProfessionDto: UpdateProfessionDto
+    @Body() updateProfessionDto: UpdateProfessionDto,
   ) {
     return await this.professionsService.update(+id, updateProfessionDto);
   }
 
   @ApiOperation({ summary: 'Удаление профессии' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Профессия успешно удалена' 
+  @ApiResponse({
+    status: 200,
+    description: 'Профессия успешно удалена',
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Профессия не найдена' 
+  @ApiResponse({
+    status: 404,
+    description: 'Профессия не найдена',
   })
-  @ApiResponse({ 
-    status: 409, 
-    description: 'Невозможно удалить используемую профессию' 
+  @ApiResponse({
+    status: 409,
+    description: 'Невозможно удалить используемую профессию',
   })
   @Delete('delete/:id')
   async delete(@Param('id') id: string) {

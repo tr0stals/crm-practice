@@ -34,6 +34,11 @@ export class OrganizationsController {
     return await this.organizationsService.getById(id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.organizationsService.generateData();
+  }
+
   @ApiOperation({ summary: 'Получение дерева организаций' })
   @ApiResponse({
     status: 200,

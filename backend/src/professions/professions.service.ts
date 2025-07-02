@@ -40,6 +40,25 @@ export class ProfessionsService {
     });
   }
 
+  async generateData() {
+    try {
+      const professions = await this.getAll();
+      const data: any[] = [];
+      if (!professions)
+        throw new NotFoundException('Ошибка при поиске профессий');
+
+      professions.map((item) => {
+        data.push({
+          ...item,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async findOne(id: number) {
     const profession = await this.professionsRepository.findOne({
       where: { id },

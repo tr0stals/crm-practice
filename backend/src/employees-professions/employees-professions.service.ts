@@ -52,7 +52,7 @@ export class EmployeesProfessionsService {
     try {
       return await this.employeesProfessionsRepository.findOne({
         where: { employees: { id: employeeId } },
-        relations: ['employees', 'professions'],
+        relations: ['employees', 'employees.peoples', 'professions'],
       });
     } catch (e) {
       throw new Error('Ошибка при поиске EmployeeProfession', e);
@@ -71,6 +71,42 @@ export class EmployeesProfessionsService {
         employees: employees,
         professions,
       };
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
+  async generateData() {
+    try {
+      const employeeProfessions = await this.getAll();
+      const data: any[] = [];
+
+      if (!employeeProfessions)
+        throw new NotFoundException('Ошибка при поиске профессий сотрудников');
+
+      employeeProfessions.map((item) => {
+        const { employees, professions, ...defaultData } = item;
+        console.log('employees', employees);
+        const peoples = employees.peoples;
+
+        const fullname = [
+          peoples?.firstName,
+          peoples?.middleName,
+          peoples?.lastName,
+        ]
+          .filter(Boolean)
+          .join(' ');
+
+        const professionTitle = professions.title;
+
+        data.push({
+          ...defaultData,
+          fullname,
+          professionTitle,
+        });
+      });
+
+      return data;
     } catch (e) {
       throw new Error(e);
     }
@@ -98,14 +134,14 @@ export class EmployeesProfessionsService {
 
   async getAll() {
     return await this.employeesProfessionsRepository.find({
-      relations: ['employees', 'professions'],
+      relations: ['employees', 'employees.peoples', 'professions'],
     });
   }
 
   async getOne(id: number) {
     return await this.employeesProfessionsRepository.findOne({
       where: { id },
-      relations: ['employees', 'professions'],
+      relations: ['employees', 'employees.peoples', 'professions'],
     });
   }
 
