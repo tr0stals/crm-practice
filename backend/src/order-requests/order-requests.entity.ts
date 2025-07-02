@@ -1,7 +1,6 @@
 import { Employees } from 'src/employees/employees.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
 import { OrderRequestsComponents } from 'src/order-requests-components/order-requests-components.entity';
-import { OrderRequestComponents } from 'src/order-request-components/order-request-components.entity';
 import { Stands } from 'src/stands/stands.entity';
 import {
   Column,
@@ -11,7 +10,6 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-
 
 @Entity()
 export class OrderRequests {
@@ -47,10 +45,4 @@ export class OrderRequests {
     (orderRequestsComponents) => orderRequestsComponents.orderRequests,
   )
   orderRequestsComponents: OrderRequestsComponents[];
-
-  @OneToMany(
-    () => OrderRequestComponents,
-    (orderRequestComponents) => orderRequestComponents.orderRequests,
-  )
-  orderRequestComponents: OrderRequestComponents[];
 }

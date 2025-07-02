@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StandsTypes } from './stand-types.entity';
@@ -16,11 +16,31 @@ export class StandTypesService {
   }
 
   findAll() {
-    return this.repository.find({ relations: ['stands'] });
+    return this.repository.find();
+  }
+
+  async generateData() {
+    try {
+      const types = await this.findAll();
+      const data: any[] = [];
+
+      if (!types)
+        throw new NotFoundException('Ошибка при поиске типов стендов');
+
+      types.map((item) => {
+        data.push({
+          ...item,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   findOne(id: number) {
-    return this.repository.findOne({ where: { id }, relations: ['stands'] });
+    return this.repository.findOne({ where: { id } });
   }
 
   update(id: number, data: Partial<StandsTypes>) {

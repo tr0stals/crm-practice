@@ -41,12 +41,12 @@ export class InvoicesComponentsService {
 
       invoicesComponents.map((item) => {
         const { arrivalInvoices, components, ...defaultData } = item;
-        const arrivalInvoiceTitle = arrivalInvoices.date;
+        const arrivalInvoiceDate = arrivalInvoices.date;
         const componentTitle = components.title;
 
         data.push({
           ...defaultData,
-          arrivalInvoiceTitle,
+          arrivalInvoiceDate,
           componentTitle,
         });
       });

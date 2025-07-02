@@ -14,7 +14,6 @@ import { InvoicesComponents } from 'src/invoices-components/invoices-components.
 import { ServerArrivals } from 'src/server-arrivals/server-arrivals.entity';
 import { OrderRequestsComponents } from 'src/order-requests-components/order-requests-components.entity';
 import { ComponentPlacements } from 'src/component_placements/component_placements.entity';
-import { OrderRequestComponents } from 'src/order-request-components/order-request-components.entity';
 import { Inventarization } from 'src/inventarization/inventarization.entity';
 import { StandTasksComponents } from 'src/stand-tasks-components/stand-tasks-components.entity';
 import { BillsComponents } from 'src/bills-components/bills-components.entity';
@@ -123,10 +122,4 @@ export class Components {
     (inventarization) => inventarization.component,
   )
   inventarizations: Inventarization[];
-
-  @OneToMany(
-    () => OrderRequestComponents,
-    (orderRequestComponent) => orderRequestComponent.component,
-  )
-  orderRequestComponents: OrderRequestComponents[];
 }

@@ -21,7 +21,6 @@ import { PcbsModule } from '../pcbs/pcbs.module';
 import { PcbOrdersModule } from '../pcb-orders/pcb-orders.module';
 import { OrderRequestsModule } from '../order-requests/order-requests.module';
 import { OrderRequestsComponentsModule } from '../order-requests-components/order-requests-components.module';
-import { OrderRequestComponentsModule } from 'src/order-request-components/order-request-components.module';
 import { ShipmentsModule } from '../shipments/shipments.module';
 import { ShipmentTripsModule } from '../shipment-trips/shipment-trips.module';
 import { ShipmentPackageModule } from '../shipment-package/shipment-package.module';
@@ -63,7 +62,6 @@ import { Inventarization } from '../inventarization/inventarization.entity';
 import { EmployeesVacations } from '../employees-vacations/employees-vacations.entity';
 import { EmployeesProfessions } from '../employees-professions/employees-professions.entity';
 import { InvoicesComponents } from '../invoices-components/invoices-components.entity';
-import { OrderRequestComponents } from '../order-request-components/order-request-components.entity';
 import { ServerArrivals } from '../server-arrivals/server-arrivals.entity';
 import { ServerWriteoff } from '../server-writeoff/server-writeoff.entity';
 import { ShipmentsStands } from '../shipments-stands/shipments-stands.entity';
@@ -112,7 +110,6 @@ import { WriteoffReasons } from '../writeoff-reasons/writeoff-reasons.entity';
       EmployeesVacations,
       EmployeesProfessions,
       InvoicesComponents,
-      OrderRequestComponents,
       ServerArrivals,
       ServerWriteoff,
       ShipmentsStands,
@@ -138,7 +135,6 @@ import { WriteoffReasons } from '../writeoff-reasons/writeoff-reasons.entity';
     PcbsModule,
     PcbOrdersModule,
     OrderRequestsModule,
-    OrderRequestComponentsModule,
     OrderRequestsComponentsModule,
     ShipmentsModule,
     ShipmentTripsModule,

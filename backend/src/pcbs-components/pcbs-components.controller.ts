@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { PcbsComponentsService } from './pcbs-components.service';
 import { PcbsComponents } from './pcbs-components.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -30,6 +38,11 @@ export class PcbsComponentsController {
     return await this.service.findOne(+id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @ApiOperation({ summary: 'Обновить запись' })
   @ApiResponse({ status: 200, description: 'Запись обновлена' })
   @Patch('update/:id')
@@ -43,4 +56,4 @@ export class PcbsComponentsController {
   async delete(@Param('id') id: string) {
     return await this.service.remove(+id);
   }
-} 
+}

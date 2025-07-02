@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+} from '@nestjs/common';
 import { WriteoffReasonsService } from './writeoff-reasons.service';
 import { WriteoffReasons } from './writeoff-reasons.entity';
 
@@ -16,13 +24,21 @@ export class WriteoffReasonsController {
     return this.service.getOne(+id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @Post('create')
   async create(@Body() data: Partial<WriteoffReasons>) {
     return this.service.create(data);
   }
 
   @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() data: Partial<WriteoffReasons>) {
+  async update(
+    @Param('id') id: string,
+    @Body() data: Partial<WriteoffReasons>,
+  ) {
     return this.service.update(+id, data);
   }
 

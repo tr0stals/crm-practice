@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WriteoffReasons } from './writeoff-reasons.entity';
@@ -11,11 +11,31 @@ export class WriteoffReasonsService {
   ) {}
 
   async getAll() {
-    return this.repo.find({ relations: ['writeoffs'] });
+    return this.repo.find();
   }
 
   async getOne(id: number) {
-    return this.repo.findOne({ where: { id }, relations: ['writeoffs'] });
+    return this.repo.findOne({ where: { id } });
+  }
+
+  async generateData() {
+    try {
+      const reasons = await this.getAll();
+      const data: any[] = [];
+
+      if (!reasons)
+        throw new NotFoundException('Ошибка при поиске причин списания');
+
+      reasons.map((item) => {
+        data.push({
+          ...item,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async create(data: Partial<WriteoffReasons>) {

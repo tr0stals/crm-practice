@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrganizationTypes } from './organization-types.entity';
 import { Repository } from 'typeorm';
@@ -27,6 +27,26 @@ export class OrganizationTypesService {
       return await this.organizationTypesRepository.find();
     } catch (e) {
       console.error('Ошибка при получении типов организаций', e);
+    }
+  }
+
+  async generateData() {
+    try {
+      const types = await this.get();
+      const data: any[] = [];
+
+      if (!types)
+        throw new NotFoundException('Ошибка поиска типов организаций!');
+
+      types.map((item) => {
+        data.push({
+          ...item,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
     }
   }
 

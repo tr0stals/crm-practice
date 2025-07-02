@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { PcbOrdersService } from './pcb-orders.service';
 import { PcbOrders } from './pcb-orders.entity';
 
@@ -19,6 +27,11 @@ export class PcbOrdersController {
   @Get('get/:id')
   async findOne(@Param('id') id: string) {
     return await this.service.findOne(+id);
+  }
+
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
   }
 
   @Patch('update/:id')

@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+} from '@nestjs/common';
 import { ServerWriteoffService } from './server-writeoff.service';
 import { ServerWriteoff } from './server-writeoff.entity';
 
@@ -14,6 +22,11 @@ export class ServerWriteoffController {
   @Get('get/:id')
   async getOne(@Param('id') id: string) {
     return this.service.getOne(+id);
+  }
+
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
   }
 
   @Post('create')

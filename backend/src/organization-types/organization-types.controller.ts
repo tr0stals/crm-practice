@@ -10,7 +10,7 @@ import {
 import { OrganizationTypesService } from './organization-types.service';
 import { OrganizationTypesDTO } from './dto/OrganizationTypesDTO';
 
-@Controller('organization_types')
+@Controller('organization-types')
 export class OrganizationTypesController {
   constructor(
     private readonly organizationTypesService: OrganizationTypesService,
@@ -24,6 +24,11 @@ export class OrganizationTypesController {
   @Get('get')
   async get() {
     return await this.organizationTypesService.get();
+  }
+
+  @Get('generateData')
+  async generateData() {
+    return await this.organizationTypesService.generateData();
   }
 
   @Patch('update/:id')

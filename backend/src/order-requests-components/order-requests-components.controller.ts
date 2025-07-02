@@ -30,6 +30,11 @@ export class OrderRequestsComponentsController {
     return await this.service.findAll();
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @ApiOperation({ summary: 'Получить связь по ID' })
   @ApiResponse({ status: 200, description: 'Связь найдена' })
   @ApiResponse({ status: 404, description: 'Связь не найдена' })

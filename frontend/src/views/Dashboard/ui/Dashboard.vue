@@ -168,7 +168,7 @@ const toggleMenu = () => {
 
 const getSectionList = async () => {
   const cfg: IData = {
-    endpoint: "database/names",
+    endpoint: "localization/tables",
   };
 
   return await getDataAsync(cfg).then((res) => (sectionsList.value = res.data));
@@ -179,71 +179,9 @@ const logout = () => {
   router.push("/login");
 };
 
-// Универсальная функция для формирования endpoint
-function getSectionEndpoint(section: string): string {
-  // Список секций с кастомными контроллерами
-  const customSections = [
-    "user",
-    "license",
-    "organizations",
-    "countries",
-    "region",
-    "locations",
-    "departments",
-    "stands",
-    "order_requests",
-    "order_types",
-    "peoples",
-    "professions",
-    "employees",
-    "employee_states",
-    "employee-departments",
-    "employees_professions",
-    "writeoff",
-    "shipments",
-    "pcbs",
-    "inventarization",
-    "components",
-    "component_placements",
-    "arrival-invoices",
-    "current-tasks",
-    "current-task-states",
-    "current-tasks-components",
-    "employees-vacations",
-    // ... только те секции, для которых точно есть кастомные контроллеры ...
-  ];
-  const universalSections = [
-    "components_invoice",
-    "components_arrival_invoice",
-    "current_tasks",
-    "employee_tasks",
-    "invoices_arrival",
-    "license_types",
-    "organization_types",
-    "payment_invoice",
-    "sending_boxes",
-    "stand_categories",
-    "stand_courses",
-    "students",
-    "supplier_components",
-    "suppliers",
-    "task_types",
-    "warehouse_components",
-    // ... все секции, которые должны идти через универсальный endpoint ...
-  ];
-  const sectionLower = section.toLowerCase();
-  if (universalSections.map((s) => s.toLowerCase()).includes(sectionLower)) {
-    return `/database/${sectionLower}`;
-  }
-  if (customSections.map((s) => s.toLowerCase()).includes(sectionLower)) {
-    return `/${sectionLower.replace(/_/g, "-")}/generateData`;
-  }
-  return `/database/${sectionLower}`;
-}
-
 const getCurrentData = async () => {
   const config: IData = {
-    endpoint: getSectionEndpoint(currentSection.value),
+    endpoint: `/${currentSection.value.replace(/_/g, "-")}/generateData`,
   };
 
   data.value = []; // Очищаем данные перед загрузкой
@@ -323,20 +261,19 @@ onMounted(async () => {
   }
 
   console.debug("User", user);
+  console.debug(sectionsList.value);
 
   updateTime();
   timer = setInterval(updateTime, 1000);
   document.addEventListener("click", handleClickOutside);
 
-  // localizatedSections.value = Object.fromEntries(
-  //   Object.entries(localizationResponse.data)
-  // );
-
   const localizationResponse = await getDataAsync({
     endpoint: "localization/tables",
   });
-  localizatedSections.value = localizationResponse.data;
-  console.debug(localizatedSections.value);
+  // localizatedSections.value = localizationResponse.data;
+  localizatedSections.value = Object.fromEntries(
+    Object.entries(localizationResponse.data)
+  );
 
   const tables = roleTables
     .filter((item) => item.profession === userProfession.value)
@@ -344,6 +281,9 @@ onMounted(async () => {
     .flat();
 
   sectionsList.value = tables;
+  sectionsList.value = sectionsList.value.map((item) => {
+    return item.replace(/-/g, "_");
+  });
 });
 
 watch(currentSection, async (oldVal: string, newSection: string) => {
@@ -641,7 +581,7 @@ function handleSidebarClick(section: string) {
             :data-js-sectionName="section"
             @click="currentSection = section"
           >
-            {{ section }}
+            {{ localizatedSections[section] }}
           </li>
         </ul>
       </nav>

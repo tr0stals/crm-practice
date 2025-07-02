@@ -13,7 +13,13 @@ export class DatabaseLocalizationService {
 
   private loadLocalizationData() {
     try {
-      const filePath = path.join(__dirname, '..', '..', 'config', 'database-localization.json');
+      const filePath = path.join(
+        __dirname,
+        '..',
+        '..',
+        'config',
+        'database-localization.json',
+      );
       const fileContent = fs.readFileSync(filePath, 'utf8');
       this.localizationData = JSON.parse(fileContent);
     } catch (error) {
@@ -27,7 +33,9 @@ export class DatabaseLocalizationService {
   }
 
   getFieldDisplayName(tableName: string, fieldName: string): string {
-    return this.localizationData.tables[tableName]?.fields[fieldName] || fieldName;
+    return (
+      this.localizationData.tables[tableName]?.fields[fieldName] || fieldName
+    );
   }
 
   getAllLocalization(): LocalizationData {
@@ -49,7 +57,7 @@ export class DatabaseLocalizationService {
   getAllTableDisplayNames(): Record<string, string> {
     const result: Record<string, string> = {};
     for (const [table, data] of Object.entries(this.localizationData.tables)) {
-      result[table] = data.displayName;
+      result[table] = data.displayName.replace(/_/g, '-');
     }
     return result;
   }
@@ -57,4 +65,4 @@ export class DatabaseLocalizationService {
   getTableFieldsDisplayNames(tableName: string): Record<string, string> {
     return this.localizationData.tables[tableName]?.fields || {};
   }
-} 
+}

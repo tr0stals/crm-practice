@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { OrderRequestsService } from './order-requests.service';
 import { OrderRequests } from './order-requests.entity';
 
@@ -19,6 +27,11 @@ export class OrderRequestsController {
   @Get('get/:id')
   async findOne(@Param('id') id: string) {
     return await this.service.findOne(+id);
+  }
+
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
   }
 
   @Patch('update/:id')

@@ -40,7 +40,6 @@ import { Inventarization } from '../inventarization/inventarization.entity';
 import { EmployeesVacations } from '../employees-vacations/employees-vacations.entity';
 import { EmployeesProfessions } from '../employees-professions/employees-professions.entity';
 import { InvoicesComponents } from '../invoices-components/invoices-components.entity';
-import { OrderRequestComponents } from '../order-request-components/order-request-components.entity';
 import { ServerArrivals } from '../server-arrivals/server-arrivals.entity';
 import { ServerWriteoff } from '../server-writeoff/server-writeoff.entity';
 import { ShipmentsStands } from '../shipments-stands/shipments-stands.entity';
@@ -131,8 +130,7 @@ export class DatabaseSeederService {
     private readonly employeesProfessionsRepository: Repository<EmployeesProfessions>,
     @InjectRepository(InvoicesComponents)
     private readonly invoicesComponentsRepository: Repository<InvoicesComponents>,
-    @InjectRepository(OrderRequestComponents)
-    private readonly orderRequestComponentsRepository: Repository<OrderRequestComponents>,
+
     @InjectRepository(ServerArrivals)
     private readonly serverArrivalsRepository: Repository<ServerArrivals>,
     @InjectRepository(ServerWriteoff)
@@ -699,22 +697,6 @@ export class DatabaseSeederService {
     return await this.orderRequestsComponentsRepository.save(entities);
   }
 
-  private async seedOrderRequestComponents(): Promise<
-    OrderRequestComponents[]
-  > {
-    const orderRequests = await this.orderRequestsRepository.find();
-    const components = await this.componentsRepository.find();
-
-    const data = Array.from({ length: 25 }, () => ({
-      orderRequests: faker.helpers.arrayElement(orderRequests),
-      component: faker.helpers.arrayElement(components),
-    }));
-    const entities = data.map((d) =>
-      this.orderRequestComponentsRepository.create(d),
-    );
-    return await this.orderRequestComponentsRepository.save(entities);
-  }
-
   private async seedPcbOrders(): Promise<PcbOrders[]> {
     const pcbs = await this.pcbsRepository.find();
     const organizations = await this.organizationsRepository.find();
@@ -978,12 +960,6 @@ export class DatabaseSeederService {
     // Заполнение списаний
     const writeoff = await this.seedWriteoff();
     this.logger.log(`Создано ${writeoff.length} списаний`);
-
-    // Заполнение компонентов заявок (простая связь)
-    const orderRequestComponents = await this.seedOrderRequestComponents();
-    this.logger.log(
-      `Создано ${orderRequestComponents.length} простых связей компонентов заявок`,
-    );
   }
 
   private async seedCurrentTasks(

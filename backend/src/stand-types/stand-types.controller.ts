@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { StandTypesService } from './stand-types.service';
 import { StandsTypes } from './stand-types.entity';
 
@@ -14,6 +22,11 @@ export class StandTypesController {
   @Get('get')
   async findAll() {
     return await this.service.findAll();
+  }
+
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
   }
 
   @Patch('update/:id')

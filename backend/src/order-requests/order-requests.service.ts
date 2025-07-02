@@ -17,14 +17,40 @@ export class OrderRequestsService {
 
   async findAll(): Promise<OrderRequests[]> {
     return await this.repository.find({
-      relations: ['stands', 'employeeCreator', 'orderRequestComponents']
+      relations: ['employeeCreator', 'employeeCreator.peoples', 'factory'],
     });
+  }
+
+  async generateData() {
+    try {
+      const orderRequests = await this.findAll();
+      const data: any[] = [];
+
+      if (!orderRequests)
+        throw new NotFoundException('Ошибка поиска OrderRequests');
+
+      orderRequests.map((item) => {
+        const { employeeCreator, factory, ...defaultData } = item;
+        const employeeCreatorName = `${employeeCreator.peoples?.firstName} ${employeeCreator.peoples?.middleName} ${employeeCreator.peoples?.lastName}`;
+        const factoryName = factory.shortName;
+
+        data.push({
+          ...defaultData,
+          employeeCreatorName,
+          factoryName,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async findOne(id: number): Promise<OrderRequests> {
     const orderRequest = await this.repository.findOne({
       where: { id },
-      relations: ['stands', 'employeeCreator', 'orderRequestComponents']
+      relations: ['employeeCreator', 'employeeCreator.peoples', 'factory'],
     });
     if (!orderRequest) {
       throw new NotFoundException(`Заявка на заказ с ID ${id} не найдена`);
@@ -32,7 +58,10 @@ export class OrderRequestsService {
     return orderRequest;
   }
 
-  async update(id: number, data: Partial<OrderRequests>): Promise<OrderRequests> {
+  async update(
+    id: number,
+    data: Partial<OrderRequests>,
+  ): Promise<OrderRequests> {
     await this.findOne(id); // Проверяем существование
     await this.repository.update(id, data);
     return await this.findOne(id);

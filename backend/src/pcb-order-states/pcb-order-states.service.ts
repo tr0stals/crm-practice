@@ -16,15 +16,32 @@ export class PcbOrderStatesService {
   }
 
   async findAll(): Promise<PcbOrderStates[]> {
-    return await this.repository.find({
-      relations: ['pcbOrders']
-    });
+    return await this.repository.find({});
+  }
+
+  async generateData() {
+    try {
+      const states = await this.findAll();
+      const data: any[] = [];
+
+      if (!states)
+        throw new NotFoundException('Ошибка поиска состояний заказов плат');
+
+      states.map((item) => {
+        data.push({
+          ...item,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async findOne(id: number): Promise<PcbOrderStates> {
     const entity = await this.repository.findOne({
       where: { id },
-      relations: ['pcbOrders']
     });
     if (!entity) {
       throw new NotFoundException(`Состояние заказа ПП с ID ${id} не найдено`);
@@ -32,7 +49,10 @@ export class PcbOrderStatesService {
     return entity;
   }
 
-  async update(id: number, data: Partial<PcbOrderStates>): Promise<PcbOrderStates> {
+  async update(
+    id: number,
+    data: Partial<PcbOrderStates>,
+  ): Promise<PcbOrderStates> {
     await this.findOne(id); // Проверяем существование
     await this.repository.update(id, data);
     return await this.findOne(id);

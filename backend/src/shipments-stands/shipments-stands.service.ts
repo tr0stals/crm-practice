@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ShipmentsStands } from './shipments-stands.entity';
@@ -16,11 +16,42 @@ export class ShipmentsStandsService {
   }
 
   async getAll() {
-    return await this.repo.find();
+    return await this.repo.find({
+      relations: ['shipments', 'stands'],
+    });
+  }
+
+  async generateData() {
+    try {
+      const shipmentStands = await this.getAll();
+      const data: any[] = [];
+
+      if (!shipmentStands)
+        throw new NotFoundException('Ошибка поиска ShipmentsStands');
+
+      shipmentStands.map((item) => {
+        const { shipments, stands, ...defaultData } = item;
+        const shipmentDate = shipments.shipmentDate;
+        const standTitle = stands.title;
+
+        data.push({
+          ...defaultData,
+          shipmentDate,
+          standTitle,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async getOne(id: number) {
-    return await this.repo.findOne({ where: { id } });
+    return await this.repo.findOne({
+      where: { id },
+      relations: ['shipments', 'stands'],
+    });
   }
 
   async update(id: number, data: Partial<ShipmentsStands>) {

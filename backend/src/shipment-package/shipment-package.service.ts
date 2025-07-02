@@ -10,14 +10,40 @@ export class ShipmentPackageService {
     @InjectRepository(ShipmentPackage)
     private repository: Repository<ShipmentPackage>,
   ) {}
-        
+
   async create(data: ShipmentPackageDTO): Promise<ShipmentPackage> {
     try {
       const entity = this.repository.create(data);
       return await this.repository.save(entity);
     } catch (e) {
-      console.error("Ошибка при создании записи", e);
+      console.error('Ошибка при создании записи', e);
       throw e;
+    }
+  }
+
+  async generateData() {
+    try {
+      const packages = await this.findAll();
+      const data: any[] = [];
+
+      if (!packages)
+        throw new NotFoundException('Ошибка при поиске ящиков отправок');
+
+      packages.map((item) => {
+        const { shipments, shipmentPackageStates, ...defaultData } = item;
+        const shipmentDate = shipments.shipmentDate;
+        const shipmentPackageStateTitle = shipmentPackageStates.title;
+
+        data.push({
+          ...defaultData,
+          shipmentDate,
+          shipmentPackageStateTitle,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
     }
   }
 
@@ -27,39 +53,39 @@ export class ShipmentPackageService {
       await this.repository.update(id, data);
       return await this.findOne(id);
     } catch (e) {
-      console.error("ошибка при обновлении записи", e);
+      console.error('ошибка при обновлении записи', e);
       throw e;
     }
   }
-        
+
   async remove(id: number): Promise<void> {
     try {
       await this.findOne(id);
       await this.repository.delete(id);
     } catch (e) {
-      console.error("ошибка при удалении записи", e);
+      console.error('ошибка при удалении записи', e);
       throw e;
     }
   }
-        
+
   async findOne(id: number): Promise<ShipmentPackage> {
-    const entity= await this.repository.findOne({
-      where: {id},
-      relations: ['shipmentPackageStates', 'shipments']});
-            
-    if(!entity)
-    throw new NotFoundException(`Ящик отправок с ${id} не найден`);
-    
+    const entity = await this.repository.findOne({
+      where: { id },
+      relations: ['shipmentPackageStates', 'shipments'],
+    });
+
+    if (!entity) throw new NotFoundException(`Ящик отправок с ${id} не найден`);
+
     return entity;
   }
 
   async findAll(): Promise<ShipmentPackage[]> {
-    try{
+    try {
       return await this.repository.find({
-      relations: ['shipmentPackageStates', 'shipments']});
-    }
-    catch(e){
-      console.error("Ящики отправок не найдены", e);
+        relations: ['shipmentPackageStates', 'shipments'],
+      });
+    } catch (e) {
+      console.error('Ящики отправок не найдены', e);
       throw e;
     }
   }
