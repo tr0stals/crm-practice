@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BillsForPay } from './bills-for-pay.entity';
@@ -9,7 +17,7 @@ export class BillsForPayController {
   constructor(
     @InjectRepository(BillsForPay)
     private readonly billsForPayRepository: Repository<BillsForPay>,
-    private readonly service: BillsForPayService
+    private readonly service: BillsForPayService,
   ) {}
 
   @Get('get')
@@ -20,6 +28,11 @@ export class BillsForPayController {
   @Get('get/:id')
   async getOne(@Param('id') id: string) {
     return this.service.getOne(+id);
+  }
+
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
   }
 
   @Post('create')
@@ -36,4 +49,4 @@ export class BillsForPayController {
   async delete(@Param('id') id: string) {
     return this.service.delete(+id);
   }
-} 
+}

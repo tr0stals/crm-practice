@@ -74,6 +74,7 @@ export class UserService {
     if (!user) return null;
 
     const employeeId = user.employees?.id;
+    console.log('employeeId', employeeId);
 
     if (!employeeId) throw new NotFoundException('EmployeeId не найден');
 
@@ -81,6 +82,8 @@ export class UserService {
       await this.employeeProfessionService.findEmployeeProfessionByEmployeeId(
         employeeId,
       );
+
+    console.log('!!!!!!!!!!!!!!employeeProfession', employeeProfession);
 
     return {
       ...user,
@@ -99,7 +102,9 @@ export class UserService {
 
   async getUsers() {
     try {
-      return await this.usersRepository.find({ relations: ['employees'] });
+      return await this.usersRepository.find({
+        relations: ['employees', 'employees.peoples'],
+      });
     } catch (e) {
       console.error(e);
     }

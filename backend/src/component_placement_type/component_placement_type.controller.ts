@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ComponentPlacementTypeService } from './component_placement_type.service';
 import { ComponentPlacementType } from './component_placement_type.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -22,6 +30,11 @@ export class ComponentPlacementTypeController {
     return await this.service.findAll();
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @ApiOperation({ summary: 'Получить тип размещения по ID' })
   @ApiResponse({ status: 200, description: 'Тип размещения найден' })
   @ApiResponse({ status: 404, description: 'Тип размещения не найден' })
@@ -33,7 +46,10 @@ export class ComponentPlacementTypeController {
   @ApiOperation({ summary: 'Обновить тип размещения' })
   @ApiResponse({ status: 200, description: 'Тип размещения обновлен' })
   @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() data: Partial<ComponentPlacementType>) {
+  async update(
+    @Param('id') id: string,
+    @Body() data: Partial<ComponentPlacementType>,
+  ) {
     return await this.service.update(+id, data);
   }
 
@@ -43,4 +59,4 @@ export class ComponentPlacementTypeController {
   async delete(@Param('id') id: string) {
     return await this.service.remove(+id);
   }
-} 
+}

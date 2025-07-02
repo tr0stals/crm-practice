@@ -18,14 +18,14 @@ export class ComponentsService {
 
   async findAll(): Promise<Components[]> {
     return await this.repository.find({
-      relations: ['componentPlacements'],
+      relations: ['componentPlacements', 'componentPlacements.placementType'],
     });
   }
 
   async findOne(id: number): Promise<Components> {
     const entity = await this.repository.findOne({
       where: { id },
-      relations: ['componentPlacements'],
+      relations: ['componentPlacements', 'componentPlacements.placementType'],
     });
     if (!entity) {
       throw new NotFoundException(`Компонент с ID ${id} не найден`);
@@ -43,8 +43,12 @@ export class ComponentsService {
 
       components.map((item) => {
         const { componentPlacements, ...defaultData } = item;
+        const placementType = item.componentPlacements.placementType;
+        if (!placementType)
+          throw new NotFoundException('Тип размещения не найден');
+
         const componentPlacementData = componentPlacements
-          ? `Здание ${componentPlacements.building}, комната${componentPlacements.room}`
+          ? `${placementType.title}, Здание ${componentPlacements.building}, комната ${componentPlacements.room}`
           : 'Место не указано';
 
         data.push({

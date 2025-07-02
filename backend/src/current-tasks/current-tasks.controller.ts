@@ -25,6 +25,11 @@ export class CurrentTasksController {
     return await this.service.findAll();
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @Get('get/:id')
   async findOne(@Param('id') id: string) {
     return await this.service.findOne(+id);

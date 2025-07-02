@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BillsForPay } from './bills-for-pay.entity';
@@ -11,11 +11,41 @@ export class BillsForPayService {
   ) {}
 
   async getAll() {
-    return this.repo.find({ relations: ['supplier', 'factory', 'billsComponents'] });
+    return this.repo.find({
+      relations: ['supplier', 'factory', 'billsComponents'],
+    });
   }
 
   async getOne(id: number) {
-    return this.repo.findOne({ where: { id }, relations: ['supplier', 'factory', 'billsComponents'] });
+    return this.repo.findOne({
+      where: { id },
+      relations: ['supplier', 'factory', 'billsComponents'],
+    });
+  }
+
+  async generateData() {
+    try {
+      const bills = await this.getAll();
+      const data: any[] = [];
+
+      if (!bills) throw new NotFoundException('Не удалось найти bills-for-pay');
+
+      bills.map((item) => {
+        const { factory, supplier, ...defaultData } = item;
+        const factoryName = factory.shortName;
+        const supplierName = supplier.shortName;
+
+        data.push({
+          ...defaultData,
+          factoryName,
+          supplierName,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async create(data: Partial<BillsForPay>) {
@@ -31,4 +61,4 @@ export class BillsForPayService {
   async delete(id: number) {
     return this.repo.delete(id);
   }
-} 
+}

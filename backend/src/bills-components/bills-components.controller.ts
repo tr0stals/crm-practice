@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+} from '@nestjs/common';
 import { BillsComponentsService } from './bills-components.service';
 import { BillsComponents } from './bills-components.entity';
 
@@ -16,13 +24,21 @@ export class BillsComponentsController {
     return this.service.getOne(+id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @Post('create')
   async create(@Body() data: Partial<BillsComponents>) {
     return this.service.create(data);
   }
 
   @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() data: Partial<BillsComponents>) {
+  async update(
+    @Param('id') id: string,
+    @Body() data: Partial<BillsComponents>,
+  ) {
     return this.service.update(+id, data);
   }
 
@@ -30,4 +46,4 @@ export class BillsComponentsController {
   async delete(@Param('id') id: string) {
     return this.service.delete(+id);
   }
-} 
+}

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentTaskStates } from './current-task-states.entity';
@@ -17,6 +17,25 @@ export class CurrentTaskStatesService {
 
   async getAll() {
     return await this.repo.find();
+  }
+
+  async generateData() {
+    try {
+      const states = await this.getAll();
+      const data: any[] = [];
+
+      if (!states) throw new NotFoundException('Ошибка поиска состояний задач');
+
+      states.map((item) => {
+        data.push({
+          ...item,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async getOne(id: number) {

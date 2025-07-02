@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CurrentTasksComponentsService } from './current-tasks-components.service';
 import { CurrentTasksComponents } from './current-tasks-components.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -22,6 +30,11 @@ export class CurrentTasksComponentsController {
     return await this.service.findAll();
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @ApiOperation({ summary: 'Получить запись по ID' })
   @ApiResponse({ status: 200, description: 'Запись найдена' })
   @ApiResponse({ status: 404, description: 'Запись не найдена' })
@@ -33,7 +46,10 @@ export class CurrentTasksComponentsController {
   @ApiOperation({ summary: 'Обновить запись' })
   @ApiResponse({ status: 200, description: 'Запись обновлена' })
   @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() data: Partial<CurrentTasksComponents>) {
+  async update(
+    @Param('id') id: string,
+    @Body() data: Partial<CurrentTasksComponents>,
+  ) {
     return await this.service.update(+id, data);
   }
 
@@ -43,4 +59,4 @@ export class CurrentTasksComponentsController {
   async delete(@Param('id') id: string) {
     return await this.service.remove(+id);
   }
-} 
+}

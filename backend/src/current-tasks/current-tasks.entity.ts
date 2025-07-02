@@ -12,6 +12,7 @@ import { ShipmentsStands } from 'src/shipments-stands/shipments-stands.entity';
 import { StandTasks } from 'src/stand-tasks/stand-tasks.entity';
 import { ServerWriteoff } from 'src/server-writeoff/server-writeoff.entity';
 import { ServerArrivals } from 'src/server-arrivals/server-arrivals.entity';
+import { Stands } from 'src/stands/stands.entity';
 
 export enum TaskStatus {
   NOT_STARTED = 'NOT_STARTED',
@@ -25,10 +26,10 @@ export class CurrentTasks {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'date'})
+  @Column({ type: 'date' })
   deadline: Date;
 
-  @Column({ length: 45})
+  @Column({ length: 45 })
   title: string;
 
   @ManyToOne(() => Employees, (employee) => employee.currentTasks)
@@ -42,12 +43,9 @@ export class CurrentTasks {
   @JoinColumn({ name: 'currentTaskStateId' })
   currentTaskStates: CurrentTaskStates;
 
-  @ManyToOne(
-    () => ShipmentsStands,
-    (shipmentStand) => shipmentStand.currentTasks,
-  )
-  @JoinColumn({ name: 'shipmentStandId' })
-  shipmentsStands: ShipmentsStands;
+  @ManyToOne(() => Stands, (stand) => stand.currentTasks)
+  @JoinColumn({ name: 'standId' })
+  stands: Stands;
 
   @ManyToOne(() => StandTasks, (standTask) => standTask.currentTasks)
   @JoinColumn({ name: 'standTaskId' })

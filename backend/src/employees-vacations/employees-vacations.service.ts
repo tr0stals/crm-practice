@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmployeesVacations } from './employees-vacations.entity';
@@ -16,11 +16,43 @@ export class EmployeesVacationsService {
   }
 
   async getAll() {
-    return await this.repo.find({ relations: ['employees'] });
+    return await this.repo.find({
+      relations: ['employees', 'employees.peoples', 'factory'],
+    });
   }
 
   async getOne(id: number) {
-    return await this.repo.findOne({ where: { id }, relations: ['employees'] });
+    return await this.repo.findOne({
+      where: { id },
+      relations: ['employees', 'employees.peoples', 'factory'],
+    });
+  }
+
+  async generateData() {
+    try {
+      const employeeVacations = await this.getAll();
+      const data: any[] = [];
+
+      if (!employeeVacations)
+        throw new NotFoundException('Ошибка поиска отпусков сотрудников');
+
+      employeeVacations.map((item) => {
+        const { employees, factory, ...defaultData } = item;
+
+        const employeeName = `${employees.peoples?.firstName} ${employees.peoples?.middleName} ${employees.peoples?.lastName}`;
+        const factoryTitle = factory.shortName;
+
+        data.push({
+          ...defaultData,
+          factoryTitle,
+          employeeName,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async update(id: number, data: Partial<EmployeesVacations>) {

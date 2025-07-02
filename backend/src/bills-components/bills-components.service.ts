@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BillsComponents } from './bills-components.entity';
@@ -15,7 +15,37 @@ export class BillsComponentsService {
   }
 
   async getOne(id: number) {
-    return this.repo.findOne({ where: { id }, relations: ['bill', 'component'] });
+    return this.repo.findOne({
+      where: { id },
+      relations: ['bill', 'component'],
+    });
+  }
+
+  async generateData() {
+    try {
+      const bills = await this.getAll();
+      const data: any[] = [];
+
+      if (!bills)
+        throw new NotFoundException('Ошибка при поиске bills-components');
+
+      bills.map((item) => {
+        const { bill, component, ...defaultData } = item;
+
+        const billData = bill.date;
+        const componentTitle = component.title;
+
+        data.push({
+          ...defaultData,
+          billData,
+          componentTitle,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async create(data: Partial<BillsComponents>) {
@@ -31,4 +61,4 @@ export class BillsComponentsService {
   async delete(id: number) {
     return this.repo.delete(id);
   }
-} 
+}

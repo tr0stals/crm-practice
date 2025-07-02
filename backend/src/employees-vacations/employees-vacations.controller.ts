@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { EmployeesVacationsService } from './employees-vacations.service';
 import { EmployeesVacations } from './employees-vacations.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -23,8 +32,16 @@ export class EmployeesVacationsController {
     return await this.service.getOne(+id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() data: Partial<EmployeesVacations>) {
+  async update(
+    @Param('id') id: string,
+    @Body() data: Partial<EmployeesVacations>,
+  ) {
     return await this.service.update(+id, data);
   }
 

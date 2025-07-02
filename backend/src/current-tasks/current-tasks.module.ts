@@ -8,11 +8,22 @@ import { Employees } from 'src/employees/employees.entity';
 import { CurrentTaskStates } from 'src/current-task-states/current-task-states.entity';
 import { ShipmentsStands } from 'src/shipments-stands/shipments-stands.entity';
 import { StandTasks } from 'src/stand-tasks/stand-tasks.entity';
+import { Stands } from 'src/stands/stands.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CurrentTasks, Employees, CurrentTaskStates, ShipmentsStands, StandTasks]), EmployeesModule],
+  imports: [
+    TypeOrmModule.forFeature([
+      CurrentTasks,
+      Employees,
+      CurrentTaskStates,
+      ShipmentsStands,
+      StandTasks,
+      Stands,
+    ]),
+    EmployeesModule,
+  ],
   providers: [CurrentTasksService],
   controllers: [CurrentTasksController],
   exports: [CurrentTasksService],
 })
-export class CurrentTasksModule {} 
+export class CurrentTasksModule {}

@@ -197,13 +197,19 @@ function getSectionEndpoint(section: string): string {
     "professions",
     "employees",
     "employee_states",
-    "employee_departments",
+    "employee-departments",
     "employees_professions",
     "writeoff",
     "shipments",
     "pcbs",
     "inventarization",
     "components",
+    "component_placements",
+    "arrival-invoices",
+    "current-tasks",
+    "current-task-states",
+    "current-tasks-components",
+    "employees-vacations",
     // ... только те секции, для которых точно есть кастомные контроллеры ...
   ];
   const universalSections = [
@@ -315,6 +321,8 @@ onMounted(async () => {
     userLastName.value = user.employees.peoples.lastName;
     userProfession.value = user.employeeProfession.professions.title;
   }
+
+  console.debug("User", user);
 
   updateTime();
   timer = setInterval(updateTime, 1000);
@@ -633,7 +641,7 @@ function handleSidebarClick(section: string) {
             :data-js-sectionName="section"
             @click="currentSection = section"
           >
-            {{ localizatedSections[section] }}
+            {{ section }}
           </li>
         </ul>
       </nav>

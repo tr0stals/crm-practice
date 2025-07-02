@@ -1,3 +1,4 @@
+import { CurrentTasks } from 'src/current-tasks/current-tasks.entity';
 import { Employees } from 'src/employees/employees.entity';
 import { OrderRequests } from 'src/order-requests/order-requests.entity';
 import { PCBS } from 'src/pcbs/pcbs.entity';
@@ -28,31 +29,31 @@ export class Stands {
   @Column()
   image: string;
 
-  @Column({ length: 100})
+  @Column({ length: 100 })
   width: string;
 
-  @Column({ length: 100})
+  @Column({ length: 100 })
   height: string;
 
-  @Column({ length: 100})
+  @Column({ length: 100 })
   thickness: string;
 
-  @Column({ type: 'float'})
+  @Column({ type: 'float' })
   weightNetto: number;
 
-  @Column({ type: 'float'})
+  @Column({ type: 'float' })
   weightBrutto: number;
 
-  @Column({ length: 100})
+  @Column({ length: 100 })
   link: string;
 
   @Column()
   vendorCode: string;
 
-  @Column({ type: 'date'})
+  @Column({ type: 'date' })
   manufactureTime: Date;
 
-  @Column({ length: 45})
+  @Column({ length: 45 })
   comment: string;
 
   @ManyToOne(() => StandsTypes, (type) => type.stands)
@@ -77,4 +78,7 @@ export class Stands {
 
   @OneToMany(() => StandTasks, (standTask) => standTask.stands)
   standTasks: StandTasks[];
+
+  @OneToMany(() => CurrentTasks, (currentTask) => currentTask.stands)
+  currentTasks: CurrentTasks[];
 }

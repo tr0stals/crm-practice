@@ -4,6 +4,6 @@ export class CurrentTasksDTO {
 
   employeeId: number;
   currentTaskStateId: number;
-  shipmentsStandId: number;
+  standId: number;
   standTaskId: number;
 }

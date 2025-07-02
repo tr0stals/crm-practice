@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ComponentPlacementsService } from './component_placements.service';
 import { ComponentPlacements } from './component_placements.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -30,10 +38,18 @@ export class ComponentPlacementsController {
     return await this.service.findOne(+id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @ApiOperation({ summary: 'Обновить размещение' })
   @ApiResponse({ status: 200, description: 'Размещение обновлено' })
   @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() data: Partial<ComponentPlacements>) {
+  async update(
+    @Param('id') id: string,
+    @Body() data: Partial<ComponentPlacements>,
+  ) {
     return await this.service.update(+id, data);
   }
 
@@ -43,4 +59,4 @@ export class ComponentPlacementsController {
   async delete(@Param('id') id: string) {
     return await this.service.remove(+id);
   }
-} 
+}

@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+} from '@nestjs/common';
 import { ArrivalInvoicesService } from './arrival-invoices.service';
 import { ArrivalInvoices } from './arrival-invoices.entity';
 
@@ -16,13 +24,21 @@ export class ArrivalInvoicesController {
     return this.service.getOne(+id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @Post('create')
   async create(@Body() data: Partial<ArrivalInvoices>) {
     return this.service.create(data);
   }
 
   @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() data: Partial<ArrivalInvoices>) {
+  async update(
+    @Param('id') id: string,
+    @Body() data: Partial<ArrivalInvoices>,
+  ) {
     return this.service.update(+id, data);
   }
 

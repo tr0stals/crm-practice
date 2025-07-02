@@ -990,14 +990,14 @@ export class DatabaseSeederService {
     employees: Employees[],
   ): Promise<CurrentTasks[]> {
     const currentTaskStates = await this.currentTaskStatesRepository.find();
-    const shipmentsStands = await this.shipmentsStandsRepository.find();
+    const stands = await this.standsRepository.find();
     const standTasks = await this.standTasksRepository.find();
 
     // Проверяем, что есть все необходимые данные
     if (
       !employees.length ||
       !currentTaskStates.length ||
-      !shipmentsStands.length ||
+      !stands.length ||
       !standTasks.length
     ) {
       this.logger.warn('Недостаточно данных для создания текущих задач');
@@ -1009,7 +1009,7 @@ export class DatabaseSeederService {
       title: faker.commerce.productName().substring(0, 45),
       employees: faker.helpers.arrayElement(employees),
       currentTaskStates: faker.helpers.arrayElement(currentTaskStates),
-      shipmentsStands: faker.helpers.arrayElement(shipmentsStands),
+      stands: faker.helpers.arrayElement(stands),
       standTasks: faker.helpers.arrayElement(standTasks),
     }));
 

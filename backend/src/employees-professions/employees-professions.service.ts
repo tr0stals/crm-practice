@@ -50,10 +50,14 @@ export class EmployeesProfessionsService {
 
   async findEmployeeProfessionByEmployeeId(employeeId: number) {
     try {
-      return await this.employeesProfessionsRepository.findOne({
+      console.log('employeeId', employeeId);
+      const data = await this.employeesProfessionsRepository.findOne({
         where: { employees: { id: employeeId } },
         relations: ['employees', 'employees.peoples', 'professions'],
       });
+      console.log('data!!!!!!', data);
+
+      return data;
     } catch (e) {
       throw new Error('Ошибка при поиске EmployeeProfession', e);
     }

@@ -36,7 +36,10 @@ export class AuthService {
       comment: userData.comment,
     });
 
-    const employee = await this.employeeService.create({ peoples: people });
+    const employee = await this.employeeService.create({
+      peoples: people,
+      peopleId: people.id,
+    });
 
     if (!employee) {
       throw new Error('Employee creation failed');

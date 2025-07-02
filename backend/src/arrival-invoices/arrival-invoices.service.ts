@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ArrivalInvoices } from './arrival-invoices.entity';
@@ -11,11 +11,42 @@ export class ArrivalInvoicesService {
   ) {}
 
   async getAll() {
-    return this.repo.find({ relations: ['suppliers', 'factory', 'invoicesComponents'] });
+    return this.repo.find({
+      relations: ['suppliers', 'factory'],
+    });
   }
 
   async getOne(id: number) {
-    return this.repo.findOne({ where: { id }, relations: ['suppliers', 'factory', 'invoicesComponents'] });
+    return this.repo.findOne({
+      where: { id },
+      relations: ['suppliers', 'factory'],
+    });
+  }
+
+  async generateData() {
+    try {
+      const arrivalInvoices = await this.getAll();
+      const data: any[] = [];
+
+      if (!arrivalInvoices)
+        throw new NotFoundException('Не удалось найти arrivalInvoices');
+
+      arrivalInvoices.map((item) => {
+        const { factory, suppliers, ...defaultData } = item;
+        const factoryName = factory.shortName;
+        const supplierName = suppliers.shortName;
+
+        data.push({
+          ...defaultData,
+          factoryName,
+          supplierName,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async create(data: Partial<ArrivalInvoices>) {
