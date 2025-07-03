@@ -5,10 +5,10 @@ import { Writeoff } from './writeoff.entity';
 import { WriteoffDTO } from './dto/WriteoffDTO';
 import { ComponentsService } from 'src/components/components.service';
 import { OrganizationsService } from 'src/organizations/organizations.service';
-import { WriteoffReasonsService } from 'src/writeoff-reasons/writeoff-reasons.service';
 import { Components } from 'src/components/components.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
-import { WriteoffReasons } from 'src/writeoff-reasons/writeoff-reasons.entity';
+import { WriteoffReasons } from 'src/writeoff_reasons/writeoff_reasons.entity';
+import { WriteoffReasonsService } from 'src/writeoff_reasons/writeoff_reasons.service';
 
 @Injectable()
 export class WriteoffService {

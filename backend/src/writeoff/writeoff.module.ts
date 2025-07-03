@@ -5,10 +5,10 @@ import { WriteoffService } from './writeoff.service';
 import { WriteoffController } from './writeoff.controller';
 import { ComponentsModule } from 'src/components/components.module';
 import { OrganizationsModule } from 'src/organizations/organizations.module';
-import { WriteoffReasonsModule } from 'src/writeoff-reasons/writeoff-reasons.module';
 import { Components } from 'src/components/components.entity';
-import { WriteoffReasons } from 'src/writeoff-reasons/writeoff-reasons.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
+import { WriteoffReasonsModule } from 'src/writeoff_reasons/writeoff_reasons.module';
+import { WriteoffReasons } from 'src/writeoff_reasons/writeoff_reasons.entity';
 
 @Module({
   imports: [

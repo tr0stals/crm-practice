@@ -43,7 +43,6 @@ import { deleteDataAsync } from "@/views/Dashboard/api/deleteDataAsync";
 import * as XLSX from "xlsx";
 import "../style.scss";
 import type { TreeNode } from "primevue/treenode";
-import { getTreeviewData } from "@/shared/utils/getTreeviewData";
 
 const treeData = ref([]);
 const search = ref("");
@@ -53,7 +52,7 @@ const importInput = ref(null);
 onMounted(fetchData);
 
 async function fetchData() {
-  const { data } = await getDataAsync({ endpoint: "/pcb_orders/tree" });
+  const { data } = await getDataAsync({ endpoint: "/pcbs/tree" });
   const node = getTreeviewData(data);
   treeData.value = node.children || [];
 }
@@ -61,6 +60,28 @@ async function fetchData() {
 const props = defineProps<{
   handleSelectCallback: (node: any) => void;
 }>();
+
+const getTreeviewData = (node: any, level = 0): TreeNode => {
+  console.debug(node);
+  const treeNode: TreeNode = {
+    id: node.id,
+    key: `node-${node.id || Math.random().toString(36).substring(2, 9)}`,
+    label: node.name || node.title,
+    data: node,
+    level,
+  };
+
+  if (node.children && node.children.length > 0) {
+    treeNode.children = node.children.map((child: any) =>
+      getTreeviewData(child, level + 1)
+    );
+  } else if (node.width || node.height || node.material) {
+    treeNode.isProduct = true;
+    treeNode.leaf = true;
+  }
+
+  return treeNode;
+};
 
 function groupOrders(orders) {
   return [

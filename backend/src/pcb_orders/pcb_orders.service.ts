@@ -101,12 +101,7 @@ export class PcbOrdersService {
   async getPcbOrdersTree() {
     // Получаем все заказы с нужными связями
     const orders = await this.repository.find({
-      relations: [
-        'pcb',
-        'pcbManufacturer',
-        'factory',
-        'pcbOrderState',
-      ],
+      relations: ['pcb', 'pcbManufacturer', 'factory', 'pcbOrderState'],
       order: { orderDate: 'DESC' },
     });
 
@@ -117,15 +112,15 @@ export class PcbOrdersService {
     // (в реальном проекте лучше через сервис PCBS, но тут напрямую)
     const pcbsRepo = this.repository.manager.getRepository(PCBS);
     const allPcbs = await pcbsRepo.find();
-    allPcbs.forEach(pcb => {
+    allPcbs.forEach((pcb) => {
       pcbIdToSubcategory[pcb.id] = pcb.parentId;
       pcbIdToName[pcb.id] = pcb.id;
     });
 
     // Мапа: subcategoryId -> subcategoryName
     const subcategoryIdToName = {};
-    PCB_CATEGORIES.forEach(cat => {
-      cat.subcategories.forEach(subcat => {
+    PCB_CATEGORIES.forEach((cat) => {
+      cat.subcategories.forEach((subcat) => {
         subcategoryIdToName[subcat.id] = subcat.name;
       });
     });
@@ -156,6 +151,7 @@ export class PcbOrdersService {
       //   order.pcbOrderState?.state
       // ].join(' | ');
       const rowObj = {
+        id: order.id,
         name: [
           order.pcbManufacturer?.fullName,
           order.factory?.fullName,
@@ -165,7 +161,7 @@ export class PcbOrdersService {
           widthHeight,
           order.article,
           order.price,
-          order.pcbOrderState?.state
+          order.pcbOrderState?.state,
         ].join(' | '),
         manufacturer: order.pcbManufacturer?.fullName,
         factory: order.factory?.fullName,
@@ -187,11 +183,11 @@ export class PcbOrdersService {
       name: 'Заказы печатных плат',
       children: Object.entries(grouped).map(([date, orders]) => ({
         name: date,
-        children: (orders as any[]).map(orderObj => ({
+        children: (orders as any[]).map((orderObj) => ({
           ...orderObj,
-          children: []
-        }))
-      }))
+          children: [],
+        })),
+      })),
     };
   }
 }

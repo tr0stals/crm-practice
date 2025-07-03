@@ -45,6 +45,7 @@ import WarehouseComponentsTreeView from "@/views/Pages/WarehouseComponentsTreevi
 import UsersTreeView from "@/views/Pages/UsersTreeview/ui/UsersTreeView.vue";
 import PcbOrdersTreeView from "@/views/Pages/PcbOrdersTreeview/ui/PcbOrdersTreeView.vue";
 import OrderRequestsTreeView from "@/views/Pages/OrderRequestsTreeview/ui/OrderRequestsTreeView.vue";
+import PcbsTreeview from "@/views/Pages/PcbsTreeview/ui/PcbsTreeview.vue";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -192,8 +193,9 @@ const logout = () => {
 
 const getCurrentData = async () => {
   const config: IData = {
-    endpoint: `/${currentSection.value}/generateData`,
+    endpoint: `/${currentSection.value.replace(/-/g, "_")}/generateData`,
   };
+  console.debug(currentSection.value);
   console.debug(config);
 
   data.value = []; // Очищаем данные перед загрузкой
@@ -601,7 +603,7 @@ function handleSidebarClick(section: string) {
             :data-js-sectionName="section"
             @click="currentSection = section"
           >
-            {{ section.replace(/-/g, "_") }}
+            {{ section }}
           </li>
         </ul>
       </nav>
@@ -630,7 +632,7 @@ function handleSidebarClick(section: string) {
       <!-- Content -->
       <section class="content-section" v-if="currentSection">
         <h2 class="content-section__title">
-          {{ localizatedSections[currentSection.replace(/_/g, "-")] }}
+          {{ localizatedSections[currentSection] }}
         </h2>
         <!-- Action Buttons, Search, and Filter Placeholder -->
         <div class="controls">
@@ -694,6 +696,9 @@ function handleSidebarClick(section: string) {
           </template>
           <template v-else-if="currentSection === 'order-requests'">
             <OrderRequestsTreeView :handle-select-callback="handleSelectRow" />
+          </template>
+          <template v-else-if="currentSection === 'pcbs'">
+            <PcbsTreeview :handle-select-callback="handleSelectRow" />
           </template>
 
           <table v-else :key="currentSection + '-table'" class="data-table">

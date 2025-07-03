@@ -12,7 +12,7 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
 
   const fetchColumnsAndRelations = async () => {
     const data = await getDataAsync({
-      endpoint: `database/getFormMetaData/${sectionName.replace(/-/g, "_")}`,
+      endpoint: `database/getFormMetaData/${sectionName}`,
     }).then((res) => res.data);
     console.debug(data);
 
