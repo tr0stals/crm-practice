@@ -1,0 +1,67 @@
+.tree-page {
+  padding: 32px;
+}
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+.toolbar button {
+  font-size: 18px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid #bbb;
+  background: #f8f8fa;
+  cursor: pointer;
+  transition: background 0.2s;
+  height: 44px;
+  font-weight: 500;
+}
+.toolbar button:hover {
+  background: #e6e6f0;
+}
+.search-input {
+  font-size: 18px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  min-width: 220px;
+  height: 44px;
+}
+h1 {
+  font-size: 3em;
+  font-weight: bold;
+  margin-bottom: 18px;
+}
+.custom-tree {
+  margin-top: 12px;
+}
+.pcb-card-wrap {
+  padding: 8px;
+}
+.pcb-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px #0001;
+}
+.pcb-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #1976d2;
+}
+.pcb-row {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+.pcb-row span {
+  color: #888;
+  min-width: 110px;
+  display: inline-block;
+}
+.tree-label {
+  font-size: 18px;
+  font-weight: 500;
+}

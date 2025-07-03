@@ -1,80 +1,38 @@
 <template>
-  <div class="tree-page">
-    <h1>Компоненты</h1>
-    <div class="toolbar">
-      <button @click="handleAdd">+ Добавить</button>
-      <button @click="handleEdit">✏️ Редактировать</button>
-      <button @click="handleDelete">🗑️ Удалить</button>
-      <button @click="handleRefresh">⟳ Обновить</button>
-      <button @click="exportExcel">Выгрузить в Excel</button>
-      <button @click="triggerImport">Импорт из Excel</button>
-      <input
-        ref="importInput"
-        type="file"
-        accept=".xlsx,.xls"
-        style="display: none"
-        @change="handleImportFile"
-      />
-      <input v-model="search" placeholder="Поиск" class="search-input" />
-    </div>
-    <Tree
-      :value="filteredTreeData"
-      selectionMode="single"
-      class="custom-tree"
-      v-model:selectionKeys="selectedKey"
-      :pt="{
-        root: { class: 'treeview__root' },
-        nodeContent: { class: 'treeview__data' },
-        node: ({ context }) => ({
-          class: context.selected ? 'treeview__data__selected' : '',
-        }),
-      }"
-      :pt-options="{ mergeProps: true }"
-    >
-      <template #default="slotProps">
-        <template v-if="slotProps.node.isComponent">
-          <div class="comp-card-wrap">
-            <div class="comp-card">
-              <div class="comp-title">{{ slotProps.node.label }}</div>
-              <div class="comp-row">
-                <span>Ширина:</span> {{ slotProps.node.width }}
-              </div>
-              <div class="comp-row">
-                <span>Высота:</span> {{ slotProps.node.height }}
-              </div>
-              <div class="comp-row">
-                <span>Толщина:</span> {{ slotProps.node.thickness }}
-              </div>
-              <div class="comp-row">
-                <span>Вес:</span> {{ slotProps.node.weight }}
-              </div>
-              <div class="comp-row">
-                <span>Материал:</span> {{ slotProps.node.material }}
-              </div>
-              <div class="comp-row">
-                <span>Дата поступления:</span> {{ slotProps.node.receiptDate }}
-              </div>
-              <div class="comp-row">
-                <span>Чертёж:</span> {{ slotProps.node.drawingReference }}
-              </div>
-              <div class="comp-row">
-                <span>Фото:</span> {{ slotProps.node.photo }}
-              </div>
-              <div class="comp-row">
-                <span>Размещение:</span> {{ slotProps.node.placementTitle }}
-              </div>
-            </div>
-          </div>
-        </template>
-        <template v-else>
-          <span class="tree-label">{{ slotProps.node.label }}</span>
-        </template>
+  <Tree
+    :value="treeData"
+    selectionMode="single"
+    class="treeview"
+    v-model:selectionKeys="selectedKey"
+    :pt="{
+      root: { class: 'treeview__root' },
+      nodeContent: { class: 'treeview__data' },
+      node: ({ context }) => ({
+        class: context.selected ? 'treeview__data__selected' : '',
+        style: { marginLeft: `${(context.node.level || 0) * 1}rem` },
+      }),
+    }"
+    :pt-options="{ mergeProps: true }"
+  >
+    <template #default="slotProps">
+      <template v-if="slotProps.node.isComponent">
+        <div class="temp" @click="props.handleSelectCallback(slotProps.node)">
+          <div class="comp-cell">{{ slotProps.node.label }}</div>
+        </div>
       </template>
-    </Tree>
-  </div>
+      <template class="treeview__data" v-else>
+        <span
+          class="treeview__data__label"
+          @click="props.handleSelectCallback(slotProps.node)"
+        >
+          {{ slotProps.node.label }}
+        </span>
+      </template>
+    </template>
+  </Tree>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import Tree from "primevue/tree";
@@ -84,18 +42,63 @@ import { ModalManager } from "@/shared/plugins/modalManager";
 import { deleteDataAsync } from "@/views/Dashboard/api/deleteDataAsync";
 import * as XLSX from "xlsx";
 import { useRouter } from "vue-router";
+import "../style.scss";
+import { isArray } from "element-plus/es/utils/types.mjs";
 
-const treeData = ref([]);
+const treeData = ref<any[]>([]);
 const search = ref("");
 const selectedKey = ref(null);
 const importInput = ref(null);
 const router = useRouter();
 
+interface TreeNode {
+  id: number;
+  key: string;
+  label: string;
+  data?: any;
+  children?: TreeNode[];
+  leaf?: boolean;
+  isProduct?: boolean; // Флаг для товаров
+  level: any;
+}
+
+const getTreeviewData = (node: any, level = 0): TreeNode => {
+  const treeNode: TreeNode = {
+    id: node.id,
+    key: `node-${node.id || Math.random().toString(36).substring(2, 9)}`,
+    label: node.name || node.title,
+    data: node,
+    level,
+  };
+
+  if (node.children && node.children.length > 0) {
+    treeNode.children = node.children.map((child: any) =>
+      getTreeviewData(child, level + 1)
+    );
+  } else if (node.width || node.height || node.material) {
+    treeNode.isProduct = true;
+    treeNode.leaf = true;
+  }
+
+  return treeNode;
+};
+
+// Функция для построения всего дерева
+const buildTreeview = (rootNode: any): TreeNode => {
+  return getTreeviewData(rootNode);
+};
+
 onMounted(fetchComponents);
 
+const props = defineProps<{
+  handleSelectCallback: (node: any) => void;
+}>();
+
 async function fetchComponents() {
-  const { data } = await getDataAsync({ endpoint: "/components/get" });
-  treeData.value = buildTree(data);
+  const { data } = await getDataAsync({ endpoint: "/components/tree" });
+  // treeData.value = buildTree(data);
+  const node = getTreeviewData(data);
+  treeData.value = node.children || [];
 }
 
 function buildTree(components) {
@@ -231,83 +234,3 @@ function goToComponent(id) {
   router.push(`/components/${id}`);
 }
 </script>
-
-<style scoped>
-.toolbar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-  align-items: center;
-}
-.toolbar button {
-  font-size: 18px;
-  padding: 8px 18px;
-  border-radius: 8px;
-  border: 1px solid #bbb;
-  background: #f8f8fa;
-  cursor: pointer;
-  transition: background 0.2s;
-  height: 44px;
-  font-weight: 500;
-}
-.toolbar button:hover {
-  background: #e6e6f0;
-}
-.search-input {
-  font-size: 18px;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  min-width: 220px;
-  height: 44px;
-}
-.tree-page {
-  padding: 32px;
-}
-.tree-page h1 {
-  font-size: 3em;
-  font-weight: bold;
-  margin-bottom: 18px;
-}
-.custom-tree .tree-label {
-  font-weight: 600;
-}
-.comp-card-wrap {
-  width: 100%;
-  display: block;
-  position: relative;
-  z-index: 1;
-}
-.comp-card {
-  background: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 12px 18px;
-  margin: 0;
-  width: 100%;
-  box-shadow: none;
-  transition: background 0.2s;
-  display: block;
-}
-.comp-card:hover {
-  background: #eef6ff;
-}
-.comp-title {
-  font-weight: bold;
-  font-size: 19px;
-  margin-bottom: 6px;
-  color: #1976d2;
-  word-break: break-word;
-}
-.comp-row {
-  font-size: 15px;
-  color: #333;
-  margin-bottom: 2px;
-  word-break: break-word;
-}
-.comp-row span {
-  color: #888;
-  min-width: 110px;
-  display: inline-block;
-}
-</style>

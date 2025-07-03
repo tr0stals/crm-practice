@@ -34,6 +34,17 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import type { IAuthorizedUser } from "../interface/IAuthorizedUser";
 import { roleTables } from "@/shared/config/rolesTables";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
+import { item } from "@primeuix/themes/aura/breadcrumb";
+import ComponentsTreeView from "@/views/Pages/ComponentsTreeview/ui/ComponentsTreeView.vue";
+import EmployeesTreeView from "@/views/Pages/EmployeesTreeview/ui/EmployeesTreeview.vue";
+import OrganizationsTreeView from "@/views/Pages/OrganizationsTreeview/ui/OrganizationsTreeView.vue";
+import LicenseTypesTreeView from "@/views/Pages/LicenseTypesTreeview/ui/LicenseTypesTreeView.vue";
+import DepartmentsTreeView from "@/views/Pages/DepartmentsTreeview/ui/DepartmentsTreeView.vue";
+import CurrentTasksTreeView from "@/views/Pages/CurrentTasksTreeview/ui/CurrentTasksTreeView.vue";
+import WarehouseComponentsTreeView from "@/views/Pages/WarehouseComponentsTreeview/ui/WarehouseComponentsTreeView.vue";
+import UsersTreeView from "@/views/Pages/UsersTreeview/ui/UsersTreeView.vue";
+import PcbOrdersTreeView from "@/views/Pages/PcbOrdersTreeview/ui/PcbOrdersTreeView.vue";
+import OrderRequestsTreeView from "@/views/Pages/OrderRequestsTreeview/ui/OrderRequestsTreeView.vue";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -181,8 +192,9 @@ const logout = () => {
 
 const getCurrentData = async () => {
   const config: IData = {
-    endpoint: `/${currentSection.value.replace(/_/g, "-")}/generateData`,
+    endpoint: `/${currentSection.value}/generateData`,
   };
+  console.debug(config);
 
   data.value = []; // Очищаем данные перед загрузкой
 
@@ -270,10 +282,12 @@ onMounted(async () => {
   const localizationResponse = await getDataAsync({
     endpoint: "localization/tables",
   });
-  // localizatedSections.value = localizationResponse.data;
+
   localizatedSections.value = Object.fromEntries(
     Object.entries(localizationResponse.data)
   );
+
+  console.debug(localizatedSections.value);
 
   const tables = roleTables
     .filter((item) => item.profession === userProfession.value)
@@ -282,7 +296,7 @@ onMounted(async () => {
 
   sectionsList.value = tables;
   sectionsList.value = sectionsList.value.map((item) => {
-    return item.replace(/-/g, "_");
+    return item;
   });
 });
 
@@ -356,6 +370,11 @@ function handleClickOutside(event: MouseEvent) {
       filterDropdownOpen.value[k] = false;
     });
   }
+}
+
+function handleSelectRow(item: any) {
+  console.debug(item);
+  selectedRow.value = item;
 }
 
 const handleAvatarUpload = (event: Event) => {
@@ -489,6 +508,7 @@ const exportToExcel = () => {
     alert("Нет данных для экспорта.");
     return;
   }
+
   const header = Object.keys(filteredData.value[0]);
   const data = filteredData.value.map((row) =>
     header.reduce((obj: Record<string, any>, key) => {
@@ -581,7 +601,7 @@ function handleSidebarClick(section: string) {
             :data-js-sectionName="section"
             @click="currentSection = section"
           >
-            {{ localizatedSections[section] }}
+            {{ section.replace(/-/g, "_") }}
           </li>
         </ul>
       </nav>
@@ -610,7 +630,7 @@ function handleSidebarClick(section: string) {
       <!-- Content -->
       <section class="content-section" v-if="currentSection">
         <h2 class="content-section__title">
-          {{ localizatedSections[currentSection] }}
+          {{ localizatedSections[currentSection.replace(/_/g, "-")] }}
         </h2>
         <!-- Action Buttons, Search, and Filter Placeholder -->
         <div class="controls">
@@ -649,7 +669,34 @@ function handleSidebarClick(section: string) {
 
         <!-- Table -->
         <div class="table-container" v-if="showTableContainer">
-          <table :key="currentSection + '-table'" class="data-table">
+          <template v-if="currentSection === 'employees'">
+            <EmployeesTreeView :handle-select-callback="handleSelectRow" />
+          </template>
+
+          <template v-else-if="currentSection === 'organizations'">
+            <OrganizationsTreeView :handle-select-callback="handleSelectRow" />
+          </template>
+          <template v-else-if="currentSection === 'licenseTypes'">
+            <LicenseTypesTreeView :handle-select-callback="handleSelectRow" />
+          </template>
+
+          <template v-else-if="currentSection === 'current-tasks'">
+            <CurrentTasksTreeView :handle-select-callback="handleSelectRow" />
+          </template>
+          <template v-else-if="currentSection === 'components'">
+            <ComponentsTreeView :handle-select-callback="handleSelectRow" />
+          </template>
+          <template v-else-if="currentSection === 'user'">
+            <UsersTreeView :handle-select-callback="handleSelectRow" />
+          </template>
+          <template v-else-if="currentSection === 'pcb-orders'">
+            <PcbOrdersTreeView :handle-select-callback="handleSelectRow" />
+          </template>
+          <template v-else-if="currentSection === 'order-requests'">
+            <OrderRequestsTreeView :handle-select-callback="handleSelectRow" />
+          </template>
+
+          <table v-else :key="currentSection + '-table'" class="data-table">
             <thead>
               <tr>
                 <th
@@ -657,7 +704,6 @@ function handleSidebarClick(section: string) {
                   :key="key"
                   style="position: relative"
                 >
-                  <!-- {{ fieldDictionary[key] }} -->
                   {{ key }}
                   <button
                     @click.stop="toggleFilterDropdown(key)"
@@ -747,22 +793,6 @@ function handleSidebarClick(section: string) {
               </tr>
             </tbody>
           </table>
-
-          <!-- Поиск и TreeView -->
-          <div
-            v-if="
-              currentSection.toLowerCase() === 'license' ||
-              currentSection.toLowerCase() === 'organizations'
-            "
-          >
-            <CustomTreeview
-              :key="currentSection + '-treeview'"
-              :data="filteredTreeData"
-              :currentSection="currentSection"
-              :on-click="handleClick"
-              :searchQuery="searchQuery"
-            />
-          </div>
         </div>
 
         <!-- Pagination -->

@@ -9,16 +9,16 @@ import { useAuthStore } from "@/shared/store/auth.store";
 import AuthView from "@/views/AuthView/ui/AuthView.vue";
 import ErrorView from "@/views/ErrorView/ui/ErrorView.vue";
 import Dashboard from "@/views/Dashboard/ui/Dashboard.vue";
-import EmployeesTreeView from '@/views/Pages/EmployeesTreeView.vue'
-import DepartmentsTreeView from '@/views/Pages/DepartmentsTreeView.vue'
-import OrganizationsTreeView from '@/views/Pages/OrganizationsTreeView.vue'
-import ComponentsTreeView from '@/views/Pages/ComponentsTreeView.vue'
-import CurrentTasksTreeView from '@/views/Pages/CurrentTasksTreeView.vue'
-import LicenseTypesTreeView from '@/views/Pages/LicenseTypesTreeView.vue'
-import OrderRequestsTreeView from '@/views/Pages/OrderRequestsTreeView.vue'
-import PcbOrdersTreeView from '@/views/Pages/PcbOrdersTreeView.vue'
-import UsersTreeView from '@/views/Pages/UsersTreeView.vue'
-import WarehouseComponentsTreeView from '@/views/Pages/WarehouseComponentsTreeView.vue'
+import DepartmentsTreeView from "@/views/Pages/DepartmentsTreeview/ui/DepartmentsTreeView.vue";
+import OrganizationsTreeView from "@/views/Pages/OrganizationsTreeview/ui/OrganizationsTreeView.vue";
+import ComponentsTreeView from "@/views/Pages/ComponentsTreeview/ui/ComponentsTreeView.vue";
+import CurrentTasksTreeView from "@/views/Pages/CurrentTasksTreeview/ui/CurrentTasksTreeView.vue";
+import LicenseTypesTreeView from "@/views/Pages/LicenseTypesTreeview/ui/LicenseTypesTreeView.vue";
+import OrderRequestsTreeView from "@/views/Pages/OrderRequestsTreeview/ui/OrderRequestsTreeView.vue";
+import PcbOrdersTreeView from "@/views/Pages/PcbOrdersTreeview/ui/PcbOrdersTreeView.vue";
+import UsersTreeView from "@/views/Pages/UsersTreeview/ui/UsersTreeView.vue";
+import WarehouseComponentsTreeView from "@/views/Pages/WarehouseComponentsTreeview/ui/WarehouseComponentsTreeView.vue";
+import EmployeesTreeView from "@/views/Pages/EmployeesTreeview/ui/EmployeesTreeview.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -39,44 +39,44 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/employees',
-    component: EmployeesTreeView
+    path: "/employees",
+    component: EmployeesTreeView,
   },
   {
-    path: '/departments',
-    component: DepartmentsTreeView
+    path: "/departments",
+    component: DepartmentsTreeView,
   },
   {
-    path: '/organizations',
-    component: OrganizationsTreeView
+    path: "/organizations",
+    component: OrganizationsTreeView,
   },
   {
-    path: '/components',
-    component: ComponentsTreeView
+    path: "/components",
+    component: ComponentsTreeView,
   },
   {
-    path: '/current-tasks',
-    component: CurrentTasksTreeView
+    path: "/current-tasks",
+    component: CurrentTasksTreeView,
   },
   {
-    path: '/license_types',
-    component: LicenseTypesTreeView
+    path: "/license_types",
+    component: LicenseTypesTreeView,
   },
   {
-    path: '/order_requests',
-    component: OrderRequestsTreeView
+    path: "/order_requests",
+    component: OrderRequestsTreeView,
   },
   {
-    path: '/pcb_orders',
-    component: PcbOrdersTreeView
+    path: "/pcb_orders",
+    component: PcbOrdersTreeView,
   },
   {
-    path: '/users',
-    component: UsersTreeView
+    path: "/users",
+    component: UsersTreeView,
   },
   {
-    path: '/warehouse_components',
-    component: WarehouseComponentsTreeView
+    path: "/warehouse_components",
+    component: WarehouseComponentsTreeView,
   },
   {
     path: "/:pathMatch(.*)*",

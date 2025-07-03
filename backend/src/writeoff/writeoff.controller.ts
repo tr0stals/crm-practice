@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { WriteoffService } from './writeoff.service';
 import { Writeoff } from './writeoff.entity';
+import { WriteoffDTO } from './dto/WriteoffDTO';
 
 @Controller('writeoff')
 export class WriteoffController {
@@ -30,7 +31,7 @@ export class WriteoffController {
   }
 
   @Post('create')
-  async create(@Body() data: Partial<Writeoff>) {
+  async create(@Body() data: WriteoffDTO) {
     return this.service.create(data);
   }
 

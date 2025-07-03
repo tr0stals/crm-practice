@@ -29,6 +29,11 @@ export class LicenseTypesController {
     return await this.licenseTypesService.findById(id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.licenseTypesService.generateData();
+  }
+
   @Patch('update/:id')
   async update(@Param('id') id, @Body() updateLicense: LicenseTypeDTO) {
     return this.licenseTypesService.update(id, updateLicense);

@@ -20,6 +20,26 @@ export class LicenseTypesService {
     }
   }
 
+  async generateData() {
+    try {
+      const licenseTypes = await this.getLicenseTypes();
+      const data: any[] = [];
+
+      if (!licenseTypes)
+        throw new NotFoundException('Ошибка поиска типов лицензий');
+
+      licenseTypes.map((item) => {
+        data.push({
+          ...item,
+        });
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async findById(data: number) {
     try {
       return await this.licenseRepository.findOne({ where: { id: data } });

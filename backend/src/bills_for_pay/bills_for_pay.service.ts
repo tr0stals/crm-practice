@@ -12,14 +12,14 @@ export class BillsForPayService {
 
   async getAll() {
     return this.repo.find({
-      relations: ['supplier', 'factory', 'billsComponents'],
+      relations: ['supplier', 'factory'],
     });
   }
 
   async getOne(id: number) {
     return this.repo.findOne({
       where: { id },
-      relations: ['supplier', 'factory', 'billsComponents'],
+      relations: ['supplier', 'factory'],
     });
   }
 

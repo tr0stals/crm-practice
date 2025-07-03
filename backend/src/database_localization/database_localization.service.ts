@@ -59,6 +59,7 @@ export class DatabaseLocalizationService {
     for (const [table, data] of Object.entries(this.localizationData.tables)) {
       result[table] = data.displayName.replace(/_/g, '-');
     }
+
     return result;
   }
 

@@ -12,7 +12,7 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
 
   const fetchColumnsAndRelations = async () => {
     const data = await getDataAsync({
-      endpoint: `database/getFormMetaData/${sectionName}`,
+      endpoint: `database/getFormMetaData/${sectionName.replace(/-/g, "_")}`,
     }).then((res) => res.data);
     console.debug(data);
 
@@ -26,7 +26,7 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
   onMounted(fetchColumnsAndRelations);
 
   const submit = async () => {
-    await createEntityAsync(sectionName, formData);
+    await createEntityAsync(sectionName.replace(/_/g, "-"), formData);
     onSuccess();
   };
 

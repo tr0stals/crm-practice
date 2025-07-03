@@ -6,7 +6,8 @@
 }
 
 .sidebar {
-  min-width: 15%;
+  min-width: 20%;
+  width: 20%;
   background-color: #f0f0f0; /* Цвет сайдбара по изображению */
   padding: 20px;
   box-sizing: border-box;
@@ -255,6 +256,9 @@
   padding: 10px 8px;
   text-align: left;
   font-size: 1.9em; /* Увеличил с 1.3em до 1.9em */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .data-table th {
