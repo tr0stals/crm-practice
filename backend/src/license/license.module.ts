@@ -3,7 +3,7 @@ import { LicenseService } from './license.service';
 import { LicenseController } from './license.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { License } from './license.entity';
-import { LicenseTypesModule } from 'src/license-types/license-types.module';
+import { LicenseTypesModule } from 'src/license_types/license_types.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([License]), LicenseTypesModule],

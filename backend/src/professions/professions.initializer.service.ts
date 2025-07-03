@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ProfessionsService } from './professions.service';
-import { DEFAULT_PROFESSIONS } from './constants/default-professions';
+import { DEFAULT_PROFESSIONS } from './constants/default_professions';
 import { Professions } from './professions.entity';
 
 @Injectable()

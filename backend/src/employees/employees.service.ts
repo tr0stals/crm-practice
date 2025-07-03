@@ -10,8 +10,8 @@ import { EmployeesDTO } from './dto/EmployeesDTO';
 import { Peoples } from 'src/peoples/peoples.entity';
 import { Professions } from 'src/professions/professions.entity';
 import { User } from 'src/user/user.entity';
-import { EmployeeDepartmentsService } from 'src/employee-departments/employee-departments.service';
-import { EmployeesProfessions } from 'src/employees-professions/employees-professions.entity';
+import { EmployeeDepartmentsService } from 'src/employee_departments/employee_departments.service';
+import { EmployeesProfessions } from 'src/employees_professions/employees_professions.entity';
 
 @Injectable()
 export class EmployeesService {

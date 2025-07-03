@@ -1,10 +1,10 @@
-import { ArrivalInvoices } from 'src/arrival-invoices/arrival-invoices.entity';
-import { EmployeesVacations } from 'src/employees-vacations/employees-vacations.entity';
-import { OrganizationTypes } from 'src/organization-types/organization-types.entity';
-import { PcbOrders } from 'src/pcb-orders/pcb-orders.entity';
+import { ArrivalInvoices } from 'src/arrival_invoices/arrival_invoices.entity';
+import { EmployeesVacations } from 'src/employees_vacations/employees_vacations.entity';
+import { OrganizationTypes } from 'src/organization_types/organization_types.entity';
+import { PcbOrders } from 'src/pcb_orders/pcb_orders.entity';
 import { Peoples } from 'src/peoples/peoples.entity';
-import { ServerArrivals } from 'src/server-arrivals/server-arrivals.entity';
-import { ServerWriteoff } from 'src/server-writeoff/server-writeoff.entity';
+import { ServerArrivals } from 'src/server_arrivals/server_arrivals.entity';
+import { ServerWriteoff } from 'src/server_writeoff/server_writeoff.entity';
 import { Shipments } from 'src/shipments/shipments.entity';
 import { Writeoff } from 'src/writeoff/writeoff.entity';
 import {

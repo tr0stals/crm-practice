@@ -6,19 +6,19 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { SupplierComponents } from '../supplier-components/supplier-components.entity';
-import { StandTasks } from 'src/stand-tasks/stand-tasks.entity';
+import { SupplierComponents } from '../supplier_components/supplier_components.entity';
+import { StandTasks } from 'src/stand_tasks/stand_tasks.entity';
 import { Writeoff } from 'src/writeoff/writeoff.entity';
-import { ServerWriteoff } from 'src/server-writeoff/server-writeoff.entity';
-import { InvoicesComponents } from 'src/invoices-components/invoices-components.entity';
-import { ServerArrivals } from 'src/server-arrivals/server-arrivals.entity';
-import { OrderRequestsComponents } from 'src/order-requests-components/order-requests-components.entity';
+import { ServerWriteoff } from 'src/server_writeoff/server_writeoff.entity';
+import { InvoicesComponents } from 'src/invoices_components/invoices_components.entity';
+import { ServerArrivals } from 'src/server_arrivals/server_arrivals.entity';
+import { OrderRequestsComponents } from 'src/order_requests_components/order_requests_components.entity';
 import { ComponentPlacements } from 'src/component_placements/component_placements.entity';
 import { Inventarization } from 'src/inventarization/inventarization.entity';
-import { StandTasksComponents } from 'src/stand-tasks-components/stand-tasks-components.entity';
-import { BillsComponents } from 'src/bills-components/bills-components.entity';
-import { CurrentTasksComponents } from 'src/current-tasks-components/current-tasks-components.entity';
-import { PcbsComponents } from 'src/pcbs-components/pcbs-components.entity';
+import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_components.entity';
+import { BillsComponents } from 'src/bills_components/bills_components.entity';
+import { CurrentTasksComponents } from 'src/current_tasks_components/current_tasks_components.entity';
+import { PcbsComponents } from 'src/pcbs_components/pcbs_components.entity';
 import { PCBS } from 'src/pcbs/pcbs.entity';
 
 @Entity()

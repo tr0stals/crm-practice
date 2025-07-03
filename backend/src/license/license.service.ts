@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { License } from './license.entity';
 import { Repository } from 'typeorm';
 import { LicenseDTO } from './dto/LicenseDTO';
-import { LicenseTypes } from 'src/license-types/license-types.entity';
-import { LicenseTypesService } from 'src/license-types/license-types.service';
+import { LicenseTypes } from 'src/license_types/license_types.entity';
+import { LicenseTypesService } from 'src/license_types/license_types.service';
 
 @Injectable()
 export class LicenseService {

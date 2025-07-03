@@ -1,8 +1,8 @@
 import { License } from 'src/license/license.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
-import { ShipmentPackage } from 'src/shipment-package/shipment-package.entity';
-import { ShipmentTrips } from 'src/shipment-trips/shipment-trips.entity';
-import { ShipmentsStands } from 'src/shipments-stands/shipments-stands.entity';
+import { ShipmentPackage } from 'src/shipment_package/shipment_package.entity';
+import { ShipmentTrips } from 'src/shipment_trips/shipment_trips.entity';
+import { ShipmentsStands } from 'src/shipments_stands/shipments_stands.entity';
 import {
   Column,
   Entity,

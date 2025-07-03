@@ -1,6 +1,6 @@
 import { Components } from 'src/components/components.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
-import { WriteoffReasons } from 'src/writeoff-reasons/writeoff-reasons.entity';
+import { WriteoffReasons } from 'src/writeoff_reasons/writeoff_reasons.entity';
 import {
   Column,
   Entity,

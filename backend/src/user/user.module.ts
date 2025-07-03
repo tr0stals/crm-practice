@@ -7,7 +7,7 @@ import { PeoplesModule } from 'src/peoples/peoples.module';
 import { EmployeesModule } from 'src/employees/employees.module';
 import { ProfessionsModule } from 'src/professions/professions.module';
 import { Employees } from 'src/employees/employees.entity';
-import { EmployeesProfessionsModule } from 'src/employees-professions/employees-professions.module';
+import { EmployeesProfessionsModule } from 'src/employees_professions/employees_professions.module';
 
 @Module({
   imports: [

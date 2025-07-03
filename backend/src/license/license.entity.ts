@@ -1,4 +1,4 @@
-import { LicenseTypes } from 'src/license-types/license-types.entity';
+import { LicenseTypes } from 'src/license_types/license_types.entity';
 import { Shipments } from 'src/shipments/shipments.entity';
 import {
   Column,

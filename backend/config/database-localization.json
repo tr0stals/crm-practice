@@ -279,7 +279,8 @@
         "pcbManufacturerId": "ID производителя",
         "factoryId": "ID фабрики",
         "employeeId": "ID сотрудника",
-        "pcbOrderStatusId": "ID статуса заказа"
+        "pcbOrderStatusId": "ID статуса заказа",
+        "orderDate": "Дата заказа"
       }
     },
     "pcbs": {

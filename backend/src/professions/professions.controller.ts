@@ -10,8 +10,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ProfessionsService } from './professions.service';
-import { CreateProfessionDto } from './dto/create-profession.dto';
-import { UpdateProfessionDto } from './dto/update-profession.dto';
+import { CreateProfessionDto } from './dto/create_profession.dto';
+import { UpdateProfessionDto } from './dto/update_profession.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Профессии')

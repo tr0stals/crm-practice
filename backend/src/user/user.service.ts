@@ -11,7 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { PeoplesService } from 'src/peoples/peoples.service';
 import { EmployeesService } from 'src/employees/employees.service';
 import { Employees } from 'src/employees/employees.entity';
-import { EmployeesProfessionsService } from 'src/employees-professions/employees-professions.service';
+import { EmployeesProfessionsService } from 'src/employees_professions/employees_professions.service';
 
 @Injectable()
 export class UserService {

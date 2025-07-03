@@ -12,7 +12,7 @@ import { ComponentPlacementType } from './component_placement_type.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Типы размещения компонентов')
-@Controller('component-placement-types')
+@Controller('component_placement_types')
 export class ComponentPlacementTypeController {
   constructor(private readonly service: ComponentPlacementTypeService) {}
 

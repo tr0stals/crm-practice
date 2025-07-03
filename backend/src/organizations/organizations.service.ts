@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Organizations } from './organizations.entity';
 import { Repository } from 'typeorm';
 import { OrganizationsDTO } from './dto/OrganizationsDTO';
-import { OrganizationTypesService } from 'src/organization-types/organization-types.service';
+import { OrganizationTypesService } from 'src/organization_types/organization_types.service';
 import { PeoplesService } from 'src/peoples/peoples.service';
 
 @Injectable()

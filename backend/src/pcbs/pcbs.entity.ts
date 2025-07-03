@@ -1,7 +1,7 @@
-import { PcbOrders } from 'src/pcb-orders/pcb-orders.entity';
+import { PcbOrders } from 'src/pcb_orders/pcb_orders.entity';
 import { Stands } from 'src/stands/stands.entity';
 import { Components } from '../components/components.entity';
-import { PcbsComponents } from '../pcbs-components/pcbs-components.entity';
+import { PcbsComponents } from '../pcbs_components/pcbs_components.entity';
 import {
   Column,
   Entity,

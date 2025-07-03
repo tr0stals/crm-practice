@@ -1,4 +1,4 @@
-import { EmployeeDepartments } from 'src/employee-departments/employee-departments.entity';
+import { EmployeeDepartments } from 'src/employee_departments/employee_departments.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()

@@ -1,0 +1,13 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { StandPackagesController } from './stand_packages.controller';
+import { StandPackagesService } from './stand_packages.service';
+import { StandPackages } from './stand_packages.entity';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([StandPackages])],
+  controllers: [StandPackagesController],
+  providers: [StandPackagesService],
+  exports: [StandPackagesService],
+})
+export class StandPackagesModule {}

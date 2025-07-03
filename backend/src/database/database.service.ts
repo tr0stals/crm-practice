@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { databaseParentIdStrategies } from './database-parent-id-strategies';
+import { databaseParentIdStrategies } from './databaseParentIdStrategies';
 
 @Injectable()
 export class DatabaseService {

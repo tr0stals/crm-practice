@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PCBS } from './pcbs.entity';
-import { PCB_CATEGORIES } from './pcbs-categories';
+import { PCB_CATEGORIES } from './pcbs_categories';
 
 @Injectable()
 export class PcbsService {

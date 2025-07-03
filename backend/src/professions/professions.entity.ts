@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { StandTasks } from 'src/stand-tasks/stand-tasks.entity';
-import { EmployeesProfessions } from 'src/employees-professions/employees-professions.entity';
+import { StandTasks } from 'src/stand_tasks/stand_tasks.entity';
+import { EmployeesProfessions } from 'src/employees_professions/employees_professions.entity';
 
 @Entity()
 export class Professions {

@@ -7,7 +7,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { UserModule } from 'src/user/user.module';
 import { PeoplesModule } from 'src/peoples/peoples.module';
 import { EmployeesModule } from 'src/employees/employees.module';
-import { EmployeesProfessionsModule } from 'src/employees-professions/employees-professions.module';
+import { EmployeesProfessionsModule } from 'src/employees_professions/employees_professions.module';
 
 @Module({
   imports: [

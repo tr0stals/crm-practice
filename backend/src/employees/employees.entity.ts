@@ -1,11 +1,11 @@
-import { CurrentTasks } from 'src/current-tasks/current-tasks.entity';
-import { EmployeeDepartments } from 'src/employee-departments/employee-departments.entity';
-import { EmployeesProfessions } from 'src/employees-professions/employees-professions.entity';
-import { EmployeesVacations } from 'src/employees-vacations/employees-vacations.entity';
-import { OrderRequests } from 'src/order-requests/order-requests.entity';
-import { PcbOrders } from 'src/pcb-orders/pcb-orders.entity';
+import { CurrentTasks } from 'src/current_tasks/current_tasks.entity';
+import { EmployeeDepartments } from 'src/employee_departments/employee_departments.entity';
+import { EmployeesProfessions } from 'src/employees_professions/employees_professions.entity';
+import { EmployeesVacations } from 'src/employees_vacations/employees_vacations.entity';
+import { OrderRequests } from 'src/order_requests/order_requests.entity';
+import { PcbOrders } from 'src/pcb_orders/pcb_orders.entity';
 import { Peoples } from 'src/peoples/peoples.entity';
-import { ShipmentTrips } from 'src/shipment-trips/shipment-trips.entity';
+import { ShipmentTrips } from 'src/shipment_trips/shipment_trips.entity';
 import { Stands } from 'src/stands/stands.entity';
 import { User } from 'src/user/user.entity';
 

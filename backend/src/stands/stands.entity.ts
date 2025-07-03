@@ -1,11 +1,11 @@
-import { CurrentTasks } from 'src/current-tasks/current-tasks.entity';
+import { CurrentTasks } from 'src/current_tasks/current_tasks.entity';
 import { Employees } from 'src/employees/employees.entity';
-import { OrderRequests } from 'src/order-requests/order-requests.entity';
+import { OrderRequests } from 'src/order_requests/order_requests.entity';
 import { PCBS } from 'src/pcbs/pcbs.entity';
-import { ShipmentsStands } from 'src/shipments-stands/shipments-stands.entity';
-import { StandPackages } from 'src/stand-packages/stand-packages.entity';
-import { StandTasks } from 'src/stand-tasks/stand-tasks.entity';
-import { StandsTypes } from 'src/stand-types/stand-types.entity';
+import { ShipmentsStands } from 'src/shipments_stands/shipments_stands.entity';
+import { StandPackages } from 'src/stand_packages/stand_packages.entity';
+import { StandTasks } from 'src/stand_tasks/stand_tasks.entity';
+import { StandsTypes } from 'src/stand_types/stand_types.entity';
 import {
   Column,
   Entity,

@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { PeoplesService } from 'src/peoples/peoples.service';
 import { UserRegisterDTO } from 'src/user/dto/UserRegisterDTO';
 import { EmployeesService } from 'src/employees/employees.service';
-import { EmployeesProfessionsService } from 'src/employees-professions/employees-professions.service';
+import { EmployeesProfessionsService } from 'src/employees_professions/employees_professions.service';
 
 @Injectable()
 export class AuthService {

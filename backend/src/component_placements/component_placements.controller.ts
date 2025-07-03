@@ -12,7 +12,7 @@ import { ComponentPlacements } from './component_placements.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Размещения компонентов')
-@Controller('component-placements')
+@Controller('component_placements')
 export class ComponentPlacementsController {
   constructor(private readonly service: ComponentPlacementsService) {}
 
