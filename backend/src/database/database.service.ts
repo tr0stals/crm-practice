@@ -148,11 +148,17 @@ export class DatabaseService {
   }
 
   async getFormMetadata(tableName: string, currentId?: number) {
-    const columns = await this.getTableColumns(tableName);
+    // Получаем подробную информацию о колонках
+    const columnsInfo = await this.dataSource.query(
+      `SHOW COLUMNS FROM \`${tableName}\``
+    );
 
     const formStructure: Record<string, any> = {};
 
-    for (const column of columns) {
+    for (const colInfo of columnsInfo) {
+      const column = colInfo.Field;
+      const columnType = colInfo.Type; // например, 'date', 'int', 'varchar(255)'
+
       // Для organizations parentId — асинхронно получаем типы организаций
       if (tableName === 'organizations' && column === 'parentId') {
         const orgTypes = await this.dataSource
@@ -188,6 +194,8 @@ export class DatabaseService {
               )
             : [],
         };
+      } else if (columnType.startsWith('date')) {
+        formStructure[column] = { type: 'date' };
       } else if (column.toLowerCase().includes('date')) {
         formStructure[column] = { type: 'date' };
       } else {
