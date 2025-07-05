@@ -47,7 +47,7 @@ export class PcbOrdersService {
           pcbOrderState,
           ...defaultData
         } = item;
-        const pcbTitle = pcb.id;
+        const pcbTitle = pcb.title;
         const pcbManufacturerName = pcbManufacturer.shortName;
         const factoryName = factory.shortName;
         const employeeName = `${employees.peoples?.firstName} ${employees.peoples?.middleName} ${employees.peoples?.lastName}`;
@@ -135,7 +135,8 @@ export class PcbOrdersService {
       const pcb = order.pcb;
       const subcategoryId = pcbIdToSubcategory[pcb?.id];
       const subcategoryName = subcategoryIdToName[subcategoryId] || '';
-      const pcbName = pcb?.id || '';
+      const pcbName = pcb?.title || pcb?.id || '';
+      const pcbPrice = `${order.price} руб.` || '0 руб.';
       const widthHeight = `${order.width}x${order.height} мм`;
       const count = `${order.count} шт.`;
       // Формируем строку для дерева (оставляем, но закомментируем)
@@ -160,7 +161,7 @@ export class PcbOrdersService {
           count,
           widthHeight,
           order.article,
-          order.price,
+          pcbPrice,
           order.pcbOrderState?.state,
         ].join(' | '),
         manufacturer: order.pcbManufacturer?.fullName,

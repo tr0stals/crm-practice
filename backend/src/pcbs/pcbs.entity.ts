@@ -19,6 +19,9 @@ export class PCBS {
   @Column()
   parentId: number;
 
+  @Column({ length: 100 })
+  title: string;
+
   @ManyToOne(() => Components)
   @JoinColumn({ name: 'componentId' })
   component: Components;

@@ -24,6 +24,9 @@ export class Employees {
   id: number;
 
   @Column({ type: 'date', nullable: true })
+  hiringDate: Date;
+
+  @Column({ type: 'date', nullable: true })
   dismissalDate?: Date;
 
   @ManyToOne(() => Peoples, (people) => people.employees)

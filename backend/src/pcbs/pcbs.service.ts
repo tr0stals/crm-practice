@@ -76,7 +76,7 @@ export class PcbsService {
       return pcbs
         .filter(pcb => pcb.parentId === parentId)
         .map(pcb => ({
-          name: `Плата #${pcb.id}`,
+          name: pcb.title || `Плата #${pcb.id}`,
           children: Array.isArray(pcb.pcbsComponents)
             ? pcb.pcbsComponents.map(comp => ({
                 name: `${comp.component?.title || `Компонент #${comp.id}`} (${comp.componentCount} шт)`,
