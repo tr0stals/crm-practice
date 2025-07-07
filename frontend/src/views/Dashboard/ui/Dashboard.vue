@@ -46,11 +46,15 @@ import UsersTreeView from "@/views/Pages/UsersTreeview/ui/UsersTreeView.vue";
 import PcbOrdersTreeView from "@/views/Pages/PcbOrdersTreeview/ui/PcbOrdersTreeView.vue";
 import OrderRequestsTreeView from "@/views/Pages/OrderRequestsTreeview/ui/OrderRequestsTreeView.vue";
 import PcbsTreeview from "@/views/Pages/PcbsTreeview/ui/PcbsTreeview.vue";
+import { MoreDetailsCollapseModel } from "@/widgets/MoreDetailsCollapse/model/MoreDetailsCollapseModel";
+import { useGlobalStore } from "@/shared/store/globalStore";
+import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
 const authStore = useAuthStore();
 const router = useRouter();
+const globalStore = useGlobalStore();
 
 /**
  * Данные, которые отображаются в таблице
@@ -68,7 +72,7 @@ const localizatedSections = ref<any>([]);
 
 const treeviewData = ref<TreeNode[]>([]);
 
-const selectedRow = ref<any | null>(null);
+const selectedRow = ref();
 
 /**
  * Наполняем этот массив по ходу
@@ -192,11 +196,10 @@ const logout = () => {
 };
 
 const getCurrentData = async () => {
-  const config: IData = {
-    endpoint: `/${currentSection.value.replace(/-/g, "_")}/generateData`,
-  };
   console.debug(currentSection.value);
-  console.debug(config);
+  const config: IData = {
+    endpoint: `/${currentSection.value}/generateData`,
+  };
 
   data.value = []; // Очищаем данные перед загрузкой
 
@@ -215,22 +218,27 @@ const getCurrentData = async () => {
     console.error(e);
     data.value = []; // Убедимся, что данные пустые в случае ошибки
   }
-  console.debug(`getCurrentData for ${currentSection.value}:`, data.value);
 };
 
 const onUpdateCallBack = async () => {
   await getCurrentData();
 };
 
+watch(selectedRow, (newVal) => {
+  globalStore.setSelectedRow(newVal);
+  console.debug(globalStore.selectedRow);
+});
+
 /**
  *  Эта функция должна срабатывать при клике на кнопку "Редактировать"
  *  или при двойном клике на ячейку в таблице.
  */
-const handleEditModalWindow = () => {
+function handleEditModalWindow() {
   const cfg: IEdittingProps = {
     sectionName: currentSection.value,
-    entityId: targetData.value.id,
+    entityId: globalStore.selectedRow?.id,
   };
+  console.debug("selectedRow!!!!", globalStore.selectedRow?.id);
 
   if (!cfg.entityId) {
     alert("Выберите строку для редактирования");
@@ -241,7 +249,14 @@ const handleEditModalWindow = () => {
     config: cfg,
     onApplyCallback: onUpdateCallBack,
   });
-};
+}
+
+watch(
+  () => globalStore.activeSection,
+  (section: string) => {
+    currentSection.value = section;
+  }
+);
 
 const currentDateTime = ref("");
 
@@ -274,22 +289,11 @@ onMounted(async () => {
     userProfession.value = user.employeeProfession.professions.title;
   }
 
-  console.debug("User", user);
-  console.debug(sectionsList.value);
-
   updateTime();
   timer = setInterval(updateTime, 1000);
   document.addEventListener("click", handleClickOutside);
 
-  const localizationResponse = await getDataAsync({
-    endpoint: "localization/tables",
-  });
-
-  localizatedSections.value = Object.fromEntries(
-    Object.entries(localizationResponse.data)
-  );
-
-  console.debug(localizatedSections.value);
+  localizatedSections.value = localizatedSectionsList;
 
   const tables = roleTables
     .filter((item) => item.profession === userProfession.value)
@@ -303,7 +307,6 @@ onMounted(async () => {
 });
 
 watch(currentSection, async (oldVal: string, newSection: string) => {
-  selectedRow.value = null;
   targetData.value = null;
   treeviewData.value = [];
   currentPage.value = 1;
@@ -318,36 +321,32 @@ watch(currentSection, async (oldVal: string, newSection: string) => {
   );
 });
 
-watch(selectedRow, (newVal) => {
-  targetData.value = newVal;
-});
-
 watch(itemsPerPage, () => {
   currentPage.value = 1;
 });
 
 const currentTableHeaders = computed(() => {
   if (data.value && data.value.length > 0) {
-    return Object.keys(data.value[0]).filter((key) => key !== "password");
+    return Object.keys(data.value[0]).filter((item) => item !== "id");
   }
-  switch (currentSection.value.toLowerCase()) {
-    case "components":
-      return ["id", "name", "description"];
-    case "countries":
-      return ["id", "name", "code"];
-    case "departments":
-      return ["id", "name"];
-    case "invoices_arrival":
-      return ["id", "invoiceNumber", "date"];
-    case "license":
-      return ["id", "licenseCode", "userId"];
-    case "organizations":
-      return ["id", "name", "organizationTypeId"];
-    case "users":
-      return ["id", "firstName", "lastName", "email"];
-    default:
-      return ["id", "name"];
-  }
+  // switch (currentSection.value.toLowerCase()) {
+  //   case "components":
+  //     return ["id", "name", "description"];
+  //   case "countries":
+  //     return ["id", "name", "code"];
+  //   case "departments":
+  //     return ["id", "name"];
+  //   case "invoices_arrival":
+  //     return ["id", "invoiceNumber", "date"];
+  //   case "license":
+  //     return ["id", "licenseCode", "userId"];
+  //   case "organizations":
+  //     return ["id", "name", "organizationTypeId"];
+  //   case "users":
+  //     return ["id", "firstName", "lastName", "email"];
+  //   default:
+  //     return ["id", "name"];
+  // }
 });
 
 const columnCount = computed(() => {
@@ -468,6 +467,25 @@ const nextPage = () => {
 
 const handleClick = (node: any) => {
   selectedRow.value = node.data;
+};
+
+const handleMoreDetails = () => {
+  if (!selectedRow.value) {
+    alert("Необходимо выбрать строку");
+    return;
+  }
+
+  if (!currentSection.value) {
+    alert("Необходимо выбрать таблицу!");
+    return;
+  }
+
+  const config = {
+    selectedRow: selectedRow.value,
+    currentSection: currentSection.value,
+  };
+
+  MoreDetailsCollapseModel.getInstance(config);
 };
 
 const exportToCSV = () => {
@@ -603,7 +621,7 @@ function handleSidebarClick(section: string) {
             :data-js-sectionName="section"
             @click="currentSection = section"
           >
-            {{ section }}
+            {{ localizatedSections[section] }}
           </li>
         </ul>
       </nav>
@@ -630,7 +648,11 @@ function handleSidebarClick(section: string) {
       </header>
 
       <!-- Content -->
-      <section class="content-section" v-if="currentSection">
+      <section
+        data-js-content-section
+        class="content-section"
+        v-if="currentSection"
+      >
         <h2 class="content-section__title">
           {{ localizatedSections[currentSection] }}
         </h2>
@@ -658,6 +680,15 @@ function handleSidebarClick(section: string) {
             <Button :onClick="exportToExcel" class="dashboard__button">
               выгрузить в excel</Button
             >
+            <Button
+              v-if="
+                currentSection === 'bills_for_pay' ||
+                currentSection === 'arrival_invoices'
+              "
+              :onclick="handleMoreDetails"
+            >
+              Подробнее
+            </Button>
           </div>
           <div class="search-filter">
             <input
@@ -674,14 +705,12 @@ function handleSidebarClick(section: string) {
           <template v-if="currentSection === 'employees'">
             <EmployeesTreeView :handle-select-callback="handleSelectRow" />
           </template>
-
           <template v-else-if="currentSection === 'organizations'">
             <OrganizationsTreeView :handle-select-callback="handleSelectRow" />
           </template>
           <template v-else-if="currentSection === 'licenseTypes'">
             <LicenseTypesTreeView :handle-select-callback="handleSelectRow" />
           </template>
-
           <template v-else-if="currentSection === 'current-tasks'">
             <CurrentTasksTreeView :handle-select-callback="handleSelectRow" />
           </template>
@@ -786,7 +815,10 @@ function handleSidebarClick(section: string) {
                 }"
               >
                 <template v-for="(value, title) in item">
-                  <td v-if="title !== 'password'" :key="title">
+                  <td
+                    v-if="title !== 'password' && title !== 'id'"
+                    :key="title"
+                  >
                     <template v-if="typeof value === 'boolean'">
                       <input type="checkbox" :checked="value" disabled />
                     </template>

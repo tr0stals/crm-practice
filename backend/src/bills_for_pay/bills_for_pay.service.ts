@@ -36,9 +36,12 @@ export class BillsForPayService {
         const supplierName = supplier.shortName;
 
         data.push({
-          ...defaultData,
-          factoryName,
-          supplierName,
+          id: item.id,
+          date: item.date,
+          organization: supplierName,
+          supplyDate: item.expectedSupplyDate,
+          vat: item.vat,
+          amount: item.totalAmount,
         });
       });
 

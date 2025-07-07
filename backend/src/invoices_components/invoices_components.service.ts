@@ -20,6 +20,31 @@ export class InvoicesComponentsService {
     }
   }
 
+  async generateDataById(incomingId: number) {
+    try {
+      const invoicesComponents = await this.getAll();
+
+      if (!invoicesComponents)
+        throw new NotFoundException('Ошибка поиска накладных с комплектующими');
+
+      const data = invoicesComponents
+        .filter((item) => item.arrivalInvoices?.id === incomingId)
+        .map((item) => {
+          const { arrivalInvoices, components, ...defaultData } = item;
+
+          return {
+            ...defaultData,
+            arrival_invoice_date: arrivalInvoices.date,
+            component_title: components.title,
+          };
+        });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async getById(id: number) {
     try {
       return await this.repo.findOne({

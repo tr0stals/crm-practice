@@ -167,6 +167,7 @@
 }
 
 .content-section {
+  position: relative;
   flex-grow: 1; /* Позволяет секции занимать всё доступное вертикальное пространство */
   display: flex; /* Делаем секцию flex-контейнером */
   flex-direction: column; /* Элементы внутри выстраиваем по вертикали */

@@ -19,6 +19,11 @@ export class BillsComponentsController {
     return this.service.getAll();
   }
 
+  @Get('generateData/:id')
+  async generateDataById(@Param('id') id: string) {
+    return await this.service.generateDataById(+id);
+  }
+
   @Get('get/:id')
   async getOne(@Param('id') id: string) {
     return this.service.getOne(+id);

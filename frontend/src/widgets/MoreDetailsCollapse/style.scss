@@ -1,0 +1,43 @@
+@keyframes moreDetailsAppear {
+  0% {
+    top: 50%;
+  }
+
+  100% {
+    top: 18%;
+  }
+}
+
+.moreDetailsCollapse--closeAnim {
+  animation: moreDetailsAppear 0.3s backwards;
+}
+
+.moreDetailsCollapse {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 100%;
+  overflow: auto;
+  width: 100%;
+  background-color: rgb(244, 244, 244);
+  border-radius: 1rem;
+  animation: moreDetailsAppear 0.4s forwards ease;
+
+  &__title {
+    padding: 0 2rem;
+  }
+
+  &__closeIcon {
+    cursor: pointer;
+    position: absolute;
+    top: 2%;
+    right: 1%;
+  }
+
+  &__table {
+    width: 100%;
+    min-width: 1000px;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+  }
+}

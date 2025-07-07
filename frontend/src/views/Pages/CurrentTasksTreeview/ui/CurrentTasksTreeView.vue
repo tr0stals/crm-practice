@@ -22,6 +22,7 @@
       </template>
       <template class="treeview__data" v-else>
         <div
+          :data-js-data="JSON.stringify(slotProps.node.id)"
           class="treeview__data__label"
           @click="props.handleSelectCallback(slotProps.node)"
         >
@@ -58,7 +59,7 @@ const props = defineProps<{
 }>();
 
 async function fetchTasks() {
-  const { data } = await getDataAsync({ endpoint: "/current-tasks/get" });
+  const { data } = await getDataAsync({ endpoint: "/current_tasks/get" });
   treeData.value = buildTree(data);
 }
 

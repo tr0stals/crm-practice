@@ -41,8 +41,10 @@ export class OrganizationTypesService {
         throw new NotFoundException('Ошибка поиска типов организаций!');
 
       types.map((item) => {
+        const { organizations, ...defaultData } = item;
+
         data.push({
-          ...item,
+          ...defaultData,
         });
       });
 
