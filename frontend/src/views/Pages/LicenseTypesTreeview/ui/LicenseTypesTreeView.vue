@@ -39,7 +39,7 @@ const importInput = ref(null);
 onMounted(fetchData);
 
 async function fetchData() {
-  const { data: arr } = await getDataAsync({ endpoint: "/license-types/get" });
+  const { data: arr } = await getDataAsync({ endpoint: "/license_types/get" });
   data.value = arr;
 }
 

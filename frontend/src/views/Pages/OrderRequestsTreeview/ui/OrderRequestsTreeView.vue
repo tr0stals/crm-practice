@@ -97,7 +97,7 @@ const importInput = ref(null);
 onMounted(fetchData);
 
 async function fetchData() {
-  const { data } = await getDataAsync({ endpoint: "/order-requests/get" });
+  const { data } = await getDataAsync({ endpoint: "/order_requests/get" });
   treeData.value = groupOrderRequests(data);
 }
 
