@@ -1,3 +1,13 @@
+html, body, #app, .tree-page {
+  overflow: hidden !important;
+  height: 100%;
+}
+
+.treeview, .p-tree, .treeview__root {
+  overflow-y: auto !important;
+  max-height: calc(100vh - 120px);
+}
+
 .tree-page {
   padding: 32px;
 }
@@ -64,4 +74,16 @@ h1 {
 .tree-label {
   font-size: 18px;
   font-weight: 500;
+}
+.table-container {
+  max-height: calc(100vh - 180px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.p-tree, .treeview__root {
+  overflow-y: auto !important;
+  max-height: 100% !important;
+  min-height: 0;
 }

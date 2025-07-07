@@ -37,3 +37,17 @@ body {
   flex-direction: column;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
+
+/* Универсальные стили для всех страниц с деревьями */
+.table-container {
+  max-height: calc(100vh - 180px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.p-tree, .treeview__root {
+  overflow-y: auto !important;
+  max-height: 100% !important;
+  min-height: 0;
+}

@@ -4,6 +4,7 @@
     selectionMode="single"
     class="treeview"
     v-model:selectionKeys="selectedKey"
+    v-model:expandedKeys="expandedKeys"
     :pt="{
       root: { class: 'treeview__root' },
       nodeContent: { class: 'treeview__data' },
@@ -33,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, shallowRef } from "vue";
+import { ref, computed, onMounted, shallowRef, watch } from "vue";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import Tree from "primevue/tree";
 import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
@@ -48,6 +49,7 @@ const search = ref("");
 const selectedKey = ref(null);
 const selectedOrganization = shallowRef(null);
 const importInput = ref(null);
+const expandedKeys = ref({});
 
 onMounted(async () => {
   await fetchOrganizations();
@@ -60,6 +62,7 @@ async function fetchOrganizations() {
 
 const props = defineProps<{
   handleSelectCallback: (node: any) => void;
+  search?: string;
 }>();
 
 function groupOrganizations(orgs) {
@@ -97,22 +100,24 @@ function groupOrganizations(orgs) {
 }
 
 const filteredTreeData = computed(() => {
-  if (!search.value) return treeData.value;
+  const searchValue = props.search ?? search.value;
+  if (!searchValue) return treeData.value;
   const filter = (nodes) =>
     nodes
       .map((node) => {
+        let children = [];
         if (node.children) {
-          const children = filter(node.children);
-          if (children.length) return { ...node, children };
+          children = filter(node.children);
         }
-        if (
-          node.label?.toLowerCase().includes(search.value.toLowerCase()) ||
-          node.type?.toLowerCase().includes(search.value.toLowerCase()) ||
-          node.inn?.toLowerCase().includes(search.value.toLowerCase()) ||
-          node.phone?.toLowerCase().includes(search.value.toLowerCase()) ||
-          node.email?.toLowerCase().includes(search.value.toLowerCase())
-        )
-          return node;
+        const isMatch =
+          node.label?.toLowerCase().includes(searchValue.toLowerCase()) ||
+          node.type?.toLowerCase().includes(searchValue.toLowerCase()) ||
+          node.inn?.toLowerCase().includes(searchValue.toLowerCase()) ||
+          node.phone?.toLowerCase().includes(searchValue.toLowerCase()) ||
+          node.email?.toLowerCase().includes(searchValue.toLowerCase());
+        if (isMatch || children.length) {
+          return { ...node, ...(children.length ? { children } : {}) };
+        }
         return null;
       })
       .filter(Boolean);
@@ -288,4 +293,44 @@ async function updateOrganizationFromExcel(crmOrg, excelOrg) {
     }),
   });
 }
+
+function getExpandedKeysForSearch(nodes) {
+  const searchValue = props.search ?? search.value;
+  const expanded = {};
+  function walk(node, parentKeys = []) {
+    let match = false;
+    if (node.children) {
+      for (const child of node.children) {
+        if (walk(child, [...parentKeys, node.key])) match = true;
+      }
+    }
+    if (
+      node.label?.toLowerCase().includes(searchValue.toLowerCase()) ||
+      node.type?.toLowerCase().includes(searchValue.toLowerCase()) ||
+      node.inn?.toLowerCase().includes(searchValue.toLowerCase()) ||
+      node.phone?.toLowerCase().includes(searchValue.toLowerCase()) ||
+      node.email?.toLowerCase().includes(searchValue.toLowerCase())
+    ) {
+      match = true;
+    }
+    if (match) {
+      for (const k of parentKeys) expanded[k] = true;
+    }
+    return match;
+  }
+  for (const node of nodes) walk(node);
+  return expanded;
+}
+
+watch(
+  () => props.search ?? search.value,
+  (val) => {
+    if (val) {
+      expandedKeys.value = getExpandedKeysForSearch(filteredTreeData.value);
+    } else {
+      expandedKeys.value = {};
+    }
+  },
+  { immediate: true }
+);
 </script>

@@ -1,9 +1,10 @@
 <template>
   <Tree
-    :value="treeData"
+    :value="filteredTreeData"
     selectionMode="single"
     class="treeview"
     v-model:selectionKeys="selectedKey"
+    v-model:expandedKeys="expandedKeys"
     :pt="{
       root: { class: 'treeview__root' },
       nodeContent: { class: 'treeview__data' },
@@ -33,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, shallowRef } from "vue";
+import { ref, computed, onMounted, shallowRef, watch } from "vue";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import Tree from "primevue/tree";
 import { deleteDataAsync } from "@/views/Dashboard/api/deleteDataAsync";
@@ -41,15 +42,16 @@ import * as XLSX from "xlsx";
 import "../style.scss";
 
 const treeData = ref([]);
-const search = ref("");
 const selectedKey = ref(null);
 const selectedEmployee = shallowRef(null);
 const importInput = ref(null);
 const organizations = ref([]);
 const departments = ref([]);
+const expandedKeys = ref({});
 
 const props = defineProps<{
   handleSelectCallback: (node: any) => void;
+  search: string;
 }>();
 
 onMounted(async () => {
@@ -137,12 +139,13 @@ function groupEmployees(employees, allOrganizations, allDepartments) {
         emp.organization?.id === org.id
     );
     if (noDeptEmployees.length > 0) {
-      const noDeptNode = createDepartmentNode(
-        { id: null, title: "Без отдела" },
-        noDeptEmployees,
-        level + 1
-      );
-      orgNode.children.push(noDeptNode);
+      // НЕ добавляем ветку "Без отдела"
+      // const noDeptNode = createDepartmentNode(
+      //   { id: null, title: "Без отдела" },
+      //   noDeptEmployees,
+      //   level + 1
+      // );
+      // orgNode.children.push(noDeptNode);
     }
 
     return orgNode;
@@ -156,46 +159,65 @@ function groupEmployees(employees, allOrganizations, allDepartments) {
     }
   });
 
-  // Сотрудники без организации
-  const noOrgEmployees = employees.filter((emp) => !emp.organization);
-  if (noOrgEmployees.length > 0) {
-    const noOrgNode = {
-      label: "Без организации",
-      key: "org-none",
-      children: [
-        createDepartmentNode(
-          { id: null, title: "Без отдела" },
-          noOrgEmployees,
-          1
-        ),
-      ],
-      isOrganization: true,
-      selectable: false,
-      icon: "pi pi-folder",
-      level: 0,
-    };
-    tree.push(noOrgNode);
-  }
+  // НЕ добавляем сотрудников без организации
+  // const noOrgEmployees = employees.filter((emp) => !emp.organization);
+  // if (noOrgEmployees.length > 0) {
+  //   const noOrgNode = {
+  //     label: "Без организации",
+  //     key: "org-none",
+  //     children: [
+  //       createDepartmentNode(
+  //         { id: null, title: "Без отдела" },
+  //         noOrgEmployees,
+  //         1
+  //       ),
+  //     ],
+  //     isOrganization: true,
+  //     selectable: false,
+  //     icon: "pi pi-folder",
+  //     level: 0,
+  //   };
+  //   tree.push(noOrgNode);
+  // }
 
   return tree;
 }
 
+// debounce-функция на чистом JS
+function debounce(fn, delay) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+const debouncedSearch = ref(props.search);
+
+watch(
+  () => props.search,
+  debounce((val) => {
+    debouncedSearch.value = val;
+  }, 300)
+);
+
 const filteredTreeData = computed(() => {
-  if (!search.value) return treeData.value;
+  if (!debouncedSearch.value) return treeData.value;
   const filter = (nodes) =>
     nodes
       .map((node) => {
+        let children = [];
         if (node.children) {
-          const children = filter(node.children);
-          if (children.length) return { ...node, children };
+          children = filter(node.children);
         }
-        if (
-          node.label?.toLowerCase().includes(search.value.toLowerCase()) ||
-          node.profession?.toLowerCase().includes(search.value.toLowerCase()) ||
-          node.phone?.toLowerCase().includes(search.value.toLowerCase()) ||
-          node.email?.toLowerCase().includes(search.value.toLowerCase())
-        )
-          return node;
+        const isMatch =
+          node.label?.toLowerCase().includes(debouncedSearch.value.toLowerCase()) ||
+          node.profession?.toLowerCase().includes(debouncedSearch.value.toLowerCase()) ||
+          node.phone?.toLowerCase().includes(debouncedSearch.value.toLowerCase()) ||
+          node.email?.toLowerCase().includes(debouncedSearch.value.toLowerCase());
+        if (isMatch || children.length) {
+          return { ...node, ...(children.length ? { children } : {}) };
+        }
         return null;
       })
       .filter(Boolean);
@@ -347,4 +369,42 @@ async function updateEmployeeFromExcel(crmEmp, excelEmp) {
     }),
   });
 }
+
+function getExpandedKeysForSearch(nodes) {
+  const expanded = {};
+  function walk(node, parentKeys = []) {
+    let match = false;
+    if (node.children) {
+      for (const child of node.children) {
+        if (walk(child, [...parentKeys, node.key])) match = true;
+      }
+    }
+    if (
+      node.label?.toLowerCase().includes(debouncedSearch.value.toLowerCase()) ||
+      node.profession?.toLowerCase().includes(debouncedSearch.value.toLowerCase()) ||
+      node.phone?.toLowerCase().includes(debouncedSearch.value.toLowerCase()) ||
+      node.email?.toLowerCase().includes(debouncedSearch.value.toLowerCase())
+    ) {
+      match = true;
+    }
+    if (match) {
+      for (const k of parentKeys) expanded[k] = true;
+    }
+    return match;
+  }
+  for (const node of nodes) walk(node);
+  return expanded;
+}
+
+watch(
+  () => debouncedSearch.value,
+  (val) => {
+    if (val) {
+      expandedKeys.value = getExpandedKeysForSearch(filteredTreeData.value);
+    } else {
+      expandedKeys.value = {};
+    }
+  },
+  { immediate: true }
+);
 </script>
