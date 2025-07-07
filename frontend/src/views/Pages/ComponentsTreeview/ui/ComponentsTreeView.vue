@@ -1,6 +1,7 @@
 <template>
   <Tree
-    :value="treeData"
+    :value="filteredTreeData"
+    v-model:expandedKeys="expandedKeys"
     selectionMode="single"
     class="treeview"
     v-model:selectionKeys="selectedKey"
@@ -33,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import Tree from "primevue/tree";
 import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
@@ -46,10 +47,10 @@ import "../style.scss";
 import { isArray } from "element-plus/es/utils/types.mjs";
 
 const treeData = ref<any[]>([]);
-const search = ref("");
 const selectedKey = ref(null);
 const importInput = ref(null);
 const router = useRouter();
+const expandedKeys = ref({});
 
 interface TreeNode {
   id: number;
@@ -92,6 +93,7 @@ onMounted(fetchComponents);
 
 const props = defineProps<{
   handleSelectCallback: (node: any) => void;
+  search: string;
 }>();
 
 async function fetchComponents() {
@@ -125,7 +127,7 @@ function buildTree(components) {
 }
 
 const filteredTreeData = computed(() => {
-  if (!search.value) return treeData.value;
+  if (!props.search) return treeData.value;
   const filter = (nodes) =>
     nodes
       .map((node) => {
@@ -134,11 +136,9 @@ const filteredTreeData = computed(() => {
           if (children.length) return { ...node, children };
         }
         if (
-          node.label?.toLowerCase().includes(search.value.toLowerCase()) ||
-          node.material?.toLowerCase().includes(search.value.toLowerCase()) ||
-          node.drawingReference
-            ?.toLowerCase()
-            .includes(search.value.toLowerCase())
+          node.label?.toLowerCase().includes(props.search.toLowerCase()) ||
+          node.material?.toLowerCase().includes(props.search.toLowerCase()) ||
+          node.drawingReference?.toLowerCase().includes(props.search.toLowerCase())
         )
           return node;
         return null;
@@ -233,4 +233,41 @@ async function handleImportFile(e) {
 function goToComponent(id) {
   router.push(`/components/${id}`);
 }
+
+function getExpandedKeysForSearch(nodes, search) {
+  const expanded = {};
+  function walk(node, parentKeys = []) {
+    let match = false;
+    if (node.children) {
+      for (const child of node.children) {
+        if (walk(child, [...parentKeys, node.key])) match = true;
+      }
+    }
+    if (
+      node.label?.toLowerCase().includes(search.toLowerCase()) ||
+      node.material?.toLowerCase().includes(search.toLowerCase()) ||
+      node.drawingReference?.toLowerCase().includes(search.toLowerCase())
+    ) {
+      match = true;
+    }
+    if (match) {
+      for (const k of parentKeys) expanded[k] = true;
+    }
+    return match;
+  }
+  for (const node of treeData.value) walk(node);
+  return expanded;
+}
+
+watch(
+  () => props.search,
+  (val) => {
+    if (val) {
+      expandedKeys.value = getExpandedKeysForSearch(treeData.value, val);
+    } else {
+      expandedKeys.value = {};
+    }
+  },
+  { immediate: true }
+);
 </script>

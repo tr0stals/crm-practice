@@ -36,7 +36,7 @@ import { roleTables } from "@/shared/config/rolesTables";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import { item } from "@primeuix/themes/aura/breadcrumb";
 import ComponentsTreeView from "@/views/Pages/ComponentsTreeview/ui/ComponentsTreeView.vue";
-import EmployeesTreeView from "@/views/Pages/EmployeesTreeview/ui/EmployeesTreeview.vue";
+import EmployeesTreeView from "@/views/Pages/EmployeesTreeview/ui/EmployeesTreeView.vue";
 import OrganizationsTreeView from "@/views/Pages/OrganizationsTreeview/ui/OrganizationsTreeView.vue";
 import LicenseTypesTreeView from "@/views/Pages/LicenseTypesTreeview/ui/LicenseTypesTreeView.vue";
 import DepartmentsTreeView from "@/views/Pages/DepartmentsTreeview/ui/DepartmentsTreeView.vue";
@@ -702,34 +702,36 @@ function handleSidebarClick(section: string) {
 
         <!-- Table -->
         <div class="table-container" v-if="showTableContainer">
-          <template v-if="currentSection === 'employees'">
-            <EmployeesTreeView :handle-select-callback="handleSelectRow" />
+          <template v-if="currentSection === 'warehouse_components'">
+            <WarehouseComponentsTreeView :handle-select-callback="handleSelectRow" :search="searchQuery" />
+          </template>
+          <template v-else-if="currentSection === 'employees'">
+            <EmployeesTreeView :handle-select-callback="handleSelectRow" :search="searchQuery" />
           </template>
           <template v-else-if="currentSection === 'organizations'">
-            <OrganizationsTreeView :handle-select-callback="handleSelectRow" />
+            <OrganizationsTreeView :handle-select-callback="handleSelectRow" :search="searchQuery" />
           </template>
           <template v-else-if="currentSection === 'licenseTypes'">
-            <LicenseTypesTreeView :handle-select-callback="handleSelectRow" />
+            <LicenseTypesTreeView :handle-select-callback="handleSelectRow" :search="searchQuery" />
           </template>
           <template v-else-if="currentSection === 'current-tasks'">
-            <CurrentTasksTreeView :handle-select-callback="handleSelectRow" />
+            <CurrentTasksTreeView :handle-select-callback="handleSelectRow" :search="searchQuery" />
           </template>
           <template v-else-if="currentSection === 'components'">
-            <ComponentsTreeView :handle-select-callback="handleSelectRow" />
+            <ComponentsTreeView :handle-select-callback="handleSelectRow" :search="searchQuery" />
           </template>
           <template v-else-if="currentSection === 'user'">
-            <UsersTreeView :handle-select-callback="handleSelectRow" />
+            <UsersTreeView :handle-select-callback="handleSelectRow" :search="searchQuery" />
           </template>
           <template v-else-if="currentSection === 'pcb-orders'">
-            <PcbOrdersTreeView :handle-select-callback="handleSelectRow" />
+            <PcbOrdersTreeView :handle-select-callback="handleSelectRow" :search="searchQuery" />
           </template>
           <template v-else-if="currentSection === 'order-requests'">
-            <OrderRequestsTreeView :handle-select-callback="handleSelectRow" />
+            <OrderRequestsTreeView :handle-select-callback="handleSelectRow" :search="searchQuery" />
           </template>
           <template v-else-if="currentSection === 'pcbs'">
-            <PcbsTreeview :handle-select-callback="handleSelectRow" />
+            <PcbsTreeview :handle-select-callback="handleSelectRow" :search="searchQuery" />
           </template>
-
           <table v-else :key="currentSection + '-table'" class="data-table">
             <thead>
               <tr>

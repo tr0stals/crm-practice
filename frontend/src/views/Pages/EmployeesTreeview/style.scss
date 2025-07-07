@@ -1,3 +1,13 @@
+html, body, #app, .tree-page {
+  overflow: hidden !important;
+  height: 100%;
+}
+
+.treeview, .p-tree, .treeview__root {
+  overflow-y: auto !important;
+  max-height: calc(100vh - 120px);
+}
+
 .toolbar {
   display: flex;
   gap: 12px;
@@ -96,6 +106,10 @@
 }
 
 .table-container {
+  max-height: calc(100vh - 180px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .table {
@@ -153,4 +167,10 @@
 
 .treeview__data__selected .emp-table-row {
   background-color: #e0f7fa;
+}
+
+.p-tree, .treeview__root {
+  overflow-y: auto !important;
+  max-height: 100% !important;
+  min-height: 0;
 }
