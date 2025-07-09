@@ -43,7 +43,6 @@ export const roleTables = [
       "stand_tasks_components",
       "stands",
       "stand_types",
-      "students",
       "supplier_components",
       "suppliers",
       "user",

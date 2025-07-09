@@ -160,13 +160,27 @@ onMounted(async () => {
             :key="item.id"
             :value="item.id"
           >
-            {{ item.shortName || "" }}
-            {{ item.lastName || "" }} {{ item.firstName || "" }}
-            {{ item.middleName || "" }}
             {{
-              !item.firstName && !item.lastName
-                ? item.name || item.title || "Без названия"
-                : ""
+              item.title ||
+              item.name ||
+              item.state ||
+              item.numberBill ||
+              item.shortName ||
+              item.numberInvoice ||
+              item.date ||
+              item.shipmentDate ||
+              (item.licenseCode && item.licenseTypes
+                ? `Лицензия: ${item.licenseCode} Тип: ${item.licenseTypes.title}`
+                : "") ||
+              (item.placementType && item.placementType.title
+                ? `${item.placementType.title} /`
+                : "") +
+                (item.building ? ` здание ${item.building} /` : "") +
+                (item.room ? ` комната ${item.room}` : "") ||
+              (item.peoples
+                ? `${item.peoples.firstName} ${item.peoples.lastName} ${item.peoples.middleName}`
+                : item.code ||
+                  `${item.firstName} ${item.lastName} ${item.middleName}`)
             }}
           </option>
         </select>
