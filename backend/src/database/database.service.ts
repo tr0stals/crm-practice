@@ -122,6 +122,25 @@ export class DatabaseService {
     columnName?: string,
     tableName?: string,
   ) {
+    // // Явная обработка billId для bills_components
+    // if (columnName === 'billId' && tableName === 'bills_components') {
+    //   // Импортируем класс здесь, чтобы избежать циклических зависимостей
+    //   const { BillsForPay } = await import('../bills_for_pay/bills_for_pay.entity');
+    //   const bills = await this.dataSource.getRepository(BillsForPay).find();
+    //   return bills.map((bill) => ({
+    //     id: bill.id,
+    //     label: bill.numberBill ? `Счет №${bill.numberBill}` : `ID ${bill.id}`,
+    //   }));
+    // }
+    // if (columnName === 'arrivalInvoiceId' && tableName === 'invoices_components') {
+    //   const { ArrivalInvoices } = await import('../arrival_invoices/arrival_invoices.entity');
+    //   const arrivalInvoices = await this.dataSource.getRepository(ArrivalInvoices).find();
+    //   return arrivalInvoices.map((arrivalInvoice) => ({
+    //     id: arrivalInvoice.id,
+    //     label: arrivalInvoice.numberInvoice ? `Накладная №${arrivalInvoice.numberInvoice}` : `ID ${arrivalInvoice.id}`,
+    //   }));
+    // }
+    // Стандартная логика для остальных случаев
     const metadata = this.dataSource.getMetadata(relatedTable);
     const relationNames = metadata.relations.map((rel) => rel.propertyName);
 
@@ -129,6 +148,11 @@ export class DatabaseService {
       relations: relationNames,
     });
     console.log('ROWSSSSSSS!!!', rows);
+    // Логирование для определения какие поля и таблицы приходят
+    if (rows.length > 0) {
+      console.log('Поля первой строки:', Object.keys(rows[0]));
+      console.log('Содержимое первой строки:', rows[0]);
+    }
 
     // Стандартная логика для остальных случаев
     return rows.map((row) => ({
@@ -136,6 +160,15 @@ export class DatabaseService {
       label:
         row.title ||
         row.name ||
+        row.state ||
+        row.numberBill ||
+        row.numberInvoice ||
+        (row.licenseCode && row.licenseTypes
+          ? `Лицензия: ${row.licenseCode} Тип: ${row.licenseTypes.title}`
+          : '') ||
+        (row.shipmentDate && row.price
+          ? `Дата отгрузки: ${row.shipmentDate} Цена: ${row.price}`
+          : '') ||
         (row.placementType && row.placementType.title
           ? `${row.placementType.title} `
           : '') +

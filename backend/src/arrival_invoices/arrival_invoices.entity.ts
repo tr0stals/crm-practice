@@ -17,6 +17,9 @@ export class ArrivalInvoices {
   @Column({ type: 'date'})
   date: Date;
 
+  @Column({ length: 45 })
+  numberInvoice: string;
+
   @Column({ length: 100})
   scanPhoto: string;
 

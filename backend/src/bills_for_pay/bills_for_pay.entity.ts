@@ -11,6 +11,9 @@ export class BillsForPay {
   date: Date;
 
   @Column({ length: 45 })
+  numberBill: string;
+
+  @Column({ length: 45 })
   scanPhoto: string;
 
   @Column({ type: 'date' })

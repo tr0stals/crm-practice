@@ -38,6 +38,7 @@ export class BillsComponentsService {
           return {
             ...defaultData,
             billData: bill.date,
+            billNumber: bill.numberBill,
             componentTitle: component.title,
           };
         });
@@ -60,11 +61,13 @@ export class BillsComponentsService {
         const { bill, component, link, ...defaultData } = item;
 
         const billData = bill.date;
+        const billNumber = bill.numberBill;
         const componentTitle = component.title;
 
         data.push({
           ...defaultData,
           billData,
+          billNumber,
           componentTitle,
         });
       });

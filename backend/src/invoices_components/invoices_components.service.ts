@@ -35,6 +35,7 @@ export class InvoicesComponentsService {
           return {
             ...defaultData,
             arrival_invoice_date: arrivalInvoices.date,
+            arrival_invoice_number: arrivalInvoices.numberInvoice,
             component_title: components.title,
           };
         });
@@ -67,11 +68,13 @@ export class InvoicesComponentsService {
       invoicesComponents.map((item) => {
         const { arrivalInvoices, components, ...defaultData } = item;
         const arrivalInvoiceDate = arrivalInvoices.date;
+        const arrivalInvoiceNumber = arrivalInvoices.numberInvoice;
         const componentTitle = components.title;
 
         data.push({
           ...defaultData,
           arrivalInvoiceDate,
+          arrivalInvoiceNumber,
           componentTitle,
         });
       });

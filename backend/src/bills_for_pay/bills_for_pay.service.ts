@@ -38,6 +38,7 @@ export class BillsForPayService {
         data.push({
           id: item.id,
           date: item.date,
+          numberBill: item.numberBill,
           organization: supplierName,
           supplyDate: item.expectedSupplyDate,
           vat: item.vat,

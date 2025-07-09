@@ -1218,6 +1218,7 @@ export class DatabaseSeederService {
 
       return {
         date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+        numberInvoice: faker.number.int({ min: 1, max: 1000000 }).toString().substring(0, 45),
         scanPhoto: faker.image.url().substring(0, 100),
         dateTimeToWarehouse: new Date(
           warehouseDate.getFullYear(),
@@ -1246,6 +1247,7 @@ export class DatabaseSeederService {
 
       return {
         date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+        numberBill: faker.number.int({ min: 1, max: 1000000 }).toString().substring(0, 45),
         scanPhoto: faker.image.url().substring(0, 45),
         expectedSupplyDate: new Date(
           supplyDate.getFullYear(),
