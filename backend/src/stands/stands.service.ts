@@ -24,7 +24,7 @@ export class StandsService {
   async findOne(id: number) {
     return await this.repo.findOne({
       where: { id },
-      relations: ['standTypes', 'employees', 'employees.peoples'],
+      relations: ['standType', 'employees', 'employees.peoples'],
     });
   }
 

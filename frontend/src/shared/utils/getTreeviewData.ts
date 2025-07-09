@@ -1,3 +1,5 @@
+import type { TreeNode } from "primevue/treenode";
+
 export const getTreeviewData = (node: any, level = 0): TreeNode => {
   console.debug(node);
   const treeNode: TreeNode = {

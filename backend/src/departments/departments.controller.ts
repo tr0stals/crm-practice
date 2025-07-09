@@ -19,6 +19,11 @@ export class DepartmentsController {
     return await this.service.create(data);
   }
 
+  @Get('get/:id')
+  async getOne(@Param('id') id: string) {
+    return await this.service.findOne(+id);
+  }
+
   @Get('get')
   async findAll() {
     return await this.service.findAll();

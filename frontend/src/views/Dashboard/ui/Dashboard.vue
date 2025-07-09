@@ -36,7 +36,7 @@ import { roleTables } from "@/shared/config/rolesTables";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import { item } from "@primeuix/themes/aura/breadcrumb";
 import ComponentsTreeView from "@/views/Pages/ComponentsTreeview/ui/ComponentsTreeView.vue";
-import EmployeesTreeView from "@/views/Pages/EmployeesTreeview/ui/EmployeesTreeView.vue";
+import EmployeesTreeView from "@/views/Pages/EmployeesTreeview/ui/EmployeesTreeview.vue";
 import OrganizationsTreeView from "@/views/Pages/OrganizationsTreeview/ui/OrganizationsTreeView.vue";
 import LicenseTypesTreeView from "@/views/Pages/LicenseTypesTreeview/ui/LicenseTypesTreeView.vue";
 import DepartmentsTreeView from "@/views/Pages/DepartmentsTreeview/ui/DepartmentsTreeView.vue";
@@ -200,6 +200,7 @@ const getCurrentData = async () => {
   const config: IData = {
     endpoint: `/${currentSection.value}/generateData`,
   };
+  console.debug(config);
 
   data.value = []; // Очищаем данные перед загрузкой
 
@@ -407,17 +408,18 @@ const refreshUsers = async () => {
 
 // Функция для удаления пользователя
 const handleDeleteRow = async () => {
-  if (!selectedRow.value || !selectedRow.value.id) {
-    alert("Выберите пользователя для удаления");
+  if (!globalStore.selectedRow || !globalStore.selectedRow?.id) {
+    alert("Выберите запись для удаления");
     return;
   }
 
+  console.debug(globalStore.selectedRow, globalStore.selectedRow?.id);
+
   try {
-    console.debug(currentSection.value);
-    await deleteDataAsync(selectedRow.value.id, currentSection.value);
+    await deleteDataAsync(globalStore.selectedRow?.id, currentSection.value);
     getCurrentData();
   } catch (e) {
-    alert("Ошибка при удалении пользователя");
+    alert("Ошибка при удалении записи");
     console.error(e);
   }
 };
@@ -621,8 +623,13 @@ function handleSidebarClick(section: string) {
             :data-js-sectionName="section"
             @click="currentSection = section"
           >
-            {{ localizatedSections[section] }}
+            {{ section }}
           </li>
+          <template
+            v-if="userProfession === 'Снабженец' || userProfession === 'Test'"
+          >
+            <li @click="currentSection = 'warehouse_components'">Склад</li>
+          </template>
         </ul>
       </nav>
       <!-- <CustomTreeview :data="data" :currentSection="currentSection" /> -->
@@ -668,7 +675,11 @@ function handleSidebarClick(section: string) {
             <Button :onClick="handleEditModalWindow" class="dashboard__button">
               <EditIcon /> редактировать
             </Button>
-            <Button :onClick="handleDeleteRow" class="dashboard__button">
+            <Button
+              id="deleteButton"
+              :onClick="handleDeleteRow"
+              class="dashboard__button"
+            >
               <DeleteIcon /> удалить
             </Button>
             <Button :onClick="getCurrentData" class="dashboard__button">

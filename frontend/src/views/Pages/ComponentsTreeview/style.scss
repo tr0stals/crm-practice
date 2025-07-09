@@ -82,12 +82,12 @@
 
 .table-container {
   max-height: calc(100vh - 180px);
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-.p-tree, .treeview__root {
+.p-tree,
+.treeview__root {
   overflow-y: auto !important;
   max-height: 100% !important;
   min-height: 0;

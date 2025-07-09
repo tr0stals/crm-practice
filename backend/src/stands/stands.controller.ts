@@ -24,6 +24,11 @@ export class StandsController {
     return await this.service.findAll();
   }
 
+  @Get('get/:id')
+  async getOne(@Param('id') id: string) {
+    return await this.service.findOne(+id);
+  }
+
   @Get('generateData')
   async generateData() {
     return await this.service.generateData();

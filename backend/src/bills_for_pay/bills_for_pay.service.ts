@@ -12,14 +12,14 @@ export class BillsForPayService {
 
   async getAll() {
     return this.repo.find({
-      relations: ['supplier', 'factory'],
+      relations: ['suppliers', 'factory'],
     });
   }
 
   async getOne(id: number) {
     return this.repo.findOne({
       where: { id },
-      relations: ['supplier', 'factory'],
+      relations: ['suppliers', 'factory'],
     });
   }
 
@@ -31,9 +31,9 @@ export class BillsForPayService {
       if (!bills) throw new NotFoundException('Не удалось найти bills-for-pay');
 
       bills.map((item) => {
-        const { factory, supplier, ...defaultData } = item;
-        const factoryName = factory.shortName;
-        const supplierName = supplier.shortName;
+        const { factory, suppliers, ...defaultData } = item;
+        const factoryName = factory?.shortName;
+        const supplierName = suppliers?.shortName;
 
         data.push({
           id: item.id,

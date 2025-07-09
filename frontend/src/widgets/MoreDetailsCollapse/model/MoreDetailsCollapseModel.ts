@@ -95,6 +95,29 @@ export class MoreDetailsCollapseModel {
     }
   }
 
+  #reloadComponent() {
+    const moreDetailsInstance = document.getElementById("moreDetailsInstance");
+    this.#moreDetailsInstance.unmount();
+
+    switch (this.currentSection) {
+      case "arrival_invoices":
+        this.#moreDetailsInstance = createApp(ArrivalInvoicesMoreDetails, {
+          model: this,
+        });
+
+        this.#moreDetailsInstance.mount(moreDetailsInstance);
+        break;
+
+      case "bills_for_pay":
+        this.#moreDetailsInstance = createApp(BillsMoreDetails, {
+          model: this,
+        });
+
+        this.#moreDetailsInstance.mount(moreDetailsInstance);
+        break;
+    }
+  }
+
   closeCollapse() {
     this.#moreDetailsInstance.unmount();
 
@@ -121,6 +144,10 @@ export class MoreDetailsCollapseModel {
   }
 
   #bindEvents() {
-    document.addEventListener("click", (e: any) => {});
+    document.addEventListener("click", (e: any) => {
+      if (e.target === document.getElementById("deleteButton")) {
+        this.#reloadComponent();
+      }
+    });
   }
 }

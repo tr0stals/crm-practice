@@ -14,7 +14,6 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
     const data = await getDataAsync({
       endpoint: `database/getFormMetaData/${sectionName}`,
     }).then((res) => res.data);
-    console.debug(data);
 
     tableColumns.value = Object.keys(data);
 

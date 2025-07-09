@@ -1,10 +1,10 @@
 <template>
   <button
-    @click="printText"
+    @click="props.handleClick"
     class="button"
-    :class="[buttonColor, ...(extraClasses || [])]"
+    :class="[props.buttonColor, ...(props.extraClasses || [])]"
   >
-    <component v-if="image" :is="image" class="button__icon" />
+    <component v-if="props.image" :is="props.image" class="button__icon" />
     <slot />
   </button>
 </template>
@@ -21,6 +21,7 @@ const props = defineProps<{
   image?: any;
   buttonColor?: string;
   extraClasses?: string[];
+  handleClick?: () => void;
 }>();
 
 const printText = () => {

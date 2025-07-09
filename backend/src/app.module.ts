@@ -116,7 +116,7 @@ import { DatabaseEagerCachingModule } from './database_eager_caching/database_ea
     PcbsComponentsModule,
     StandTasksComponentsModule,
     ArrivalInvoicesModule,
-    CurrentTasksModule
+    CurrentTasksModule,
   ],
   controllers: [AppController, StandsController],
   providers: [AppService],

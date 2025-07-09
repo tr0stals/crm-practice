@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { BillsForPay } from '../bills_for_pay/bills_for_pay.entity';
 import { Components } from '../components/components.entity';
 
@@ -22,5 +28,5 @@ export class BillsComponents {
 
   @ManyToOne(() => Components)
   @JoinColumn({ name: 'componentId' })
-  component: Components;
-} 
+  components: Components;
+}

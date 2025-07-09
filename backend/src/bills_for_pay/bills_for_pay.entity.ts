@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { Organizations } from '../organizations/organizations.entity';
 import { BillsComponents } from '../bills_components/bills_components.entity';
 
@@ -27,10 +34,10 @@ export class BillsForPay {
 
   @Column({ length: 45 })
   link: string;
-  
+
   @ManyToOne(() => Organizations)
   @JoinColumn({ name: 'supplierId' })
-  supplier: Organizations;
+  suppliers: Organizations;
 
   @ManyToOne(() => Organizations)
   @JoinColumn({ name: 'factoryId' })
@@ -38,4 +45,4 @@ export class BillsForPay {
 
   @OneToMany(() => BillsComponents, (billsComponent) => billsComponent.bill)
   billsComponents: BillsComponents[];
-} 
+}

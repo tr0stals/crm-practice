@@ -24,7 +24,12 @@
                   <div class="comp-title">{{ slotProps.node.title }}</div>
                   <div class="comp-row">
                     <span>Кол-во:</span> {{ getTotalCount(slotProps.node) }}
-                    <button @click.stop="() => openDetailModal(slotProps.node)" style="margin-left:8px;">👁️</button>
+                    <button
+                      @click.stop="() => openDetailModal(slotProps.node)"
+                      style="margin-left: 8px"
+                    >
+                      👁️
+                    </button>
                   </div>
                 </div>
               </div>
@@ -35,11 +40,20 @@
           </template>
         </Tree>
       </div>
-      <div v-if="showDetailModal" class="modal-overlay" @click.self="showDetailModal = false">
+      <div
+        v-if="showDetailModal"
+        class="modal-overlay"
+        @click.self="showDetailModal = false"
+      >
         <div class="modal-content">
           <h3>Детализация по компоненту: {{ detailComponent?.title }}</h3>
-          <div class="modal-desc">Тут будет попап с инвентаризациями, приходами, расходами и переходом в накладные/расходы</div>
-          <button class="modal-close" @click="showDetailModal = false">Закрыть</button>
+          <div class="modal-desc">
+            Тут будет попап с инвентаризациями, приходами, расходами и переходом
+            в накладные/расходы
+          </div>
+          <button class="modal-close" @click="showDetailModal = false">
+            Закрыть
+          </button>
         </div>
       </div>
     </div>
@@ -56,7 +70,11 @@
           </div>
           <div class="form-row">
             <label>Дата последней инвентаризации</label>
-            <input type="text" v-model="selectedComponent.lastInventoryDate" disabled />
+            <input
+              type="text"
+              v-model="selectedComponent.lastInventoryDate"
+              disabled
+            />
           </div>
           <div class="form-row">
             <label>Размеры</label>
@@ -72,12 +90,21 @@
           </div>
           <div class="form-row">
             <label>Место хранения</label>
-            <input type="text" v-model="selectedComponent.storagePlace" disabled />
+            <input
+              type="text"
+              v-model="selectedComponent.storagePlace"
+              disabled
+            />
           </div>
           <div class="form-row">
             <label>Внешний вид</label>
             <div class="appearance-img-wrap">
-              <img v-if="selectedComponent.photo" :src="selectedComponent.photo" alt="Внешний вид" class="appearance-img" />
+              <img
+                v-if="selectedComponent.photo"
+                :src="selectedComponent.photo"
+                alt="Внешний вид"
+                class="appearance-img"
+              />
               <span v-else>Нет изображения</span>
             </div>
           </div>
@@ -120,7 +147,7 @@ onMounted(fetchData);
 
 async function fetchData() {
   const { data } = await getDataAsync({
-    endpoint: "/warehouse-components/get",
+    endpoint: "/components/get",
   });
   treeData.value = buildTree(data);
 }
@@ -292,8 +319,11 @@ function openDetailModal(node) {
 <style scoped>
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.4);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -305,7 +335,7 @@ function openDetailModal(node) {
   border-radius: 8px;
   min-width: 320px;
   max-width: 90vw;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
   position: relative;
 }
 .modal-close {
@@ -326,7 +356,7 @@ function openDetailModal(node) {
 }
 .slide-fade-enter-active,
 .slide-fade-leave-active {
-  transition: all 0.35s cubic-bezier(.4,2,.6,1);
+  transition: all 0.35s cubic-bezier(0.4, 2, 0.6, 1);
 }
 .slide-fade-enter-from,
 .slide-fade-leave-to {
@@ -364,7 +394,7 @@ function openDetailModal(node) {
   max-width: 520px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   padding: 24px 20px 12px 20px;
   margin-top: 0;
   margin-bottom: 0;
@@ -388,7 +418,10 @@ function openDetailModal(node) {
   background: #fff;
   border: 1px solid #eee;
 }
-.pagination, .filter-panel, .table-pagination, .table-filter {
+.pagination,
+.filter-panel,
+.table-pagination,
+.table-filter {
   display: none !important;
 }
 </style>

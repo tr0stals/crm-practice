@@ -76,6 +76,8 @@ console.debug(formData);
           :key="item"
           class="addModalWindow__content__field"
         >
+          {{ console.debug(typeof item) }}
+
           <template v-if="item !== 'id' && item !== 'passwordSalt'">
             <label :for="item">{{ fieldDictionary[item] || item }}</label>
             <template v-if="item.endsWith('Id')">
@@ -111,10 +113,27 @@ console.debug(formData);
                 placeholder="+7 (___) ___-__-__"
               />
             </template>
+            <template v-else-if="item === 'vat'">
+              <div class="addModalWindow__content__field__inputControls">
+                <Button
+                  :class="{ active: formData.vat === true }"
+                  @click="formData.vat = true"
+                >
+                  Да
+                </Button>
+                <Button
+                  :class="{ active: formData.vat === false }"
+                  @click="formData.vat = false"
+                >
+                  Нет
+                </Button>
+              </div>
+            </template>
 
             <template v-else>
               <input
                 type="text"
+                class="addModalWindow__content__field__input"
                 v-model="formData[item]"
                 :id="item"
                 :name="item"

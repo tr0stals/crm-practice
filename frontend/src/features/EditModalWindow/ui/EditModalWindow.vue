@@ -9,6 +9,7 @@ import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { getDataAsync } from "@/shared/api/getDataAsync";
+import { relationMap } from "@/shared/config/relationMap";
 
 const data = ref<any>();
 const formData = ref<any>({});
@@ -33,10 +34,6 @@ function isDateField(key: any) {
   );
 }
 
-watch(data, async (newValue) => {
-  console.debug(newValue);
-});
-
 function isObjectField(value: any) {
   return value && typeof value === "object" && !Array.isArray(value);
 }
@@ -49,9 +46,17 @@ const getInputType = (key: string, value: any): string => {
 };
 
 async function loadRelatedOptions(key: string) {
+  /**
+   * Здесь key может быть suppliers или factory. Но они относятся к таблице organizations.
+   * Следовательно, запрос по suppliers/get не улетает.
+   */
+
   try {
-    const response = await getDataAsync({ endpoint: `${key}/get` });
+    const response = await getDataAsync({
+      endpoint: `${relationMap[key] ? relationMap[key] : key}/get`,
+    });
     relatedOptions[key] = response?.data ?? [];
+    console.debug(relatedOptions);
   } catch (error) {
     console.error(`Не удалось загрузить справочник для ${key}`, error);
     relatedOptions[key] = [];
@@ -61,9 +66,11 @@ async function loadRelatedOptions(key: string) {
 onMounted(async () => {
   new EditModalWindowModel(props.onApplyCallback);
 
+  // получаем конкретную запись по ID
   const response = await getDataAsync({
     endpoint: `${sectionName}/get/${entityId}`,
   });
+  console.debug(response.data);
 
   data.value = response.data;
   formData.value = { ...response.data };
@@ -139,9 +146,9 @@ onMounted(async () => {
           :name="key"
           :value="formData[key]?.id"
           @change="
-            (e) => {
+            (e: any) => {
               const selected = relatedOptions[key]?.find(
-                (item) => item.id === Number(e.target.value)
+                (item: any) => item.id === Number(e.target.value)
               );
               formData[key] = selected || null;
             }
@@ -153,6 +160,7 @@ onMounted(async () => {
             :key="item.id"
             :value="item.id"
           >
+            {{ item.shortName || "" }}
             {{ item.lastName || "" }} {{ item.firstName || "" }}
             {{ item.middleName || "" }}
             {{

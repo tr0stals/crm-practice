@@ -14,14 +14,14 @@
 
 .moreDetailsCollapse {
   position: absolute;
-  top: 50%;
+  top: 18%;
   left: 0;
   height: 100%;
   overflow: auto;
   width: 100%;
   background-color: rgb(244, 244, 244);
   border-radius: 1rem;
-  animation: moreDetailsAppear 0.4s forwards ease;
+  // animation: moreDetailsAppear 0.4s forwards ease;
 
   &__title {
     padding: 0 2rem;
