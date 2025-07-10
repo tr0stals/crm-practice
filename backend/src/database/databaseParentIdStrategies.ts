@@ -1,6 +1,5 @@
 import { PCB_CATEGORIES } from '../pcbs/pcbs_categories';
 import { COMPONENT_CATEGORIES } from '../components/component_categories';
-// Импортируй organization types, если есть статический список, иначе получай из БД
 
 export const databaseParentIdStrategies = {
   components: {

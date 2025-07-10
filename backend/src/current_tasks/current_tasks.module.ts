@@ -9,6 +9,7 @@ import { CurrentTaskStates } from 'src/current_task_states/current_task_states.e
 import { ShipmentsStands } from 'src/shipments_stands/shipments_stands.entity';
 import { StandTasks } from 'src/stand_tasks/stand_tasks.entity';
 import { Stands } from 'src/stands/stands.entity';
+import { EmployeesProfessionsModule } from 'src/employees_professions/employees_professions.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { Stands } from 'src/stands/stands.entity';
       Stands,
     ]),
     EmployeesModule,
+    EmployeesProfessionsModule,
   ],
   providers: [CurrentTasksService],
   controllers: [CurrentTasksController],
