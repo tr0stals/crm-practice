@@ -168,48 +168,53 @@ export class CurrentTasksService {
         'employees.peoples',
         'currentTaskStates',
         'stands',
-        'standTasks',
-        'standTasks.components',
       ],
     });
-    // Группировка по дедлайну и названию задачи
-    const deadlineMap = new Map<string, Map<string, any[]>>();
+    const allStandTasks = await this.standTasksRepository.find({
+      relations: ['components', 'stands', 'professions'],
+    });
+    const standTasksByParent = new Map<number, StandTasks[]>();
+    for (const st of allStandTasks) {
+      if (!standTasksByParent.has(st.parentId)) standTasksByParent.set(st.parentId, []);
+      standTasksByParent.get(st.parentId)!.push(st);
+    }
+    // Новый порядок: дата (дедлайн) -> стенд -> сотрудник+задача (id) -> подзадачи (id)
+    const deadlineMap = new Map<string, Map<string, Map<number, CurrentTasks>>>();
     for (const task of tasks) {
       const deadline = task.deadline
         ? (typeof task.deadline === 'string'
             ? task.deadline
             : (task.deadline as Date).toISOString().split('T')[0])
         : 'Без даты';
-      const title = task.title || 'Без названия';
+      const stand = task.stands?.title || 'Без стенда';
       if (!deadlineMap.has(deadline)) deadlineMap.set(deadline, new Map());
-      const titleMap = deadlineMap.get(deadline)!;
-      if (!titleMap.has(title)) titleMap.set(title, []);
-      titleMap.get(title)!.push(task);
+      const standMap = deadlineMap.get(deadline)!;
+      if (!standMap.has(stand)) standMap.set(stand, new Map());
+      // Ключ — id задачи
+      standMap.get(stand)!.set(task.id, task);
     }
-    const children = Array.from(deadlineMap.entries()).map(([deadline, titleMap]) => ({
-      name: deadline,
-      children: Array.from(titleMap.entries()).map(([title, tasks]) => ({
-        name: title,
-        children: tasks.map(task => {
-          const standTask = task.standTasks;
-          const manufactureTime = standTask?.manufactureTime ? (typeof standTask.manufactureTime === 'string' ? standTask.manufactureTime : (standTask.manufactureTime as Date).toISOString().split('T')[0]) : '';
-          return {
-            id: task.id,
+    const children = Array.from(deadlineMap.entries()).map(([deadline, standMap]) => ({
+      name: `Дедлайн: ${deadline}`,
+      children: Array.from(standMap.entries()).map(([stand, taskMap]) => ({
+        name: `Стенд: ${stand}`,
+        children: Array.from(taskMap.entries()).map(([taskId, task]) => ({
+          id: task.id,
+          name: [
+            `${task.employees?.peoples?.lastName || ''} ${task.employees?.peoples?.firstName || ''} ${task.employees?.peoples?.middleName || ''}`.trim() || 'Без сотрудника',
+            `Задача: ${task.title}`
+          ].filter(Boolean).join(' | '),
+          children: (standTasksByParent.get(task.id) || []).map(st => ({
+            id: st.id,
             name: [
-              `${task.employees?.peoples?.lastName || ''} ${task.employees?.peoples?.firstName || ''} ${task.employees?.peoples?.middleName || ''}`.trim() || 'Без сотрудника',
-              `Стенд: ${task.stands?.title}`,
-              `Задача стенда: ${standTask?.title}`,
-              `Состояние: ${task.currentTaskStates?.title}`,
-              `Время изготовления: ${manufactureTime}`,
+              `Задача стенда: ${st.title}`,
+              `Стенд: ${st.stands?.title || ''}`,
+              `Компонент: ${st.components?.title || ''}`,
+              `Кол-во: ${st.componentOutCount}`,
+              `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
             ].filter(Boolean).join(' | '),
-            employee: `${task.employees?.peoples?.lastName || ''} ${task.employees?.peoples?.firstName || ''} ${task.employees?.peoples?.middleName || ''}`.trim() || 'Без сотрудника',
-            stand: task.stands?.title || '',
-            standTask: standTask?.title || '',
-            state: task.currentTaskStates?.title || '',
-            manufactureTime,
             children: [],
-          };
-        })
+          })),
+        }))
       }))
     }));
     return { name: 'Текущие задачи', children };
@@ -224,12 +229,20 @@ export class CurrentTasksService {
         'employees.peoples',
         'currentTaskStates',
         'stands',
-        'standTasks',
-        'standTasks.components',
       ],
     });
-    // Группировка: состояние -> дата -> название задачи
-    const stateMap = new Map<string, Map<string, Map<string, any[]>>>();
+    // Получаем все stand_tasks одним запросом
+    const allStandTasks = await this.standTasksRepository.find({
+      relations: ['components', 'stands', 'professions'],
+    });
+    // Группируем stand_tasks по parentId
+    const standTasksByParent = new Map<number, StandTasks[]>();
+    for (const st of allStandTasks) {
+      if (!standTasksByParent.has(st.parentId)) standTasksByParent.set(st.parentId, []);
+      standTasksByParent.get(st.parentId)!.push(st);
+    }
+    // Новый порядок: состояние -> дата -> стенд -> задача (id) -> подзадачи (id)
+    const stateMap = new Map<string, Map<string, Map<string, Map<number, CurrentTasks>>>>();
     for (const task of tasks) {
       const state = task.currentTaskStates?.title || 'Без состояния';
       const deadline = task.deadline
@@ -237,43 +250,35 @@ export class CurrentTasksService {
             ? task.deadline
             : (task.deadline as Date).toISOString().split('T')[0])
         : 'Без даты';
-      const title = task.title || 'Без названия';
+      const stand = task.stands?.title || 'Без стенда';
       if (!stateMap.has(state)) stateMap.set(state, new Map());
       const deadlineMap = stateMap.get(state)!;
       if (!deadlineMap.has(deadline)) deadlineMap.set(deadline, new Map());
-      const titleMap = deadlineMap.get(deadline)!;
-      if (!titleMap.has(title)) titleMap.set(title, []);
-      titleMap.get(title)!.push(task);
+      const standMap = deadlineMap.get(deadline)!;
+      if (!standMap.has(stand)) standMap.set(stand, new Map());
+      standMap.get(stand)!.set(task.id, task);
     }
     const children = Array.from(stateMap.entries()).map(([state, deadlineMap]) => ({
       name: state,
-      children: Array.from(deadlineMap.entries()).map(([deadline, titleMap]) => ({
-        name: deadline,
-        children: Array.from(titleMap.entries()).map(([title, tasks]) => ({
-          name: title,
-          children: tasks.map(task => {
-            const standTask = task.standTasks;
-            const componentTitle = standTask?.components?.title || '';
-            const componentOutCount = standTask?.componentOutCount != null ? standTask.componentOutCount : '';
-            const manufactureTime = standTask?.manufactureTime ? (typeof standTask.manufactureTime === 'string' ? standTask.manufactureTime : (standTask.manufactureTime as Date).toISOString().split('T')[0]) : '';
-            return {
-              id: task.id,
+      children: Array.from(deadlineMap.entries()).map(([deadline, standMap]) => ({
+        name: `Дедлайн: ${deadline}`,
+        children: Array.from(standMap.entries()).map(([stand, taskMap]) => ({
+          name: `Стенд: ${stand}`,
+          children: Array.from(taskMap.entries()).map(([taskId, task]) => ({
+            id: task.id,
+            name: `Задача: ${task.title}`,
+            children: (standTasksByParent.get(task.id) || []).map(st => ({
+              id: st.id,
               name: [
-                `Стенд: ${task.stands?.title}`,
-                `Задача стенда: ${standTask?.title}`,
-                `Компонент: ${componentTitle}`,
-                `Кол-во: ${componentOutCount}`,
-                `Время изготовления: ${manufactureTime}`,
+                `Задача стенда: ${st.title}`,
+                `Стенд: ${st.stands?.title || ''}`,
+                `Компонент: ${st.components?.title || ''}`,
+                `Кол-во: ${st.componentOutCount}`,
+                `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
               ].filter(Boolean).join(' | '),
-              state: task.currentTaskStates?.title || '',
-              stand: task.stands?.title || '',
-              standTask: standTask?.title || '',
-              component: componentTitle,
-              componentOutCount,
-              manufactureTime,
               children: [],
-            };
-          })
+            })),
+          }))
         }))
       }))
     }));

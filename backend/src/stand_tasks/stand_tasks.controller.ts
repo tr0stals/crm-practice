@@ -46,4 +46,9 @@ export class StandTasksController {
   async delete(@Param('id') id: string) {
     return await this.service.delete(+id);
   }
+
+  @Post('complete/:id')
+  async completeStandTask(@Param('id') id: string) {
+    return await this.service.completeStandTask(+id);
+  }
 }

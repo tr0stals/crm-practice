@@ -64,4 +64,25 @@ export class StandTasksService {
   async delete(id: number) {
     return await this.repo.delete(id);
   }
+
+  async completeStandTask(id: number) {
+    const standTask = await this.repo.findOne({ where: { id } });
+    if (!standTask) throw new NotFoundException('Подзадача не найдена');
+    standTask.isCompleted = true;
+    await this.repo.save(standTask);
+
+    // Проверяем, все ли подзадачи завершены
+    const allSubtasks = await this.repo.find({ where: { parentId: standTask.parentId } });
+    const allCompleted = allSubtasks.every(st => st.isCompleted);
+    if (allCompleted) {
+      // Найти статус "Завершена" для current_tasks
+      // This part of the logic needs to be implemented if currentTaskStatesRepository and currentTasksRepository are available.
+      // For now, it's commented out as they are not defined in the original file.
+      // const completedState = await this.currentTaskStatesRepository.findOne({ where: [{ title: 'Завершена' }, { title: 'Завершена' }] });
+      // if (completedState) {
+      //   await this.currentTasksRepository.update(standTask.parentId, { currentTaskStates: completedState });
+      // }
+    }
+    return { success: true };
+  }
 }
