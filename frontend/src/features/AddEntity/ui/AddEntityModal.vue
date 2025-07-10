@@ -7,6 +7,7 @@ import "../style.scss";
 import { reactive, watch, computed } from "vue";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
+import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 
 const props = defineProps<{
   sectionName: string;
@@ -69,19 +70,22 @@ console.debug(formData);
     <div class="modalWindow__overlay" @click="props.onClose"></div>
     <div class="modalWindow addModalWindow">
       <CloseIcon class="addModalWindow__closeIcon" @click="props.onClose" />
-      <h1>{{ props.sectionName }}</h1>
+      <h1>{{ localizatedSectionsList[props.sectionName] }}</h1>
       <div class="addModalWindow__content">
         <div
           v-for="item in tableColumns"
           :key="item"
           class="addModalWindow__content__field"
         >
-          {{ console.debug(typeof item) }}
-
           <template v-if="item !== 'id' && item !== 'passwordSalt'">
             <label :for="item">{{ fieldDictionary[item] || item }}</label>
             <template v-if="item.endsWith('Id')">
-              <select v-model="formData[item]" :id="item" :name="item">
+              <select
+                v-model="formData[item]"
+                :id="item"
+                :name="item"
+                class="addModalWindow__content__field__option"
+              >
                 <option value="" disabled>Выберите значение</option>
                 <option
                   v-for="option in selectOptions[item]"
@@ -159,30 +163,3 @@ console.debug(formData);
     </div>
   </div>
 </template>
-
-<style scoped>
-.modalWindow__overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.25);
-  z-index: 2000;
-}
-.modalWindow.addModalWindow {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  z-index: 2100;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-  min-width: 400px;
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 32px 24px;
-}
-</style>

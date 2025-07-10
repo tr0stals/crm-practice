@@ -121,7 +121,7 @@ onMounted(async () => {
         class="editModalWindow__content__field"
       >
         <label class="editModalWindow__content__field__label" :for="key">
-          {{ fieldDictionary[key] || key }}
+          {{ key }}
         </label>
 
         <!-- Date -->

@@ -17,14 +17,21 @@ export class SupplierComponentsService {
 
   async findAll(): Promise<SupplierComponents[]> {
     return await this.repository.find({
-      relations: ['supplier', 'component']
+      relations: ['supplier', 'component'],
     });
+  }
+
+  async generateData() {
+    try {
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async findOne(id: number): Promise<SupplierComponents> {
     const entity = await this.repository.findOne({
       where: { id },
-      relations: ['supplier', 'component']
+      relations: ['supplier', 'component'],
     });
     if (!entity) {
       throw new NotFoundException(`Компонент поставщика с ID ${id} не найден`);
@@ -32,7 +39,10 @@ export class SupplierComponentsService {
     return entity;
   }
 
-  async update(id: number, data: Partial<SupplierComponents>): Promise<SupplierComponents> {
+  async update(
+    id: number,
+    data: Partial<SupplierComponents>,
+  ): Promise<SupplierComponents> {
     await this.findOne(id); // Проверяем существование
     await this.repository.update(id, data);
     return await this.findOne(id);
@@ -42,4 +52,4 @@ export class SupplierComponentsService {
     await this.findOne(id); // Проверяем существование
     await this.repository.delete(id);
   }
-} 
+}

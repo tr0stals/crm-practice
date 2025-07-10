@@ -103,6 +103,7 @@
   // margin: 20px; /* Оставляем margin по бокам и сверху */
   border-radius: 8px; /* Скругление углов основной области */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Легкая тень */
+  overflow-x: auto;
 }
 
 .header {

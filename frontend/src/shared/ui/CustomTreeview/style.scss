@@ -22,6 +22,7 @@
     padding: 1rem 2rem !important;
     border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 1rem !important;
+    width: 100%;
 
     &:hover {
       background-color: rgba(0, 0, 0, 0.05) !important;
@@ -38,28 +39,28 @@
     }
 
     &__selected {
-      background-color: #e0f0ff !important;
+      background-color: rgba(0, 0, 0, 0.05) !important;
     }
   }
 }
 
-.treeview .p-tree-toggler {
-  display: none !important;
-}
+// .treeview .p-tree-toggler {
+//   display: none !important;
+// }
 
-:deep(.treeview .p-treenode-content) {
-  font-size: 1.3rem !important;
-  padding: 1.2rem 2.5rem !important;
-}
-:deep(.treeview .p-tree-label) {
-  font-size: 1.3rem !important;
-}
+// :deep(.treeview .p-treenode-content) {
+//   font-size: 1.3rem !important;
+//   padding: 1.2rem 2.5rem !important;
+// }
+// :deep(.treeview .p-tree-label) {
+//   font-size: 1.3rem !important;
+// }
 
-.treeview-container {
-  height: 60vh;
-  min-height: 400px;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
+// .treeview-container {
+//   height: 60vh;
+//   min-height: 400px;
+//   max-height: 80vh;
+//   display: flex;
+//   flex-direction: column;
+//   justify-content: flex-start;
+// }

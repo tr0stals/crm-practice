@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { SupplierComponentsService } from './supplier_components.service';
 import { SupplierComponents } from './supplier_components.entity';
 
@@ -21,8 +29,16 @@ export class SupplierComponentsController {
     return await this.service.findOne(+id);
   }
 
+  @Get('generateData')
+  async generateData() {
+    return await this.service.generateData();
+  }
+
   @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() data: Partial<SupplierComponents>) {
+  async update(
+    @Param('id') id: string,
+    @Body() data: Partial<SupplierComponents>,
+  ) {
     return await this.service.update(+id, data);
   }
 
@@ -30,4 +46,4 @@ export class SupplierComponentsController {
   async remove(@Param('id') id: string) {
     return await this.service.remove(+id);
   }
-} 
+}

@@ -35,6 +35,10 @@ export class BillsComponentsService {
         .filter((item) => item.bill?.id === incomingId)
         .map((item) => {
           const { bill, components, link, ...defaultData } = item;
+
+          if (!bill || !components)
+            throw new Error('Нет объектов bill или components');
+
           return {
             ...defaultData,
             billData: bill.date,
@@ -57,8 +61,11 @@ export class BillsComponentsService {
       if (!bills)
         throw new NotFoundException('Ошибка при поиске bills-components');
 
+      console.log('BILLLSSSS!', bills);
       bills.map((item) => {
         const { bill, components, link, ...defaultData } = item;
+        if (!bill || !components)
+          throw new Error('Нет объектов bill или components');
 
         const billData = bill.date;
         const billNumber = bill.numberBill;

@@ -41,9 +41,6 @@ function handleCloseCollapse() {
       :handle-click="handleCloseCollapse"
       class="moreDetailsCollapse__closeIcon"
     />
-    <h1 class="moreDetailsCollapse__title">
-      {{ localizatedSectionsList[currentSection] }}
-    </h1>
 
     <table
       :key="currentSection + '-table'"

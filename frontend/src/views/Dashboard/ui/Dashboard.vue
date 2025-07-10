@@ -49,6 +49,7 @@ import PcbsTreeview from "@/views/Pages/PcbsTreeview/ui/PcbsTreeview.vue";
 import { MoreDetailsCollapseModel } from "@/widgets/MoreDetailsCollapse/model/MoreDetailsCollapseModel";
 import { useGlobalStore } from "@/shared/store/globalStore";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
+import { treeviewTables } from "@/shared/config/treeviewTables";
 
 // TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
@@ -375,7 +376,6 @@ function handleClickOutside(event: MouseEvent) {
 }
 
 function handleSelectRow(item: any) {
-  console.debug(item);
   selectedRow.value = item;
 }
 
@@ -623,7 +623,7 @@ function handleSidebarClick(section: string) {
             :data-js-sectionName="section"
             @click="currentSection = section"
           >
-            {{ section }}
+            {{ localizatedSectionsList[section] }}
           </li>
           <template
             v-if="userProfession === 'Снабженец' || userProfession === 'Test'"
@@ -713,7 +713,13 @@ function handleSidebarClick(section: string) {
 
         <!-- Table -->
         <div class="table-container" v-if="showTableContainer">
-          <template v-if="currentSection === 'warehouse_components'">
+          <template v-if="treeviewTables.includes(currentSection)">
+            <CustomTreeview
+              :current-section="currentSection"
+              :handle-select-callback="handleSelectRow"
+            />
+          </template>
+          <!-- <template v-if="currentSection === 'warehouse_components'">
             <WarehouseComponentsTreeView
               :handle-select-callback="handleSelectRow"
               :search="searchQuery"
@@ -742,6 +748,10 @@ function handleSidebarClick(section: string) {
               :handle-select-callback="handleSelectRow"
               :search="searchQuery"
             />
+            <CustomTreeview
+              :current-section="currentSection"
+              :handle-select-callback="handleSelectRow"
+            />
           </template>
           <template v-else-if="currentSection === 'user'">
             <UsersTreeView
@@ -760,7 +770,7 @@ function handleSidebarClick(section: string) {
               :handle-select-callback="handleSelectRow"
               :search="searchQuery"
             />
-          </template>
+          </template> -->
           <table v-else :key="currentSection + '-table'" class="data-table">
             <thead>
               <tr>
