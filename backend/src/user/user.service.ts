@@ -116,9 +116,13 @@ export class UserService {
       const data: any[] = [];
 
       users?.map((user) => {
+        const { employees, ...defaultData } = user;
+        const fullname = `${employees?.peoples?.firstName} ${employees?.peoples?.middleName} ${employees?.peoples?.lastName}`;
+
         data.push({
           id: user.id,
           userName: user.userName,
+          employees: fullname,
         });
       });
 

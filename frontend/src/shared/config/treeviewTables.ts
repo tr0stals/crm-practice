@@ -1,3 +1,6 @@
+/**
+ * Таблицы, для которых необходимо строить Treeview
+ */
 export const treeviewTables = [
   "warehouse_components",
   "employees",
@@ -5,7 +8,7 @@ export const treeviewTables = [
   "license_types",
   "current_tasks",
   "components",
-  "user",
+  // "user",
   "pcb_orders",
   "order_requests",
   "pcbs",

@@ -6,7 +6,7 @@ import { useRouter } from "vue-router";
 import "../style.scss";
 
 const props = defineProps<{
-  handleSelectCallback?: (item: any) => void;
+  handleSelectCallback: (item: any) => void;
   currentSection: string;
   extraClasses?: string[];
   extraAttrs?: string[];
@@ -53,11 +53,12 @@ const getTreeviewData = (node: any, level = 0): TreeNode => {
 };
 
 async function fetchComponents() {
-  const { data } = await getDataAsync({
-    endpoint: `/${props.currentSection}/get`,
+  const response = await getDataAsync({
+    endpoint: `/${props.currentSection}/tree`,
   });
+
   // treeData.value = buildTree(data);
-  const node = getTreeviewData(data);
+  const node = getTreeviewData(response.data);
   treeData.value = node.children || [];
 }
 
@@ -106,32 +107,37 @@ watch(
 </script>
 
 <template>
-  <Tree
-    :value="treeData"
-    selectionMode="single"
-    class="treeview"
-    v-model:selectionKey="selectedKey"
-    @node-select="onNodeSelect"
-    :pt="{
-      root: { class: 'treeview__root' },
-      nodeContent: ({ context }) => ({
-        class: [
-          'treeview__data',
-          { treeview__data__selected: context.node.key === selectedKey },
-        ],
-      }),
-      node: ({ context }) => ({
-        style: { marginLeft: `${(context.node.level || 0) * 1}rem` },
-      }),
-    }"
-    :pt-options="{ mergeProps: true }"
-  >
-    <template #default="slotProps">
-      <div class="treeview__data__wrapper">
-        <span class="treeview__data__label">
-          {{ slotProps.node.label }}
-        </span>
-      </div>
-    </template>
-  </Tree>
+  <template v-if="treeData">
+    <Tree
+      :value="treeData"
+      selectionMode="single"
+      class="treeview"
+      v-model:selectionKey="selectedKey"
+      @node-select="onNodeSelect"
+      :pt="{
+        root: { class: 'treeview__root' },
+        nodeContent: ({ context }) => ({
+          class: [
+            'treeview__data',
+            { treeview__data__selected: context.node.key === selectedKey },
+          ],
+        }),
+        node: ({ context }) => ({
+          style: { marginLeft: `${(context.node.level || 0) * 1}rem` },
+        }),
+      }"
+      :pt-options="{ mergeProps: true }"
+    >
+      <template #default="slotProps">
+        <div class="treeview__data__wrapper">
+          <span class="treeview__data__label">
+            {{ slotProps.node.label }}
+          </span>
+        </div>
+      </template>
+    </Tree>
+  </template>
+  <template v-else>
+    <h1>Нет данных для отображения</h1>
+  </template>
 </template>
