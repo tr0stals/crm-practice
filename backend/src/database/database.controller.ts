@@ -43,11 +43,6 @@ export class DatabaseController {
     return this.databaseService.getTableRelations(tableName);
   }
 
-  @Get('relationMap/:key')
-  async getRelationMap(@Param('key') key: string) {
-    return await this.databaseService.getRelationMap(key);
-  }
-
   @Get(':tableName/columns')
   async getTableColumns(@Param('tableName') tableName: string) {
     return await this.databaseService.getTableColumns(tableName);

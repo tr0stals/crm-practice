@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { databaseParentIdStrategies } from './databaseParentIdStrategies';
-import { relationMap } from 'config/relationMap';
 
 @Injectable()
 export class DatabaseService {
@@ -21,14 +20,6 @@ export class DatabaseService {
       result.push({ tableName, rows });
     }
     return result;
-  }
-
-  async getRelationMap(key: string) {
-    try {
-      return relationMap[key];
-    } catch (e) {
-      throw new Error(e);
-    }
   }
 
   async getTableNames() {
