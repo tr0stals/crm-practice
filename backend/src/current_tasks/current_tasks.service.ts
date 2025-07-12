@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, Repository, IsNull } from 'typeorm';
 import { CurrentTasks } from './current_tasks.entity';
 import { Employees } from 'src/employees/employees.entity';
 import { CurrentTasksDTO } from './dto/CurrentTasksDTO';
@@ -168,15 +168,17 @@ export class CurrentTasksService {
         'employees.peoples',
         'currentTaskStates',
         'stands',
+        'standTasks',
       ],
     });
     const allStandTasks = await this.standTasksRepository.find({
       relations: ['components', 'stands', 'professions'],
     });
-    const standTasksByParent = new Map<number, StandTasks[]>();
+    const standTasksByParent = new Map<string, StandTasks[]>();
     for (const st of allStandTasks) {
-      if (!standTasksByParent.has(st.parentId)) standTasksByParent.set(st.parentId, []);
-      standTasksByParent.get(st.parentId)!.push(st);
+      const key = String(st.parentId);
+      if (!standTasksByParent.has(key)) standTasksByParent.set(key, []);
+      standTasksByParent.get(key)!.push(st);
     }
     // Новый порядок: дата (дедлайн) -> стенд -> сотрудник+задача (id) -> подзадачи (id)
     const deadlineMap = new Map<string, Map<string, Map<number, CurrentTasks>>>();
@@ -203,7 +205,8 @@ export class CurrentTasksService {
             `${task.employees?.peoples?.lastName || ''} ${task.employees?.peoples?.firstName || ''} ${task.employees?.peoples?.middleName || ''}`.trim() || 'Без сотрудника',
             `Задача: ${task.title}`
           ].filter(Boolean).join(' | '),
-          children: (standTasksByParent.get(task.id) || []).map(st => ({
+          nodeType: 'current_task',
+          children: (standTasksByParent.get(String(task.standTasks?.id)) || []).map(st => ({
             id: st.id,
             name: [
               `Задача стенда: ${st.title}`,
@@ -212,6 +215,8 @@ export class CurrentTasksService {
               `Кол-во: ${st.componentOutCount}`,
               `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
             ].filter(Boolean).join(' | '),
+            nodeType: 'stand_task',
+            isCompleted: st.isCompleted,
             children: [],
           })),
         }))
@@ -229,6 +234,7 @@ export class CurrentTasksService {
         'employees.peoples',
         'currentTaskStates',
         'stands',
+        'standTasks',
       ],
     });
     // Получаем все stand_tasks одним запросом
@@ -236,10 +242,11 @@ export class CurrentTasksService {
       relations: ['components', 'stands', 'professions'],
     });
     // Группируем stand_tasks по parentId
-    const standTasksByParent = new Map<number, StandTasks[]>();
+    const standTasksByParent = new Map<string, StandTasks[]>();
     for (const st of allStandTasks) {
-      if (!standTasksByParent.has(st.parentId)) standTasksByParent.set(st.parentId, []);
-      standTasksByParent.get(st.parentId)!.push(st);
+      const key = String(st.parentId);
+      if (!standTasksByParent.has(key)) standTasksByParent.set(key, []);
+      standTasksByParent.get(key)!.push(st);
     }
     // Новый порядок: состояние -> дата -> стенд -> задача (id) -> подзадачи (id)
     const stateMap = new Map<string, Map<string, Map<string, Map<number, CurrentTasks>>>>();
@@ -267,7 +274,9 @@ export class CurrentTasksService {
           children: Array.from(taskMap.entries()).map(([taskId, task]) => ({
             id: task.id,
             name: `Задача: ${task.title}`,
-            children: (standTasksByParent.get(task.id) || []).map(st => ({
+            nodeType: 'current_task',
+            currentTaskStateId: task.currentTaskStates?.id,
+            children: (standTasksByParent.get(String(task.standTasks?.id)) || []).map(st => ({
               id: st.id,
               name: [
                 `Задача стенда: ${st.title}`,
@@ -276,6 +285,12 @@ export class CurrentTasksService {
                 `Кол-во: ${st.componentOutCount}`,
                 `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
               ].filter(Boolean).join(' | '),
+              nodeType: 'stand_task',
+              isCompleted: st.isCompleted,
+              _parent: {
+                id: task.id,
+                currentTaskStateId: task.currentTaskStates?.id,
+              },
               children: [],
             })),
           }))
@@ -283,5 +298,10 @@ export class CurrentTasksService {
       }))
     }));
     return { name: 'Мои задачи', children };
+  }
+
+  // Получить только основные задачи стенда (parentId == null)
+  async getRootStandTasks() {
+    return await this.standTasksRepository.find({ where: { parentId: IsNull() } });
   }
 }

@@ -1,17 +1,32 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { StandTasks } from './stand_tasks.entity';
+import { InjectRepository as InjectCurrentTasksRepository } from '@nestjs/typeorm';
+import { CurrentTasks } from '../current_tasks/current_tasks.entity';
 
 @Injectable()
 export class StandTasksService {
   constructor(
     @InjectRepository(StandTasks)
     private repo: Repository<StandTasks>,
+    @InjectCurrentTasksRepository(CurrentTasks)
+    private currentTasksRepo: Repository<CurrentTasks>,
   ) {}
 
   async create(data: Partial<StandTasks>) {
-    const entity = this.repo.create(data);
+    // Обработка поля isCompleted - если передана пустая строка или не передано, ставим false
+    let isCompleted = data.isCompleted;
+    if (isCompleted === null || isCompleted === undefined) {
+      isCompleted = false;
+    }
+
+    // Если parentId не передан, явно ставим null
+    const entity = this.repo.create({
+      ...data,
+      parentId: data.parentId ?? null,
+      isCompleted: isCompleted,
+    });
     return await this.repo.save(entity);
   }
 
@@ -49,6 +64,14 @@ export class StandTasksService {
     });
   }
 
+  async getAllByParent(parentId: number | null) {
+    if (parentId === null) {
+      return await this.repo.find({ where: { parentId: IsNull() }, relations: ['stands', 'professions', 'components'] });
+    } else {
+      return await this.repo.find({ where: { parentId }, relations: ['stands', 'professions', 'components'] });
+    }
+  }
+
   async getOne(id: number) {
     return await this.repo.findOne({
       where: { id },
@@ -72,16 +95,29 @@ export class StandTasksService {
     await this.repo.save(standTask);
 
     // Проверяем, все ли подзадачи завершены
-    const allSubtasks = await this.repo.find({ where: { parentId: standTask.parentId } });
-    const allCompleted = allSubtasks.every(st => st.isCompleted);
-    if (allCompleted) {
-      // Найти статус "Завершена" для current_tasks
-      // This part of the logic needs to be implemented if currentTaskStatesRepository and currentTasksRepository are available.
-      // For now, it's commented out as they are not defined in the original file.
-      // const completedState = await this.currentTaskStatesRepository.findOne({ where: [{ title: 'Завершена' }, { title: 'Завершена' }] });
-      // if (completedState) {
-      //   await this.currentTasksRepository.update(standTask.parentId, { currentTaskStates: completedState });
-      // }
+    if (standTask.parentId !== null) {
+      const allSubtasks = await this.repo.find({ where: { parentId: standTask.parentId } });
+      const allCompleted = allSubtasks.every(st => st.isCompleted);
+      if (allCompleted) {
+        // 1. Пометить главную задачу isCompleted = true
+        const parentTask = await this.repo.findOne({ where: { id: standTask.parentId } });
+        if (parentTask) {
+          parentTask.isCompleted = true;
+          await this.repo.save(parentTask);
+        }
+        // 2. Найти current_task, где standTaskId = parentId, и поменять статус на 3 (Завершена)
+        // Для этого нужен репозиторий current_tasks
+        // Импортируем и используем его
+        // (добавим в конструктор: @InjectRepository(CurrentTasks) private currentTasksRepo: Repository<CurrentTasks>)
+        // Ищем задачу
+        if (this.currentTasksRepo) {
+          const currentTask = await this.currentTasksRepo.findOne({ where: { standTasks: { id: standTask.parentId } }, relations: ['currentTaskStates', 'standTasks'] });
+          if (currentTask) {
+            currentTask.currentTaskStates = { id: 3 } as any;
+            await this.currentTasksRepo.save(currentTask);
+          }
+        }
+      }
     }
     return { success: true };
   }

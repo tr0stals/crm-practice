@@ -51,4 +51,13 @@ export class StandTasksController {
   async completeStandTask(@Param('id') id: string) {
     return await this.service.completeStandTask(+id);
   }
+
+  @Get('byParent/:parentId')
+  async getByParent(@Param('parentId') parentId: string) {
+    // Если parentId пустой или 'null', ищем root задачи
+    if (!parentId || parentId === 'null' || parentId === '') {
+      return await this.service.getAllByParent(null);
+    }
+    return await this.service.getAllByParent(+parentId);
+  }
 }

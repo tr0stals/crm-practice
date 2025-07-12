@@ -16,8 +16,8 @@ export class StandTasks {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  parentId: number;
+  @Column({ type: 'int', nullable: true })
+  parentId: number | null;
 
   @Column()
   order: number;

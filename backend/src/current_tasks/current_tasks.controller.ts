@@ -70,7 +70,7 @@ export class CurrentTasksController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('my-tree')
+  @Get('myTree')
   async getCurrentTasksTreeForEmployee(@Request() req) {
     // employeeId можно получить через req.user.employees?.id или req.user.employeeId
     const employeeId = req.user?.employees?.id || req.user?.employeeId;
@@ -107,5 +107,10 @@ export class CurrentTasksController {
   async getAllTaskTitles() {
     const tasks = await this.service.findAll();
     return tasks.map(task => ({ id: task.id, title: task.title }));
+  }
+
+  @Get('rootStandTasks')
+  async getRootStandTasks() {
+    return await this.service.getRootStandTasks();
   }
 }
