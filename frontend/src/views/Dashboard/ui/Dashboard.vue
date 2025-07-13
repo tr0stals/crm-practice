@@ -11,16 +11,7 @@ import EditModalWindow from "@/features/EditModalWindow/ui/EditModalWindow.vue";
 import type { IEdittingProps } from "@/shared/config/IEdittingProps";
 import { getUserInfoAsync } from "../api/getUserInfoAsync";
 import CustomTreeview from "@/shared/ui/CustomTreeview/ui/CustomTreeview.vue";
-import {
-  ref,
-  onMounted,
-  onUnmounted,
-  reactive,
-  watch,
-  type Ref,
-  computed,
-  nextTick,
-} from "vue";
+import { ref, onMounted, onUnmounted, watch, computed, nextTick } from "vue";
 import "../style.scss";
 import type { IData } from "../interface/IData";
 import { getUsers } from "@/shared/api/userApi";
@@ -28,30 +19,14 @@ import { deleteDataAsync } from "../api/deleteDataAsync";
 import AvatarIcon from "@/shared/ui/AvatarIcon/ui/AvatarIcon.vue";
 import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
 import type { TreeNode } from "primevue/treenode";
-import { useGetTreeviewData } from "@/shared/ui/CustomTreeview/model/useGetTreeviewData";
 import * as XLSX from "xlsx";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import type { IAuthorizedUser } from "../interface/IAuthorizedUser";
 import { roleTables } from "@/shared/config/rolesTables";
-import { fieldDictionary } from "@/shared/utils/fieldDictionary";
-import { item } from "@primeuix/themes/aura/breadcrumb";
-import ComponentsTreeView from "@/views/Pages/ComponentsTreeview/ui/ComponentsTreeView.vue";
-import EmployeesTreeView from "@/views/Pages/EmployeesTreeview/ui/EmployeesTreeview.vue";
-import OrganizationsTreeView from "@/views/Pages/OrganizationsTreeview/ui/OrganizationsTreeView.vue";
-import LicenseTypesTreeView from "@/views/Pages/LicenseTypesTreeview/ui/LicenseTypesTreeView.vue";
-import DepartmentsTreeView from "@/views/Pages/DepartmentsTreeview/ui/DepartmentsTreeView.vue";
-import CurrentTasksTreeView from "@/views/Pages/CurrentTasksTreeview/ui/CurrentTasksTreeView.vue";
-import WarehouseComponentsTreeView from "@/views/Pages/WarehouseComponentsTreeview/ui/WarehouseComponentsTreeView.vue";
-import UsersTreeView from "@/views/Pages/UsersTreeview/ui/UsersTreeView.vue";
-import PcbOrdersTreeView from "@/views/Pages/PcbOrdersTreeview/ui/PcbOrdersTreeView.vue";
-import OrderRequestsTreeView from "@/views/Pages/OrderRequestsTreeview/ui/OrderRequestsTreeView.vue";
-import PcbsTreeview from "@/views/Pages/PcbsTreeview/ui/PcbsTreeview.vue";
 import { MoreDetailsCollapseModel } from "@/widgets/MoreDetailsCollapse/model/MoreDetailsCollapseModel";
 import { useGlobalStore } from "@/shared/store/globalStore";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { treeviewTables } from "@/shared/config/treeviewTables";
-
-// TODO: сделать рефакторинг. Перенести бизнес-логику в DashboardModel.ts
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -197,11 +172,10 @@ const logout = () => {
 };
 
 const getCurrentData = async () => {
-  console.debug(currentSection.value);
   const config: IData = {
     endpoint: `/${currentSection.value}/generateData`,
   };
-  console.debug(config);
+  console.debug("GET CURRENT DATA ");
 
   data.value = []; // Очищаем данные перед загрузкой
 
@@ -222,9 +196,9 @@ const getCurrentData = async () => {
   }
 };
 
-const onUpdateCallBack = async () => {
+async function onUpdateCallBack() {
   await getCurrentData();
-};
+}
 
 watch(selectedRow, (newVal) => {
   globalStore.setSelectedRow(newVal);
@@ -240,7 +214,6 @@ function handleEditModalWindow() {
     sectionName: currentSection.value,
     entityId: globalStore.selectedRow?.id,
   };
-  console.debug("selectedRow!!!!", globalStore.selectedRow?.id);
 
   if (!cfg.entityId) {
     alert("Выберите строку для редактирования");

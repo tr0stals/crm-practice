@@ -36,11 +36,14 @@ function handleCloseCollapse() {
 }
 </script>
 <template>
-  <div id="moreDetailsCollapse" class="moreDetailsCollapse">
+  <div class="moreDetailsCollapse">
     <CloseIcon
       :handle-click="handleCloseCollapse"
       class="moreDetailsCollapse__closeIcon"
     />
+    <h1 class="moreDetailsCollapse__title">
+      {{ localizatedSectionsList[currentSection] }}
+    </h1>
 
     <table
       :key="currentSection + '-table'"
@@ -71,6 +74,7 @@ function handleCloseCollapse() {
         >
           <template v-for="(value, title) in item">
             <td v-if="title !== 'password' && title !== 'id'" :key="title">
+              {{ console.debug(value, title) }}
               <template v-if="typeof value === 'boolean'">
                 <input type="checkbox" :checked="value" disabled />
               </template>

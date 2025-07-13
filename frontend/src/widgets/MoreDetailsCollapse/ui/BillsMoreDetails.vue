@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import "../style.scss";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import { MoreDetailsCollapseModel } from "../model/MoreDetailsCollapseModel";
 import { useGlobalStore } from "@/shared/store/globalStore";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";

@@ -3,7 +3,7 @@ import type { IEdittingProps } from "@/shared/config/IEdittingProps";
 import "../style.scss";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import Button from "@/shared/ui/Button/ui/Button.vue";
-import { onMounted, reactive, ref, watch } from "vue";
+import { onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { EditModalWindowModel } from "../model/EditModalWindowModel";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import VueDatePicker from "@vuepic/vue-datepicker";
@@ -15,6 +15,8 @@ const data = ref<any>();
 const formData = ref<any>({});
 const dateModel = reactive<Record<string, any>>({});
 const relatedOptions = reactive<Record<string, any[]>>({});
+
+let model: EditModalWindowModel;
 
 const props = defineProps<{
   config?: IEdittingProps;
@@ -64,7 +66,7 @@ async function loadRelatedOptions(key: string) {
 }
 
 onMounted(async () => {
-  new EditModalWindowModel(props.onApplyCallback);
+  model = new EditModalWindowModel(props.onApplyCallback);
 
   // получаем конкретную запись по ID
   const response = await getDataAsync({
@@ -97,6 +99,10 @@ onMounted(async () => {
   for (const [key] of objectFields) {
     await loadRelatedOptions(key);
   }
+});
+
+onUnmounted(() => {
+  model?.destroy();
 });
 </script>
 

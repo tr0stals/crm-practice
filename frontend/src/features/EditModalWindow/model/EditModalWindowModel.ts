@@ -5,62 +5,54 @@ import { updateAsync } from "../api/updateAsync";
 export class EditModalWindowModel {
   private endpoint: string;
   private data: any;
-  private cb: () => {};
+  private cb: () => void;
+
+  private handleClick: (e: Event) => void;
 
   attrs = {
     applyBtn: "[data-js-apply-btn]",
     cancelBtn: "[data-js-cancel-btn]",
   };
 
-  constructor(cb: () => {}) {
+  constructor(cb: () => void) {
     this.cb = cb;
     this.endpoint = "";
-    this.#bindEvents();
+    this.handleClick = this.#onClick.bind(this);
+    document.addEventListener("click", this.handleClick);
   }
 
   private async applyData() {
-    // console.debug("!!!!!", this.endpoint, this.data);
     if (this.data && this.endpoint) {
       return await updateAsync(this.endpoint.toLowerCase(), this.data);
     }
   }
 
-  #bindEvents() {
-    document.addEventListener("click", (e: any) => {
-      const target = e.target;
+  #onClick(e: Event) {
+    const target = e.target as HTMLElement;
 
-      /**
-       * В кнопке "Сохранить" находится объект с отредактированными данными.
-       * Здесь их достаем в переменную key.
-       */
-      if (target && target === document.querySelector(this.attrs.applyBtn)) {
-        const attr = getAttr(this.attrs.applyBtn).toString();
-        const key = JSON.parse(target.getAttribute(attr));
-        console.debug(key);
+    if (target === document.querySelector(this.attrs.applyBtn)) {
+      const attr = getAttr(this.attrs.applyBtn).toString();
+      const key = JSON.parse(target.getAttribute(attr) || "{}");
 
-        this.endpoint = key.sectionName;
-        this.data = key.formData;
+      this.endpoint = key.sectionName;
+      this.data = key.formData;
 
-        const response = this.applyData();
-        console.debug("response!!!!!", response);
+      this.applyData()
+        .then((res) => {
+          if (res?.status === 200) {
+            ModalManager.getInstance().closeModal();
+            this.cb();
+          }
+        })
+        .catch((e) => console.error("Error!", e));
+    }
 
-        response
-          .then((res) => {
-            if (res?.status === 200) {
-              console.debug("Success");
-              ModalManager.getInstance().closeModal();
-              this.cb();
-            }
-          })
-          .catch((e) => console.error("Error!", e));
-      }
+    if (target === document.querySelector(this.attrs.cancelBtn)) {
+      ModalManager.getInstance().closeModal();
+    }
+  }
 
-      /**
-       * При клике на кнопку "Отмена" модальное окно закрывается.
-       */
-      if (target === document.querySelector(this.attrs.cancelBtn)) {
-        ModalManager.getInstance().closeModal();
-      }
-    });
+  public destroy() {
+    document.removeEventListener("click", this.handleClick);
   }
 }

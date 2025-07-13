@@ -54,8 +54,15 @@ export class ModalManager {
    * Метод закрывает модальное окно
    */
   closeModal() {
+    if (this.#appInstance) {
+      this.#appInstance.unmount();
+      this.#appInstance = null;
+    }
+
     document.querySelector("#modalInstance")?.remove();
     document.querySelector("body")?.classList.remove("modal-active");
+
+    ModalManager.instance = null;
   }
 
   static getInstance(config = {}) {

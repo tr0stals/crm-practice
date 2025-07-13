@@ -148,6 +148,11 @@ export class MoreDetailsCollapseModel {
       if (e.target === document.getElementById("deleteButton")) {
         this.#reloadComponent();
       }
+
+      if (e.target === document.querySelector("[data-js-apply-btn]")) {
+        console.error("reload component");
+        this.#reloadComponent();
+      }
     });
   }
 }
