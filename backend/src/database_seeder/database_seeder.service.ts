@@ -1261,7 +1261,7 @@ export class DatabaseSeederService {
         }),
         vat: faker.datatype.boolean(),
         link: faker.internet.url().substring(0, 45),
-        supplier: faker.helpers.arrayElement(organizations),
+        suppliers: faker.helpers.arrayElement(organizations),
         factory: faker.helpers.arrayElement(organizations),
       };
     });
@@ -1285,7 +1285,7 @@ export class DatabaseSeederService {
           price: faker.number.float({ min: 10, max: 1000, fractionDigits: 2 }),
           link: faker.internet.url().substring(0, 255),
           bill: bill,
-          component: faker.helpers.arrayElement(components),
+          components: faker.helpers.arrayElement(components),
         }));
     });
 

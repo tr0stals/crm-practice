@@ -49,4 +49,9 @@ export class BillsForPayController {
   async delete(@Param('id') id: string) {
     return this.service.delete(+id);
   }
+
+  @Get('tree')
+  async getBillsForPayTree() {
+    return await this.service.getBillsForPayTree();
+  }
 }

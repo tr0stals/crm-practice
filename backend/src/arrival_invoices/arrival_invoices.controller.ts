@@ -46,4 +46,9 @@ export class ArrivalInvoicesController {
   async delete(@Param('id') id: string) {
     return this.service.delete(+id);
   }
+
+  @Get('tree')
+  async getArrivalInvoicesTree() {
+    return await this.service.getArrivalInvoicesTree();
+  }
 }
