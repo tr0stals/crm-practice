@@ -50,6 +50,7 @@ import { InventarizationModule } from './inventarization/inventarization.module'
 import { PcbsComponentsModule } from './pcbs_components/pcbs_components.module';
 import { StandTasksComponentsModule } from './stand_tasks_components/stand_tasks_components.module';
 import { DatabaseEagerCachingModule } from './database_eager_caching/database_eager_caching.module';
+import { DatabaseExportImportModule } from './database_export_import/database_export_import.module';
 
 @Module({
   imports: [
@@ -117,6 +118,7 @@ import { DatabaseEagerCachingModule } from './database_eager_caching/database_ea
     StandTasksComponentsModule,
     ArrivalInvoicesModule,
     CurrentTasksModule,
+    DatabaseExportImportModule,
   ],
   controllers: [AppController, StandsController],
   providers: [AppService],

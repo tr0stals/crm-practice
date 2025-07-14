@@ -276,23 +276,25 @@ export class CurrentTasksService {
             name: `Задача: ${task.title}`,
             nodeType: 'current_task',
             currentTaskStateId: task.currentTaskStates?.id,
-            children: (standTasksByParent.get(String(task.standTasks?.id)) || []).map(st => ({
-              id: st.id,
-              name: [
-                `Задача стенда: ${st.title}`,
-                `Стенд: ${st.stands?.title || ''}`,
-                `Компонент: ${st.components?.title || ''}`,
-                `Кол-во: ${st.componentOutCount}`,
-                `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
-              ].filter(Boolean).join(' | '),
-              nodeType: 'stand_task',
-              isCompleted: st.isCompleted,
-              _parent: {
-                id: task.id,
-                currentTaskStateId: task.currentTaskStates?.id,
-              },
-              children: [],
-            })),
+            children: (standTasksByParent.get(String(task.standTasks?.id)) || [])
+              .filter(st => state !== "Выполняется" || !st.isCompleted)
+              .map(st => ({
+                id: st.id,
+                name: [
+                  `Задача стенда: ${st.title}`,
+                  `Стенд: ${st.stands?.title || ''}`,
+                  `Компонент: ${st.components?.title || ''}`,
+                  `Кол-во: ${st.componentOutCount}`,
+                  `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
+                ].filter(Boolean).join(' | '),
+                nodeType: 'stand_task',
+                isCompleted: st.isCompleted,
+                _parent: {
+                  id: task.id,
+                  currentTaskStateId: task.currentTaskStates?.id,
+                },
+                children: [],
+              })),
           }))
         }))
       }))
