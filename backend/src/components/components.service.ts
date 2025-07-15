@@ -75,26 +75,40 @@ export class ComponentsService {
   }
 
   async getComponentsTree() {
-    const components = await this.repository.find();
+    const components = await this.repository.find({
+      relations: ['componentPlacements', 'componentPlacements.placementType'],
+    });
 
-    // Рекурсивная функция для поиска дочерних компонентов
-    function buildComponentChildren(parentId) {
+    // Быстрый доступ к компонентам по subcategoryId
+    function getComponentsBySubcat(subcatId, subcatName) {
       return components
-        .filter((c) => c.parentId === parentId)
-        .map((c) => ({
-          name: c.title,
-          nodeType: 'components',
-          ...c,
-          children: buildComponentChildren(c.id),
-        }));
+        .filter((c) => c.parentId === subcatId)
+        .map((c) => {
+          // Данные о размещении
+          const placement = c.componentPlacements;
+          let placementInfo = '';
+          if (placement) {
+            placementInfo = `${placement.placementType?.title || ''}, Здание ${placement.building}, комната ${placement.room}`;
+          }
+          return {
+            name: c.title,
+            nodeType: 'component',
+            subcategoryName: subcatName,
+            ...c,
+            placementInfo,
+            children: [],
+          };
+        });
     }
 
     // Строим дерево по категориям и подкатегориям
     const tree = COMPONENT_CATEGORIES.map((category) => ({
       name: category.name,
+      nodeType: 'category',
       children: category.subcategories.map((subcat) => ({
         name: subcat.name,
-        children: buildComponentChildren(subcat.id),
+        nodeType: 'subcategory',
+        children: getComponentsBySubcat(subcat.id, subcat.name),
       })),
     }));
 

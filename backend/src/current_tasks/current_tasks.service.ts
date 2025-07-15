@@ -211,19 +211,25 @@ export class CurrentTasksService {
     const children = Array.from(deadlineMap.entries()).map(
       ([deadline, standMap]) => ({
         name: `Дедлайн: ${deadline}`,
+        deadline: deadline,
         children: Array.from(standMap.entries()).map(([stand, taskMap]) => ({
           name: `Стенд: ${stand}`,
           nodeType: 'stands',
+          stand: stand,
           children: Array.from(taskMap.entries()).map(([taskId, task]) => ({
             id: task.id,
             name: [
               `${task.employees?.peoples?.lastName || ''} ${task.employees?.peoples?.firstName || ''} ${task.employees?.peoples?.middleName || ''}`.trim() ||
                 'Без сотрудника',
               `Задача: ${task.title}`,
+              `Состояние задачи: ${task.currentTaskStates?.title || ''}`,
             ]
               .filter(Boolean)
               .join(' | '),
             nodeType: 'current_tasks',
+            employees: `${task.employees?.peoples?.lastName || ''} ${task.employees?.peoples?.firstName || ''} ${task.employees?.peoples?.middleName || ''}`.trim(),
+            taskTitle: task.title || '',
+            currentTaskState: task.currentTaskStates?.title || '',
             children: (
               standTasksByParent.get(String(task.standTasks?.id)) || []
             ).map((st) => ({
@@ -239,6 +245,9 @@ export class CurrentTasksService {
                 .join(' | '),
               nodeType: 'stand_tasks',
               isCompleted: st.isCompleted,
+              standTask: st.title || '',
+              component: st.components?.title || '',
+              manufactureTime: st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : '',
               children: [],
             })),
           })),
@@ -297,15 +306,19 @@ export class CurrentTasksService {
         children: Array.from(deadlineMap.entries()).map(
           ([deadline, standMap]) => ({
             name: `Дедлайн: ${deadline}`,
+            deadline: deadline,
             children: Array.from(standMap.entries()).map(
               ([stand, taskMap]) => ({
                 name: `Стенд: ${stand}`,
+                stand: stand,
                 children: Array.from(taskMap.entries()).map(
                   ([taskId, task]) => ({
                     id: task.id,
                     name: `Задача: ${task.title}`,
                     nodeType: 'current_task',
+                    taskTitle: task.title || '',
                     currentTaskStateId: task.currentTaskStates?.id,
+                    currentTaskState: task.currentTaskStates?.title || '',
                     children: (
                       standTasksByParent.get(String(task.standTasks?.id)) || []
                     )
@@ -325,6 +338,9 @@ export class CurrentTasksService {
                           .join(' | '),
                         nodeType: 'stand_task',
                         isCompleted: st.isCompleted,
+                        standTask: st.title || '',
+                        component: st.components?.title || '',
+                        manufactureTime: st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : '',
                         _parent: {
                           id: task.id,
                           currentTaskStateId: task.currentTaskStates?.id,

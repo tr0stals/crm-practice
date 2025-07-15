@@ -77,9 +77,15 @@ export class PcbsService {
         .filter(pcb => pcb.parentId === parentId)
         .map(pcb => ({
           name: pcb.title || `Плата #${pcb.id}`,
+          pcbName: pcb.title,
+          nodeType: 'pcbs',
           children: Array.isArray(pcb.pcbsComponents)
             ? pcb.pcbsComponents.map(comp => ({
                 name: `${comp.component?.title || `Компонент #${comp.id}`} (${comp.componentCount} шт)`,
+                nodeType: 'components',
+                componentTitle: comp.component?.title,
+                material: comp.component?.material,
+                receiptDate: comp.component?.receiptDate,
                 id: comp.id,
                 componentCount: comp.componentCount,
                 component: comp.component,
@@ -90,8 +96,11 @@ export class PcbsService {
   
     const tree = PCB_CATEGORIES.map(cat => ({
       name: cat.name,
+      nodeType: 'categories',
       children: cat.subcategories.map(subcat => ({
         name: subcat.name,
+        subcategoryName: subcat.name,
+        nodeType: 'subcategories',
         children: buildPcbChildren(subcat.id),
       })),
     }));

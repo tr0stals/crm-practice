@@ -164,6 +164,7 @@ export class ArrivalInvoicesService {
       name: 'Накладные поступления',
       children: Object.entries(grouped).map(([date, invoices]) => ({
         name: date,
+        date: date,
         children: (invoices as any[]).map((invoiceObj) => ({
           ...invoiceObj,
         })),

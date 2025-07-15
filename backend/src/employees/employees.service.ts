@@ -135,7 +135,15 @@ export class EmployeesService {
         ? `${people.lastName} ${people.firstName} ${people.middleName}`
         : 'Без ФИО';
       depMap.get(depName).push({
-        name: fio,
+        name: [
+          `${fio}`,
+          `Дата приема: ${ed.employees?.hiringDate}`,
+          ed.employees?.dismissalDate ? `Дата увольнения: ${ed.employees?.dismissalDate}` : '',
+        ]
+          .filter(Boolean)
+          .join(' | '),
+        employees: fio,
+        birthDate: ed.employees?.peoples?.birthDate,
         ...ed.employees,
         peoples: ed.employees?.peoples,
       });
@@ -146,6 +154,7 @@ export class EmployeesService {
     for (const [depName, employees] of depMap.entries()) {
       result.children.push({
         name: depName,
+        nodeType: 'departments',
         children: employees,
       });
     }

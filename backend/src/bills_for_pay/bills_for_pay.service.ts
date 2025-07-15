@@ -175,6 +175,7 @@ export class BillsForPayService {
       name: 'Счета к оплате',
       children: Object.entries(grouped).map(([date, bills]) => ({
         name: date,
+        date: date,
         children: (bills as any[]).map((billObj) => ({
           ...billObj,
         })),
