@@ -76,6 +76,7 @@ export class PcbsService {
       return pcbs
         .filter(pcb => pcb.parentId === parentId)
         .map(pcb => ({
+          id: pcb.id,
           name: pcb.title || `Плата #${pcb.id}`,
           pcbName: pcb.title,
           nodeType: 'pcbs',

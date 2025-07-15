@@ -153,6 +153,7 @@ export class PcbOrdersService {
       // ].join(' | ');
       const rowObj = {
         id: order.id,
+        nodeType: 'pcb_orders',
         name: [
           `Производитель: ${order.pcbManufacturer?.fullName}`,
           `Завод: ${order.factory?.fullName}`,

@@ -9,6 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { DatabaseService } from './database.service';
+import { NODE_TYPE_TO_TABLE } from './nodeTypesMap';
 
 @Controller('database')
 export class DatabaseController {
@@ -23,6 +24,11 @@ export class DatabaseController {
   async getTableNames() {
     const tables = await this.databaseService.getTableNames();
     return tables;
+  }
+
+  @Get('nodeTypesMap')
+  getNodeTypesMap() {
+    return NODE_TYPE_TO_TABLE;
   }
 
   @Get(':tableName')

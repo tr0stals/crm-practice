@@ -142,6 +142,7 @@ export class EmployeesService {
         ]
           .filter(Boolean)
           .join(' | '),
+        nodeType: 'employees',
         employees: fio,
         birthDate: ed.employees?.peoples?.birthDate,
         ...ed.employees,

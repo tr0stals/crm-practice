@@ -92,7 +92,7 @@ export class ComponentsService {
           }
           return {
             name: c.title,
-            nodeType: 'component',
+            nodeType: 'components',
             subcategoryName: subcatName,
             ...c,
             placementInfo,
