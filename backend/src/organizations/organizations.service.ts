@@ -122,9 +122,14 @@ export class OrganizationsService {
       const orgTypeName = orgType.title;
       const orgs = orgType.organizations || [];
       result.children.push({
+        id: orgType.id,
         name: orgTypeName,
-        nodeType: 'organizationTypes',
-        children: orgs.map((org) => ({ name: org.fullName, ...org })),
+        nodeType: 'organization_types',
+        children: orgs.map((org) => ({
+          name: org.fullName,
+          nodeType: 'organizations',
+          ...org,
+        })),
       });
     }
     return result;

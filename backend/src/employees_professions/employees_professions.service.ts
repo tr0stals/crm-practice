@@ -101,7 +101,7 @@ export class EmployeesProfessionsService {
           .filter(Boolean)
           .join(' ');
 
-        const professionTitle = professions.title;
+        const professionTitle = professions?.title;
 
         data.push({
           ...defaultData,

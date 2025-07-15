@@ -43,7 +43,7 @@ import { deleteDataAsync } from "@/views/Dashboard/api/deleteDataAsync";
 import * as XLSX from "xlsx";
 import "../style.scss";
 import type { TreeNode } from "primevue/treenode";
-import { getTreeviewData } from "@/shared/utils/getTreeviewData";
+import { getTreeviewData } from "@/shared/ui/CustomTreeview/utils/getTreeviewData";
 
 const treeData = ref([]);
 const search = ref("");

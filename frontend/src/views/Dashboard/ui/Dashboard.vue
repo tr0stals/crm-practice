@@ -48,6 +48,7 @@ const avatarImage = ref(""); // Переменная для изображени
 const localizatedSections = ref<any>([]);
 
 const treeviewData = ref<TreeNode[]>([]);
+const treeviewRef = ref(null);
 
 const selectedRow = ref();
 
@@ -140,10 +141,7 @@ const paginatedData = computed(() => {
   const startIndex = (currentPage.value - 1) * actualItemsPerPage;
   const endIndex = startIndex + actualItemsPerPage;
   const result = filteredData.value.slice(startIndex, endIndex);
-  console.debug(
-    `paginatedData for ${currentSection.value} (page ${currentPage.value}):`,
-    result
-  );
+
   return result;
 });
 
@@ -172,39 +170,39 @@ const logout = () => {
   router.push("/login");
 };
 
-const getCurrentData = async () => {
+async function getCurrentData() {
   const config: IData = {
     endpoint: `/${globalStore.currentSection}/generateData`,
   };
-  console.debug("GET CURRENT DATA ");
-
-  data.value = []; // Очищаем данные перед загрузкой
 
   try {
     const response = await getDataAsync(config);
-    console.debug(response);
+
     if (Array.isArray(response.data)) {
-      data.value = response.data;
+      // Заменяем массив реактивно
+      data.value.splice(0, data.value.length, ...response.data);
     } else {
       console.warn(
         "API returned non-array data for current section",
         response.data
       );
+      data.value.splice(0, data.value.length);
     }
   } catch (e) {
     console.error(e);
-    data.value = []; // Убедимся, что данные пустые в случае ошибки
+    data.value.splice(0, data.value.length);
   }
-};
-
-async function onUpdateCallBack() {
-  await getCurrentData();
 }
 
 watch(selectedRow, (newVal) => {
   globalStore.setSelectedRow(newVal);
   console.debug(globalStore.selectedRow);
 });
+
+async function onUpdateCallBack() {
+  await getCurrentData();
+  treeviewRef.value?.refreshTree?.();
+}
 
 /**
  *  Эта функция должна срабатывать при клике на кнопку "Редактировать"
@@ -638,6 +636,7 @@ const filteredTreeData = computed(() => {
           <!-- Если текущая секция находится в массиве treeviewTables - значит отображаем Treeview -->
           <template v-if="treeviewTables.includes(currentSection)">
             <CustomTreeview
+              ref="treeviewRef"
               :current-section="currentSection"
               :handle-select-callback="handleSelectRow"
             />

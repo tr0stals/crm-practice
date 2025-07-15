@@ -34,6 +34,11 @@ export class LicenseController {
     return this.licenseService.find();
   }
 
+  @Get('get/:id')
+  async findById(@Param('id') id: string) {
+    return this.licenseService.findById(+id);
+  }
+
   @Get('generateData')
   async generateData() {
     return await this.licenseService.generateData();

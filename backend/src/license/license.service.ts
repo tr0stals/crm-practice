@@ -11,6 +11,8 @@ export class LicenseService {
   constructor(
     @InjectRepository(License)
     private licenseRepository: Repository<License>,
+    @InjectRepository(License)
+    private licenseTypesRepository: Repository<LicenseTypes>,
     private licenseTypesService: LicenseTypesService,
   ) {}
 
@@ -58,6 +60,19 @@ export class LicenseService {
     return this.licenseRepository.find({
       relations: ['licenseTypes'],
     });
+  }
+
+  async findById(id: number) {
+    try {
+      const license = await this.licenseRepository.findOne({
+        where: { id: id },
+        relations: ['licenseTypes'],
+      });
+
+      return license;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async generateData() {

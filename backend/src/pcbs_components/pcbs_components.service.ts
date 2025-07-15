@@ -32,7 +32,7 @@ export class PcbsComponentsService {
       pcbsComponents.map((item) => {
         const { pcb, component, ...defaultData } = item;
 
-        const pcbTitle = pcb.id;
+        const pcbTitle = pcb.title;
         const componentTitle = component.title;
 
         data.push({

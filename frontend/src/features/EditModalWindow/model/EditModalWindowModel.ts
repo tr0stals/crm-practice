@@ -40,8 +40,9 @@ export class EditModalWindowModel {
       this.applyData()
         .then((res) => {
           if (res?.status === 200) {
-            ModalManager.getInstance().closeModal();
             this.cb();
+            ModalManager.getInstance().closeModal();
+            console.debug("this.cb()", this.cb);
           }
         })
         .catch((e) => console.error("Error!", e));

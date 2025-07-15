@@ -5,6 +5,7 @@ import Tree from "primevue/tree";
 import { useRouter } from "vue-router";
 import "../style.scss";
 import { useGlobalStore } from "@/shared/store/globalStore";
+import { getTreeviewData } from "@/shared/ui/CustomTreeview/utils/getTreeviewData";
 
 const props = defineProps<{
   handleSelectCallback: (item: any) => void;
@@ -33,27 +34,6 @@ interface TreeNode {
 
 onMounted(fetchComponents);
 
-const getTreeviewData = (node: any, level = 0): TreeNode => {
-  const treeNode: TreeNode = {
-    id: node.id,
-    key: `node-${node.id || Math.random().toString(36).substring(2, 9)}`,
-    label: node.name || node.title,
-    data: node,
-    level,
-  };
-
-  if (node.children && node.children.length > 0) {
-    treeNode.children = node.children.map((child: any) =>
-      getTreeviewData(child, level + 1)
-    );
-  } else if (node.width || node.height || node.material) {
-    treeNode.isProduct = true;
-    treeNode.leaf = true;
-  }
-
-  return treeNode;
-};
-
 async function fetchComponents() {
   const response = await getDataAsync({
     endpoint: `/${props.currentSection}/tree`,
@@ -63,6 +43,10 @@ async function fetchComponents() {
   const node = getTreeviewData(response.data);
   treeData.value = node.children || [];
 }
+
+defineExpose({
+  refreshTree: fetchComponents,
+});
 
 function onNodeSelect(event: any) {
   selectedKey.value = event.key;

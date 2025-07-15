@@ -38,7 +38,7 @@ export class EmployeeDepartmentsService {
 
       employeeDepartments.map((item) => {
         const { departments, employees, ...defaultData } = item;
-        const departmentTitle = departments.title;
+        const departmentTitle = departments?.title;
         const employeeName = `${employees.peoples?.firstName} ${employees.peoples?.middleName} ${employees.peoples?.lastName}`;
 
         data.push({

@@ -1,7 +1,6 @@
 import type { TreeNode } from "primevue/treenode";
 
 export const getTreeviewData = (node: any, level = 0): TreeNode => {
-  console.debug(node);
   const treeNode: TreeNode = {
     id: node.id,
     key: `node-${node.id || Math.random().toString(36).substring(2, 9)}`,

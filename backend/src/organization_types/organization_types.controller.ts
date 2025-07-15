@@ -26,6 +26,11 @@ export class OrganizationTypesController {
     return await this.organizationTypesService.get();
   }
 
+  @Get('get/:id')
+  async getById(@Param('id') id: string) {
+    return await this.organizationTypesService.getById(+id);
+  }
+
   @Get('generateData')
   async generateData() {
     return await this.organizationTypesService.generateData();

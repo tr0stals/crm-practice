@@ -32,6 +32,18 @@ export class OrganizationTypesService {
     }
   }
 
+  async getById(id: number) {
+    try {
+      const orgType = await this.organizationTypesRepository.findOne({
+        where: { id: id },
+      });
+
+      return orgType;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async generateData() {
     try {
       const types = await this.get();
