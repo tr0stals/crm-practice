@@ -28,5 +28,5 @@ export class BillsComponents {
 
   @ManyToOne(() => Components)
   @JoinColumn({ name: 'componentId' })
-  component: Components;
+  components: Components;
 }

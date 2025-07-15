@@ -1,8 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { BillsForPay } from './bills_for_pay.entity';
 import { BillsComponents } from '../bills_components/bills_components.entity';
+import { OrganizationsService } from 'src/organizations/organizations.service';
+import { Organizations } from 'src/organizations/organizations.entity';
+import { BillsForPayDTO } from './dto/BillsForPayDTO';
 
 @Injectable()
 export class BillsForPayService {
@@ -11,18 +14,20 @@ export class BillsForPayService {
     private readonly repo: Repository<BillsForPay>,
     @InjectRepository(BillsComponents)
     private readonly billsComponentsRepo: Repository<BillsComponents>,
+    @InjectRepository(Organizations)
+    private readonly organizationRepository: Repository<Organizations>,
   ) {}
 
   async getAll() {
     return this.repo.find({
-      relations: ['supplier', 'factory'],
+      relations: ['suppliers', 'factory'],
     });
   }
 
   async getOne(id: number) {
     return this.repo.findOne({
       where: { id },
-      relations: ['supplier', 'factory'],
+      relations: ['suppliers', 'factory'],
     });
   }
 
@@ -34,9 +39,9 @@ export class BillsForPayService {
       if (!bills) throw new NotFoundException('Не удалось найти bills-for-pay');
 
       bills.map((item) => {
-        const { factory, supplier, ...defaultData } = item;
+        const { factory, suppliers, ...defaultData } = item;
         const factoryName = factory?.shortName;
-        const supplierName = supplier?.shortName;
+        const supplierName = suppliers?.shortName;
 
         data.push({
           id: item.id,
@@ -55,9 +60,34 @@ export class BillsForPayService {
     }
   }
 
-  async create(data: Partial<BillsForPay>) {
-    const entity = this.repo.create(data);
-    return this.repo.save(entity);
+  async create(data: BillsForPayDTO) {
+    try {
+      const { supplierId, factoryId, ...defaultData } = data;
+      if (!supplierId) throw new Error('Не найден supplierId');
+      if (!factoryId) throw new Error('Не найден factoryId');
+
+      const supplierEntity = await this.organizationRepository.findOne({
+        where: { id: supplierId },
+        relations: ['organizationTypes'],
+      });
+      if (!supplierEntity) throw new Error('Не найден supplier');
+
+      const factoryEntity = await this.organizationRepository.findOne({
+        where: { id: factoryId },
+        relations: ['organizationTypes'],
+      });
+      if (!factoryEntity) throw new Error('Не найден factory');
+
+      const entity = this.repo.create({
+        ...defaultData,
+        supplier: supplierEntity,
+        factory: factoryEntity,
+      } as DeepPartial<BillsForPay>);
+
+      return await this.repo.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async update(id: number, data: Partial<BillsForPay>) {
@@ -73,10 +103,10 @@ export class BillsForPayService {
     // Получаем все счета с нужными связями и их компоненты
     const bills = await this.repo.find({
       relations: [
-        'supplier',
+        'suppliers',
         'factory',
         'billsComponents',
-        'billsComponents.component',
+        'billsComponents.components',
       ],
       order: { date: 'DESC' },
     });
@@ -96,7 +126,7 @@ export class BillsForPayService {
       const date = bill.date ? String(bill.date) : 'Без даты';
       if (!grouped[date]) grouped[date] = [];
 
-      const supplierName = bill.supplier?.shortName || 'Поставщик не указан';
+      const supplierName = bill.suppliers?.shortName || 'Поставщик не указан';
       const expectedSupplyDate = bill.expectedSupplyDate
         ? String(bill.expectedSupplyDate)
         : 'Дата не указана';
@@ -124,12 +154,12 @@ export class BillsForPayService {
         children: billComponents.map((component) => ({
           id: component.id,
           name: [
-            component.component?.title || 'Компонент не указан',
+            component.components?.title || 'Компонент не указан',
             `Кол-во: ${component.componentCount}`,
             `Цена: ${component.price} руб.`,
           ].join(' | '),
           nodeType: 'bills_components',
-          componentTitle: component.component?.title,
+          componentTitle: component.components?.title,
           componentCount: component.componentCount,
           price: component.price,
           link: component.link,

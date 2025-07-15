@@ -101,7 +101,7 @@ export class Components {
 
   @OneToMany(
     () => BillsComponents,
-    (billsComponent) => billsComponent.component,
+    (billsComponent) => billsComponent.components,
   )
   billsComponents: BillsComponents[];
 

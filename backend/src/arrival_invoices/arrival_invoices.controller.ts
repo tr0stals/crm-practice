@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { ArrivalInvoicesService } from './arrival_invoices.service';
 import { ArrivalInvoices } from './arrival_invoices.entity';
+import { ArrivalInvoicesDTO } from './dto/ArrivalInvoicesDTO';
 
 @Controller('arrival_invoices')
 export class ArrivalInvoicesController {
@@ -30,7 +31,7 @@ export class ArrivalInvoicesController {
   }
 
   @Post('create')
-  async create(@Body() data: Partial<ArrivalInvoices>) {
+  async create(@Body() data: ArrivalInvoicesDTO) {
     return this.service.create(data);
   }
 

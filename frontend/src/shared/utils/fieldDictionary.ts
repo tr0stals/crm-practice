@@ -109,6 +109,8 @@ export const fieldDictionary: { [key: string]: string } = {
   arrivalDate: "Дата прибытия",
   addedDate: "Дата добавления",
   writeoffReasonId: "Причина списания",
+  writeoffReason: "Причина списания",
+  writeoffReasons: "Причина списания",
   dateTime: "Дата и время",
   suppliers: "Название поставщика",
   factory: "Название фабрики",

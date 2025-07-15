@@ -83,6 +83,7 @@ export class ComponentsService {
         .filter((c) => c.parentId === parentId)
         .map((c) => ({
           name: c.title,
+          nodeType: 'components',
           ...c,
           children: buildComponentChildren(c.id),
         }));

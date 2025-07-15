@@ -11,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BillsForPay } from './bills_for_pay.entity';
 import { BillsForPayService } from './bills_for_pay.service';
+import { BillsForPayDTO } from './dto/BillsForPayDTO';
 
 @Controller('bills_for_pay')
 export class BillsForPayController {
@@ -36,7 +37,7 @@ export class BillsForPayController {
   }
 
   @Post('create')
-  async create(@Body() data: Partial<BillsForPay>) {
+  async create(@Body() data: BillsForPayDTO) {
     return this.service.create(data);
   }
 

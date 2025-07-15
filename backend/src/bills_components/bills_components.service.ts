@@ -14,13 +14,13 @@ export class BillsComponentsService {
   ) {}
 
   async getAll() {
-    return this.repo.find({ relations: ['bill', 'component'] });
+    return this.repo.find({ relations: ['bill', 'components'] });
   }
 
   async getOne(id: number) {
     return this.repo.findOne({
       where: { id },
-      relations: ['bill', 'component'],
+      relations: ['bill', 'components'],
     });
   }
 
@@ -34,16 +34,16 @@ export class BillsComponentsService {
       const data = bills
         .filter((item) => item.bill?.id === incomingId)
         .map((item) => {
-          const { bill, component, link, ...defaultData } = item;
+          const { bill, components, link, ...defaultData } = item;
 
-          if (!bill || !component)
-            throw new Error('Нет объектов bill или components');
+          // if (!bill || !component)
+          //   throw new Error('Нет объектов bill или components');
 
           return {
             ...defaultData,
-            billData: bill.date,
-            billNumber: bill.numberBill,
-            componentTitle: component.title,
+            billData: bill?.date,
+            billNumber: bill?.numberBill,
+            componentTitle: components?.title,
           };
         });
 
@@ -63,13 +63,13 @@ export class BillsComponentsService {
 
       console.log('BILLLSSSS!', bills);
       bills.map((item) => {
-        const { bill, component, link, ...defaultData } = item;
-        if (!bill || !component)
-          throw new Error('Нет объектов bill или components');
+        const { bill, components, link, ...defaultData } = item;
+        // if (!bill || !component)
+        //   throw new Error('Нет объектов bill или components');
 
-        const billData = bill.date;
-        const billNumber = bill.numberBill;
-        const componentTitle = component.title;
+        const billData = bill?.date;
+        const billNumber = bill?.numberBill;
+        const componentTitle = components?.title;
 
         data.push({
           ...defaultData,

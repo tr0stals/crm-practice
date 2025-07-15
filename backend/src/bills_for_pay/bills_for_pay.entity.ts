@@ -37,7 +37,7 @@ export class BillsForPay {
 
   @ManyToOne(() => Organizations)
   @JoinColumn({ name: 'supplierId' })
-  supplier: Organizations;
+  suppliers: Organizations;
 
   @ManyToOne(() => Organizations)
   @JoinColumn({ name: 'factoryId' })

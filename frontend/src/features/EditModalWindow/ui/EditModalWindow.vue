@@ -10,6 +10,7 @@ import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { relationMap } from "@/shared/config/relationMap";
+import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 
 const data = ref<any>();
 const formData = ref<any>({});
@@ -60,7 +61,6 @@ async function loadRelatedOptions(key: string) {
       endpoint: `${relationMap[key] ? relationMap[key] : key}/get`,
     });
     relatedOptions[key] = response?.data ?? [];
-    console.debug(relatedOptions);
   } catch (error) {
     console.error(`Не удалось загрузить справочник для ${key}`, error);
     relatedOptions[key] = [];
@@ -117,7 +117,7 @@ onUnmounted(() => {
     />
     <div class="editModalWindow__header">
       <h1 class="editModalWindow__header__title">
-        {{ props.config?.sectionName || "[Operation]" }}
+        {{ localizatedSectionsList[sectionName] || "[Operation]" }}
       </h1>
       <hr class="editModalWindow__header__hr" />
     </div>
@@ -129,7 +129,7 @@ onUnmounted(() => {
         class="editModalWindow__content__field"
       >
         <label class="editModalWindow__content__field__label" :for="key">
-          {{ key }}
+          {{ fieldDictionary[key] }}
         </label>
 
         <!-- Date -->
@@ -168,28 +168,33 @@ onUnmounted(() => {
             :key="item.id"
             :value="item.id"
           >
-            {{
-              item.title ||
-              item.name ||
-              item.state ||
-              item.numberBill ||
-              item.shortName ||
-              item.numberInvoice ||
-              item.date ||
-              item.shipmentDate ||
-              (item.licenseCode && item.licenseTypes
-                ? `Лицензия: ${item.licenseCode} Тип: ${item.licenseTypes.title}`
-                : "") ||
-              (item.placementType && item.placementType.title
-                ? `${item.placementType.title} /`
-                : "") +
-                (item.building ? ` здание ${item.building} /` : "") +
-                (item.room ? ` комната ${item.room}` : "") ||
-              (item.peoples
-                ? `${item.peoples.firstName} ${item.peoples.lastName} ${item.peoples.middleName}`
-                : item.code ||
-                  `${item.firstName} ${item.lastName} ${item.middleName}`)
-            }}
+            <template v-if="item === null">
+              <option value="">Не выбрано</option>
+            </template>
+            <template v-else>
+              {{
+                item.title ||
+                item.name ||
+                item.state ||
+                item.numberBill ||
+                item.shortName ||
+                item.numberInvoice ||
+                item.date ||
+                item.shipmentDate ||
+                (item.licenseCode && item.licenseTypes
+                  ? `Лицензия: ${item.licenseCode} Тип: ${item.licenseTypes.title}`
+                  : "") ||
+                (item.placementType && item.placementType.title
+                  ? `${item.placementType.title} /`
+                  : "") +
+                  (item.building ? ` здание ${item.building} /` : "") +
+                  (item.room ? ` комната ${item.room}` : "") ||
+                (item.peoples
+                  ? `${item.peoples.firstName} ${item.peoples.lastName} ${item.peoples.middleName}`
+                  : item.code ||
+                    `${item.firstName} ${item.lastName} ${item.middleName}`)
+              }}
+            </template>
           </option>
         </select>
 

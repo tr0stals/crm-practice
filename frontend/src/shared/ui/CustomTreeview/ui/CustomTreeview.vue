@@ -66,10 +66,9 @@ async function fetchComponents() {
 
 function onNodeSelect(event: any) {
   selectedKey.value = event.key;
-  const node = event;
   globalStore.setCurrentSection(event.data.nodeType);
   console.debug(globalStore.currentSection);
-  props.handleSelectCallback(node);
+  props.handleSelectCallback(event);
 }
 
 function getExpandedKeysForSearch(nodes: any, search: any) {

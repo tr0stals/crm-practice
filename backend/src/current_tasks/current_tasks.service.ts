@@ -213,6 +213,7 @@ export class CurrentTasksService {
         name: `Дедлайн: ${deadline}`,
         children: Array.from(standMap.entries()).map(([stand, taskMap]) => ({
           name: `Стенд: ${stand}`,
+          nodeType: 'stands',
           children: Array.from(taskMap.entries()).map(([taskId, task]) => ({
             id: task.id,
             name: [
@@ -222,7 +223,7 @@ export class CurrentTasksService {
             ]
               .filter(Boolean)
               .join(' | '),
-            nodeType: 'current_task',
+            nodeType: 'current_tasks',
             children: (
               standTasksByParent.get(String(task.standTasks?.id)) || []
             ).map((st) => ({
@@ -236,7 +237,7 @@ export class CurrentTasksService {
               ]
                 .filter(Boolean)
                 .join(' | '),
-              nodeType: 'stand_task',
+              nodeType: 'stand_tasks',
               isCompleted: st.isCompleted,
               children: [],
             })),

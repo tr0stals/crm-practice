@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { ArrivalInvoices } from './arrival_invoices.entity';
 import { InvoicesComponents } from '../invoices_components/invoices_components.entity';
+import { ArrivalInvoicesDTO } from './dto/ArrivalInvoicesDTO';
+import { Organizations } from 'src/organizations/organizations.entity';
 
 @Injectable()
 export class ArrivalInvoicesService {
@@ -11,6 +13,8 @@ export class ArrivalInvoicesService {
     private readonly repo: Repository<ArrivalInvoices>,
     @InjectRepository(InvoicesComponents)
     private readonly invoicesComponentsRepo: Repository<InvoicesComponents>,
+    @InjectRepository(Organizations)
+    private readonly organizationRepository: Repository<Organizations>,
   ) {}
 
   async getAll() {
@@ -52,9 +56,29 @@ export class ArrivalInvoicesService {
     }
   }
 
-  async create(data: Partial<ArrivalInvoices>) {
-    const entity = this.repo.create(data);
-    return this.repo.save(entity);
+  async create(data: ArrivalInvoicesDTO) {
+    try {
+      const { supplierId, factoryId, ...defaultData } = data;
+      const supplierEntity = await this.organizationRepository.findOne({
+        where: { id: supplierId },
+        relations: ['organizationTypes'],
+      });
+
+      const factoryEntity = await this.organizationRepository.findOne({
+        where: { id: factoryId },
+        relations: ['organizationTypes'],
+      });
+
+      const entity = this.repo.create({
+        ...defaultData,
+        suppliers: supplierEntity,
+        factory: factoryEntity,
+      } as DeepPartial<ArrivalInvoices>);
+
+      return await this.repo.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async update(id: number, data: Partial<ArrivalInvoices>) {
@@ -69,15 +93,23 @@ export class ArrivalInvoicesService {
   async getArrivalInvoicesTree() {
     // Получаем все накладные с нужными связями и их компоненты
     const arrivalInvoices = await this.repo.find({
-      relations: ['suppliers', 'factory', 'invoicesComponents', 'invoicesComponents.components'],
+      relations: [
+        'suppliers',
+        'factory',
+        'invoicesComponents',
+        'invoicesComponents.components',
+      ],
       order: { date: 'DESC' },
     });
 
-    console.log('Arrival invoices with components:', arrivalInvoices.map(invoice => ({
-      id: invoice.id,
-      numberInvoice: invoice.numberInvoice,
-      componentsCount: invoice.invoicesComponents?.length || 0
-    })));
+    console.log(
+      'Arrival invoices with components:',
+      arrivalInvoices.map((invoice) => ({
+        id: invoice.id,
+        numberInvoice: invoice.numberInvoice,
+        componentsCount: invoice.invoicesComponents?.length || 0,
+      })),
+    );
 
     // Группируем по дате
     const grouped = {};
@@ -85,8 +117,11 @@ export class ArrivalInvoicesService {
       const date = invoice.date ? String(invoice.date) : 'Без даты';
       if (!grouped[date]) grouped[date] = [];
 
-      const supplierName = invoice.suppliers?.shortName || 'Поставщик не указан';
-      const dateTimeToWarehouse = invoice.dateTimeToWarehouse ? String(invoice.dateTimeToWarehouse) : 'Дата не указана';
+      const supplierName =
+        invoice.suppliers?.shortName || 'Поставщик не указан';
+      const dateTimeToWarehouse = invoice.dateTimeToWarehouse
+        ? String(invoice.dateTimeToWarehouse)
+        : 'Дата не указана';
       const vatText = invoice.vat ? 'Да' : 'Нет';
       const price = `${invoice.price} руб.`;
 
@@ -108,7 +143,7 @@ export class ArrivalInvoicesService {
         dateTimeToWarehouse,
         vat: invoice.vat,
         price: invoice.price,
-        children: invoiceComponents.map(component => ({
+        children: invoiceComponents.map((component) => ({
           id: component.id,
           name: [
             component.components?.title || 'Компонент не указан',

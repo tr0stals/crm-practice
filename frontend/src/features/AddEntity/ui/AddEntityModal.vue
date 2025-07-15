@@ -29,6 +29,7 @@ function isDateField(key) {
   const lower = key.toLowerCase();
   return (
     lower.includes("date") ||
+    lower === "deadline" ||
     lower === "start" ||
     lower === "end" ||
     lower === "timeout"

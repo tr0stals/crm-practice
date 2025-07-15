@@ -27,6 +27,7 @@ import { MoreDetailsCollapseModel } from "@/widgets/MoreDetailsCollapse/model/Mo
 import { useGlobalStore } from "@/shared/store/globalStore";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { treeviewTables } from "@/shared/config/treeviewTables";
+import WelcomeBanner from "@/widgets/WelcomeBanner/ui/WelcomeBanner.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -173,7 +174,7 @@ const logout = () => {
 
 const getCurrentData = async () => {
   const config: IData = {
-    endpoint: `/${currentSection.value}/generateData`,
+    endpoint: `/${globalStore.currentSection}/generateData`,
   };
   console.debug("GET CURRENT DATA ");
 
@@ -524,12 +525,6 @@ const exportToExcel = () => {
   XLSX.writeFile(wb, "data.xlsx");
 };
 
-const openAddEntityModal = () => {
-  ModalManager.getInstance().open(AddEntity, {
-    onApplyCallback: onUpdateCallBack,
-  });
-};
-
 const filteredTreeData = computed(() => {
   if (!searchQuery.value) return data.value;
   const q = searchQuery.value.toLowerCase();
@@ -537,55 +532,6 @@ const filteredTreeData = computed(() => {
     Object.values(item).join(" ").toLowerCase().includes(q)
   );
 });
-
-function handleSidebarClick(section: string) {
-  if (!section) return;
-
-  const lower = section.toLowerCase();
-  if (lower === "employees") {
-    router.push("/employees");
-  } else if (lower === "organizations") {
-    router.push("/organizations");
-  } else if (lower === "components" || lower === "компоненты") {
-    router.push("/components");
-  } else if (
-    lower === "user" ||
-    lower === "users" ||
-    lower === "пользователи"
-  ) {
-    router.push("/users");
-  } else if (
-    lower === "license_types" ||
-    lower === "license types" ||
-    lower === "типы лицензий"
-  ) {
-    router.push("/license_types");
-  } else if (
-    lower === "warehouse_components" ||
-    lower === "warehouse components" ||
-    lower === "компоненты склада"
-  ) {
-    router.push("/warehouse_components");
-  } else if (
-    lower === "pcb_orders" ||
-    lower === "pcb-orders" ||
-    lower === "заказы печатных плат"
-  ) {
-    router.push("/pcb-orders");
-  } else if (
-    lower === "order_requests" ||
-    lower === "order-requests" ||
-    lower === "заявки на заказ"
-  ) {
-    router.push("/order-requests");
-  } else if (lower === "current_tasks" || lower === "текущие задачи") {
-    router.push("/current_tasks");
-  } else if (lower === "departments" || lower === "отделы") {
-    router.push("/departments");
-  } else {
-    currentSection.value = section;
-  }
-}
 </script>
 
 <template>
@@ -856,84 +802,9 @@ function handleSidebarClick(section: string) {
           </div>
         </div>
       </section>
-      <section v-else class="welcome-container">
-        <div class="welcome-card">
-          <img
-            src="/src/views/Dashboard/img/ukqawu62wctf9v072xi2c6yypvsjghcp.png"
-            alt="Логотип"
-            class="welcome-logo"
-          />
-          <h1 class="welcome-message-part1">Добро пожаловать!</h1>
-        </div>
-      </section>
+      <template v-else>
+        <WelcomeBanner />
+      </template>
     </main>
   </div>
 </template>
-
-<style scoped>
-/* Стили для приветственного сообщения */
-.welcome-message-part1 {
-  text-align: center;
-  color: #0056b3; /* Изменен на #0056b3 */
-  font-size: 38px; /* Еще увеличенный размер шрифта */
-  font-weight: 800; /* Более жирный шрифт */
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Немного более выраженная тень */
-  animation: fadeIn 2s ease-in-out; /* Убираю задержку анимации */
-  letter-spacing: 1px; /* Немного увеличенный межбуквенный интервал */
-}
-
-.welcome-logo {
-  display: block;
-  margin: 0 auto; /* Убираю все внешние отступы, кроме горизонтального центрирования */
-  max-width: 200px; /* Увеличенная максимальная ширина для логотипа */
-  height: auto;
-  animation: fadeIn 2s ease-in-out; /* Добавляю анимацию плавного появления */
-  filter: drop-shadow(
-    0px 7px 10px rgba(0, 0, 0, 0.35)
-  ); /* Более выраженная тень для логотипа */
-}
-
-.welcome-container {
-  flex-grow: 1; /* Растягивает контейнер на всю доступную высоту */
-  display: flex;
-  justify-content: center; /* Центрирует содержимое по горизонтали */
-  align-items: stretch; /* Растягивает содержимое по вертикали */
-  padding: 20px; /* Небольшой отступ со всех сторон внутри контейнера */
-}
-
-.welcome-card {
-  background-color: #ffffff; /* Белый фон плашки */
-  border-radius: 15px; /* Скругленные углы */
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); /* Более выраженная тень */
-  padding: 40px; /* Увеличенные отступы внутри плашки */
-  width: 100%; /* Занимает всю доступную ширину родителя */
-  height: 100%; /* Занимает всю доступную высоту родителя */
-  margin: 0; /* Удаляем внешние отступы, так как padding контейнера их заменит */
-  display: flex; /* Делаем плашку флекс-контейнером */
-  flex-direction: column; /* Элементы располагаются в столбец */
-  align-items: center; /* Выравниваем элементы по горизонтали по центру */
-  justify-content: center; /* Выравниваем элементы по вертикали по центру */
-  transform: translateY(
-    -2%
-  ); /* Сдвигаем плашку чуть выше для визуального центрирования */
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px); /* Небольшое смещение для эффекта */
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.logo {
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 30px;
-  color: #0056b3; /* Изменен на #0056b3 */
-}
-</style>
