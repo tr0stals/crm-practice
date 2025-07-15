@@ -211,7 +211,7 @@ watch(selectedRow, (newVal) => {
  */
 function handleEditModalWindow() {
   const cfg: IEdittingProps = {
-    sectionName: currentSection.value,
+    sectionName: globalStore.currentSection,
     entityId: globalStore.selectedRow?.id,
   };
 
@@ -219,6 +219,7 @@ function handleEditModalWindow() {
     alert("Выберите строку для редактирования");
     return;
   }
+  console.debug(cfg);
 
   ModalManager.getInstance().open(EditModalWindow, {
     config: cfg,
@@ -226,12 +227,17 @@ function handleEditModalWindow() {
   });
 }
 
-watch(
-  () => globalStore.activeSection,
-  (section: string) => {
-    currentSection.value = section;
-  }
-);
+watch(currentSection, (newVal) => {
+  console.debug(newVal);
+  globalStore.currentSection = newVal;
+});
+
+// watch(
+//   () => globalStore.activeSection,
+//   (section: string) => {
+//     currentSection.value = section;
+//   }
+// );
 
 const currentDateTime = ref("");
 

@@ -23,6 +23,8 @@ const props = defineProps<{
   onApplyCallback: () => {};
 }>();
 
+const emits = defineEmits(["close", "save"]);
+
 const { sectionName, entityId } = props?.config;
 // const { licenseTypeId, ...originalData } = props.config?.data;
 

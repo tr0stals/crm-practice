@@ -131,13 +131,18 @@ export class CurrentTasksService {
   }
 
   async startTask(taskId: number, employeeId: number) {
-    const task = await this.currentTasksRepository.findOne({ where: { id: taskId }, relations: ['currentTaskStates'] });
+    const task = await this.currentTasksRepository.findOne({
+      where: { id: taskId },
+      relations: ['currentTaskStates'],
+    });
     if (!task) throw new Error('Задача не найдена');
     // Назначаем сотрудника
     task.employees = { id: employeeId } as any;
     // Меняем статус на "Выполняется"
     // Найти статус "Выполняется" в таблице current_task_states
-    const inProgressState = await this.currentTaskStatesRepository.findOne({ where: [{ title: 'Выполняется' }, { title: 'Выполняется' }] });
+    const inProgressState = await this.currentTaskStatesRepository.findOne({
+      where: [{ title: 'Выполняется' }, { title: 'Выполняется' }],
+    });
     if (inProgressState) {
       task.currentTaskStates = inProgressState;
     }
@@ -145,19 +150,24 @@ export class CurrentTasksService {
   }
 
   async completeTask(taskId: number) {
-    const task = await this.currentTasksRepository.findOne({ where: { id: taskId }, relations: ['currentTaskStates'] });
+    const task = await this.currentTasksRepository.findOne({
+      where: { id: taskId },
+      relations: ['currentTaskStates'],
+    });
     if (!task) throw new Error('Задача не найдена');
     // Меняем статус на "Завершена"
-    const completedState = await this.currentTaskStatesRepository.findOne({ where: [{ title: 'Завершена' }, { title: 'Завершена' }] });
+    const completedState = await this.currentTaskStatesRepository.findOne({
+      where: [{ title: 'Завершена' }, { title: 'Завершена' }],
+    });
     if (completedState) {
       task.currentTaskStates = completedState;
     }
     return await this.currentTasksRepository.save(task);
   }
 
-  async getAllTaskTitles(): Promise<{id: number, title: string}[]> {
+  async getAllTaskTitles(): Promise<{ id: number; title: string }[]> {
     const tasks = await this.findAll();
-    return tasks.map(task => ({ id: task.id, title: task.title }));
+    return tasks.map((task) => ({ id: task.id, title: task.title }));
   }
 
   // Новый метод: дерево для всех (директор/админ)
@@ -181,12 +191,15 @@ export class CurrentTasksService {
       standTasksByParent.get(key)!.push(st);
     }
     // Новый порядок: дата (дедлайн) -> стенд -> сотрудник+задача (id) -> подзадачи (id)
-    const deadlineMap = new Map<string, Map<string, Map<number, CurrentTasks>>>();
+    const deadlineMap = new Map<
+      string,
+      Map<string, Map<number, CurrentTasks>>
+    >();
     for (const task of tasks) {
       const deadline = task.deadline
-        ? (typeof task.deadline === 'string'
-            ? task.deadline
-            : (task.deadline as Date).toISOString().split('T')[0])
+        ? typeof task.deadline === 'string'
+          ? task.deadline
+          : (task.deadline as Date).toISOString().split('T')[0]
         : 'Без даты';
       const stand = task.stands?.title || 'Без стенда';
       if (!deadlineMap.has(deadline)) deadlineMap.set(deadline, new Map());
@@ -195,33 +208,42 @@ export class CurrentTasksService {
       // Ключ — id задачи
       standMap.get(stand)!.set(task.id, task);
     }
-    const children = Array.from(deadlineMap.entries()).map(([deadline, standMap]) => ({
-      name: `Дедлайн: ${deadline}`,
-      children: Array.from(standMap.entries()).map(([stand, taskMap]) => ({
-        name: `Стенд: ${stand}`,
-        children: Array.from(taskMap.entries()).map(([taskId, task]) => ({
-          id: task.id,
-          name: [
-            `${task.employees?.peoples?.lastName || ''} ${task.employees?.peoples?.firstName || ''} ${task.employees?.peoples?.middleName || ''}`.trim() || 'Без сотрудника',
-            `Задача: ${task.title}`
-          ].filter(Boolean).join(' | '),
-          nodeType: 'current_task',
-          children: (standTasksByParent.get(String(task.standTasks?.id)) || []).map(st => ({
-            id: st.id,
+    const children = Array.from(deadlineMap.entries()).map(
+      ([deadline, standMap]) => ({
+        name: `Дедлайн: ${deadline}`,
+        children: Array.from(standMap.entries()).map(([stand, taskMap]) => ({
+          name: `Стенд: ${stand}`,
+          children: Array.from(taskMap.entries()).map(([taskId, task]) => ({
+            id: task.id,
             name: [
-              `Задача стенда: ${st.title}`,
-              `Стенд: ${st.stands?.title || ''}`,
-              `Компонент: ${st.components?.title || ''}`,
-              `Кол-во: ${st.componentOutCount}`,
-              `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
-            ].filter(Boolean).join(' | '),
-            nodeType: 'stand_task',
-            isCompleted: st.isCompleted,
-            children: [],
+              `${task.employees?.peoples?.lastName || ''} ${task.employees?.peoples?.firstName || ''} ${task.employees?.peoples?.middleName || ''}`.trim() ||
+                'Без сотрудника',
+              `Задача: ${task.title}`,
+            ]
+              .filter(Boolean)
+              .join(' | '),
+            nodeType: 'current_task',
+            children: (
+              standTasksByParent.get(String(task.standTasks?.id)) || []
+            ).map((st) => ({
+              id: st.id,
+              name: [
+                `Задача стенда: ${st.title}`,
+                `Стенд: ${st.stands?.title || ''}`,
+                `Компонент: ${st.components?.title || ''}`,
+                `Кол-во: ${st.componentOutCount}`,
+                `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
+              ]
+                .filter(Boolean)
+                .join(' | '),
+              nodeType: 'stand_task',
+              isCompleted: st.isCompleted,
+              children: [],
+            })),
           })),
-        }))
-      }))
-    }));
+        })),
+      }),
+    );
     return { name: 'Текущие задачи', children };
   }
 
@@ -249,13 +271,16 @@ export class CurrentTasksService {
       standTasksByParent.get(key)!.push(st);
     }
     // Новый порядок: состояние -> дата -> стенд -> задача (id) -> подзадачи (id)
-    const stateMap = new Map<string, Map<string, Map<string, Map<number, CurrentTasks>>>>();
+    const stateMap = new Map<
+      string,
+      Map<string, Map<string, Map<number, CurrentTasks>>>
+    >();
     for (const task of tasks) {
       const state = task.currentTaskStates?.title || 'Без состояния';
       const deadline = task.deadline
-        ? (typeof task.deadline === 'string'
-            ? task.deadline
-            : (task.deadline as Date).toISOString().split('T')[0])
+        ? typeof task.deadline === 'string'
+          ? task.deadline
+          : (task.deadline as Date).toISOString().split('T')[0]
         : 'Без даты';
       const stand = task.stands?.title || 'Без стенда';
       if (!stateMap.has(state)) stateMap.set(state, new Map());
@@ -265,45 +290,61 @@ export class CurrentTasksService {
       if (!standMap.has(stand)) standMap.set(stand, new Map());
       standMap.get(stand)!.set(task.id, task);
     }
-    const children = Array.from(stateMap.entries()).map(([state, deadlineMap]) => ({
-      name: state,
-      children: Array.from(deadlineMap.entries()).map(([deadline, standMap]) => ({
-        name: `Дедлайн: ${deadline}`,
-        children: Array.from(standMap.entries()).map(([stand, taskMap]) => ({
-          name: `Стенд: ${stand}`,
-          children: Array.from(taskMap.entries()).map(([taskId, task]) => ({
-            id: task.id,
-            name: `Задача: ${task.title}`,
-            nodeType: 'current_task',
-            currentTaskStateId: task.currentTaskStates?.id,
-            children: (standTasksByParent.get(String(task.standTasks?.id)) || [])
-              .filter(st => state !== "Выполняется" || !st.isCompleted)
-              .map(st => ({
-                id: st.id,
-                name: [
-                  `Задача стенда: ${st.title}`,
-                  `Стенд: ${st.stands?.title || ''}`,
-                  `Компонент: ${st.components?.title || ''}`,
-                  `Кол-во: ${st.componentOutCount}`,
-                  `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
-                ].filter(Boolean).join(' | '),
-                nodeType: 'stand_task',
-                isCompleted: st.isCompleted,
-                _parent: {
-                  id: task.id,
-                  currentTaskStateId: task.currentTaskStates?.id,
-                },
-                children: [],
-              })),
-          }))
-        }))
-      }))
-    }));
+    const children = Array.from(stateMap.entries()).map(
+      ([state, deadlineMap]) => ({
+        name: state,
+        children: Array.from(deadlineMap.entries()).map(
+          ([deadline, standMap]) => ({
+            name: `Дедлайн: ${deadline}`,
+            children: Array.from(standMap.entries()).map(
+              ([stand, taskMap]) => ({
+                name: `Стенд: ${stand}`,
+                children: Array.from(taskMap.entries()).map(
+                  ([taskId, task]) => ({
+                    id: task.id,
+                    name: `Задача: ${task.title}`,
+                    nodeType: 'current_task',
+                    currentTaskStateId: task.currentTaskStates?.id,
+                    children: (
+                      standTasksByParent.get(String(task.standTasks?.id)) || []
+                    )
+                      .filter(
+                        (st) => state !== 'Выполняется' || !st.isCompleted,
+                      )
+                      .map((st) => ({
+                        id: st.id,
+                        name: [
+                          `Задача стенда: ${st.title}`,
+                          `Стенд: ${st.stands?.title || ''}`,
+                          `Компонент: ${st.components?.title || ''}`,
+                          `Кол-во: ${st.componentOutCount}`,
+                          `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
+                        ]
+                          .filter(Boolean)
+                          .join(' | '),
+                        nodeType: 'stand_task',
+                        isCompleted: st.isCompleted,
+                        _parent: {
+                          id: task.id,
+                          currentTaskStateId: task.currentTaskStates?.id,
+                        },
+                        children: [],
+                      })),
+                  }),
+                ),
+              }),
+            ),
+          }),
+        ),
+      }),
+    );
     return { name: 'Мои задачи', children };
   }
 
   // Получить только основные задачи стенда (parentId == null)
   async getRootStandTasks() {
-    return await this.standTasksRepository.find({ where: { parentId: IsNull() } });
+    return await this.standTasksRepository.find({
+      where: { parentId: IsNull() },
+    });
   }
 }

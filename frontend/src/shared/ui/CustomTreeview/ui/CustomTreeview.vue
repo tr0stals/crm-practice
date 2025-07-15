@@ -4,6 +4,7 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import Tree from "primevue/tree";
 import { useRouter } from "vue-router";
 import "../style.scss";
+import { useGlobalStore } from "@/shared/store/globalStore";
 
 const props = defineProps<{
   handleSelectCallback: (item: any) => void;
@@ -17,6 +18,7 @@ const selectedKey = ref(null);
 const importInput = ref(null);
 const router = useRouter();
 const expandedKeys = ref({});
+const globalStore = useGlobalStore();
 
 interface TreeNode {
   id: number;
@@ -65,6 +67,8 @@ async function fetchComponents() {
 function onNodeSelect(event: any) {
   selectedKey.value = event.key;
   const node = event;
+  globalStore.setCurrentSection(event.data.nodeType);
+  console.debug(globalStore.currentSection);
   props.handleSelectCallback(node);
 }
 

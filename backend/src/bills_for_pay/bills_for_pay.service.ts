@@ -72,15 +72,23 @@ export class BillsForPayService {
   async getBillsForPayTree() {
     // Получаем все счета с нужными связями и их компоненты
     const bills = await this.repo.find({
-      relations: ['suppliers', 'factory', 'billsComponents', 'billsComponents.components'],
+      relations: [
+        'supplier',
+        'factory',
+        'billsComponents',
+        'billsComponents.component',
+      ],
       order: { date: 'DESC' },
     });
 
-    console.log('Bills with components:', bills.map(bill => ({
-      id: bill.id,
-      numberBill: bill.numberBill,
-      componentsCount: bill.billsComponents?.length || 0
-    })));
+    console.log(
+      'Bills with components:',
+      bills.map((bill) => ({
+        id: bill.id,
+        numberBill: bill.numberBill,
+        componentsCount: bill.billsComponents?.length || 0,
+      })),
+    );
 
     // Группируем по дате
     const grouped = {};
@@ -88,8 +96,10 @@ export class BillsForPayService {
       const date = bill.date ? String(bill.date) : 'Без даты';
       if (!grouped[date]) grouped[date] = [];
 
-      const supplierName = bill.suppliers?.shortName || 'Поставщик не указан';
-      const expectedSupplyDate = bill.expectedSupplyDate ? String(bill.expectedSupplyDate) : 'Дата не указана';
+      const supplierName = bill.supplier?.shortName || 'Поставщик не указан';
+      const expectedSupplyDate = bill.expectedSupplyDate
+        ? String(bill.expectedSupplyDate)
+        : 'Дата не указана';
       const vatText = bill.vat ? 'Да' : 'Нет';
       const amount = `${bill.totalAmount} руб.`;
 
@@ -111,15 +121,15 @@ export class BillsForPayService {
         expectedSupplyDate,
         vat: bill.vat,
         totalAmount: bill.totalAmount,
-        children: billComponents.map(component => ({
+        children: billComponents.map((component) => ({
           id: component.id,
           name: [
-            component.components?.title || 'Компонент не указан',
+            component.component?.title || 'Компонент не указан',
             `Кол-во: ${component.componentCount}`,
             `Цена: ${component.price} руб.`,
           ].join(' | '),
           nodeType: 'bills_components',
-          componentTitle: component.components?.title,
+          componentTitle: component.component?.title,
           componentCount: component.componentCount,
           price: component.price,
           link: component.link,
