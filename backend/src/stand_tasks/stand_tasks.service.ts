@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, DeepPartial } from 'typeorm';
 import { StandTasks } from './stand_tasks.entity';
 import { InjectRepository as InjectCurrentTasksRepository } from '@nestjs/typeorm';
 import { CurrentTasks } from '../current_tasks/current_tasks.entity';
+import { StandTasksDTO } from './dto/StandTasksDTO';
+import { ComponentsService } from 'src/components/components.service';
+import { ProfessionsService } from 'src/professions/professions.service';
+import { StandsService } from 'src/stands/stands.service';
 
 @Injectable()
 export class StandTasksService {
@@ -12,21 +16,35 @@ export class StandTasksService {
     private repo: Repository<StandTasks>,
     @InjectCurrentTasksRepository(CurrentTasks)
     private currentTasksRepo: Repository<CurrentTasks>,
+    private componentService: ComponentsService,
+    private professionService: ProfessionsService,
+    private standService: StandsService,
   ) {}
 
-  async create(data: Partial<StandTasks>) {
+  async create(data: StandTasksDTO) {
     // Обработка поля isCompleted - если передана пустая строка или не передано, ставим false
     let isCompleted = data.isCompleted;
     if (isCompleted === null || isCompleted === undefined) {
       isCompleted = false;
     }
+    const { componentId, professionId, standId, ...defaultData } = data;
+    const component = await this.componentService.findOne(componentId);
+    const profession = await this.professionService.findOne(professionId);
+    const stand = await this.standService.findOne(standId);
+
+    if (!component || !profession || !stand)
+      throw new NotFoundException('Одна из сущностей не найдена');
 
     // Если parentId не передан, явно ставим null
     const entity = this.repo.create({
-      ...data,
+      ...defaultData,
       parentId: data.parentId ?? null,
       isCompleted: isCompleted,
-    });
+      stands: stand,
+      professions: profession,
+      components: component,
+    } as DeepPartial<StandTasks>);
+
     return await this.repo.save(entity);
   }
 
@@ -40,9 +58,9 @@ export class StandTasksService {
 
       tasks.map((item) => {
         const { stands, professions, components, ...defaultData } = item;
-        const standTitle = stands.title;
-        const professionTitle = professions.title;
-        const componentTitle = components.title;
+        const standTitle = stands?.title;
+        const professionTitle = professions?.title;
+        const componentTitle = components?.title;
 
         data.push({
           ...defaultData,
@@ -66,9 +84,15 @@ export class StandTasksService {
 
   async getAllByParent(parentId: number | null) {
     if (parentId === null) {
-      return await this.repo.find({ where: { parentId: IsNull() }, relations: ['stands', 'professions', 'components'] });
+      return await this.repo.find({
+        where: { parentId: IsNull() },
+        relations: ['stands', 'professions', 'components'],
+      });
     } else {
-      return await this.repo.find({ where: { parentId }, relations: ['stands', 'professions', 'components'] });
+      return await this.repo.find({
+        where: { parentId },
+        relations: ['stands', 'professions', 'components'],
+      });
     }
   }
 
@@ -96,11 +120,15 @@ export class StandTasksService {
 
     // Проверяем, все ли подзадачи завершены
     if (standTask.parentId !== null) {
-      const allSubtasks = await this.repo.find({ where: { parentId: standTask.parentId } });
-      const allCompleted = allSubtasks.every(st => st.isCompleted);
+      const allSubtasks = await this.repo.find({
+        where: { parentId: standTask.parentId },
+      });
+      const allCompleted = allSubtasks.every((st) => st.isCompleted);
       if (allCompleted) {
         // 1. Пометить главную задачу isCompleted = true
-        const parentTask = await this.repo.findOne({ where: { id: standTask.parentId } });
+        const parentTask = await this.repo.findOne({
+          where: { id: standTask.parentId },
+        });
         if (parentTask) {
           parentTask.isCompleted = true;
           await this.repo.save(parentTask);
@@ -111,7 +139,10 @@ export class StandTasksService {
         // (добавим в конструктор: @InjectRepository(CurrentTasks) private currentTasksRepo: Repository<CurrentTasks>)
         // Ищем задачу
         if (this.currentTasksRepo) {
-          const currentTask = await this.currentTasksRepo.findOne({ where: { standTasks: { id: standTask.parentId } }, relations: ['currentTaskStates', 'standTasks'] });
+          const currentTask = await this.currentTasksRepo.findOne({
+            where: { standTasks: { id: standTask.parentId } },
+            relations: ['currentTaskStates', 'standTasks'],
+          });
           if (currentTask) {
             currentTask.currentTaskStates = { id: 3 } as any;
             await this.currentTasksRepo.save(currentTask);

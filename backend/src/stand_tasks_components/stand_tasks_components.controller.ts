@@ -10,6 +10,7 @@ import {
 import { StandTasksComponentsService } from './stand_tasks_components.service';
 import { StandTasksComponents } from './stand_tasks_components.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { StandTasksComponentsDTO } from './dto/StandTasksComponentsDTO';
 
 @ApiTags('Комплектующие для задач стенда')
 @Controller('stand_tasks_components')
@@ -19,7 +20,7 @@ export class StandTasksComponentsController {
   @ApiOperation({ summary: 'Создать запись' })
   @ApiResponse({ status: 201, description: 'Запись создана' })
   @Post('create')
-  async create(@Body() data: Partial<StandTasksComponents>) {
+  async create(@Body() data: StandTasksComponentsDTO) {
     return await this.service.create(data);
   }
 

@@ -40,8 +40,8 @@ export class ArrivalInvoicesService {
 
       arrivalInvoices.map((item) => {
         const { factory, suppliers, ...defaultData } = item;
-        const factoryName = factory.shortName;
-        const supplierName = suppliers.shortName;
+        const factoryName = factory?.shortName;
+        const supplierName = suppliers?.shortName;
 
         data.push({
           ...defaultData,

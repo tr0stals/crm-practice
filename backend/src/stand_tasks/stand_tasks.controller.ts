@@ -11,6 +11,7 @@ import {
 import { StandTasksService } from './stand_tasks.service';
 import { StandTasks } from './stand_tasks.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { StandTasksDTO } from './dto/StandTasksDTO';
 
 @UseGuards(JwtAuthGuard)
 @Controller('stand_tasks')
@@ -18,7 +19,7 @@ export class StandTasksController {
   constructor(private readonly service: StandTasksService) {}
 
   @Post('create')
-  async create(@Body() data: Partial<StandTasks>) {
+  async create(@Body() data: StandTasksDTO) {
     return await this.service.create(data);
   }
 

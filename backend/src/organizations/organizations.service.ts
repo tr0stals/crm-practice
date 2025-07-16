@@ -68,7 +68,7 @@ export class OrganizationsService {
     const data: any[] = [];
 
     organizations?.map((item) => {
-      const organizationTypeTitle = item.organizationTypes.title;
+      const organizationTypeTitle = item.organizationTypes?.title;
       const { parentId, organizationTypes, ...defaultData } = item;
 
       data.push({
@@ -97,7 +97,8 @@ export class OrganizationsService {
 
   async update(id: number, data: OrganizationsDTO) {
     try {
-      return await this.organizationRepository.update(id, data);
+      await this.organizationRepository.update(id, data);
+      return this.getById(id);
     } catch (e) {
       console.error('Ошибка при изменении организации', e);
     }

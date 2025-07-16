@@ -10,6 +10,7 @@ import {
 import { InventarizationService } from './inventarization.service';
 import { Inventarization } from './inventarization.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { InventarizationDTO } from './dto/InventarizationDTO';
 
 @ApiTags('Инвентаризация')
 @Controller('inventarization')
@@ -19,7 +20,7 @@ export class InventarizationController {
   @ApiOperation({ summary: 'Создать запись инвентаризации' })
   @ApiResponse({ status: 201, description: 'Запись создана' })
   @Post('create')
-  async create(@Body() data: Partial<Inventarization>) {
+  async create(@Body() data: InventarizationDTO) {
     return await this.service.create(data);
   }
 

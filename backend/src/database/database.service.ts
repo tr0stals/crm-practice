@@ -161,6 +161,7 @@ export class DatabaseService {
         row.title ||
         row.name ||
         row.state ||
+        row.shortName ||
         row.numberBill ||
         row.numberInvoice ||
         (row.licenseCode && row.licenseTypes

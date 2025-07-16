@@ -1,21 +1,26 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { StandTasksComponents } from './stand_tasks_components.entity';
+import { StandTasksComponentsDTO } from './dto/StandTasksComponentsDTO';
+import { ComponentsService } from 'src/components/components.service';
+import { StandTasksService } from 'src/stand_tasks/stand_tasks.service';
 
 @Injectable()
 export class StandTasksComponentsService {
   constructor(
     @InjectRepository(StandTasksComponents)
     private readonly repo: Repository<StandTasksComponents>,
+    private componentService: ComponentsService,
+    private standTaskService: StandTasksService,
   ) {}
 
-  findAll() {
-    return this.repo.find({ relations: ['standTask', 'component'] });
+  async findAll() {
+    return await this.repo.find({ relations: ['standTask', 'component'] });
   }
 
-  findOne(id: number) {
-    return this.repo.findOne({
+  async findOne(id: number) {
+    return await this.repo.findOne({
       where: { id },
       relations: ['standTask', 'component'],
     });
@@ -33,8 +38,8 @@ export class StandTasksComponentsService {
 
       standTasksComponents.map((item) => {
         const { component, standTask, ...defaultData } = item;
-        const componentTitle = component.title;
-        const standTaskTitle = standTask.title;
+        const componentTitle = component?.title;
+        const standTaskTitle = standTask?.title;
 
         data.push({
           ...defaultData,
@@ -49,9 +54,26 @@ export class StandTasksComponentsService {
     }
   }
 
-  create(data: Partial<StandTasksComponents>) {
-    const entity = this.repo.create(data);
-    return this.repo.save(entity);
+  async create(data: StandTasksComponentsDTO) {
+    try {
+      const { componentId, standTaskId, ...defaultData } = data;
+
+      const component = await this.componentService.findOne(componentId);
+      const standTask = await this.standTaskService.getOne(standTaskId);
+
+      if (!component || !standTask)
+        throw new NotFoundException('Одна из сущностей не найдена');
+
+      const entity = this.repo.create({
+        ...defaultData,
+        component: component,
+        standTask: standTask,
+      } as DeepPartial<StandTasksComponents>);
+
+      return await this.repo.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async update(id: number, data: Partial<StandTasksComponents>) {
@@ -59,7 +81,7 @@ export class StandTasksComponentsService {
     return this.repo.findOne({ where: { id } });
   }
 
-  remove(id: number) {
-    return this.repo.delete(id);
+  async remove(id: number) {
+    return await this.repo.delete(id);
   }
 }

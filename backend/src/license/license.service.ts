@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { License } from './license.entity';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { LicenseDTO } from './dto/LicenseDTO';
 import { LicenseTypes } from 'src/license_types/license_types.entity';
 import { LicenseTypesService } from 'src/license_types/license_types.service';
@@ -18,21 +18,17 @@ export class LicenseService {
 
   async create(data: LicenseDTO) {
     try {
-      const licenseType = await this.licenseTypesService.findById(
-        data.licenseTypeId,
-      );
+      const { licenseTypeId, ...defaultData } = data;
+
+      const licenseType =
+        await this.licenseTypesService.findById(licenseTypeId);
 
       if (licenseType) {
-        const license = {
-          licenseCode: data.licenseCode,
-          comment: data.comment,
-          end: data.end,
-          start: data.start,
-          places: data.places,
-          timeout: data.timeout,
+        const newLicense = this.licenseRepository.create({
+          ...defaultData,
           licenseTypes: licenseType,
-        };
-        const newLicense = this.licenseRepository.create(license);
+        } as DeepPartial<License>);
+
         return this.licenseRepository.save(newLicense);
       }
     } catch (e) {
@@ -83,7 +79,7 @@ export class LicenseService {
 
       licenses.map((item) => {
         const { licenseTypes, ...defaultData } = item;
-        const licenseTypeTitle = licenseTypes.title;
+        const licenseTypeTitle = licenseTypes?.title;
 
         data.push({
           ...defaultData,

@@ -1,18 +1,46 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { OrderRequests } from './order_requests.entity';
+import { OrderRequestsDTO } from './dto/OrderRequestsDTO';
+import { EmployeesService } from 'src/employees/employees.service';
+import { StandsService } from 'src/stands/stands.service';
+import { OrganizationsService } from 'src/organizations/organizations.service';
 
 @Injectable()
 export class OrderRequestsService {
   constructor(
     @InjectRepository(OrderRequests)
     private readonly repository: Repository<OrderRequests>,
+    private employeeService: EmployeesService,
+    private standService: StandsService,
+    private organizationService: OrganizationsService,
   ) {}
 
-  async create(data: Partial<OrderRequests>): Promise<OrderRequests> {
-    const orderRequest = this.repository.create(data);
-    return await this.repository.save(orderRequest);
+  async create(data: OrderRequestsDTO) {
+    try {
+      const { employeeCreatorId, factoryId, standId, ...defaultData } = data;
+
+      const employeeCreator =
+        await this.employeeService.findById(employeeCreatorId);
+
+      const factory = await this.organizationService.getById(factoryId);
+      const stand = await this.standService.findOne(standId);
+
+      if (!employeeCreator || !factory || !stand)
+        throw new NotFoundException('Нет одной из сущностей');
+
+      const entity = this.repository.create({
+        ...defaultData,
+        employeeCreator: employeeCreator,
+        factory: factory,
+        stands: stand,
+      } as DeepPartial<OrderRequests>);
+
+      return await this.repository.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async findAll(): Promise<OrderRequests[]> {
@@ -32,7 +60,7 @@ export class OrderRequestsService {
       orderRequests.map((item) => {
         const { employeeCreator, factory, ...defaultData } = item;
         const employeeCreatorName = `${employeeCreator.peoples?.firstName} ${employeeCreator.peoples?.middleName} ${employeeCreator.peoples?.lastName}`;
-        const factoryName = factory.shortName;
+        const factoryName = factory?.shortName;
 
         data.push({
           ...defaultData,

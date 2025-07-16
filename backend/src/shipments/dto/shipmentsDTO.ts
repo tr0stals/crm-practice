@@ -5,4 +5,8 @@ export class ShipmentsDTO {
   arrivalDate: Date;
   specificationImage: string;
   comment: string;
+  licenseId: number;
+  factoryId: number;
+  transporterId: number;
+  clientId: number;
 }

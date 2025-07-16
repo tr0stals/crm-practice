@@ -1,18 +1,40 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { Stands } from './stands.entity';
+import { StandsDTO } from './dto/StandsDTO';
+import { EmployeesService } from 'src/employees/employees.service';
+import { StandTypesService } from 'src/stand_types/stand_types.service';
 
 @Injectable()
 export class StandsService {
   constructor(
     @InjectRepository(Stands)
     private readonly repo: Repository<Stands>,
+    private employeeService: EmployeesService,
+    private standTypeService: StandTypesService,
   ) {}
 
-  async create(data: Partial<Stands>) {
-    const entity = this.repo.create(data);
-    return await this.repo.save(entity);
+  async create(data: StandsDTO) {
+    try {
+      const { employeeId, standTypeId, ...defaultData } = data;
+
+      const employee = await this.employeeService.findById(employeeId);
+      const standType = await this.standTypeService.findOne(standTypeId);
+
+      if (!employee || !standType)
+        throw new NotFoundException('Одна из сущностей не найдена');
+
+      const entity = this.repo.create({
+        ...defaultData,
+        employees: employee,
+        standType: standType,
+      } as DeepPartial<Stands>);
+
+      return await this.repo.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async findAll() {
@@ -37,8 +59,7 @@ export class StandsService {
 
       stands.map((item) => {
         const { parentId, standType, employees, ...defaultData } = item;
-        console.debug('employees!!!!!!', employees);
-        const standTypeTitle = standType.title;
+        const standTypeTitle = standType?.title;
 
         if (!employees.peoples) throw new Error('Не найден сотрудник!');
         const employeeName = `${employees.peoples?.firstName} ${employees.peoples?.middleName} ${employees.peoples?.lastName}`;

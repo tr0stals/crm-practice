@@ -1,19 +1,36 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { Components } from './components.entity';
 import { COMPONENT_CATEGORIES } from './component_categories';
+import { ComponentsDTO } from './dto/ComponentsDTO';
+import { ComponentPlacementsService } from 'src/component_placements/component_placements.service';
 
 @Injectable()
 export class ComponentsService {
   constructor(
     @InjectRepository(Components)
     private repository: Repository<Components>,
+    private componentPlacementService: ComponentPlacementsService,
   ) {}
 
-  async create(data: Partial<Components>): Promise<Components> {
-    const entity = this.repository.create(data);
-    return await this.repository.save(entity);
+  async create(data: ComponentsDTO) {
+    try {
+      const { placementId, ...defaultData } = data;
+      const placement =
+        await this.componentPlacementService.findOne(placementId);
+
+      if (!placement) throw new Error('Не найден placement');
+
+      const entity = this.repository.create({
+        ...defaultData,
+        componentPlacements: placement,
+      } as DeepPartial<Components>);
+
+      return await this.repository.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async findAll(): Promise<Components[]> {
@@ -43,12 +60,12 @@ export class ComponentsService {
 
       components.map((item) => {
         const { componentPlacements, ...defaultData } = item;
-        const placementType = item.componentPlacements.placementType;
+        const placementType = componentPlacements?.placementType;
         if (!placementType)
           throw new NotFoundException('Тип размещения не найден');
 
         const componentPlacementData = componentPlacements
-          ? `${placementType.title}, Здание ${componentPlacements.building}, комната ${componentPlacements.room}`
+          ? `${placementType?.title}, Здание ${componentPlacements?.building}, комната ${componentPlacements?.room}`
           : 'Место не указано';
 
         data.push({

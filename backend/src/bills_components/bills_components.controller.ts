@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { BillsComponentsService } from './bills_components.service';
 import { BillsComponents } from './bills_components.entity';
+import { BillsComponentsDTO } from './dto/BillsComponentsDTO';
 
 @Controller('bills_components')
 export class BillsComponentsController {
@@ -35,7 +36,7 @@ export class BillsComponentsController {
   }
 
   @Post('create')
-  async create(@Body() data: Partial<BillsComponents>) {
+  async create(@Body() data: BillsComponentsDTO) {
     return this.service.create(data);
   }
 

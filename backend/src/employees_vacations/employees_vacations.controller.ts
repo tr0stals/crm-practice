@@ -11,6 +11,7 @@ import {
 import { EmployeesVacationsService } from './employees_vacations.service';
 import { EmployeesVacations } from './employees_vacations.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { EmployeesVacationsDTO } from './dto/EmployeesVacationsDTO';
 
 @UseGuards(JwtAuthGuard)
 @Controller('employees_vacations')
@@ -18,7 +19,7 @@ export class EmployeesVacationsController {
   constructor(private readonly service: EmployeesVacationsService) {}
 
   @Post('create')
-  async create(@Body() data: Partial<EmployeesVacations>) {
+  async create(@Body() data: EmployeesVacationsDTO) {
     return await this.service.create(data);
   }
 

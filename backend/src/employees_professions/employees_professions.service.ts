@@ -91,7 +91,7 @@ export class EmployeesProfessionsService {
       employeeProfessions.map((item) => {
         const { employees, professions, ...defaultData } = item;
         console.log('employees', employees);
-        const peoples = employees.peoples;
+        const peoples = employees?.peoples;
 
         const fullname = [
           peoples?.firstName,

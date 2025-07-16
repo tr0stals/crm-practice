@@ -90,11 +90,11 @@ export class CurrentTasksService {
         currentTaskStates,
         ...defaultData
       } = item;
-      console.log('item!!!!!!!', item);
-      const standTaskTitle = standTasks.title;
+
+      const standTaskTitle = standTasks?.title;
       const employeesName = `${employees.peoples?.firstName} ${employees.peoples?.middleName} ${employees.peoples?.lastName}`;
-      const standTitle = stands.title;
-      const currentTaskStateTitle = currentTaskStates.title;
+      const standTitle = stands?.title;
+      const currentTaskStateTitle = currentTaskStates?.title;
 
       data.push({
         ...defaultData,
@@ -230,7 +230,8 @@ export class CurrentTasksService {
                 .filter(Boolean)
                 .join(' | '),
               nodeType: 'current_tasks',
-              employees: `${task.employees?.peoples?.lastName || ''} ${task.employees?.peoples?.firstName || ''} ${task.employees?.peoples?.middleName || ''}`.trim(),
+              employees:
+                `${task.employees?.peoples?.lastName || ''} ${task.employees?.peoples?.firstName || ''} ${task.employees?.peoples?.middleName || ''}`.trim(),
               taskTitle: task.title || '',
               currentTaskState: task.currentTaskStates?.title || '',
               children: (
@@ -250,7 +251,11 @@ export class CurrentTasksService {
                 isCompleted: st.isCompleted,
                 standTask: st.title || '',
                 component: st.components?.title || '',
-                manufactureTime: st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : '',
+                manufactureTime: st.manufactureTime
+                  ? typeof st.manufactureTime === 'string'
+                    ? st.manufactureTime
+                    : (st.manufactureTime as Date).toISOString().split('T')[0]
+                  : '',
                 children: [],
               })),
             })),
@@ -344,7 +349,13 @@ export class CurrentTasksService {
                         isCompleted: st.isCompleted,
                         standTask: st.title || '',
                         component: st.components?.title || '',
-                        manufactureTime: st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : '',
+                        manufactureTime: st.manufactureTime
+                          ? typeof st.manufactureTime === 'string'
+                            ? st.manufactureTime
+                            : (st.manufactureTime as Date)
+                                .toISOString()
+                                .split('T')[0]
+                          : '',
                         _parent: {
                           id: task.id,
                           currentTaskStateId: task.currentTaskStates?.id,

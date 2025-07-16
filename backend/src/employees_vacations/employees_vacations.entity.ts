@@ -13,10 +13,10 @@ export class EmployeesVacations {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'date' })
   startDate: Date;
 
-  @Column()
+  @Column({ type: 'date' })
   endDate: Date;
 
   @ManyToOne(() => Employees, (employee) => employee.employeesVacations)

@@ -10,6 +10,7 @@ import {
 import { OrderRequestsComponentsService } from './order_requests_components.service';
 import { OrderRequestsComponents } from './order_requests_components.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { OrderRequestsComponentsDTO } from './dto/OrderRequestsComponentsDTO';
 
 @ApiTags('Связь запросов на закупку с комплектующими')
 @Controller('order_requests_components')
@@ -19,7 +20,7 @@ export class OrderRequestsComponentsController {
   @ApiOperation({ summary: 'Создать связь' })
   @ApiResponse({ status: 201, description: 'Связь создана' })
   @Post('create')
-  async create(@Body() data: Partial<OrderRequestsComponents>) {
+  async create(@Body() data: OrderRequestsComponentsDTO) {
     return await this.service.create(data);
   }
 

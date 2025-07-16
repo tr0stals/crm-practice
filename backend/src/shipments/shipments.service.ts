@@ -1,19 +1,41 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Shipments } from './shipments.entity';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { ShipmentsDTO } from './dto/shipmentsDTO';
+import { OrganizationsService } from 'src/organizations/organizations.service';
+import { LicenseService } from 'src/license/license.service';
 
 @Injectable()
 export class ShipmentsService {
   constructor(
     @InjectRepository(Shipments)
     private repository: Repository<Shipments>,
+    private organizationService: OrganizationsService,
+    private licenseService: LicenseService,
   ) {}
 
-  async create(data: ShipmentsDTO): Promise<Shipments> {
+  async create(data: ShipmentsDTO) {
     try {
-      const entity = this.repository.create(data);
+      const { clientId, factoryId, licenseId, transporterId, ...defaultData } =
+        data;
+
+      const client = await this.organizationService.getById(clientId);
+      const factory = await this.organizationService.getById(factoryId);
+      const transporter = await this.organizationService.getById(transporterId);
+      const license = await this.licenseService.findById(licenseId);
+
+      if (!client || !factory || !transporter || !license)
+        throw new NotFoundException('Одна из сущностей не найдена');
+
+      const entity = this.repository.create({
+        ...defaultData,
+        client: client,
+        factory: factory,
+        licenses: license,
+        transporter: transporter,
+      } as DeepPartial<Shipments>);
+
       return await this.repository.save(entity);
     } catch (e) {
       console.error('Ошибка при создании записи:', e);
@@ -73,10 +95,10 @@ export class ShipmentsService {
       shipments.map((item) => {
         const { licenses, factory, transporter, client, ...defaultData } = item;
 
-        const licenseCode = `Лицензия №${licenses.licenseCode}`;
-        const factoryTitle = factory.shortName;
-        const transporterTitle = transporter.shortName;
-        const clientTitle = client.shortName;
+        const licenseCode = `Лицензия №${licenses?.licenseCode}`;
+        const factoryTitle = factory?.shortName;
+        const transporterTitle = transporter?.shortName;
+        const clientTitle = client?.shortName;
 
         data.push({
           ...defaultData,

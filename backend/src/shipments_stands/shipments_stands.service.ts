@@ -1,18 +1,40 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { ShipmentsStands } from './shipments_stands.entity';
+import { ShipmentsStandsDTO } from './dto/ShipmentsStandsDTO';
+import { ShipmentsService } from 'src/shipments/shipments.service';
+import { StandsService } from 'src/stands/stands.service';
 
 @Injectable()
 export class ShipmentsStandsService {
   constructor(
     @InjectRepository(ShipmentsStands)
     private repo: Repository<ShipmentsStands>,
+    private shipmentService: ShipmentsService,
+    private standService: StandsService,
   ) {}
 
-  async create(data: Partial<ShipmentsStands>) {
-    const entity = this.repo.create(data);
-    return await this.repo.save(entity);
+  async create(data: ShipmentsStandsDTO) {
+    try {
+      const { shipmentId, standId, ...defaultData } = data;
+
+      const shipment = await this.shipmentService.findOne(shipmentId);
+      const stand = await this.standService.findOne(standId);
+
+      if (!shipment || !stand)
+        throw new NotFoundException('Одна из сущностей не найдена');
+
+      const entity = this.repo.create({
+        ...defaultData,
+        shipments: shipment,
+        stands: stand,
+      } as DeepPartial<ShipmentsStands>);
+
+      return await this.repo.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async getAll() {
@@ -31,8 +53,8 @@ export class ShipmentsStandsService {
 
       shipmentStands.map((item) => {
         const { shipments, stands, ...defaultData } = item;
-        const shipmentDate = shipments.shipmentDate;
-        const standTitle = stands.title;
+        const shipmentDate = shipments?.shipmentDate;
+        const standTitle = stands?.title;
 
         data.push({
           ...defaultData,

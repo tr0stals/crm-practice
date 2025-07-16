@@ -1,4 +1,9 @@
 export class ShipmentPackageDTO {
-  size: string;
   photo: string;
+  width: string;
+  height: string;
+  thickness: string;
+  weight: string;
+  stateId: number;
+  shipmentId: number;
 }

@@ -4,17 +4,60 @@ import { Repository } from 'typeorm';
 import { PcbOrders } from './pcb_orders.entity';
 import { PCBS } from '../pcbs/pcbs.entity';
 import { PCB_CATEGORIES } from '../pcbs/pcbs_categories';
+import { PcbOrdersDTO } from './dto/PcbOrdersDTO';
+import { EmployeesService } from 'src/employees/employees.service';
+import { OrganizationsService } from 'src/organizations/organizations.service';
+import { PcbOrderStatesService } from 'src/pcb_order_states/pcb_order_states.service';
+import { PcbsService } from 'src/pcbs/pcbs.service';
 
 @Injectable()
 export class PcbOrdersService {
   constructor(
     @InjectRepository(PcbOrders)
     private repository: Repository<PcbOrders>,
+    private employeeService: EmployeesService,
+    private organizationService: OrganizationsService,
+    private pcbOrderStateService: PcbOrderStatesService,
+    private pcbService: PcbsService,
   ) {}
 
-  async create(data: Partial<PcbOrders>): Promise<PcbOrders> {
-    const entity = this.repository.create(data);
-    return await this.repository.save(entity);
+  async create(data: PcbOrdersDTO) {
+    try {
+      const {
+        employeeId,
+        factoryId,
+        pcbManufacturerId,
+        pcbOrderStatusId,
+        pcbId,
+        ...defaultData
+      } = data;
+
+      const employee = await this.employeeService.findById(employeeId);
+      const factory = await this.organizationService.getById(factoryId);
+      const pcbManufacturer =
+        await this.organizationService.getById(pcbManufacturerId);
+
+      const pcbOrderState =
+        await this.pcbOrderStateService.findOne(pcbOrderStatusId);
+
+      const pcb = await this.pcbService.findOne(pcbId);
+
+      if (!employee || !factory || !pcbManufacturer || !pcbOrderState || !pcb)
+        throw new NotFoundException('Нет одной из сущностей');
+
+      const entity = this.repository.create({
+        ...defaultData,
+        employees: employee,
+        factory: factory,
+        pcbManufacturer: pcbManufacturer,
+        pcbOrderState: pcbOrderState,
+        pcb: pcb,
+      });
+
+      return await this.repository.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async findAll(): Promise<PcbOrders[]> {
@@ -47,11 +90,11 @@ export class PcbOrdersService {
           pcbOrderState,
           ...defaultData
         } = item;
-        const pcbTitle = pcb.title;
-        const pcbManufacturerName = pcbManufacturer.shortName;
-        const factoryName = factory.shortName;
+        const pcbTitle = pcb?.title;
+        const pcbManufacturerName = pcbManufacturer?.shortName;
+        const factoryName = factory?.shortName;
         const employeeName = `${employees.peoples?.firstName} ${employees.peoples?.middleName} ${employees.peoples?.lastName}`;
-        const pcbOrderStateTitle = pcbOrderState.state;
+        const pcbOrderStateTitle = pcbOrderState?.state;
 
         data.push({
           ...defaultData,

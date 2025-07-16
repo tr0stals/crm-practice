@@ -143,4 +143,6 @@ export const fieldDictionary: { [key: string]: string } = {
   client: "Название клиента",
   standType: "Тип стенда",
   standTypes: "Тип стенда",
+  numberInvoice: "Номер накладной",
+  licenseTypes: "Тип лицензии",
 };

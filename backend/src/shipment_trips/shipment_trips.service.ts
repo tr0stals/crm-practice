@@ -1,19 +1,36 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ShipmentTrips } from './shipment_trips.entity';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { ShipmentTripsDTO } from './dto/ShipmentTripsDTO';
+import { EmployeesService } from 'src/employees/employees.service';
+import { ShipmentsService } from 'src/shipments/shipments.service';
 
 @Injectable()
 export class ShipmentTripsService {
   constructor(
     @InjectRepository(ShipmentTrips)
     private repository: Repository<ShipmentTrips>,
+    private employeeService: EmployeesService,
+    private shipmentService: ShipmentsService,
   ) {}
 
-  async create(data: ShipmentTripsDTO): Promise<ShipmentTrips> {
+  async create(data: ShipmentTripsDTO) {
     try {
-      const entity = this.repository.create(data);
+      const { employeeId, shipmentId, ...defaultData } = data;
+
+      const employee = await this.employeeService.findById(employeeId);
+      const shipment = await this.shipmentService.findOne(shipmentId);
+
+      if (!employee || !shipment)
+        throw new NotFoundException('Одна из сущностей не найдена');
+
+      const entity = this.repository.create({
+        ...defaultData,
+        employees: employee,
+        shipments: shipment,
+      } as DeepPartial<ShipmentTrips>);
+
       return await this.repository.save(entity);
     } catch (e) {
       console.error('Ошибка при создании Командировки отправок', e);
@@ -43,7 +60,7 @@ export class ShipmentTripsService {
         const { employees, shipments, ...defaultData } = item;
 
         const employeeName = `${employees.peoples?.firstName} ${employees.peoples?.middleName} ${employees.peoples?.lastName}`;
-        const shipmentDate = shipments.shipmentDate;
+        const shipmentDate = shipments?.shipmentDate;
 
         data.push({
           ...defaultData,

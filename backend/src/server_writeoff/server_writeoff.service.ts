@@ -2,12 +2,19 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServerWriteoff } from './server_writeoff.entity';
+import { ServerWriteoffDTO } from './dto/ServerWriteoffDTO';
+import { ComponentsService } from 'src/components/components.service';
+import { CurrentTasksService } from 'src/current_tasks/current_tasks.service';
+import { OrganizationsService } from 'src/organizations/organizations.service';
 
 @Injectable()
 export class ServerWriteoffService {
   constructor(
     @InjectRepository(ServerWriteoff)
     private readonly repo: Repository<ServerWriteoff>,
+    private componentsService: ComponentsService,
+    private currentTaskService: CurrentTasksService,
+    private organizationService: OrganizationsService,
   ) {}
 
   async getAll() {
@@ -33,9 +40,9 @@ export class ServerWriteoffService {
 
       serverWriteoffs.map((item) => {
         const { components, factory, currentTasks, ...defaultData } = item;
-        const componentTitle = components.title;
-        const factoryName = factory.shortName;
-        const currentTaskTitle = currentTasks.title;
+        const componentTitle = components?.title;
+        const factoryName = factory?.shortName;
+        const currentTaskTitle = currentTasks?.title;
 
         data.push({
           ...defaultData,
@@ -51,9 +58,28 @@ export class ServerWriteoffService {
     }
   }
 
-  async create(data: Partial<ServerWriteoff>) {
-    const entity = this.repo.create(data);
-    return this.repo.save(entity);
+  async create(data: ServerWriteoffDTO) {
+    try {
+      const { componentId, currentTaskId, factoryId, ...defaultData } = data;
+
+      const component = await this.componentsService.findOne(componentId);
+      const currentTask = await this.currentTaskService.findOne(currentTaskId);
+      const factory = await this.organizationService.getById(factoryId);
+
+      if (!component || !currentTask || !factory)
+        throw new NotFoundException('Одна из сущностей не найдена');
+
+      const entity = this.repo.create({
+        ...defaultData,
+        components: component,
+        currentTasks: currentTask,
+        factory: factory,
+      });
+
+      return await this.repo.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async update(id: number, data: Partial<ServerWriteoff>) {

@@ -19,13 +19,13 @@ export class BillsForPayService {
   ) {}
 
   async getAll() {
-    return this.repo.find({
+    return await this.repo.find({
       relations: ['suppliers', 'factory'],
     });
   }
 
   async getOne(id: number) {
-    return this.repo.findOne({
+    return await this.repo.findOne({
       where: { id },
       relations: ['suppliers', 'factory'],
     });
@@ -47,7 +47,8 @@ export class BillsForPayService {
           id: item.id,
           date: item.date,
           numberBill: item.numberBill,
-          organization: supplierName,
+          supplier: supplierName,
+          factory: factoryName,
           supplyDate: item.expectedSupplyDate,
           vat: item.vat,
           amount: item.totalAmount,
@@ -80,7 +81,7 @@ export class BillsForPayService {
 
       const entity = this.repo.create({
         ...defaultData,
-        supplier: supplierEntity,
+        suppliers: supplierEntity,
         factory: factoryEntity,
       } as DeepPartial<BillsForPay>);
 

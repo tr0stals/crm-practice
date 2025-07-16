@@ -67,9 +67,9 @@ export class InvoicesComponentsService {
 
       invoicesComponents.map((item) => {
         const { arrivalInvoices, components, ...defaultData } = item;
-        const arrivalInvoiceDate = arrivalInvoices.date;
-        const arrivalInvoiceNumber = arrivalInvoices.numberInvoice;
-        const componentTitle = components.title;
+        const arrivalInvoiceDate = arrivalInvoices?.date;
+        const arrivalInvoiceNumber = arrivalInvoices?.numberInvoice;
+        const componentTitle = components?.title;
 
         data.push({
           ...defaultData,

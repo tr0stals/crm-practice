@@ -1,19 +1,41 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { PCBS } from './pcbs.entity';
 import { PCB_CATEGORIES } from './pcbs_categories';
+import { PCBSDTO } from './dto/PCBSDTO';
+import { ComponentsService } from 'src/components/components.service';
+import { StandsService } from 'src/stands/stands.service';
 
 @Injectable()
 export class PcbsService {
   constructor(
     @InjectRepository(PCBS)
     private repository: Repository<PCBS>,
+    private componentService: ComponentsService,
+    private standService: StandsService,
   ) {}
 
-  async create(data: Partial<PCBS>): Promise<PCBS> {
-    const entity = this.repository.create(data);
-    return await this.repository.save(entity);
+  async create(data: PCBSDTO) {
+    try {
+      const { componentId, standId, ...defaultData } = data;
+
+      const component = await this.componentService.findOne(componentId);
+      const stand = await this.standService.findOne(standId);
+
+      if (!component || !stand)
+        throw new NotFoundException('Не найдена одна из сущностей');
+
+      const entity = this.repository.create({
+        ...defaultData,
+        component: component,
+        stands: stand,
+      } as DeepPartial<PCBS>);
+
+      return await this.repository.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async findAll(): Promise<PCBS[]> {
@@ -42,8 +64,8 @@ export class PcbsService {
 
       pcbs.map((item) => {
         const { component, stands, ...defaultData } = item;
-        const componentTitle = component.title;
-        const standTitle = stands.title;
+        const componentTitle = component?.title;
+        const standTitle = stands?.title;
 
         data.push({
           ...defaultData,
@@ -70,18 +92,20 @@ export class PcbsService {
   }
 
   async getPcbsTree() {
-    const pcbs = await this.repository.find({ relations: ['pcbsComponents', 'pcbsComponents.component'] });
-  
+    const pcbs = await this.repository.find({
+      relations: ['pcbsComponents', 'pcbsComponents.component'],
+    });
+
     function buildPcbChildren(parentId) {
       return pcbs
-        .filter(pcb => pcb.parentId === parentId)
-        .map(pcb => ({
+        .filter((pcb) => pcb.parentId === parentId)
+        .map((pcb) => ({
           id: pcb.id,
           name: pcb.title || `Плата #${pcb.id}`,
           pcbName: pcb.title,
           nodeType: 'pcbs',
           children: Array.isArray(pcb.pcbsComponents)
-            ? pcb.pcbsComponents.map(comp => ({
+            ? pcb.pcbsComponents.map((comp) => ({
                 name: `${comp.component?.title || `Компонент #${comp.id}`} (${comp.componentCount} шт)`,
                 nodeType: 'components',
                 componentTitle: comp.component?.title,
@@ -94,18 +118,18 @@ export class PcbsService {
             : [],
         }));
     }
-  
-    const tree = PCB_CATEGORIES.map(cat => ({
+
+    const tree = PCB_CATEGORIES.map((cat) => ({
       name: cat.name,
       nodeType: 'categories',
-      children: cat.subcategories.map(subcat => ({
+      children: cat.subcategories.map((subcat) => ({
         name: subcat.name,
         subcategoryName: subcat.name,
         nodeType: 'subcategories',
         children: buildPcbChildren(subcat.id),
       })),
     }));
-  
+
     return { name: 'Платы', children: tree };
   }
 }

@@ -14,8 +14,6 @@ export class PeoplesService {
   async create(data: PeoplesDTO) {
     const { email } = data;
 
-    console.debug(data);
-
     const existing = await this.peoplesRepository.findOne({
       where: { email },
     });
@@ -40,7 +38,7 @@ export class PeoplesService {
       const data: any[] = [];
 
       peoples?.map((item) => {
-        const fullname = `${item.firstName} ${item.middleName} ${item.lastName}`;
+        const fullname = `${item?.firstName} ${item?.middleName} ${item?.lastName}`;
 
         data.push({
           id: item.id,

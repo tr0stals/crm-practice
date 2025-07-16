@@ -1,18 +1,35 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { StandPackages } from './stand_packages.entity';
+import { StandPackagesDTO } from './dto/StandPackagesDTO';
+import { StandsService } from 'src/stands/stands.service';
 
 @Injectable()
 export class StandPackagesService {
   constructor(
     @InjectRepository(StandPackages)
     private readonly repo: Repository<StandPackages>,
+    private standService: StandsService,
   ) {}
 
-  async create(data: Partial<StandPackages>) {
-    const entity = this.repo.create(data);
-    return await this.repo.save(entity);
+  async create(data: StandPackagesDTO) {
+    try {
+      const { standId, ...defaultData } = data;
+
+      const stand = await this.standService.findOne(standId);
+
+      if (!stand) throw new NotFoundException('Не найдена сущность stand');
+
+      const entity = this.repo.create({
+        ...defaultData,
+        stands: stand,
+      } as DeepPartial<StandPackages>);
+
+      return await this.repo.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async findAll() {
@@ -33,7 +50,7 @@ export class StandPackagesService {
 
       packages.map((item) => {
         const { stands, ...defaultData } = item;
-        const standTitle = stands.title;
+        const standTitle = stands?.title;
 
         data.push({
           ...defaultData,

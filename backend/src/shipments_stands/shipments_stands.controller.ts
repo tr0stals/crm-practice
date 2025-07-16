@@ -11,6 +11,7 @@ import {
 import { ShipmentsStandsService } from './shipments_stands.service';
 import { ShipmentsStands } from './shipments_stands.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { ShipmentsStandsDTO } from './dto/ShipmentsStandsDTO';
 
 @UseGuards(JwtAuthGuard)
 @Controller('shipments_stands')
@@ -18,7 +19,7 @@ export class ShipmentsStandsController {
   constructor(private readonly service: ShipmentsStandsService) {}
 
   @Post('create')
-  async create(@Body() data: Partial<ShipmentsStands>) {
+  async create(@Body() data: ShipmentsStandsDTO) {
     return await this.service.create(data);
   }
 

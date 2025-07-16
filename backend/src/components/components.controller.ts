@@ -9,13 +9,14 @@ import {
 } from '@nestjs/common';
 import { ComponentsService } from './components.service';
 import { Components } from './components.entity';
+import { ComponentsDTO } from './dto/ComponentsDTO';
 
 @Controller('components')
 export class ComponentsController {
   constructor(private readonly service: ComponentsService) {}
 
   @Post('create')
-  async create(@Body() data: Partial<Components>): Promise<Components> {
+  async create(@Body() data: ComponentsDTO) {
     return await this.service.create(data);
   }
 

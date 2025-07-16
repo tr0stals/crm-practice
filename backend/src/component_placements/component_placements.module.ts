@@ -11,6 +11,6 @@ import { ComponentPlacementType } from 'src/component_placement_type/component_p
   ],
   controllers: [ComponentPlacementsController],
   providers: [ComponentPlacementsService],
-  exports: [TypeOrmModule],
+  exports: [ComponentPlacementsService],
 })
 export class ComponentPlacementsModule {}

@@ -10,6 +10,7 @@ import {
 import { PcbsComponentsService } from './pcbs_components.service';
 import { PcbsComponents } from './pcbs_components.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { PcbsComponentsDTO } from './dto/PcbsComponentsDTO';
 
 @ApiTags('Связь плат и комплектующих')
 @Controller('pcbs_components')
@@ -19,7 +20,7 @@ export class PcbsComponentsController {
   @ApiOperation({ summary: 'Создать запись' })
   @ApiResponse({ status: 201, description: 'Запись создана' })
   @Post('create')
-  async create(@Body() data: Partial<PcbsComponents>) {
+  async create(@Body() data: PcbsComponentsDTO) {
     return await this.service.create(data);
   }
 

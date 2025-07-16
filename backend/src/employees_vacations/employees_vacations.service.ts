@@ -1,18 +1,40 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { EmployeesVacations } from './employees_vacations.entity';
+import { EmployeesVacationsDTO } from './dto/EmployeesVacationsDTO';
+import { EmployeesService } from 'src/employees/employees.service';
+import { OrganizationsService } from 'src/organizations/organizations.service';
 
 @Injectable()
 export class EmployeesVacationsService {
   constructor(
     @InjectRepository(EmployeesVacations)
     private repo: Repository<EmployeesVacations>,
+    private employeeService: EmployeesService,
+    private organizationService: OrganizationsService,
   ) {}
 
-  async create(data: Partial<EmployeesVacations>) {
-    const entity = this.repo.create(data);
-    return await this.repo.save(entity);
+  async create(data: EmployeesVacationsDTO) {
+    try {
+      const { employeeId, factoryId, ...defaultData } = data;
+
+      const employee = await this.employeeService.findById(employeeId);
+      const factory = await this.organizationService.getById(factoryId);
+
+      if (!employee) throw new Error('Не найден сотрудник');
+      if (!employee) throw new Error('Не найдена организация');
+
+      const entity = this.repo.create({
+        ...defaultData,
+        employees: employee,
+        factory: factory,
+      } as DeepPartial<EmployeesVacations>);
+
+      return await this.repo.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async getAll() {
@@ -40,7 +62,7 @@ export class EmployeesVacationsService {
         const { employees, factory, ...defaultData } = item;
 
         const employeeName = `${employees.peoples?.firstName} ${employees.peoples?.middleName} ${employees.peoples?.lastName}`;
-        const factoryTitle = factory.shortName;
+        const factoryTitle = factory?.shortName;
 
         data.push({
           ...defaultData,

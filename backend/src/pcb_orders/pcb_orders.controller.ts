@@ -9,13 +9,14 @@ import {
 } from '@nestjs/common';
 import { PcbOrdersService } from './pcb_orders.service';
 import { PcbOrders } from './pcb_orders.entity';
+import { PcbOrdersDTO } from './dto/PcbOrdersDTO';
 
 @Controller('pcb_orders')
 export class PcbOrdersController {
   constructor(private readonly service: PcbOrdersService) {}
 
   @Post('create')
-  async create(@Body() data: Partial<PcbOrders>) {
+  async create(@Body() data: PcbOrdersDTO) {
     return await this.service.create(data);
   }
 

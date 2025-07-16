@@ -9,13 +9,14 @@ import {
 } from '@nestjs/common';
 import { StandsService } from './stands.service';
 import { Stands } from './stands.entity';
+import { StandsDTO } from './dto/StandsDTO';
 
 @Controller('stands')
 export class StandsController {
   constructor(private readonly service: StandsService) {}
 
   @Post('create')
-  async create(@Body() data: Partial<Stands>) {
+  async create(@Body() data: StandsDTO) {
     return await this.service.create(data);
   }
 

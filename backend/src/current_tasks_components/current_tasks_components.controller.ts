@@ -10,6 +10,7 @@ import {
 import { CurrentTasksComponentsService } from './current_tasks_components.service';
 import { CurrentTasksComponents } from './current_tasks_components.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { CurrentTasksComponentsDTO } from './dto/CurrentTasksComponentsDTO';
 
 @ApiTags('Комплектующие для текущих задач')
 @Controller('current_tasks_components')
@@ -19,7 +20,7 @@ export class CurrentTasksComponentsController {
   @ApiOperation({ summary: 'Создать запись' })
   @ApiResponse({ status: 201, description: 'Запись создана' })
   @Post('create')
-  async create(@Body() data: Partial<CurrentTasksComponents>) {
+  async create(@Body() data: CurrentTasksComponentsDTO) {
     return await this.service.create(data);
   }
 

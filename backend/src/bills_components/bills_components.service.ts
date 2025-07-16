@@ -1,8 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { BillsComponents } from './bills_components.entity';
 import { BillsForPay } from 'src/bills_for_pay/bills_for_pay.entity';
+import { BillsComponentsDTO } from './dto/BillsComponentsDTO';
+import { Components } from 'src/components/components.entity';
+import { BillsForPayService } from 'src/bills_for_pay/bills_for_pay.service';
+import { ComponentsService } from 'src/components/components.service';
 
 @Injectable()
 export class BillsComponentsService {
@@ -11,6 +15,10 @@ export class BillsComponentsService {
     private readonly repo: Repository<BillsComponents>,
     @InjectRepository(BillsForPay)
     private readonly billsForPayRepo: Repository<BillsForPay>,
+    @InjectRepository(Components)
+    private readonly componentsRepo: Repository<Components>,
+    private billsForPayService: BillsForPayService,
+    private componentsService: ComponentsService,
   ) {}
 
   async getAll() {
@@ -85,9 +93,25 @@ export class BillsComponentsService {
     }
   }
 
-  async create(data: Partial<BillsComponents>) {
-    const entity = this.repo.create(data);
-    return this.repo.save(entity);
+  async create(data: BillsComponentsDTO) {
+    try {
+      const { billId, componentId, ...defaultData } = data;
+      const bill = await this.billsForPayService.getOne(billId);
+      const component = await this.componentsService.findOne(componentId);
+
+      if (!bill) throw new Error('Bill Не найден');
+      if (!component) throw new Error('Component не найден');
+
+      const entity = this.repo.create({
+        ...defaultData,
+        bill: bill,
+        components: component,
+      } as DeepPartial<BillsComponents>);
+
+      return await this.repo.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async update(id: number, data: Partial<BillsComponents>) {
