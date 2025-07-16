@@ -10,6 +10,7 @@ import {
 import { ComponentPlacementsService } from './component_placements.service';
 import { ComponentPlacements } from './component_placements.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ComponentPlacementsDTO } from './dto/ComponentPlacementsDTO';
 
 @ApiTags('Размещения компонентов')
 @Controller('component_placements')
@@ -19,7 +20,7 @@ export class ComponentPlacementsController {
   @ApiOperation({ summary: 'Создать размещение' })
   @ApiResponse({ status: 201, description: 'Размещение создано' })
   @Post('create')
-  async create(@Body() data: Partial<ComponentPlacements>) {
+  async create(@Body() data: ComponentPlacementsDTO) {
     return await this.service.create(data);
   }
 

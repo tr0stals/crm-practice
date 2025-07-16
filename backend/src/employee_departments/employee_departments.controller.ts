@@ -9,13 +9,14 @@ import {
 } from '@nestjs/common';
 import { EmployeeDepartmentsService } from './employee_departments.service';
 import { EmployeeDepartments } from './employee_departments.entity';
+import { EmployeesDepartmentsDTO } from './dto/EmployeesDepartmentsDTO';
 
 @Controller('employee_departments')
 export class EmployeeDepartmentsController {
   constructor(private readonly service: EmployeeDepartmentsService) {}
 
   @Post('create')
-  async create(@Body() data: Partial<EmployeeDepartments>) {
+  async create(@Body() data: EmployeesDepartmentsDTO) {
     return await this.service.create(data);
   }
 

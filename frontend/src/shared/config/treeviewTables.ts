@@ -9,7 +9,6 @@ export const treeviewTables = [
   "components",
   // "user",
   "pcb_orders",
-  "order_requests",
   "pcbs",
   "bills_for_pay",
   "arrival_invoices",

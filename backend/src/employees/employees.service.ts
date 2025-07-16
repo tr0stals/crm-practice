@@ -127,31 +127,41 @@ export class EmployeesService {
   async getEmployeesTree() {
     const employeeDepartments = await this.employeeDepartmentsService.findAll();
     const depMap = new Map();
+
     for (const ed of employeeDepartments) {
       const depName = ed.departments?.title || 'Без названия';
+
       if (!depMap.has(depName)) depMap.set(depName, []);
+
       const people = ed.employees?.peoples;
+
       const fio = people
         ? `${people.lastName} ${people.firstName} ${people.middleName}`
         : 'Без ФИО';
+
       depMap.get(depName).push({
         name: [
           `${fio}`,
           `Дата приема: ${ed.employees?.hiringDate}`,
-          ed.employees?.dismissalDate ? `Дата увольнения: ${ed.employees?.dismissalDate}` : '',
+          ed.employees?.dismissalDate
+            ? `Дата увольнения: ${ed.employees?.dismissalDate}`
+            : '',
         ]
           .filter(Boolean)
           .join(' | '),
         nodeType: 'employees',
         employees: fio,
+        nodeType: 'employees',
         birthDate: ed.employees?.peoples?.birthDate,
         ...ed.employees,
         peoples: ed.employees?.peoples,
       });
     }
+
     const result: any = {};
     result.name = 'Сотрудники';
     result.children = [];
+
     for (const [depName, employees] of depMap.entries()) {
       result.children.push({
         name: depName,
@@ -159,6 +169,7 @@ export class EmployeesService {
         children: employees,
       });
     }
+
     return result;
   }
 

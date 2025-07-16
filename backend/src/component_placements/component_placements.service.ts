@@ -1,13 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { ComponentPlacements } from './component_placements.entity';
+import { ComponentPlacementsDTO } from './dto/ComponentPlacementsDTO';
+import { ComponentPlacementType } from 'src/component_placement_type/component_placement_type.entity';
 
 @Injectable()
 export class ComponentPlacementsService {
   constructor(
     @InjectRepository(ComponentPlacements)
     private readonly repo: Repository<ComponentPlacements>,
+    @InjectRepository(ComponentPlacementType)
+    private readonly componentPlacementTypesRepository: Repository<ComponentPlacementType>,
   ) {}
 
   async findAll() {
@@ -31,7 +35,7 @@ export class ComponentPlacementsService {
 
       placements.map((item) => {
         const { placementType, ...defaultData } = item;
-        const placementTypeTitle = placementType.title;
+        const placementTypeTitle = placementType?.title;
 
         data.push({
           ...defaultData,
@@ -45,9 +49,25 @@ export class ComponentPlacementsService {
     }
   }
 
-  async create(data: Partial<ComponentPlacements>) {
-    const entity = this.repo.create(data);
-    return await this.repo.save(entity);
+  async create(data: ComponentPlacementsDTO) {
+    try {
+      const { placementTypeId, ...defaultData } = data;
+      const placementType =
+        await this.componentPlacementTypesRepository.findOne({
+          where: {
+            id: placementTypeId,
+          },
+        });
+
+      const entity = this.repo.create({
+        placementType: placementType,
+        ...defaultData,
+      } as DeepPartial<ComponentPlacements>);
+
+      return await this.repo.save(entity);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async update(id: number, data: Partial<ComponentPlacements>) {
