@@ -151,7 +151,6 @@ export class EmployeesService {
           .join(' | '),
         nodeType: 'employees',
         employees: fio,
-        nodeType: 'employees',
         birthDate: ed.employees?.peoples?.birthDate,
         ...ed.employees,
         peoples: ed.employees?.peoples,
