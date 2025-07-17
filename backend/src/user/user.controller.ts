@@ -31,9 +31,14 @@ export class UserController {
     }
   }
 
+  @Get('getWithProfession/:id')
+  async getUserWithProfession(@Param('id') id: number) {
+    return await this.userService.getUserWithProfessionTitle(id);
+  }
+
   @Get('get/:id')
   async getUserById(@Param('id') id: number) {
-    return await this.userService.getUserWithProfessionTitle(id);
+    return await this.userService.getUserById(id);
   }
 
   @Get('generateData')

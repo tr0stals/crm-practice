@@ -28,6 +28,9 @@ import { useGlobalStore } from "@/shared/store/globalStore";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { treeviewTables } from "@/shared/config/treeviewTables";
 import WelcomeBanner from "@/widgets/WelcomeBanner/ui/WelcomeBanner.vue";
+import AddCurrentTask from "@/features/AddCurrentTask/ui/AddCurrentTask.vue";
+import CurrentTasks from "@/widgets/CurrentTasks/ui/CurrentTasks.vue";
+import SetCurrentTaskCompleted from "@/features/SetCurrentTaskCompleted/ui/SetCurrentTaskCompleted.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -259,6 +262,7 @@ onMounted(async () => {
   getSectionList();
 
   const { user } = await getUserInfoAsync();
+  console.debug(user);
   authorizedUser.value = {
     user: user,
   };
@@ -417,7 +421,7 @@ const handleCreateModalWindow = () => {
   ModalManager.getInstance().open(AddEntity, {
     sectionName: currentSection.value,
     onClose: () => ModalManager.getInstance().closeModal(),
-    onSuccess: getCurrentData,
+    onSuccess: onUpdateCallBack,
   });
 };
 
@@ -585,32 +589,28 @@ const filteredTreeData = computed(() => {
         </h2>
         <!-- Action Buttons, Search, and Filter Placeholder -->
         <div class="controls">
-          <div class="action-buttons">
-            <Button
-              :onClick="handleCreateModalWindow"
-              class="dashboard__button"
-            >
+          <div
+            v-if="
+              userProfession.toLowerCase() === 'test' ||
+              userProfession.toLowerCase() === 'Администратор' ||
+              userProfession.toLowerCase() === 'Директор'
+            "
+            class="action-buttons"
+          >
+            <Button :onClick="handleCreateModalWindow">
               <PlusIcon /> добавить
             </Button>
-            <Button :onClick="handleEditModalWindow" class="dashboard__button">
+            <Button :onClick="handleEditModalWindow">
               <EditIcon /> редактировать
             </Button>
-            <Button
-              id="deleteButton"
-              :onClick="handleDeleteRow"
-              class="dashboard__button"
-            >
+            <Button id="deleteButton" :onClick="handleDeleteRow">
               <DeleteIcon /> удалить
             </Button>
-            <Button :onClick="getCurrentData" class="dashboard__button">
+            <Button :onClick="getCurrentData">
               <RefreshIcon /> обновить
             </Button>
-            <Button :onClick="exportToCSV" class="dashboard__button">
-              выгрузить в csv</Button
-            >
-            <Button :onClick="exportToExcel" class="dashboard__button">
-              выгрузить в excel</Button
-            >
+            <Button :onClick="exportToCSV"> выгрузить в csv</Button>
+            <Button :onClick="exportToExcel"> выгрузить в excel</Button>
             <Button
               v-if="
                 currentSection === 'bills_for_pay' ||
@@ -620,6 +620,10 @@ const filteredTreeData = computed(() => {
             >
               Подробнее
             </Button>
+          </div>
+          <div v-else class="action-buttons">
+            <AddCurrentTask :onSuccessCallback="onUpdateCallBack" />
+            <SetCurrentTaskCompleted :onSuccessCallback="onUpdateCallBack" />
           </div>
           <div class="search-filter">
             <input
@@ -637,8 +641,8 @@ const filteredTreeData = computed(() => {
           <template v-if="treeviewTables.includes(currentSection)">
             <CustomTreeview
               ref="treeviewRef"
-              :current-section="currentSection"
-              :handle-select-callback="handleSelectRow"
+              :current-section="globalStore.currentSection"
+              @node-select="handleSelectRow"
             />
           </template>
 

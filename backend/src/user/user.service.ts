@@ -71,7 +71,7 @@ export class UserService {
       where: { id },
       relations: ['employees', 'employees.peoples'],
     });
-    if (!user) return null;
+    if (!user) throw new NotFoundException('Пользователь не найден');
 
     const employeeId = user.employees?.id;
     console.log('employeeId', employeeId);
@@ -83,8 +83,6 @@ export class UserService {
         employeeId,
       );
 
-    console.log('!!!!!!!!!!!!!!employeeProfession', employeeProfession);
-
     return {
       ...user,
       employeeProfession,
@@ -92,7 +90,14 @@ export class UserService {
   }
 
   async getUserById(id: number) {
-    return await this.getUserWithProfessionTitle(id);
+    try {
+      return await this.usersRepository.findOne({
+        where: { id: id },
+        relations: ['employees', 'employees.peoples'],
+      });
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async cryptUserPasswordService(password: string) {

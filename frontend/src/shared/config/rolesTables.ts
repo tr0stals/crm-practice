@@ -121,7 +121,7 @@ export const roleTables = [
   },
   {
     profession: "Программист",
-    tables: ["employees", "organizations"],
+    tables: ["current_tasks"],
   },
   {
     profession: "Дизайнер",

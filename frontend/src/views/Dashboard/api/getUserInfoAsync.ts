@@ -39,7 +39,9 @@ export const getUserInfoAsync = async () => {
   /**
    *
    */
-  return await getDataAsync({ endpoint: `user/get/${userId.value}` })
+  return await getDataAsync({
+    endpoint: `user/getWithProfession/${userId.value}`,
+  })
     .then((res) => {
       const user = res.data;
 

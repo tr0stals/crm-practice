@@ -8,10 +8,13 @@ import { useGlobalStore } from "@/shared/store/globalStore";
 import { getTreeviewData } from "@/shared/ui/CustomTreeview/utils/getTreeviewData";
 
 const props = defineProps<{
-  handleSelectCallback: (item: any) => void;
   currentSection: string;
   extraClasses?: string[];
   extraAttrs?: string[];
+}>();
+
+const emit = defineEmits<{
+  (e: "node-select", item: any): void;
 }>();
 
 const treeData = ref<any[]>([]);
@@ -51,8 +54,9 @@ defineExpose({
 function onNodeSelect(event: any) {
   selectedKey.value = event.key;
   globalStore.setCurrentSection(event.data.nodeType);
+
   console.debug(globalStore.currentSection);
-  props.handleSelectCallback(event);
+  emit("node-select", event);
 }
 
 function getExpandedKeysForSearch(nodes: any, search: any) {

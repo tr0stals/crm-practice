@@ -324,7 +324,7 @@ export class CurrentTasksService {
                   ([taskId, task]) => ({
                     id: task.id,
                     name: `Задача: ${task.title}`,
-                    nodeType: 'current_task',
+                    nodeType: 'current_tasks',
                     taskTitle: task.title || '',
                     currentTaskStateId: task.currentTaskStates?.id,
                     currentTaskState: task.currentTaskStates?.title || '',
@@ -345,7 +345,7 @@ export class CurrentTasksService {
                         ]
                           .filter(Boolean)
                           .join(' | '),
-                        nodeType: 'stand_task',
+                        nodeType: 'stand_tasks',
                         isCompleted: st.isCompleted,
                         standTask: st.title || '',
                         component: st.components?.title || '',
