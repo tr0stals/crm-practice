@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Query, UploadedFile, UseInterceptors, Body } from '@nestjs/common';
+import { Controller, Get, Post, Query, UploadedFile, UseInterceptors, Body, Res } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DatabaseExportImportService } from './database_export_import.service';
 import { File as MulterFile } from 'multer';
+import { Response } from 'express';
 
 @Controller('database_export_import')
 export class DatabaseExportImportController {
@@ -9,10 +10,10 @@ export class DatabaseExportImportController {
 
   // Экспорт всей БД (.sql)
   @Get('export/db')
-  async exportDatabase() {
+  async exportDatabase(@Res() res: Response) {
     console.log(`[API][GET] /database_export_import/export/db`);
     // Возвращает дамп базы данных
-    return this.service.exportDatabase();
+    return this.service.exportDatabase(res);
   }
 
   // Импорт всей БД (.sql)
@@ -31,15 +32,9 @@ export class DatabaseExportImportController {
 
   // Экспорт таблицы (.csv/.xlsx)
   @Get('export/table')
-  async exportTable(@Query('table') table: string, @Query('format') format: string) {
+  async exportTable(@Query('table') table: string, @Query('format') format: string, @Res() res: Response) {
     console.log(`[API][GET] /database_export_import/export/table, table=${table}, format=${format}`);
-    try {
-      // Возвращает файл с данными таблицы
-      return await this.service.exportTable(table, format);
-    } catch (e) {
-      console.error(`[API][GET] /export/table error:`, e);
-      throw e;
-    }
+    return this.service.exportTable(res, table, format);
   }
 
   // Импорт таблицы (.csv/.xlsx)

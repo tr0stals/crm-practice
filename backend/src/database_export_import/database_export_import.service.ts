@@ -1,7 +1,8 @@
 import { Injectable, StreamableFile, BadRequestException, InternalServerErrorException } from '@nestjs/common';
-import { createWriteStream, unlinkSync, writeFileSync } from 'fs';
+import * as fs from 'fs';
 import { spawn } from 'child_process';
 import { join } from 'path';
+import { Response } from 'express';
 
 function getDbConfig() {
   return {
@@ -14,46 +15,56 @@ function getDbConfig() {
 
 @Injectable()
 export class DatabaseExportImportService {
-  // Экспорт всей БД (.sql)
-  async exportDatabase(): Promise<StreamableFile> {
-    const { dbName, user, password, host } = getDbConfig();
-    const dumpFile = join(process.cwd(), `db_dump_${Date.now()}.sql`);
-    console.log(`[EXPORT_DB] Начало экспорта БД: ${dbName} (${host})`);
-    await new Promise<void>((resolve, reject) => {
-      const dump = spawn('mysqldump', [
-        `-u${user}`,
-        `-p${password}`,
-        `-h${host}`,
-        dbName,
-      ]);
-      const writeStream = createWriteStream(dumpFile);
-      dump.stdout.pipe(writeStream);
-      dump.stderr.on('data', (data) => {
-        const msg = data.toString();
-        if (msg.includes('Using a password on the command line interface can be insecure')) {
-          console.warn('[EXPORT_DB][mysqldump][warning]:', msg);
-          return;
-        }
-        console.error(`[EXPORT_DB][mysqldump][stderr]:`, msg);
-        reject(msg);
+    // Экспорт всей БД (.sql) через pipe на res
+    async exportDatabase(res: Response) {
+      const { dbName, user, password, host } = getDbConfig();
+      const dumpFile = join(process.cwd(), `db_dump_${Date.now()}.sql`);
+      console.log(`[EXPORT_DB] Начало экспорта БД: ${dbName} (${host})`);
+      await new Promise<void>((resolve, reject) => {
+        const dump = spawn('mysqldump', [
+          `-u${user}`,
+          `-p${password}`,
+          `-h${host}`,
+          dbName,
+        ]);
+        const writeStream = fs.createWriteStream(dumpFile);
+        dump.stdout.pipe(writeStream);
+        dump.stderr.on('data', (data) => {
+          const msg = data.toString();
+          if (msg.includes('Using a password on the command line interface can be insecure')) {
+            console.warn('[EXPORT_DB][mysqldump][warning]:', msg);
+            return;
+          }
+          console.error(`[EXPORT_DB][mysqldump][stderr]:`, msg);
+          reject(msg);
+        });
+        dump.on('close', (code) => {
+          if (code === 0) {
+            console.log(`[EXPORT_DB] Экспорт завершён успешно: ${dumpFile}`);
+            resolve();
+          } else {
+            console.error(`[EXPORT_DB] mysqldump exited with code ${code}`);
+            reject(`mysqldump exited with code ${code}`);
+          }
+        });
       });
-      dump.on('close', (code) => {
-        if (code === 0) {
-          console.log(`[EXPORT_DB] Экспорт завершён успешно: ${dumpFile}`);
-          resolve();
-        } else {
-          console.error(`[EXPORT_DB] mysqldump exited with code ${code}`);
-          reject(`mysqldump exited with code ${code}`);
-        }
+  
+      res.set({
+        'Content-Type': 'application/sql',
+        'Content-Disposition': 'attachment; filename="db_dump.sql"'
       });
-    });
-
-    const stream = require('fs').createReadStream(dumpFile);
-    stream.on('close', () => {
-      try { unlinkSync(dumpFile); } catch {}
-    });
-    return new StreamableFile(stream, { type: 'application/sql', disposition: `attachment; filename="db_dump.sql"` });
-  }
+      const stream = fs.createReadStream(dumpFile);
+      stream.pipe(res);
+      res.on('finish', () => {
+        console.log('[EXPORT_DB] Ответ отправлен, удаляю файл:', dumpFile);
+        try { fs.unlinkSync(dumpFile); } catch {}
+      });
+      stream.on('error', (err) => {
+        console.error('[EXPORT_DB] Ошибка потока:', err);
+        res.end();
+        try { fs.unlinkSync(dumpFile); } catch {}
+      });
+    }
 
   // Импорт всей БД (.sql)
   async importDatabase(file: any): Promise<any> {
@@ -64,7 +75,7 @@ export class DatabaseExportImportService {
     }
     const tmpFile = join(process.cwd(), `db_import_${Date.now()}.sql`);
     try {
-      writeFileSync(tmpFile, file.buffer);
+      fs.writeFileSync(tmpFile, file.buffer);
       console.log(`[IMPORT_DB] Начало импорта БД: ${dbName} (${host}), файл: ${tmpFile}`);
       await new Promise<void>((resolve, reject) => {
         const mysql = spawn('mysql', [
@@ -99,12 +110,12 @@ export class DatabaseExportImportService {
       console.error(`[IMPORT_DB] Ошибка при импорте:`, e);
       throw new InternalServerErrorException('Ошибка при импорте БД: ' + e);
     } finally {
-      try { unlinkSync(tmpFile); } catch {}
+      try { fs.unlinkSync(tmpFile); } catch {}
     }
   }
 
-  // Экспорт таблицы (.csv/.xlsx)
-  async exportTable(table: string, format: string): Promise<StreamableFile> {
+  // Экспорт таблицы (.csv/.xlsx) через pipe на res
+  async exportTable(res: Response, table: string, format: string) {
     const { dbName, user, password, host } = getDbConfig();
     console.log(`[EXPORT_TABLE] table=${table}, format=${format}`);
     if (!table) {
@@ -115,6 +126,9 @@ export class DatabaseExportImportService {
       console.error(`[EXPORT_TABLE] Не указан формат`);
       throw new BadRequestException('Не указан формат');
     }
+    let filePath: string;
+    let contentType: string;
+    let disposition: string;
     if (format === 'csv') {
       // Новый экспорт CSV с заголовками и разделителем ;
       const mysql = require('mysql2/promise');
@@ -126,39 +140,47 @@ export class DatabaseExportImportService {
         csv += columns.map(col => row[col]).join(';') + '\n';
       }
       await connection.end();
-      const csvFile = join(process.cwd(), `${table}_export_${Date.now()}.csv`);
-      require('fs').writeFileSync(csvFile, csv, 'utf8');
-      const stream = require('fs').createReadStream(csvFile);
-      stream.on('close', () => {
-        try { unlinkSync(csvFile); } catch {}
-      });
-      return new StreamableFile(stream, { type: 'text/csv', disposition: `attachment; filename="${table}.csv"` });
+      filePath = join(process.cwd(), `${table}_export_${Date.now()}.csv`);
+      require('fs').writeFileSync(filePath, csv, 'utf8');
+      contentType = 'text/csv';
+      disposition = `attachment; filename=\"${table}.csv\"`;
     } else if (format === 'xlsx') {
       // Экспорт в xlsx через exceljs (убедиться, что первая строка — заголовки)
       const ExcelJS = require('exceljs');
-      const xlsxFile = join(process.cwd(), `${table}_export_${Date.now()}.xlsx`);
-      // Получаем данные из БД
+      filePath = join(process.cwd(), `${table}_export_${Date.now()}.xlsx`);
       const mysql = require('mysql2/promise');
       const connection = await mysql.createConnection({ host, user, password, database: dbName });
       const [rows, fields] = await connection.execute(`SELECT * FROM \`${table}\``);
       const columns = fields.map((f: any) => f.name);
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet(table);
-      worksheet.addRow(columns); // заголовки
+      worksheet.addRow(columns);
       for (const row of rows) {
         worksheet.addRow(columns.map(col => row[col]));
       }
-      await workbook.xlsx.writeFile(xlsxFile);
+      await workbook.xlsx.writeFile(filePath);
       await connection.end();
-      const stream = require('fs').createReadStream(xlsxFile);
-      stream.on('close', () => {
-        try { unlinkSync(xlsxFile); } catch {}
-      });
-      return new StreamableFile(stream, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', disposition: `attachment; filename="${table}.xlsx"` });
+      contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      disposition = `attachment; filename=\"${table}.xlsx\"`;
     } else {
       console.error(`[EXPORT_TABLE] Неподдерживаемый формат: ${format}`);
       throw new BadRequestException('Неподдерживаемый формат');
     }
+    res.set({
+      'Content-Type': contentType,
+      'Content-Disposition': disposition
+    });
+    const stream = fs.createReadStream(filePath);
+    stream.pipe(res);
+    res.on('finish', () => {
+      console.log('[EXPORT_TABLE] Ответ отправлен, удаляю файл:', filePath);
+      try { fs.unlinkSync(filePath); } catch {}
+    });
+    stream.on('error', (err) => {
+      console.error('[EXPORT_TABLE] Ошибка потока:', err);
+      res.end();
+      try { fs.unlinkSync(filePath); } catch {}
+    });
   }
 
   // Импорт таблицы (.csv/.xlsx)
