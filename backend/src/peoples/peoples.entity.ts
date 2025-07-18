@@ -25,8 +25,8 @@ export class Peoples {
 
   @Column({ nullable: true })
   comment?: string;
-
-  @Column({ nullable: true })
+  
+  @Column({ nullable: true, type: 'date' })
   birthDate?: Date;
 
   @OneToMany(() => Employees, (employee) => employee.peoples)

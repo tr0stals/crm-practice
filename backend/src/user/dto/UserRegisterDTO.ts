@@ -14,4 +14,5 @@ export class UserRegisterDTO {
   lastName: string;
   middleName?: string;
   comment?: string;
+  birthDate?: Date;
 }

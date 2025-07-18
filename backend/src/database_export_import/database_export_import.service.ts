@@ -13,6 +13,24 @@ function getDbConfig() {
   };
 }
 
+function autoConvertDates(row: Record<string, any>): Record<string, any> {
+  const newRow: Record<string, any> = { ...row };
+  for (const key in newRow) {
+    const value = newRow[key];
+    if (
+      typeof value === 'string' &&
+      value.match(/\d{4}/) && // есть год
+      value.match(/GMT|UTC|Mon|Tue|Wed|Thu|Fri|Sat|Sun/) // есть признаки даты
+    ) {
+      const d = new Date(value);
+      if (!isNaN(d.getTime())) {
+        newRow[key] = d.toISOString().slice(0, 10); // "YYYY-MM-DD"
+      }
+    }
+  }
+  return newRow;
+}
+
 @Injectable()
 export class DatabaseExportImportService {
     // Экспорт всей БД (.sql) через pipe на res
@@ -233,11 +251,12 @@ export class DatabaseExportImportService {
           const chunk = records.slice(i, i + chunkSize);
           for (const row of chunk) {
             try {
+              const convertedRow = autoConvertDates(row);
               const placeholders = columns.map(() => '?').join(',');
               const sql = `INSERT INTO \`${table}\` (${columns.map(c => `\`${c}\``).join(',')}) VALUES (${placeholders})`;
-              await connection.query(sql, columns.map(c => row[c]));
+              await connection.query(sql, columns.map(c => convertedRow[c]));
               imported++;
-              console.log('[IMPORT_TABLE][csv] Вставлена строка:', row);
+              console.log('[IMPORT_TABLE][csv] Вставлена строка:', convertedRow);
             } catch (e) {
               failed++;
               errors.push({ row, error: e.message });
@@ -295,9 +314,13 @@ export class DatabaseExportImportService {
           const chunk = dataRows.slice(i, i + chunkSize);
           for (const row of chunk) {
             try {
+              // row — это массив значений, нужно преобразовать в объект для autoConvertDates
+              const rowObj: Record<string, any> = {};
+              headers.forEach((h: string, idx: number) => { rowObj[h] = row[idx]; });
+              const convertedRow = autoConvertDates(rowObj);
               const placeholders = headers.map(() => '?').join(',');
               const sql = `INSERT INTO \`${table}\` (${headers.map((c: string) => `\`${c}\``).join(',')}) VALUES (${placeholders})`;
-              await connection.query(sql, row);
+              await connection.query(sql, headers.map((c: string) => convertedRow[c]));
               imported++;
             } catch (e) {
               failed++;

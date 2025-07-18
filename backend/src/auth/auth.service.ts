@@ -34,6 +34,7 @@ export class AuthService {
       middleName: userData.middleName,
       lastName: userData.lastName,
       comment: userData.comment,
+      birthDate: userData.birthDate,
     });
 
     const employee = await this.employeeService.create({
