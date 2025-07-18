@@ -31,6 +31,11 @@ export class DatabaseController {
     return NODE_TYPE_TO_TABLE;
   }
 
+  @Get('fieldHints')
+  getFieldHints() {
+    return this.databaseService.getFieldHints();
+  }
+
   @Get(':tableName')
   async getTableRows(@Param('tableName') tableName: string) {
     return await this.databaseService.getTableRows(tableName);

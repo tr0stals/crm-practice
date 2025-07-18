@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { databaseParentIdStrategies } from './databaseParentIdStrategies';
+import { FIELD_HINTS_MAP } from './fieldHintsMap';
 
 @Injectable()
 export class DatabaseService {
@@ -26,6 +27,10 @@ export class DatabaseService {
     const tables = await this.dataSource.query('SHOW TABLES');
     const tableKey = Object.keys(tables[0])[0];
     return tables.map((t) => t[tableKey]);
+  }
+
+  getFieldHints() {
+    return FIELD_HINTS_MAP;
   }
 
   async getTableColumns(tableName: string) {
