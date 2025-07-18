@@ -23,6 +23,10 @@
         <input type="text" id="lastName" v-model="lastName" required />
       </div>
       <div class="form-group">
+        <label for="birthday">День рождения</label>
+        <input type="date" name="birthday" id="birthday" v-model="birthday" />
+      </div>
+      <div class="form-group">
         <label for="middleName">Отчество</label>
         <input type="text" id="middleName" v-model="middleName" />
       </div>
@@ -56,6 +60,7 @@ const authStore = useAuthStore();
 const router = useRouter();
 const error = ref<string | null>(null);
 const phone = ref("");
+const birthday = ref<any>(null);
 const toast = useToast();
 
 const handleSubmit = async () => {
@@ -69,6 +74,7 @@ const handleSubmit = async () => {
       userName: userName.value,
       phone: phone.value,
       passwordSalt: confirmPassword.value,
+      birthDate: birthday.value,
       comment: "",
     };
     await registerUser(user);

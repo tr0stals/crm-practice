@@ -8,4 +8,5 @@ export interface IUserRegister {
   middleName?: string;
   phone: string;
   comment?: string;
+  birthDate?: any;
 }

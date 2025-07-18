@@ -29,8 +29,9 @@ import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { treeviewTables } from "@/shared/config/treeviewTables";
 import WelcomeBanner from "@/widgets/WelcomeBanner/ui/WelcomeBanner.vue";
 import AddCurrentTask from "@/features/AddCurrentTask/ui/AddCurrentTask.vue";
-import CurrentTasks from "@/widgets/CurrentTasks/ui/CurrentTasks.vue";
 import SetCurrentTaskCompleted from "@/features/SetCurrentTaskCompleted/ui/SetCurrentTaskCompleted.vue";
+import ExportTableButton from "@/features/ExportTableButton/ui/ExportTableButton.vue";
+import ImportTableButton from "@/features/ImportTableButton/ui/ImportTableButton.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -620,6 +621,8 @@ const filteredTreeData = computed(() => {
             >
               Подробнее
             </Button>
+            <ExportTableButton :onSuccessCallback="onUpdateCallBack" />
+            <ImportTableButton />
           </div>
           <div v-else class="action-buttons">
             <AddCurrentTask :onSuccessCallback="onUpdateCallBack" />

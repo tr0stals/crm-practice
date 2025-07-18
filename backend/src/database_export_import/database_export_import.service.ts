@@ -1,4 +1,9 @@
-import { Injectable, StreamableFile, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  StreamableFile,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import * as fs from 'fs';
 import { spawn } from 'child_process';
 import { join } from 'path';
@@ -33,56 +38,64 @@ function autoConvertDates(row: Record<string, any>): Record<string, any> {
 
 @Injectable()
 export class DatabaseExportImportService {
-    // Экспорт всей БД (.sql) через pipe на res
-    async exportDatabase(res: Response) {
-      const { dbName, user, password, host } = getDbConfig();
-      const dumpFile = join(process.cwd(), `db_dump_${Date.now()}.sql`);
-      console.log(`[EXPORT_DB] Начало экспорта БД: ${dbName} (${host})`);
-      await new Promise<void>((resolve, reject) => {
-        const dump = spawn('mysqldump', [
-          `-u${user}`,
-          `-p${password}`,
-          `-h${host}`,
-          dbName,
-        ]);
-        const writeStream = fs.createWriteStream(dumpFile);
-        dump.stdout.pipe(writeStream);
-        dump.stderr.on('data', (data) => {
-          const msg = data.toString();
-          if (msg.includes('Using a password on the command line interface can be insecure')) {
-            console.warn('[EXPORT_DB][mysqldump][warning]:', msg);
-            return;
-          }
-          console.error(`[EXPORT_DB][mysqldump][stderr]:`, msg);
-          reject(msg);
-        });
-        dump.on('close', (code) => {
-          if (code === 0) {
-            console.log(`[EXPORT_DB] Экспорт завершён успешно: ${dumpFile}`);
-            resolve();
-          } else {
-            console.error(`[EXPORT_DB] mysqldump exited with code ${code}`);
-            reject(`mysqldump exited with code ${code}`);
-          }
-        });
+  // Экспорт всей БД (.sql) через pipe на res
+  async exportDatabase(res: Response) {
+    const { dbName, user, password, host } = getDbConfig();
+    const dumpFile = join(process.cwd(), `db_dump_${Date.now()}.sql`);
+    console.log(`[EXPORT_DB] Начало экспорта БД: ${dbName} (${host})`);
+    await new Promise<void>((resolve, reject) => {
+      const dump = spawn('mysqldump', [
+        `-u${user}`,
+        `-p${password}`,
+        `-h${host}`,
+        dbName,
+      ]);
+      const writeStream = fs.createWriteStream(dumpFile);
+      dump.stdout.pipe(writeStream);
+      dump.stderr.on('data', (data) => {
+        const msg = data.toString();
+        if (
+          msg.includes(
+            'Using a password on the command line interface can be insecure',
+          )
+        ) {
+          console.warn('[EXPORT_DB][mysqldump][warning]:', msg);
+          return;
+        }
+        console.error(`[EXPORT_DB][mysqldump][stderr]:`, msg);
+        reject(msg);
       });
-  
-      res.set({
-        'Content-Type': 'application/sql',
-        'Content-Disposition': 'attachment; filename="db_dump.sql"'
+      dump.on('close', (code) => {
+        if (code === 0) {
+          console.log(`[EXPORT_DB] Экспорт завершён успешно: ${dumpFile}`);
+          resolve();
+        } else {
+          console.error(`[EXPORT_DB] mysqldump exited with code ${code}`);
+          reject(`mysqldump exited with code ${code}`);
+        }
       });
-      const stream = fs.createReadStream(dumpFile);
-      stream.pipe(res);
-      res.on('finish', () => {
-        console.log('[EXPORT_DB] Ответ отправлен, удаляю файл:', dumpFile);
-        try { fs.unlinkSync(dumpFile); } catch {}
-      });
-      stream.on('error', (err) => {
-        console.error('[EXPORT_DB] Ошибка потока:', err);
-        res.end();
-        try { fs.unlinkSync(dumpFile); } catch {}
-      });
-    }
+    });
+
+    res.set({
+      'Content-Type': 'application/sql',
+      'Content-Disposition': 'attachment; filename="db_dump.sql"',
+    });
+    const stream = fs.createReadStream(dumpFile);
+    stream.pipe(res);
+    res.on('finish', () => {
+      console.log('[EXPORT_DB] Ответ отправлен, удаляю файл:', dumpFile);
+      try {
+        fs.unlinkSync(dumpFile);
+      } catch {}
+    });
+    stream.on('error', (err) => {
+      console.error('[EXPORT_DB] Ошибка потока:', err);
+      res.end();
+      try {
+        fs.unlinkSync(dumpFile);
+      } catch {}
+    });
+  }
 
   // Импорт всей БД (.sql)
   async importDatabase(file: any): Promise<any> {
@@ -94,7 +107,9 @@ export class DatabaseExportImportService {
     const tmpFile = join(process.cwd(), `db_import_${Date.now()}.sql`);
     try {
       fs.writeFileSync(tmpFile, file.buffer);
-      console.log(`[IMPORT_DB] Начало импорта БД: ${dbName} (${host}), файл: ${tmpFile}`);
+      console.log(
+        `[IMPORT_DB] Начало импорта БД: ${dbName} (${host}), файл: ${tmpFile}`,
+      );
       await new Promise<void>((resolve, reject) => {
         const mysql = spawn('mysql', [
           `-u${user}`,
@@ -106,7 +121,11 @@ export class DatabaseExportImportService {
         readStream.pipe(mysql.stdin);
         mysql.stderr.on('data', (data) => {
           const msg = data.toString();
-          if (msg.includes('Using a password on the command line interface can be insecure')) {
+          if (
+            msg.includes(
+              'Using a password on the command line interface can be insecure',
+            )
+          ) {
             console.warn('[IMPORT_DB][mysql][warning]:', msg);
             return;
           }
@@ -128,7 +147,9 @@ export class DatabaseExportImportService {
       console.error(`[IMPORT_DB] Ошибка при импорте:`, e);
       throw new InternalServerErrorException('Ошибка при импорте БД: ' + e);
     } finally {
-      try { fs.unlinkSync(tmpFile); } catch {}
+      try {
+        fs.unlinkSync(tmpFile);
+      } catch {}
     }
   }
 
@@ -150,12 +171,19 @@ export class DatabaseExportImportService {
     if (format === 'csv') {
       // Новый экспорт CSV с заголовками и разделителем ;
       const mysql = require('mysql2/promise');
-      const connection = await mysql.createConnection({ host, user, password, database: dbName });
-      const [rows, fields] = await connection.execute(`SELECT * FROM \`${table}\``);
+      const connection = await mysql.createConnection({
+        host,
+        user,
+        password,
+        database: dbName,
+      });
+      const [rows, fields] = await connection.execute(
+        `SELECT * FROM \`${table}\``,
+      );
       const columns = fields.map((f: any) => f.name);
       let csv = columns.join(';') + '\n';
       for (const row of rows) {
-        csv += columns.map(col => row[col]).join(';') + '\n';
+        csv += columns.map((col) => row[col]).join(';') + '\n';
       }
       await connection.end();
       filePath = join(process.cwd(), `${table}_export_${Date.now()}.csv`);
@@ -167,18 +195,26 @@ export class DatabaseExportImportService {
       const ExcelJS = require('exceljs');
       filePath = join(process.cwd(), `${table}_export_${Date.now()}.xlsx`);
       const mysql = require('mysql2/promise');
-      const connection = await mysql.createConnection({ host, user, password, database: dbName });
-      const [rows, fields] = await connection.execute(`SELECT * FROM \`${table}\``);
+      const connection = await mysql.createConnection({
+        host,
+        user,
+        password,
+        database: dbName,
+      });
+      const [rows, fields] = await connection.execute(
+        `SELECT * FROM \`${table}\``,
+      );
       const columns = fields.map((f: any) => f.name);
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet(table);
       worksheet.addRow(columns);
       for (const row of rows) {
-        worksheet.addRow(columns.map(col => row[col]));
+        worksheet.addRow(columns.map((col) => row[col]));
       }
       await workbook.xlsx.writeFile(filePath);
       await connection.end();
-      contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      contentType =
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       disposition = `attachment; filename=\"${table}.xlsx\"`;
     } else {
       console.error(`[EXPORT_TABLE] Неподдерживаемый формат: ${format}`);
@@ -186,25 +222,35 @@ export class DatabaseExportImportService {
     }
     res.set({
       'Content-Type': contentType,
-      'Content-Disposition': disposition
+      'Content-Disposition': disposition,
     });
     const stream = fs.createReadStream(filePath);
     stream.pipe(res);
     res.on('finish', () => {
       console.log('[EXPORT_TABLE] Ответ отправлен, удаляю файл:', filePath);
-      try { fs.unlinkSync(filePath); } catch {}
+      try {
+        fs.unlinkSync(filePath);
+      } catch {}
     });
     stream.on('error', (err) => {
       console.error('[EXPORT_TABLE] Ошибка потока:', err);
       res.end();
-      try { fs.unlinkSync(filePath); } catch {}
+      try {
+        fs.unlinkSync(filePath);
+      } catch {}
     });
   }
 
   // Импорт таблицы (.csv/.xlsx)
-  async importTable(table: string, file: any, chunkSize: number = 1000): Promise<any> {
+  async importTable(
+    table: string,
+    file: any,
+    chunkSize: number = 1000,
+  ): Promise<any> {
     const { dbName, user, password, host } = getDbConfig();
-    console.log(`[IMPORT_TABLE] table=${table}, chunkSize=${chunkSize}, file=${file?.originalname}`);
+    console.log(
+      `[IMPORT_TABLE] table=${table}, chunkSize=${chunkSize}, file=${file?.originalname}`,
+    );
     if (!table) {
       console.error(`[IMPORT_TABLE] Не указано имя таблицы`);
       throw new BadRequestException('Не указано имя таблицы');
@@ -220,7 +266,11 @@ export class DatabaseExportImportService {
       const content = file.buffer.toString('utf-8');
       let records: any[];
       try {
-        records = parse(content, { columns: true, skip_empty_lines: true, delimiter: ';' });
+        records = parse(content, {
+          columns: true,
+          skip_empty_lines: true,
+          delimiter: ';',
+        });
       } catch (e) {
         console.error(`[IMPORT_TABLE][csv] Ошибка парсинга CSV:`, e);
         throw new BadRequestException('Ошибка парсинга CSV: ' + e);
@@ -234,13 +284,19 @@ export class DatabaseExportImportService {
       // Валидация: все строки должны содержать одинаковые колонки
       for (const row of records) {
         if (Object.keys(row).length !== columns.length) {
-          throw new BadRequestException('Некорректная структура CSV: не совпадает количество колонок');
+          throw new BadRequestException(
+            'Некорректная структура CSV: не совпадает количество колонок',
+          );
         }
       }
       // Импорт с постраничной обработкой и транзакцией
       const mysql = require('mysql2/promise');
       const connection = await mysql.createConnection({
-        host, user, password, database: dbName, multipleStatements: true
+        host,
+        user,
+        password,
+        database: dbName,
+        multipleStatements: true,
       });
       let imported = 0;
       let failed = 0;
@@ -253,20 +309,32 @@ export class DatabaseExportImportService {
             try {
               const convertedRow = autoConvertDates(row);
               const placeholders = columns.map(() => '?').join(',');
-              const sql = `INSERT INTO \`${table}\` (${columns.map(c => `\`${c}\``).join(',')}) VALUES (${placeholders})`;
-              await connection.query(sql, columns.map(c => convertedRow[c]));
+              const sql = `INSERT INTO \`${table}\` (${columns.map((c) => `\`${c}\``).join(',')}) VALUES (${placeholders})`;
+              await connection.query(
+                sql,
+                columns.map((c) => convertedRow[c]),
+              );
               imported++;
-              console.log('[IMPORT_TABLE][csv] Вставлена строка:', convertedRow);
+              console.log(
+                '[IMPORT_TABLE][csv] Вставлена строка:',
+                convertedRow,
+              );
             } catch (e) {
               failed++;
               errors.push({ row, error: e.message });
-              console.error(`[IMPORT_TABLE][csv] Ошибка вставки строки:`, e.message);
+              console.error(
+                `[IMPORT_TABLE][csv] Ошибка вставки строки:`,
+                e.message,
+              );
             }
           }
         }
         await connection.commit();
-        console.log(`[IMPORT_TABLE][csv] Импорт завершён: imported=${imported}, failed=${failed}`);
-        if (errors.length) console.error('[IMPORT_TABLE][csv] Ошибки вставки:', errors);
+        console.log(
+          `[IMPORT_TABLE][csv] Импорт завершён: imported=${imported}, failed=${failed}`,
+        );
+        if (errors.length)
+          console.error('[IMPORT_TABLE][csv] Ошибки вставки:', errors);
       } catch (e) {
         await connection.rollback();
         console.error(`[IMPORT_TABLE][csv] Ошибка при импорте:`, e);
@@ -289,21 +357,30 @@ export class DatabaseExportImportService {
       worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
         rows.push(row.values);
       });
-      if (rows.length < 2) throw new BadRequestException('Файл не содержит данных');
+      if (rows.length < 2)
+        throw new BadRequestException('Файл не содержит данных');
       // Первая строка — заголовки
       const headers = rows[0].slice(1); // row.values[0] — всегда null
       const dataRows = rows.slice(1).map((r: any[]) => r.slice(1));
       // Валидация: все строки должны содержать одинаковое количество колонок
       for (const row of dataRows) {
         if (row.length !== headers.length) {
-          console.error(`[IMPORT_TABLE][xlsx] Некорректная структура xlsx: не совпадает количество колонок`);
-          throw new BadRequestException('Некорректная структура xlsx: не совпадает количество колонок');
+          console.error(
+            `[IMPORT_TABLE][xlsx] Некорректная структура xlsx: не совпадает количество колонок`,
+          );
+          throw new BadRequestException(
+            'Некорректная структура xlsx: не совпадает количество колонок',
+          );
         }
       }
       // Импорт с постраничной обработкой и транзакцией
       const mysql = require('mysql2/promise');
       const connection = await mysql.createConnection({
-        host, user, password, database: dbName, multipleStatements: true
+        host,
+        user,
+        password,
+        database: dbName,
+        multipleStatements: true,
       });
       let imported = 0;
       let failed = 0;
@@ -316,21 +393,31 @@ export class DatabaseExportImportService {
             try {
               // row — это массив значений, нужно преобразовать в объект для autoConvertDates
               const rowObj: Record<string, any> = {};
-              headers.forEach((h: string, idx: number) => { rowObj[h] = row[idx]; });
+              headers.forEach((h: string, idx: number) => {
+                rowObj[h] = row[idx];
+              });
               const convertedRow = autoConvertDates(rowObj);
               const placeholders = headers.map(() => '?').join(',');
               const sql = `INSERT INTO \`${table}\` (${headers.map((c: string) => `\`${c}\``).join(',')}) VALUES (${placeholders})`;
-              await connection.query(sql, headers.map((c: string) => convertedRow[c]));
+              await connection.query(
+                sql,
+                headers.map((c: string) => convertedRow[c]),
+              );
               imported++;
             } catch (e) {
               failed++;
               errors.push({ row, error: e.message });
-              console.error(`[IMPORT_TABLE][xlsx] Ошибка вставки строки:`, e.message);
+              console.error(
+                `[IMPORT_TABLE][xlsx] Ошибка вставки строки:`,
+                e.message,
+              );
             }
           }
         }
         await connection.commit();
-        console.log(`[IMPORT_TABLE][xlsx] Импорт завершён: imported=${imported}, failed=${failed}`);
+        console.log(
+          `[IMPORT_TABLE][xlsx] Импорт завершён: imported=${imported}, failed=${failed}`,
+        );
       } catch (e) {
         await connection.rollback();
         console.error(`[IMPORT_TABLE][xlsx] Ошибка при импорте:`, e);
