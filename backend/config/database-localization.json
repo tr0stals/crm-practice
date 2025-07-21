@@ -321,6 +321,7 @@
       "fields": {
         "id": "ID",
         "parentId": "Подкатегория",
+        "title": "Название",
         "componentId": "Компонент",
         "standId": "Стенд"
       }

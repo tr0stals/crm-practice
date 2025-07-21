@@ -152,6 +152,7 @@ export class EmployeesService {
         nodeType: 'employees',
         employees: fio,
         birthDate: ed.employees?.peoples?.birthDate,
+        departmentId: ed.departments?.id,
         ...ed.employees,
         peoples: ed.employees?.peoples,
       });
@@ -165,6 +166,7 @@ export class EmployeesService {
       result.children.push({
         name: depName,
         nodeType: 'departments',
+        id: employees[0]?.departmentId ?? null,
         children: employees,
       });
     }
