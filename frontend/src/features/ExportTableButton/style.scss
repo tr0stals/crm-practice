@@ -1,0 +1,18 @@
+.exportTableButton {
+  &__button {
+    font-size: 2rem !important;
+  }
+
+  &__menu {
+    width: 100% !important;
+    &__item {
+      width: 100% !important;
+
+      &__btn {
+        width: 100% !important;
+        font-size: 2rem !important;
+        text-align: center !important;
+      }
+    }
+  }
+}

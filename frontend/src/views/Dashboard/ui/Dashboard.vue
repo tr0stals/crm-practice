@@ -32,6 +32,9 @@ import AddCurrentTask from "@/features/AddCurrentTask/ui/AddCurrentTask.vue";
 import SetCurrentTaskCompleted from "@/features/SetCurrentTaskCompleted/ui/SetCurrentTaskCompleted.vue";
 import ExportTableButton from "@/features/ExportTableButton/ui/ExportTableButton.vue";
 import ImportTableButton from "@/features/ImportTableButton/ui/ImportTableButton.vue";
+import CustomDropdown from "@/shared/ui/CustomDropdown/ui/CustomDropdown.vue";
+import ExportDatabase from "@/features/ExportDatabase/ui/ExportDatabase.vue";
+import ImportDatabase from "@/features/ImportDatabase/ui/ImportDatabase.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -235,13 +238,6 @@ watch(currentSection, (newVal) => {
   globalStore.currentSection = newVal;
 });
 
-// watch(
-//   () => globalStore.activeSection,
-//   (section: string) => {
-//     currentSection.value = section;
-//   }
-// );
-
 const currentDateTime = ref("");
 
 const updateTime = () => {
@@ -314,24 +310,6 @@ const currentTableHeaders = computed(() => {
   if (data.value && data.value.length > 0) {
     return Object.keys(data.value[0]).filter((item) => item !== "id");
   }
-  // switch (currentSection.value.toLowerCase()) {
-  //   case "components":
-  //     return ["id", "name", "description"];
-  //   case "countries":
-  //     return ["id", "name", "code"];
-  //   case "departments":
-  //     return ["id", "name"];
-  //   case "invoices_arrival":
-  //     return ["id", "invoiceNumber", "date"];
-  //   case "license":
-  //     return ["id", "licenseCode", "userId"];
-  //   case "organizations":
-  //     return ["id", "name", "organizationTypeId"];
-  //   case "users":
-  //     return ["id", "firstName", "lastName", "email"];
-  //   default:
-  //     return ["id", "name"];
-  // }
 });
 
 const columnCount = computed(() => {
@@ -535,6 +513,11 @@ const filteredTreeData = computed(() => {
     Object.values(item).join(" ").toLowerCase().includes(q)
   );
 });
+
+const dropdownConfig = [
+  { component: ExportDatabase },
+  { component: ImportDatabase },
+];
 </script>
 
 <template>
@@ -576,7 +559,13 @@ const filteredTreeData = computed(() => {
             </div>
           </div>
         </div>
-        <button class="logout-button" @click="logout">Выйти</button>
+        <div class="header__controls">
+          <CustomDropdown
+            dropdown-title="Действия"
+            :dropdown-items="dropdownConfig"
+          />
+          <Button @click="logout">Выйти</Button>
+        </div>
       </header>
 
       <!-- Content -->
@@ -610,8 +599,7 @@ const filteredTreeData = computed(() => {
             <Button :onClick="getCurrentData">
               <RefreshIcon /> обновить
             </Button>
-            <Button :onClick="exportToCSV"> выгрузить в csv</Button>
-            <Button :onClick="exportToExcel"> выгрузить в excel</Button>
+
             <Button
               v-if="
                 currentSection === 'bills_for_pay' ||

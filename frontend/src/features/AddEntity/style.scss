@@ -54,6 +54,12 @@
         min-height: 44px;
       }
 
+      &__inputControls {
+        display: flex;
+        border: none;
+        outline: none;
+      }
+
       &__inputControls .active {
         background-color: #007bff;
         color: white;

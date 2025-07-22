@@ -1,21 +1,3 @@
-<template>
-  <div class="login-form">
-    <h2 class="login-form__title">Вход</h2>
-    <form @submit.prevent="handleSubmit">
-      <div class="form-group">
-        <label for="userName">Имя пользователя:</label>
-        <input type="text" id="userName" v-model="userName" required />
-      </div>
-      <div class="form-group">
-        <label for="password">Пароль:</label>
-        <input type="password" id="password" v-model="password" required />
-      </div>
-      <button type="submit" class="submit-button">Войти</button>
-      <p v-if="authStore.error" class="error">Ошибка авторизации</p>
-    </form>
-  </div>
-</template>
-
 <script setup lang="ts">
 import "../style.scss";
 import { ref } from "vue";
@@ -47,7 +29,7 @@ const handleSubmit = async () => {
 const loginUser = async (userName: string, password: string) => {
   try {
     const response = await loginApi(userName, password);
-    
+
     if (response.data.token) {
       token.value = response.data.token;
       localStorage.setItem("token", response.data.token);
@@ -60,3 +42,35 @@ const loginUser = async (userName: string, password: string) => {
   }
 };
 </script>
+
+<template>
+  <div class="login-form">
+    <h2 class="login-form__title">Вход</h2>
+    <form @submit.prevent="handleSubmit">
+      <div class="form-group">
+        <label class="form-group__label" for="userName"
+          >Имя пользователя:</label
+        >
+        <input
+          class="form-group__text"
+          type="text"
+          id="userName"
+          v-model="userName"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label class="form-group__label" for="password">Пароль:</label>
+        <input
+          class="form-group__text"
+          type="password"
+          id="password"
+          v-model="password"
+          required
+        />
+      </div>
+      <button type="submit" class="submit-button">Войти</button>
+      <p v-if="authStore.error" class="error">Ошибка авторизации</p>
+    </form>
+  </div>
+</template>

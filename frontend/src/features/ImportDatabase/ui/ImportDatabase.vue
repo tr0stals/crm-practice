@@ -3,11 +3,12 @@ import "../style.scss";
 import { ref } from "vue";
 import Button from "@/shared/ui/Button/ui/Button.vue";
 import { useGlobalStore } from "@/shared/store/globalStore";
-import useImportTable from "../model/useImportTable";
+import { importDatabase } from "../api/importDatabase";
+import useImportDatabase from "../model/useImportDatabase";
+
+const { selectedFile, loading, importDb } = useImportDatabase();
 
 const globalStore = useGlobalStore();
-
-const { selectedFile, loading, importTable } = useImportTable(globalStore);
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const triggerFileSelect = () => {
@@ -19,7 +20,7 @@ const handleFileChange = async (e: Event) => {
   const files = target.files;
   if (files && files.length > 0) {
     selectedFile.value = files[0];
-    await importTable();
+    await importDb();
   }
 };
 </script>
@@ -40,6 +41,6 @@ const handleFileChange = async (e: Event) => {
     id="inputGroupFileAddon04"
     @click="triggerFileSelect"
   >
-    Импортировать
+    Импорт БД
   </Button>
 </template>

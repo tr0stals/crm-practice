@@ -18,6 +18,15 @@
 
 .form-group {
   margin-bottom: 20px;
+
+  &__label {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  &__text {
+    font-size: 1.75rem;
+  }
 }
 
 label {

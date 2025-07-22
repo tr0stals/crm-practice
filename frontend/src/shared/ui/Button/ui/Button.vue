@@ -1,14 +1,3 @@
-<template>
-  <button
-    @click="props.handleClick"
-    class="button"
-    :class="[props.buttonColor, ...(props.extraClasses || [])]"
-  >
-    <component v-if="props.image" :is="props.image" class="button__icon" />
-    <slot />
-  </button>
-</template>
-
 <script setup lang="ts">
 import "../style.scss";
 
@@ -28,3 +17,14 @@ const printText = () => {
   console.debug("!!!", "Кнопка нажата");
 };
 </script>
+
+<template>
+  <button
+    @click="props.handleClick"
+    class="button"
+    :class="[props.buttonColor, ...(props.extraClasses || [])]"
+  >
+    <component v-if="props.image" :is="props.image" class="button__icon" />
+    <slot />
+  </button>
+</template>

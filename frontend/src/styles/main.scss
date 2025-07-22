@@ -1,4 +1,5 @@
 @use "./variables.scss" as *;
+@import "bootstrap/scss/bootstrap";
 
 html {
   font: var(--baseFontWeight) var(--baseFontSize) / var(--baseLineHeight)

@@ -5,15 +5,13 @@ export const exportTable = async (table: string, format: string) => {
     const endpoint = "database_export_import/export/table";
     const response = await api.get(`${endpoint}`, {
       params: { table, format },
-      responseType: "blob", // 👈 Ключевой момент!
+      responseType: "blob",
     });
 
-    // Получение имени файла из заголовка
     const contentDisposition = response.headers["content-disposition"];
     const fileNameMatch = contentDisposition?.match(/filename="(.+)"/);
     const fileName = fileNameMatch ? fileNameMatch[1] : `${table}.${format}`;
 
-    // Создание и клик по ссылке
     const blob = new Blob([response.data]);
     const url = window.URL.createObjectURL(blob);
 
