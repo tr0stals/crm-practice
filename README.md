@@ -11,16 +11,16 @@
 ---
 
 ## 📑 Table of Contents
-- [Description](#description)
-- [Architecture](#architecture)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Quick Start](#quick-start)
-- [Run & Test](#run--test)
-- [Extensibility](#extensibility)
-- [Contributing](#contributing)
-- [License](#license)
-- [Documentation](#documentation)
+- [Description](#-description)
+- [Architecture](#%EF%B8%8F-architecture)
+- [Features](#-features)
+- [Tech Stack](#%EF%B8%8F-tech-stack)
+- [Documentation](#-documentation)
+- [Quick Start](#-quick-start)
+- [Run & Test](#%EF%B8%8F-run--test)
+- [Extensibility](#-extensibility)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
@@ -97,7 +97,7 @@
 
 ---
 
-## 📚 Документация
+## 📚 Documentation
 
 - [Backend API (TypeDoc)](./backend/docs/index.html) — автогенерируемая документация по серверному коду (NestJS/TypeScript).
 
