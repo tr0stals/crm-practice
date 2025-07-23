@@ -36,9 +36,9 @@
 
 ```mermaid
 graph TD;
-  A[Frontend (Vue 3 + PrimeVue)] --REST API--> B[Backend (NestJS + TypeORM)]
-  C[Unity Client (Auth_v2)] --API/Интеграция--> B
-  B --MySQL--> D[(Database)]
+  A[Frontend (Vue 3 + PrimeVue)] -- REST API --> B[Backend (NestJS + TypeORM)]
+  C[Unity Client (Auth_v2)] -- API/Интеграция --> B
+  B -- MySQL --> D[(Database)]
 ```
 
 - **Backend**: Модульная структура, REST API, авторизация, сидирование, локализация, импорт/экспорт, кэширование
@@ -82,6 +82,8 @@ graph TD;
 ## 📚 Документация
 
 - [Backend API (TypeDoc)](./backend/docs/index.html) — автогенерируемая документация по серверному коду (NestJS/TypeScript).
+
+_Рекомендуется опубликовать папку docs как GitHub Pages для удобного просмотра онлайн / Открыть документацию локально_
 
 ---
 
@@ -139,4 +141,4 @@ PRs, багрепорты и идеи приветствуются! Открыв
 
 ---
 
-> _Built with ❤️ by [tr0stals](https://github.com/tr0stals)_
+> _Built with ❤️ by [96ix9ine, pavelbekarev, AdonChel, YumpA, tr0stals, SolitudeAlways](https://github.com/tr0stals)_
