@@ -51,6 +51,7 @@ import { PcbsComponentsModule } from './pcbs_components/pcbs_components.module';
 import { StandTasksComponentsModule } from './stand_tasks_components/stand_tasks_components.module';
 import { DatabaseEagerCachingModule } from './database_eager_caching/database_eager_caching.module';
 import { DatabaseExportImportModule } from './database_export_import/database_export_import.module';
+import { WebsocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [
@@ -119,6 +120,7 @@ import { DatabaseExportImportModule } from './database_export_import/database_ex
     ArrivalInvoicesModule,
     CurrentTasksModule,
     DatabaseExportImportModule,
+    WebsocketModule,
   ],
   controllers: [AppController, StandsController],
   providers: [AppService],
