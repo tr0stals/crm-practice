@@ -35,6 +35,7 @@ import ImportTableButton from "@/features/ImportTableButton/ui/ImportTableButton
 import CustomDropdown from "@/shared/ui/CustomDropdown/ui/CustomDropdown.vue";
 import ExportDatabase from "@/features/ExportDatabase/ui/ExportDatabase.vue";
 import ImportDatabase from "@/features/ImportDatabase/ui/ImportDatabase.vue";
+import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -73,7 +74,7 @@ const targetData = ref();
 const searchQuery = ref("");
 
 const currentPage = ref(1);
-const itemsPerPage = ref<number | null>(13); // Изменено на 13, чтобы быть по умолчанию
+const itemsPerPage = ref<number>(8); // Изменено на 13, чтобы быть по умолчанию
 
 const isSelectOpen = ref(false); // Добавляем реактивную переменную для отслеживания состояния select
 
@@ -143,14 +144,14 @@ const filteredData = computed(() => {
 });
 
 // Вычисляемое свойство для данных текущей страницы
-const paginatedData = computed(() => {
-  const actualItemsPerPage = itemsPerPage.value ?? 13; // Используем 13, если itemsPerPage равно null
-  const startIndex = (currentPage.value - 1) * actualItemsPerPage;
-  const endIndex = startIndex + actualItemsPerPage;
-  const result = filteredData.value.slice(startIndex, endIndex);
+// const paginatedData = computed(() => {
+//   const actualItemsPerPage = itemsPerPage.value ?? 13; // Используем 13, если itemsPerPage равно null
+//   const startIndex = (currentPage.value - 1) * actualItemsPerPage;
+//   const endIndex = startIndex + actualItemsPerPage;
+//   const result = filteredData.value.slice(startIndex, endIndex);
 
-  return result;
-});
+//   return result;
+// });
 
 // Вычисляемое свойство для общего количества страниц
 const totalPages = computed(() => {
@@ -404,12 +405,6 @@ const handleCreateModalWindow = () => {
   });
 };
 
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-  }
-};
-
 const firstPage = () => {
   currentPage.value = 1;
 };
@@ -420,12 +415,6 @@ const gotoPage = (page: number) => {
 
 const lastPage = () => {
   currentPage.value = totalPages.value;
-};
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-  }
 };
 
 const handleClick = (node: any) => {
@@ -509,10 +498,36 @@ const exportToExcel = () => {
 const filteredTreeData = computed(() => {
   if (!searchQuery.value) return data.value;
   const q = searchQuery.value.toLowerCase();
+
   return data.value.filter((item) =>
     Object.values(item).join(" ").toLowerCase().includes(q)
   );
 });
+
+const page = ref<number>(1);
+const perPage = ref<number>(9);
+
+// При изменении количества элементов на странице скидываем текущую страницу на начальную
+watch(perPage, () => {
+  page.value = 1;
+});
+
+const paginatedData = computed(() => {
+  const start = (page.value - 1) * perPage.value;
+  return filteredTreeData.value.slice(start, start + perPage.value);
+});
+
+function nextPage() {
+  if (page.value < Math.ceil(filteredData.value.length / perPage.value)) {
+    page.value++;
+  }
+}
+
+function prevPage() {
+  if (page.value > 1) {
+    page.value--;
+  }
+}
 
 const dropdownConfig = [
   { component: ExportDatabase },
@@ -561,6 +576,11 @@ const dropdownConfig = [
         </div>
         <div class="header__controls">
           <CustomDropdown
+            v-if="
+              userProfession === 'Администратор' ||
+              userProfession === 'Директор' ||
+              userProfession === 'Test'
+            "
             dropdown-title="Действия"
             :dropdown-items="dropdownConfig"
           />
@@ -618,6 +638,7 @@ const dropdownConfig = [
           </div>
           <div class="search-filter">
             <input
+              v-if="!treeviewTables.includes(currentSection)"
               type="text"
               placeholder="Поиск"
               class="search-input"
@@ -645,7 +666,7 @@ const dropdownConfig = [
                   :key="key"
                   style="position: relative"
                 >
-                  {{ key }}
+                  {{ fieldDictionary[key] }}
                   <button
                     @click.stop="toggleFilterDropdown(key)"
                     style="margin-left: 4px; cursor: pointer"
@@ -740,57 +761,64 @@ const dropdownConfig = [
         </div>
 
         <!-- Pagination -->
-        <div class="pagination">
-          <Button @click="currentPage--" :disabled="currentPage === 1">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="feather feather-chevron-left"
+        <div v-if="!treeviewTables.includes(currentSection)" class="pagination">
+          <button
+            class="pagination__btn"
+            @click="prevPage"
+            :disabled="page === 1"
+          >
+            ← Назад
+          </button>
+          <span class="pagination__text"
+            >Страница {{ page }} из
+            {{ Math.ceil(filteredData.length / perPage) }}
+          </span>
+          <button
+            class="pagination__btn"
+            @click="nextPage"
+            :disabled="page === Math.ceil(filteredData.length / perPage)"
+          >
+            Вперёд →
+          </button>
+          <div class="pagination__itemsPerPage">
+            <label class="pagination__itemsPerPage__label" for="itemsPerPage"
+              >Элементов на странице:</label
             >
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-          </Button>
-          <span>Страница {{ currentPage }} из {{ totalPages }}</span>
-          <Button @click="currentPage++" :disabled="currentPage === totalPages">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="feather feather-chevron-right"
+            <div
+              class="pagination__itemsPerPage__selectWrapper"
+              :class="{ open: isSelectOpen }"
             >
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </Button>
-          <div class="items-per-page">
-            <label for="itemsPerPage">Элементов на странице:</label>
-            <div class="select-wrapper" :class="{ open: isSelectOpen }">
               <select
+                class="pagination__itemsPerPage__selectWrapper__select"
                 id="itemsPerPage"
-                v-model="itemsPerPage"
-                @focus="isSelectOpen = true"
-                @blur="isSelectOpen = false"
+                v-model="perPage"
                 @change="
                   isSelectOpen = false;
                   currentPage = 1;
                 "
               >
-                <option :value="null"></option>
-                <option :value="5">5</option>
-                <option :value="15">15</option>
-                <option :value="35">35</option>
+                <option
+                  class="pagination__itemsPerPage__selectWrapper__select__option"
+                  :value="9"
+                ></option>
+                <option
+                  class="pagination__itemsPerPage__selectWrapper__select__option"
+                  :value="5"
+                >
+                  5
+                </option>
+                <option
+                  class="pagination__itemsPerPage__selectWrapper__select__option"
+                  :value="20"
+                >
+                  20
+                </option>
+                <option
+                  class="pagination__itemsPerPage__selectWrapper__select__option"
+                  :value="35"
+                >
+                  35
+                </option>
               </select>
             </div>
           </div>

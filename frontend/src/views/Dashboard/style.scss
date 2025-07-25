@@ -288,87 +288,6 @@
   display: block; /* Чтобы можно было центрировать, если нужно */
 }
 
-.pagination {
-  display: flex;
-  justify-content: space-between; /* Распределяем элементы по краям */
-  align-items: center;
-  margin-top: 20px; /* Отступ сверху от таблицы */
-  padding: 10px 0;
-  border-top: 1px solid #eee;
-
-  .button {
-    background-color: #f4f4f4;
-    color: #555;
-    border: 1px solid #ddd;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1.5em;
-    display: flex; /* Делаем кнопку flex-контейнером */
-    align-items: center; /* Выравниваем элементы по центру вертикали */
-    justify-content: center; /* Выравниваем элементы по центру горизонтали */
-
-    svg {
-      width: 1.5em; /* Задаем размер SVG */
-      height: 1.5em;
-      stroke: #555; /* Цвет стрелки */
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-
-  span {
-    font-size: 1.5em;
-    color: #666;
-  }
-
-  .items-per-page {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    label {
-      font-size: 1.5em;
-      color: #666;
-    }
-
-    select {
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 1.5em;
-      cursor: pointer;
-      background-color: #fff;
-      appearance: none; /* Убираем стандартный системный стиль для select */
-      min-width: 60px; /* Минимальная ширина для отображения всех чисел */
-      box-sizing: border-box; /* Включаем padding в общую ширину */
-    }
-
-    .select-wrapper {
-      position: relative;
-      display: inline-block; /* Для корректного позиционирования ::after */
-      vertical-align: middle; /* Для выравнивания с label */
-
-      /* &::after {
-        content: '▼';
-        position: absolute;
-        right: 8px;
-        top: 50%;
-        transform: translateY(-50%);
-        pointer-events: none;
-        transition: transform 0.2s ease;
-      } */
-
-      /* &.open::after {
-        transform: translateY(-50%) rotate(180deg);
-      } */
-    }
-  }
-}
-
 .avatar-container {
   position: relative; /* Для позиционирования input */
   display: inline-block; /* Чтобы контейнер занимал только нужное место */
@@ -410,5 +329,45 @@
   }
   .user-info {
     // ... existing code ...
+  }
+}
+
+.pagination {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+
+  &__btn {
+    font-size: 1.5rem;
+    border: none;
+    outline: none;
+    padding: 1rem 1rem;
+  }
+
+  &__text {
+    font-size: 1.25rem;
+  }
+
+  &__itemsPerPage {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+
+    &__label {
+      font-size: 1.5rem;
+      margin: 0;
+    }
+
+    &__selectWrapper {
+      &__select {
+        padding: 1rem 2rem;
+
+        &__option {
+          font-size: 1.25rem;
+        }
+      }
+    }
   }
 }

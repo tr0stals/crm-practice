@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, onUnmounted, computed } from "vue";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import Tree from "primevue/tree";
 import { useRouter } from "vue-router";
 import "../style.scss";
 import { useGlobalStore } from "@/shared/store/globalStore";
 import { getTreeviewData } from "@/shared/ui/CustomTreeview/utils/getTreeviewData";
+import handlePagination from "@/shared/utils/handlePagination";
+import Pagination from "../../Pagination/ui/Pagination.vue";
 
 const props = defineProps<{
   currentSection: string;
@@ -23,6 +25,9 @@ const importInput = ref(null);
 const router = useRouter();
 const expandedKeys = ref({});
 const globalStore = useGlobalStore();
+const paginatedData = ref<any>();
+const temp = ref<any>();
+const isSelectOpen = ref(false);
 
 interface TreeNode {
   id: number;
@@ -44,7 +49,28 @@ async function fetchComponents() {
 
   // treeData.value = buildTree(data);
   const node = getTreeviewData(response.data);
+
   treeData.value = node.children || [];
+}
+
+const page = ref<number>(1);
+const perPage = ref<number>(10);
+
+const paginatedTreeData = computed(() => {
+  const start = (page.value - 1) * perPage.value;
+  return treeData.value.slice(start, start + perPage.value);
+});
+
+function nextPage() {
+  if (page.value < Math.ceil(treeData.value.length / perPage.value)) {
+    page.value++;
+  }
+}
+
+function prevPage() {
+  if (page.value > 1) {
+    page.value--;
+  }
 }
 
 defineExpose({
@@ -100,7 +126,7 @@ watch(
 <template>
   <template v-if="treeData">
     <Tree
-      :value="treeData"
+      :value="paginatedTreeData"
       selectionMode="single"
       class="treeview"
       v-model:selectionKey="selectedKey"
@@ -127,6 +153,63 @@ watch(
         </div>
       </template>
     </Tree>
+    <div class="pagination">
+      <button class="pagination__btn" @click="prevPage" :disabled="page === 1">
+        ← Назад
+      </button>
+      <span class="pagination__text"
+        >Страница {{ page }} из {{ Math.ceil(treeData.length / perPage) }}</span
+      >
+      <button
+        class="pagination__btn"
+        @click="nextPage"
+        :disabled="page === Math.ceil(treeData.length / perPage)"
+      >
+        Вперёд →
+      </button>
+      <div class="pagination__itemsPerPage">
+        <label class="pagination__itemsPerPage__label" for="itemsPerPage"
+          >Элементов на странице:</label
+        >
+        <div
+          class="pagination__itemsPerPage__selectWrapper"
+          :class="{ open: isSelectOpen }"
+        >
+          <select
+            class="pagination__itemsPerPage__selectWrapper__select"
+            id="itemsPerPage"
+            v-model="perPage"
+            @change="
+              isSelectOpen = false;
+              page = 1;
+            "
+          >
+            <option
+              class="pagination__itemsPerPage__selectWrapper__select__option"
+              :value="9"
+            ></option>
+            <option
+              class="pagination__itemsPerPage__selectWrapper__select__option"
+              :value="5"
+            >
+              5
+            </option>
+            <option
+              class="pagination__itemsPerPage__selectWrapper__select__option"
+              :value="20"
+            >
+              20
+            </option>
+            <option
+              class="pagination__itemsPerPage__selectWrapper__select__option"
+              :value="35"
+            >
+              35
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
   </template>
   <template v-else>
     <h1>Нет данных для отображения</h1>
