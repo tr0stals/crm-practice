@@ -3,7 +3,7 @@ import type { IEdittingProps } from "@/shared/config/IEdittingProps";
 import "../style.scss";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import Button from "@/shared/ui/Button/ui/Button.vue";
-import { onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { EditModalWindowModel } from "../model/EditModalWindowModel";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import VueDatePicker from "@vuepic/vue-datepicker";
@@ -11,6 +11,8 @@ import "@vuepic/vue-datepicker/dist/main.css";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { relationMap } from "@/shared/config/relationMap";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
+import useFetch from "@/shared/lib/useFetch";
+import { defaultEndpoint } from "@/shared/api/axiosInstance";
 
 const data = ref<any>();
 const formData = ref<any>({});
@@ -26,12 +28,13 @@ const props = defineProps<{
 
 const emits = defineEmits(["close", "save"]);
 
-const { sectionName, entityId } = props?.config;
+const sectionName = computed(() => props.config?.sectionName);
+const entityId = computed(() => props.config?.entityId);
 // const { licenseTypeId, ...originalData } = props.config?.data;
 
 function isDateField(key: any) {
   const lower = key.toLowerCase();
-  console.debug(lower);
+
   return (
     lower.includes("date") ||
     lower === "start" ||
@@ -74,10 +77,13 @@ onMounted(async () => {
   model = new EditModalWindowModel(props.onApplyCallback);
 
   // получаем конкретную запись по ID
+  console.debug("!!!", sectionName);
+  console.debug("!!!", entityId);
   const response = await getDataAsync({
-    endpoint: `${sectionName}/get/${entityId}`,
+    endpoint: `/${sectionName.value}/get/${entityId.value}`,
   });
-  console.debug(response.data);
+
+  console.debug(response);
 
   data.value = response.data;
   formData.value = { ...response.data };

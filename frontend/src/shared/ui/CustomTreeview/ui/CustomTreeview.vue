@@ -4,12 +4,12 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import Tree from "primevue/tree";
 import { useRouter } from "vue-router";
 import "../style.scss";
-import { useGlobalStore } from "@/shared/store/globalStore";
 import { getTreeviewData } from "@/shared/ui/CustomTreeview/utils/getTreeviewData";
 import handlePagination from "@/shared/utils/handlePagination";
 import Pagination from "../../Pagination/ui/Pagination.vue";
 import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
+import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 
 const props = defineProps<{
   currentSection: string;
@@ -24,7 +24,7 @@ const emit = defineEmits<{
 const treeData = ref<any[]>([]);
 const selectedKey = ref(null);
 const expandedKeys = ref<any>({});
-const globalStore = useGlobalStore();
+const navigationStore = useNavigationStore();
 const isSelectOpen = ref(false);
 
 interface TreeNode {
@@ -37,6 +37,7 @@ interface TreeNode {
   isProduct?: boolean; // Флаг для товаров
   level: any;
 }
+console.debug(props.currentSection);
 
 const { data, error, loading, canAbort, abort, refetch } = useFetch<TreeNode[]>(
   `${defaultEndpoint}/${props.currentSection}/tree`,
@@ -50,6 +51,7 @@ watch(data, (val) => {
   if (val) {
     const root = getTreeviewData(val);
     treeData.value = root.children || [];
+    console.debug(treeData.value);
   }
 });
 
@@ -84,7 +86,6 @@ defineExpose({
 
 function onNodeSelect(event: any) {
   selectedKey.value = event.key;
-  globalStore.setCurrentSection(event.data.nodeType);
 
   emit("node-select", event);
 }

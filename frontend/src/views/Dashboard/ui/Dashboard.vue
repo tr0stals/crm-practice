@@ -24,7 +24,6 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import type { IAuthorizedUser } from "../interface/IAuthorizedUser";
 import { roleTables } from "@/shared/config/rolesTables";
 import { MoreDetailsCollapseModel } from "@/widgets/MoreDetailsCollapse/model/MoreDetailsCollapseModel";
-import { useGlobalStore } from "@/shared/store/globalStore";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { treeviewTables } from "@/shared/config/treeviewTables";
 import WelcomeBanner from "@/widgets/WelcomeBanner/ui/WelcomeBanner.vue";
@@ -36,10 +35,14 @@ import CustomDropdown from "@/shared/ui/CustomDropdown/ui/CustomDropdown.vue";
 import ExportDatabase from "@/features/ExportDatabase/ui/ExportDatabase.vue";
 import ImportDatabase from "@/features/ImportDatabase/ui/ImportDatabase.vue";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
+import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
+import NavigationSidebar from "@/widgets/NavigationSidebar/ui/NavigationSidebar.vue";
+import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 
 const authStore = useAuthStore();
 const router = useRouter();
-const globalStore = useGlobalStore();
+const authorizedUserStore = useAuthorizedUserStore();
+const navigationStore = useNavigationStore();
 
 /**
  * Данные, которые отображаются в таблице
@@ -143,16 +146,6 @@ const filteredData = computed(() => {
   });
 });
 
-// Вычисляемое свойство для данных текущей страницы
-// const paginatedData = computed(() => {
-//   const actualItemsPerPage = itemsPerPage.value ?? 13; // Используем 13, если itemsPerPage равно null
-//   const startIndex = (currentPage.value - 1) * actualItemsPerPage;
-//   const endIndex = startIndex + actualItemsPerPage;
-//   const result = filteredData.value.slice(startIndex, endIndex);
-
-//   return result;
-// });
-
 // Вычисляемое свойство для общего количества страниц
 const totalPages = computed(() => {
   const actualItemsPerPage = itemsPerPage.value ?? 13; // Используем 13, если itemsPerPage равно null
@@ -180,8 +173,9 @@ const logout = () => {
 
 async function getCurrentData() {
   const config: IData = {
-    endpoint: `/${globalStore.currentSection}/generateData`,
+    endpoint: `/${navigationStore.currentSection}/generateData`,
   };
+  console.debug(config.endpoint);
 
   try {
     const response = await getDataAsync(config);
@@ -202,10 +196,13 @@ async function getCurrentData() {
   }
 }
 
-watch(selectedRow, (newVal) => {
-  globalStore.setSelectedRow(newVal);
-  console.debug("selectedRow", globalStore.selectedRow);
-});
+watch(
+  () => navigationStore.selectedRow,
+  (newVal) => {
+    selectedRow.value = newVal;
+    console.debug("selectedRow", navigationStore.selectedRow);
+  }
+);
 
 async function onUpdateCallBack() {
   await getCurrentData();
@@ -217,16 +214,18 @@ async function onUpdateCallBack() {
  *  или при двойном клике на ячейку в таблице.
  */
 function handleEditModalWindow() {
+  const sectionName = navigationStore.selectedRow.data.nodeType;
+  const entityId = navigationStore.selectedRow?.data.id;
+
   const cfg: IEdittingProps = {
-    sectionName: globalStore.currentSection,
-    entityId: globalStore.selectedRow?.id,
+    sectionName: sectionName,
+    entityId: entityId,
   };
 
   if (!cfg.entityId) {
     alert("Выберите строку для редактирования");
     return;
   }
-  console.debug(cfg);
 
   ModalManager.getInstance().open(EditModalWindow, {
     config: cfg,
@@ -234,10 +233,13 @@ function handleEditModalWindow() {
   });
 }
 
-watch(currentSection, (newVal) => {
-  console.debug(newVal);
-  globalStore.currentSection = newVal;
-});
+watch(
+  () => navigationStore.currentSection,
+  (newVal) => {
+    currentSection.value = newVal;
+    console.debug(currentSection.value);
+  }
+);
 
 const currentDateTime = ref("");
 
@@ -260,15 +262,17 @@ onMounted(async () => {
   getSectionList();
 
   const { user } = await getUserInfoAsync();
-  console.debug(user);
+
   authorizedUser.value = {
     user: user,
   };
 
   if (user) {
-    userFirstName.value = user.employees.peoples.firstName;
-    userLastName.value = user.employees.peoples.lastName;
-    userProfession.value = user.employeeProfession.professions.title;
+    authorizedUserStore.setUser({
+      firstName: user.employees.peoples.firstName,
+      lastName: user.employees.peoples.lastName,
+      professionTitle: user.employeeProfession.professions.title,
+    });
   }
 
   updateTime();
@@ -278,7 +282,9 @@ onMounted(async () => {
   localizatedSections.value = localizatedSectionsList;
 
   const tables = roleTables
-    .filter((item) => item.profession === userProfession.value)
+    .filter(
+      (item) => item.profession === authorizedUserStore.user?.professionTitle
+    )
     .map((item) => item.tables)
     .flat();
 
@@ -288,20 +294,23 @@ onMounted(async () => {
   });
 });
 
-watch(currentSection, async (oldVal: string, newSection: string) => {
-  targetData.value = null;
-  treeviewData.value = [];
-  currentPage.value = 1;
+watch(
+  () => navigationStore.currentSection,
+  async (oldVal: string, newSection: string) => {
+    targetData.value = null;
+    treeviewData.value = [];
+    currentPage.value = 1;
 
-  showTableContainer.value = false;
-  await nextTick();
-  await getCurrentData();
-  showTableContainer.value = true;
-  console.debug(
-    `Section changed to ${newSection}. Data after update:`,
-    data.value
-  );
-});
+    showTableContainer.value = false;
+    await nextTick();
+    await getCurrentData();
+    showTableContainer.value = true;
+    console.debug(
+      `Section changed to ${newSection}. Data after update:`,
+      data.value
+    );
+  }
+);
 
 watch(itemsPerPage, () => {
   currentPage.value = 1;
@@ -340,7 +349,7 @@ function handleClickOutside(event: MouseEvent) {
 }
 
 function handleSelectRow(item: any) {
-  selectedRow.value = item;
+  navigationStore.setSelectedRow(item);
 }
 
 const handleAvatarUpload = (event: Event) => {
@@ -372,15 +381,18 @@ const refreshUsers = async () => {
 
 // Функция для удаления пользователя
 const handleDeleteRow = async () => {
-  if (!globalStore.selectedRow || !globalStore.selectedRow?.id) {
+  if (!navigationStore.selectedRow || !navigationStore.selectedRow?.id) {
     alert("Выберите запись для удаления");
     return;
   }
 
-  console.debug(globalStore.selectedRow, globalStore.selectedRow?.id);
+  console.debug(navigationStore.selectedRow, navigationStore.selectedRow?.id);
 
   try {
-    await deleteDataAsync(globalStore.selectedRow?.id, currentSection.value);
+    await deleteDataAsync(
+      navigationStore.selectedRow?.id,
+      currentSection.value
+    );
     getCurrentData();
   } catch (e) {
     alert("Ошибка при удалении записи");
@@ -542,22 +554,7 @@ const dropdownConfig = [
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="logo">А ПРАКТИКУМ</div>
-      <nav class="menu">
-        <ul>
-          <li
-            v-for="section in sectionsList"
-            :data-js-sectionName="section"
-            @click="currentSection = section"
-          >
-            {{ localizatedSectionsList[section] }}
-          </li>
-          <template
-            v-if="userProfession === 'Снабженец' || userProfession === 'Test'"
-          >
-            <li @click="currentSection = 'warehouse_components'">Склад</li>
-          </template>
-        </ul>
-      </nav>
+      <NavigationSidebar :sections-list="sectionsList" />
     </aside>
 
     <!-- Main Content Area -->
@@ -568,20 +565,21 @@ const dropdownConfig = [
           <AvatarIcon class="avatar" />
           <div>
             <div class="user-fullname">
-              {{ userFirstName }} {{ userLastName }}
+              {{ authorizedUserStore.user?.firstName }}
+              {{ authorizedUserStore.user?.lastName }}
             </div>
             <div class="user-details">{{ currentDateTime }}</div>
             <div class="user-details">
-              {{ userProfession }}
+              {{ authorizedUserStore.user?.professionTitle }}
             </div>
           </div>
         </div>
         <div class="header__controls">
           <CustomDropdown
             v-if="
-              userProfession === 'Администратор' ||
-              userProfession === 'Директор' ||
-              userProfession === 'Test'
+              authorizedUserStore.user?.professionTitle === 'Администратор' ||
+              authorizedUserStore.user?.professionTitle === 'Директор' ||
+              authorizedUserStore.user?.professionTitle === 'Test'
             "
             dropdown-title="Действия"
             :dropdown-items="dropdownConfig"
@@ -603,9 +601,12 @@ const dropdownConfig = [
         <div class="controls">
           <div
             v-if="
-              userProfession.toLowerCase() === 'test' ||
-              userProfession.toLowerCase() === 'Администратор' ||
-              userProfession.toLowerCase() === 'Директор'
+              authorizedUserStore.user?.professionTitle.toLowerCase() ===
+                'test' ||
+              authorizedUserStore.user?.professionTitle.toLowerCase() ===
+                'Администратор' ||
+              authorizedUserStore.user?.professionTitle.toLowerCase() ===
+                'Директор'
             "
             class="action-buttons"
           >
@@ -655,7 +656,7 @@ const dropdownConfig = [
           <template v-if="treeviewTables.includes(currentSection)">
             <CustomTreeview
               ref="treeviewRef"
-              :current-section="globalStore.currentSection"
+              :current-section="currentSection"
               @node-select="handleSelectRow"
             />
           </template>

@@ -4,7 +4,6 @@ import { ref } from "vue";
 import { useAuthStore } from "@/shared/store/auth.store";
 import { useRouter } from "vue-router";
 import { loginApi } from "../api/loginApi";
-import { useUserStore } from "@/shared/store/user.store";
 import { useToast } from "vue-toastification";
 
 const userName = ref("");
