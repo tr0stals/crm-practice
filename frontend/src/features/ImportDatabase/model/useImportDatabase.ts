@@ -11,13 +11,12 @@ export default function useImportDatabase() {
     loading.value = true;
 
     try {
-      const result = await importDatabase(selectedFile.value);
-      console.log("Импорт завершён:", result);
-      alert(`Импорт завершён`);
+      await importDatabase(selectedFile.value);
     } catch (e) {
       alert("Ошибка при импорте базы");
     } finally {
       loading.value = false;
+      alert(`Импорт завершён`);
     }
   };
 

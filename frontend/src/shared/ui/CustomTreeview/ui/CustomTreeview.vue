@@ -8,6 +8,8 @@ import { useGlobalStore } from "@/shared/store/globalStore";
 import { getTreeviewData } from "@/shared/ui/CustomTreeview/utils/getTreeviewData";
 import handlePagination from "@/shared/utils/handlePagination";
 import Pagination from "../../Pagination/ui/Pagination.vue";
+import useFetch from "@/shared/lib/useFetch";
+import { defaultEndpoint } from "@/shared/api/axiosInstance";
 
 const props = defineProps<{
   currentSection: string;
@@ -21,12 +23,8 @@ const emit = defineEmits<{
 
 const treeData = ref<any[]>([]);
 const selectedKey = ref(null);
-const importInput = ref(null);
-const router = useRouter();
-const expandedKeys = ref({});
+const expandedKeys = ref<any>({});
 const globalStore = useGlobalStore();
-const paginatedData = ref<any>();
-const temp = ref<any>();
 const isSelectOpen = ref(false);
 
 interface TreeNode {
@@ -40,25 +38,28 @@ interface TreeNode {
   level: any;
 }
 
-onMounted(fetchComponents);
+const { data, error, loading, canAbort, abort, refetch } = useFetch<TreeNode[]>(
+  `${defaultEndpoint}/${props.currentSection}/tree`,
+  {
+    immediate: true,
+    timeout: 3000,
+  }
+);
 
-async function fetchComponents() {
-  const response = await getDataAsync({
-    endpoint: `/${props.currentSection}/tree`,
-  });
-
-  // treeData.value = buildTree(data);
-  const node = getTreeviewData(response.data);
-
-  treeData.value = node.children || [];
-}
+watch(data, (val) => {
+  if (val) {
+    const root = getTreeviewData(val);
+    treeData.value = root.children || [];
+  }
+});
 
 const page = ref<number>(1);
 const perPage = ref<number>(10);
 
 const paginatedTreeData = computed(() => {
   const start = (page.value - 1) * perPage.value;
-  return treeData.value.slice(start, start + perPage.value);
+
+  return treeData.value.slice(start, start + perPage.value) || [];
 });
 
 function nextPage() {
@@ -67,6 +68,10 @@ function nextPage() {
   }
 }
 
+watch(expandedKeys, (newVal) => {
+  console.debug(newVal);
+});
+
 function prevPage() {
   if (page.value > 1) {
     page.value--;
@@ -74,14 +79,13 @@ function prevPage() {
 }
 
 defineExpose({
-  refreshTree: fetchComponents,
+  refreshTree: refetch,
 });
 
 function onNodeSelect(event: any) {
   selectedKey.value = event.key;
   globalStore.setCurrentSection(event.data.nodeType);
 
-  console.debug(globalStore.currentSection);
   emit("node-select", event);
 }
 
@@ -121,15 +125,33 @@ watch(
   },
   { immediate: true }
 );
+
+function toggleExpand(node: any) {
+  const key = node.key;
+  const isExpanded = expandedKeys.value[key];
+
+  if (node.leaf) return; // Не раскрываем листы
+
+  if (isExpanded) {
+    delete expandedKeys.value[key];
+  } else {
+    expandedKeys.value[key] = true;
+  }
+  console.debug(expandedKeys.value);
+}
 </script>
 
 <template>
-  <template v-if="treeData">
+  <template v-if="loading">
+    <div class="spinner-border spinner" role="status"></div>
+  </template>
+  <template v-else-if="treeData">
     <Tree
       :value="paginatedTreeData"
       selectionMode="single"
       class="treeview"
       v-model:selectionKey="selectedKey"
+      v-model:expandedKeys="expandedKeys"
       @node-select="onNodeSelect"
       :pt="{
         root: { class: 'treeview__root' },
@@ -146,7 +168,10 @@ watch(
       :pt-options="{ mergeProps: true }"
     >
       <template #default="slotProps">
-        <div class="treeview__data__wrapper">
+        <div
+          class="treeview__data__wrapper"
+          @click="toggleExpand(slotProps.node)"
+        >
           <span class="treeview__data__label">
             {{ slotProps.node.label }}
           </span>

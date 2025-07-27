@@ -40,6 +40,6 @@ const handleFileChange = async (e: Event) => {
     id="inputGroupFileAddon04"
     @click="triggerFileSelect"
   >
-    Импортировать
+    Импортировать таблицу
   </Button>
 </template>

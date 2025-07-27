@@ -26,21 +26,26 @@ const handleFileChange = async (e: Event) => {
 </script>
 
 <template>
-  <input
-    ref="fileInput"
-    type="file"
-    class="importTableButton__input"
-    id="inputGroupFile04"
-    aria-describedby="inputGroupFileAddon04"
-    aria-label="Upload"
-    @change="handleFileChange"
-  />
-  <Button
-    class="importTableButton__button"
-    type="button"
-    id="inputGroupFileAddon04"
-    @click="triggerFileSelect"
-  >
-    Импорт БД
-  </Button>
+  <template v-if="loading">
+    <div class="spinner-border spinner" role="status"></div>
+  </template>
+  <template v-else>
+    <input
+      ref="fileInput"
+      type="file"
+      class="importTableButton__input"
+      id="inputGroupFile04"
+      aria-describedby="inputGroupFileAddon04"
+      aria-label="Upload"
+      @change="handleFileChange"
+    />
+    <Button
+      class="importTableButton__button"
+      type="button"
+      id="inputGroupFileAddon04"
+      @click="triggerFileSelect"
+    >
+      Импорт БД
+    </Button>
+  </template>
 </template>

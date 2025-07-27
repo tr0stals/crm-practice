@@ -204,7 +204,7 @@ async function getCurrentData() {
 
 watch(selectedRow, (newVal) => {
   globalStore.setSelectedRow(newVal);
-  console.debug(globalStore.selectedRow);
+  console.debug("selectedRow", globalStore.selectedRow);
 });
 
 async function onUpdateCallBack() {
@@ -309,7 +309,9 @@ watch(itemsPerPage, () => {
 
 const currentTableHeaders = computed(() => {
   if (data.value && data.value.length > 0) {
-    return Object.keys(data.value[0]).filter((item) => item !== "id");
+    return Object.keys(data.value[0]).filter(
+      (item) => item !== "id" && item !== "parentId"
+    );
   }
 });
 

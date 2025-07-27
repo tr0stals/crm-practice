@@ -31,10 +31,12 @@ const { sectionName, entityId } = props?.config;
 
 function isDateField(key: any) {
   const lower = key.toLowerCase();
+  console.debug(lower);
   return (
     lower.includes("date") ||
     lower === "start" ||
     lower === "end" ||
+    lower === "manufacturetime" ||
     lower === "timeout"
   );
 }
@@ -44,6 +46,7 @@ function isObjectField(value: any) {
 }
 
 const getInputType = (key: string, value: any): string => {
+  if (value === "isCompleted") return "checkbox";
   if (typeof value === "boolean") return "checkbox";
   if (typeof value === "number") return "number";
   if (isObjectField(value)) return "select";

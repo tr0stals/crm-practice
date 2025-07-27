@@ -1,9 +1,10 @@
 import type { TreeNode } from "primevue/treenode";
 
 export const getTreeviewData = (node: any, level = 0): TreeNode => {
+  console.debug("level", level);
   const treeNode: TreeNode = {
     id: node.id,
-    key: `node-${node.id || Math.random().toString(36).substring(2, 9)}`,
+    key: `node-${Math.random().toString(36).substring(2, 9)}`,
     label: node.name || node.title,
     data: node,
     level,

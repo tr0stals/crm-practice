@@ -56,8 +56,12 @@
 
       &__inputControls {
         display: flex;
+        gap: 3rem;
         border: none;
         outline: none;
+
+        &__btn {
+        }
       }
 
       &__inputControls .active {
