@@ -26,6 +26,7 @@ const selectedKey = ref(null);
 const expandedKeys = ref<any>({});
 const navigationStore = useNavigationStore();
 const isSelectOpen = ref(false);
+const selectedSection = ref("");
 
 interface TreeNode {
   id: number;
@@ -86,6 +87,8 @@ defineExpose({
 
 function onNodeSelect(event: any) {
   selectedKey.value = event.key;
+  console.debug(event);
+  selectedSection.value = event.data.nodeType;
 
   emit("node-select", event);
 }

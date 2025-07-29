@@ -36,8 +36,11 @@ import ExportDatabase from "@/features/ExportDatabase/ui/ExportDatabase.vue";
 import ImportDatabase from "@/features/ImportDatabase/ui/ImportDatabase.vue";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
-import NavigationSidebar from "@/widgets/NavigationSidebar/ui/NavigationSidebar.vue";
+import NavigationSidebar from "@/features/NavigationSidebar/ui/NavigationSidebar.vue";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import RelatedTablesSidebar from "@/widgets/RelatedTablesSidebar/ui/RelatedTablesSidebar.vue";
+import { relatedTables } from "@/shared/config/relatedTables";
+import { filter } from "@primeuix/themes/aura/datatable";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -67,6 +70,7 @@ const selectedRow = ref();
  * Наполняем этот массив по ходу
  */
 const sectionsList = ref<any[]>([]);
+
 /**
  * Текущая секция
  */
@@ -214,13 +218,25 @@ async function onUpdateCallBack() {
  *  или при двойном клике на ячейку в таблице.
  */
 function handleEditModalWindow() {
-  const sectionName = navigationStore.selectedRow.data.nodeType;
-  const entityId = navigationStore.selectedRow?.data.id;
+  /*
+   *  Не удалять комментарий, чтобы не забыть логику выбора sectionName!!!
+   *
+   *  Цель: узнать, какую текущую секцию передавать в EditModalWindow.
+   *  Логика: 1. если это Treeview - тогда выбранная строка имеет объект data - следовательно, мы выбираем ..data.nodeType
+   *          2. если это табличная сущность - у нее нет объекта data, следовательно, передаем navigationStore.currentSection
+   *
+   * Желательно не трогать, иначе можно получить ошибки при открытии модалки редактирования
+   */
+  const sectionName = navigationStore.selectedRow.data
+    ? navigationStore.selectedRow.data?.nodeType
+    : navigationStore.currentSection;
+  const entityId = navigationStore.selectedRow?.id;
 
   const cfg: IEdittingProps = {
     sectionName: sectionName,
     entityId: entityId,
   };
+  console.debug(cfg);
 
   if (!cfg.entityId) {
     alert("Выберите строку для редактирования");
@@ -290,7 +306,7 @@ onMounted(async () => {
 
   sectionsList.value = tables;
   sectionsList.value = sectionsList.value.map((item) => {
-    return item;
+    return Object.keys(relatedTables).filter((table: any) => item === table);
   });
 });
 
@@ -452,61 +468,6 @@ const handleMoreDetails = () => {
   };
 
   MoreDetailsCollapseModel.getInstance(config);
-};
-
-const exportToCSV = () => {
-  const headers = Object.keys(filteredData.value[0]).join(",");
-  const rows = filteredData.value.map((row) =>
-    Object.values(row)
-      .map((value) => {
-        // Экранирование значений для CSV:
-        // если значение содержит запятую, кавычки или перевод строки,
-        // заключаем его в двойные кавычки и удваиваем внутренние двойные кавычки.
-        if (value === null || value === undefined) {
-          return "";
-        }
-        let stringValue = String(value);
-        if (
-          stringValue.includes(",") ||
-          stringValue.includes('"') ||
-          stringValue.includes("\n") ||
-          stringValue.includes("\r")
-        ) {
-          return `"${stringValue.replace(/"/g, '""')}"`;
-        }
-        return stringValue;
-      })
-      .join(",")
-  );
-
-  const csvContent = "\uFEFF" + [headers, ...rows].join("\n"); // Добавляем BOM для корректного отображения кириллицы
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.setAttribute("download", "data.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-const exportToExcel = () => {
-  if (!filteredData.value.length) {
-    alert("Нет данных для экспорта.");
-    return;
-  }
-
-  const header = Object.keys(filteredData.value[0]);
-  const data = filteredData.value.map((row) =>
-    header.reduce((obj: Record<string, any>, key) => {
-      obj[key] = row[key];
-      return obj;
-    }, {})
-  );
-
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-  XLSX.writeFile(wb, "data.xlsx");
 };
 
 const filteredTreeData = computed(() => {
@@ -739,7 +700,7 @@ const dropdownConfig = [
                 v-for="(item, index) in paginatedData"
                 :data-js-section-data="JSON.stringify(item)"
                 :key="item.id || index"
-                @click="selectedRow = item"
+                @click="navigationStore.selectedRow = item"
                 @dblclick="handleEditModalWindow"
                 :class="{
                   'selected-row': String(selectedRow?.id) === String(item.id),

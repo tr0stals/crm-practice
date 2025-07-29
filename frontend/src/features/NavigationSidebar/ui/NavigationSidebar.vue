@@ -7,28 +7,32 @@ import { useSectionSelect } from "../model/useSectionSelect";
 import { useIsWarehouseVisible } from "../model/useIsWarehouseVisible";
 
 const props = defineProps<{
-  sectionsList: string[];
+  sectionsList: any;
 }>();
 
 const navigationStore = useNavigationStore();
 const { handleSelect } = useSectionSelect();
-const isWarehouseVisible = useIsWarehouseVisible();
+// const isWarehouseVisible = useIsWarehouseVisible();
 </script>
 <template>
-  <nav class="menu">
-    <ul>
+  <nav class="navigationSidebar">
+    <ul class="navigationSidebar__menu">
       <li
+        class="navigationSidebar__menu__item"
         v-for="section in props.sectionsList"
         :data-js-sectionName="section"
         @click="handleSelect(section)"
       >
         {{ localizatedSectionsList[section] }}
       </li>
-      <template v-if="isWarehouseVisible">
-        <li @click="navigationStore.currentSection = 'warehouse_components'">
+      <!-- <template v-if="isWarehouseVisible">
+        <li
+          class="navigationSidebar__menu__item"
+          @click="navigationStore.currentSection = 'warehouse_components'"
+        >
           Склад
         </li>
-      </template>
+      </template> -->
     </ul>
   </nav>
 </template>

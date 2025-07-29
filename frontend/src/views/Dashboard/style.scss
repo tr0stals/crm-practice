@@ -14,6 +14,8 @@
   border-right: 1px solid #e0e0e0; /* Разделитель между сайдбаром и контентом */
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  gap: 3rem;
 }
 
 .logo {
@@ -22,50 +24,6 @@
   margin-bottom: 40px; /* Увеличил отступ после логотипа */
   color: #0056b3; /* Примерный синий цвет по изображению */
   text-align: center; /* Центрировал логотип */
-}
-
-.menu {
-  // height: 50%;
-  overflow-y: auto;
-}
-
-.menu ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.menu li {
-  margin-bottom: 5px;
-  padding: 0; /* Убираем padding у li */
-  cursor: pointer;
-  border-radius: 4px;
-  color: #333;
-  font-size: 1.9em;
-}
-
-.menu li:hover {
-  background-color: transparent; /* Убираем фон при наведении на родительский li */
-}
-
-.menu li .dropdown-icon {
-  float: right;
-  font-size: 0.8em;
-  color: #666;
-  transition: transform 0.3s ease; /* Добавляем плавный переход */
-}
-
-.menu li .dropdown-icon.rotated {
-  transform: rotate(180deg); /* Поворачиваем на 180 градусов */
-}
-
-.menu-item-with-dropdown {
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 10px; /* Оставляем padding здесь для кликаемой области */
-  margin: 0; /* Убираем отрицательный margin */
 }
 
 .dropdown-menu {
