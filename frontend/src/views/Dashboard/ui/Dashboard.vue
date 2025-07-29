@@ -306,7 +306,7 @@ onMounted(async () => {
 
   sectionsList.value = tables;
   sectionsList.value = sectionsList.value.map((item) => {
-    return Object.keys(relatedTables).filter((table: any) => item === table);
+    return item;
   });
 });
 
