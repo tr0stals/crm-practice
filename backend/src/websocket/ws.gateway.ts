@@ -42,12 +42,18 @@ export class WsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // Отправить уведомление конкретному пользователю
   sendNotification(userId: string, message: string, type: string = 'info') {
     console.log(`[WS] sendNotification userId=${userId}, message=${message}, type=${type}`);
+    // console.log(`[WS] userClients size: ${this.userClients.size}, has userId: ${this.userClients.has(userId)}`);
+    
     const clients = this.userClients.get(userId);
+    // console.log(`[WS] clients for userId ${userId}: ${clients ? clients.size : 0} connections`);
+    
     if (clients && clients.size > 0) {
       for (const client of clients) {
         if (client.readyState === 1) {
           client.send(JSON.stringify({ message, type }));
           console.log(`[WS] Sent to ONLINE userId=${userId}: ${message}`);
+        } else {
+          console.log(`[WS] Client not ready, state: ${client.readyState}`);
         }
       }
     } else {

@@ -10,6 +10,8 @@ import { ShipmentsStands } from 'src/shipments_stands/shipments_stands.entity';
 import { StandTasks } from 'src/stand_tasks/stand_tasks.entity';
 import { Stands } from 'src/stands/stands.entity';
 import { EmployeesProfessionsModule } from 'src/employees_professions/employees_professions.module';
+import { WebsocketModule } from 'src/websocket/websocket.module';
+import { User } from 'src/user/user.entity';
 
 @Module({
   imports: [
@@ -20,9 +22,11 @@ import { EmployeesProfessionsModule } from 'src/employees_professions/employees_
       ShipmentsStands,
       StandTasks,
       Stands,
+      User,
     ]),
     EmployeesModule,
     EmployeesProfessionsModule,
+    WebsocketModule,
   ],
   providers: [CurrentTasksService],
   controllers: [CurrentTasksController],

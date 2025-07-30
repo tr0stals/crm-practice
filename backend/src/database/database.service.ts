@@ -2,10 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { databaseParentIdStrategies } from './databaseParentIdStrategies';
 import { FIELD_HINTS_MAP } from './fieldHintsMap';
+import { CurrentTasksService } from '../current_tasks/current_tasks.service';
 
 @Injectable()
 export class DatabaseService {
-  constructor(private dataSource: DataSource) {}
+  constructor(
+    private dataSource: DataSource,
+    private currentTasksService: CurrentTasksService,
+  ) {}
 
   async getAllTablesData() {
     const tables = await this.dataSource.query('SHOW TABLES');
@@ -88,6 +92,10 @@ export class DatabaseService {
   }
 
   async addTableRecord(tableName: string, record: any) {
+    if (tableName === 'current_tasks') {
+      console.log('=== DATABASE SERVICE: ПЕРЕДАЕМ В CURRENTTASKSSERVICE ===');
+      return await this.currentTasksService.create(record);
+    }
     return await this.dataSource.query(`INSERT INTO \`${tableName}\` SET ?`, [
       record,
     ]);
@@ -152,12 +160,12 @@ export class DatabaseService {
     const rows = await this.dataSource.getRepository(relatedTable).find({
       relations: relationNames,
     });
-    console.log('ROWSSSSSSS!!!', rows);
-    // Логирование для определения какие поля и таблицы приходят
-    if (rows.length > 0) {
-      console.log('Поля первой строки:', Object.keys(rows[0]));
-      console.log('Содержимое первой строки:', rows[0]);
-    }
+    // console.log('ROWSSSSSSS!!!', rows);
+    // // Логирование для определения какие поля и таблицы приходят
+    // if (rows.length > 0) {
+    //   console.log('Поля первой строки:', Object.keys(rows[0]));
+    //   console.log('Содержимое первой строки:', rows[0]);
+    // }
 
     // Стандартная логика для остальных случаев
     return rows.map((row) => ({

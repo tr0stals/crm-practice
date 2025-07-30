@@ -64,7 +64,7 @@ import { WebsocketModule } from './websocket/websocket.module';
       database: 'crm_practice',
       autoLoadEntities: true,
       synchronize: true,
-      logging: true,
+      logging: false, // если true, то будет выводиться вся информация о SQL запросах к базе данных
       entities: ['dist/**/*.entity{.ts,.js}'],
       extra: {
         charset: 'utf8mb4',

@@ -7,13 +7,16 @@ import { CurrentTasks } from '../current_tasks/current_tasks.entity';
 import { StandsModule } from 'src/stands/stands.module';
 import { ComponentsModule } from 'src/components/components.module';
 import { ProfessionsModule } from 'src/professions/professions.module';
+import { WebsocketModule } from 'src/websocket/websocket.module';
+import { User } from 'src/user/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([StandTasks, CurrentTasks]),
+    TypeOrmModule.forFeature([StandTasks, CurrentTasks, User]),
     StandsModule,
     ComponentsModule,
     ProfessionsModule,
+    WebsocketModule,
   ],
   providers: [StandTasksService],
   controllers: [StandTasksController],

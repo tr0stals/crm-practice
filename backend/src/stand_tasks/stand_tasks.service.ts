@@ -8,6 +8,8 @@ import { StandTasksDTO } from './dto/StandTasksDTO';
 import { ComponentsService } from 'src/components/components.service';
 import { ProfessionsService } from 'src/professions/professions.service';
 import { StandsService } from 'src/stands/stands.service';
+import { WsGateway } from 'src/websocket/ws.gateway';
+import { User } from 'src/user/user.entity';
 
 @Injectable()
 export class StandTasksService {
@@ -16,9 +18,12 @@ export class StandTasksService {
     private repo: Repository<StandTasks>,
     @InjectCurrentTasksRepository(CurrentTasks)
     private currentTasksRepo: Repository<CurrentTasks>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private componentService: ComponentsService,
     private professionService: ProfessionsService,
     private standService: StandsService,
+    private wsGateway: WsGateway,
   ) {}
 
   async create(data: StandTasksDTO) {
@@ -113,10 +118,33 @@ export class StandTasksService {
   }
 
   async completeStandTask(id: number) {
-    const standTask = await this.repo.findOne({ where: { id } });
+    const standTask = await this.repo.findOne({ 
+      where: { id },
+      relations: ['stands', 'components']
+    });
     if (!standTask) throw new NotFoundException('Подзадача не найдена');
+    
     standTask.isCompleted = true;
     await this.repo.save(standTask);
+
+    // Отправляем уведомление о завершении подзадачи
+    if (standTask.parentId !== null) {
+      // Находим текущую задачу через parentId
+      const currentTask = await this.currentTasksRepo.findOne({
+        where: { standTasks: { id: standTask.parentId } },
+        relations: ['employees', 'employees.users', 'employees.peoples', 'stands', 'standTasks'],
+      });
+      
+      if (currentTask?.employees?.users && currentTask.employees.users.length > 0) {
+        const user = currentTask.employees.users[0];
+        const message = `Подзадача "${standTask.title}" на стенде "${standTask.stands?.title}" завершена`;
+        
+        console.log(`[NOTIFICATION] Отправляем уведомление о подзадаче пользователю ${user.id}: ${message}`);
+        this.wsGateway.sendNotification(user.id.toString(), message, 'subtask_completed');
+      } else {
+        console.log(`[NOTIFICATION] Не найден пользователь для уведомления о подзадаче`);
+      }
+    }
 
     // Проверяем, все ли подзадачи завершены
     if (standTask.parentId !== null) {
@@ -134,16 +162,23 @@ export class StandTasksService {
           await this.repo.save(parentTask);
         }
         // 2. Найти current_task, где standTaskId = parentId, и поменять статус на 3 (Завершена)
-        // Для этого нужен репозиторий current_tasks
-        // Импортируем и используем его
-        // (добавим в конструктор: @InjectRepository(CurrentTasks) private currentTasksRepo: Repository<CurrentTasks>)
-        // Ищем задачу
         if (this.currentTasksRepo) {
           const currentTask = await this.currentTasksRepo.findOne({
             where: { standTasks: { id: standTask.parentId } },
-            relations: ['currentTaskStates', 'standTasks'],
+            relations: ['currentTaskStates', 'standTasks', 'employees', 'employees.users', 'employees.peoples', 'stands'],
           });
           if (currentTask) {
+            // Отправляем уведомление о завершении всей задачи
+            if (currentTask.employees?.users && currentTask.employees.users.length > 0) {
+              const user = currentTask.employees.users[0];
+              const message = `Задача "${currentTask.title}" на стенде "${currentTask.stands?.title}" полностью завершена`;
+              
+              console.log(`[NOTIFICATION] Отправляем уведомление о завершении задачи пользователю ${user.id}: ${message}`);
+              this.wsGateway.sendNotification(user.id.toString(), message, 'task_completed');
+            } else {
+              console.log(`[NOTIFICATION] Не найден пользователь для уведомления о завершении задачи`);
+            }
+            
             currentTask.currentTaskStates = { id: 3 } as any;
             await this.currentTasksRepo.save(currentTask);
           }
