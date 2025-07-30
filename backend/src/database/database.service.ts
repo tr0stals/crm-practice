@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import { databaseParentIdStrategies } from './databaseParentIdStrategies';
 import { FIELD_HINTS_MAP } from './fieldHintsMap';
 import { CurrentTasksService } from '../current_tasks/current_tasks.service';
+import { entities } from './config/entitiesMap';
 
 @Injectable()
 export class DatabaseService {
@@ -52,6 +53,42 @@ export class DatabaseService {
       console.error(`Error fetching data for table ${tableName}:`, error);
       throw error; // Перебрасываем ошибку, чтобы она дошла до контроллера и далее
     }
+  }
+
+  async getTreeTables() {
+    const tree: any[] = [];
+
+    for (const entity of entities) {
+      const tableRelations = await this.getTableRelations(entity);
+
+      // Убираем дубликаты по referencedColumn
+      const uniqueRelationsMap = new Map<string, (typeof tableRelations)[0]>();
+      for (const item of tableRelations) {
+        if (
+          item.referencedColumn &&
+          !uniqueRelationsMap.has(item.referencedColumn) &&
+          !entities.includes(item.referencedColumn)
+        ) {
+          uniqueRelationsMap.set(item.referencedColumn, item);
+        }
+      }
+
+      const uniqueRelations = Array.from(uniqueRelationsMap.values());
+
+      const children = uniqueRelations.map((item, index) => ({
+        id: index + 1,
+        name: item.referencedColumn,
+        nodeType: item.referencedColumn,
+      }));
+
+      tree.push({
+        name: entity,
+        nodeType: entity,
+        children,
+      });
+    }
+
+    return tree;
   }
 
   async getTableColumnValues(tableName: string, columnName: string) {

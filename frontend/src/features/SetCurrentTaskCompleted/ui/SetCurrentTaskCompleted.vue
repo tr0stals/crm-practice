@@ -2,15 +2,16 @@
 import { useGlobalStore } from "@/shared/store/globalStore";
 import Button from "@/shared/ui/Button/ui/Button.vue";
 import { setCurrentTaskCompleted } from "../api/setCurrentTaskCompleted";
+import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 
 const props = defineProps<{
   onSuccessCallback: () => void;
 }>();
 
-const globalStore = useGlobalStore();
+const navigationStore = useNavigationStore();
 
 const handleClick = async () => {
-  const currentTask = globalStore.selectedRow;
+  const currentTask = navigationStore.selectedRow;
 
   if (!currentTask) {
     alert("Не выбрана задача!");

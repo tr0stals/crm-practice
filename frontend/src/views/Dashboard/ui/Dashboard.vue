@@ -41,6 +41,7 @@ import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import RelatedTablesSidebar from "@/widgets/RelatedTablesSidebar/ui/RelatedTablesSidebar.vue";
 import { relatedTables } from "@/shared/config/relatedTables";
 import { filter } from "@primeuix/themes/aura/datatable";
+import TreeviewMenu from "@/features/TreeviewMenu/ui/TreeviewMenu.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -508,6 +509,10 @@ const dropdownConfig = [
   { component: ExportDatabase },
   { component: ImportDatabase },
 ];
+
+const handleSelectSection = (item: any) => {
+  navigationStore.currentSection = item.data.nodeType;
+};
 </script>
 
 <template>
@@ -515,7 +520,17 @@ const dropdownConfig = [
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="logo">А ПРАКТИКУМ</div>
-      <NavigationSidebar :sections-list="sectionsList" />
+      <!-- <NavigationSidebar :sections-list="sectionsList" /> -->
+
+      <TreeviewMenu
+        v-if="
+          authorizedUserStore.user?.professionTitle === 'Администратор' ||
+          authorizedUserStore.user?.professionTitle === 'Директор' ||
+          authorizedUserStore.user?.professionTitle === 'Test'
+        "
+        @node-select="handleSelectSection"
+      />
+      <NavigationSidebar v-else :sections-list="sectionsList" />
     </aside>
 
     <!-- Main Content Area -->

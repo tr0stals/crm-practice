@@ -5,6 +5,7 @@ import { DeepPartial, Repository } from 'typeorm';
 import { LicenseDTO } from './dto/LicenseDTO';
 import { LicenseTypes } from 'src/license_types/license_types.entity';
 import { LicenseTypesService } from 'src/license_types/license_types.service';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class LicenseService {
@@ -14,6 +15,7 @@ export class LicenseService {
     @InjectRepository(License)
     private licenseTypesRepository: Repository<LicenseTypes>,
     private licenseTypesService: LicenseTypesService,
+    private databaseService: DatabaseService,
   ) {}
 
   async create(data: LicenseDTO) {

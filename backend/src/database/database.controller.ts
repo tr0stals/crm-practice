@@ -26,6 +26,11 @@ export class DatabaseController {
     return tables;
   }
 
+  @Get('treeTables')
+  async getTree() {
+    return await this.databaseService.getTreeTables();
+  }
+
   @Get('nodeTypesMap')
   getNodeTypesMap() {
     return NODE_TYPE_TO_TABLE;

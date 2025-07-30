@@ -3,15 +3,16 @@ import { useGlobalStore } from "@/shared/store/globalStore";
 import "../style.scss";
 import Button from "@/shared/ui/Button/ui/Button.vue";
 import { startCurrentTask } from "../api/startCurrentTask";
+import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 
-const globalStore = useGlobalStore();
+const navigationStore = useNavigationStore();
 
 const props = defineProps<{
   onSuccessCallback: () => void;
 }>();
 
 const handleClick = async (e: any) => {
-  const currentTask = globalStore.selectedRow;
+  const currentTask = navigationStore.selectedRow;
   console.debug(currentTask);
 
   if (!currentTask) {

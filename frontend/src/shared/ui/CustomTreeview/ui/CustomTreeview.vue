@@ -10,6 +10,7 @@ import Pagination from "../../Pagination/ui/Pagination.vue";
 import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import LoadingLayout from "../../LoadingLayout/ui/LoadingLayout.vue";
 
 const props = defineProps<{
   currentSection: string;
@@ -52,7 +53,6 @@ watch(data, (val) => {
   if (val) {
     const root = getTreeviewData(val);
     treeData.value = root.children || [];
-    console.debug(treeData.value);
   }
 });
 
@@ -141,14 +141,11 @@ function toggleExpand(node: any) {
   } else {
     expandedKeys.value[key] = true;
   }
-  console.debug(expandedKeys.value);
 }
 </script>
 
 <template>
-  <template v-if="loading">
-    <div class="spinner-border spinner" role="status"></div>
-  </template>
+  <LoadingLayout v-if="loading" />
   <template v-else-if="treeData">
     <Tree
       :value="paginatedTreeData"

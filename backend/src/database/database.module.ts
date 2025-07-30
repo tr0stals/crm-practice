@@ -9,4 +9,4 @@ import { CurrentTasksModule } from '../current_tasks/current_tasks.module';
   controllers: [DatabaseController],
   exports: [DatabaseService],
 })
-export class DatabaseModule {} 
+export class DatabaseModule {}

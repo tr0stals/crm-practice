@@ -13,11 +13,13 @@ import { relationMap } from "@/shared/config/relationMap";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
+import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 
-const data = ref<any>();
+const resultData = ref<any>();
 const formData = ref<any>({});
 const dateModel = reactive<Record<string, any>>({});
 const relatedOptions = reactive<Record<string, any[]>>({});
+const loading = ref<boolean>(false);
 
 let model: EditModalWindowModel;
 
@@ -76,40 +78,53 @@ async function loadRelatedOptions(key: string) {
 onMounted(async () => {
   model = new EditModalWindowModel(props.onApplyCallback);
 
-  // получаем конкретную запись по ID
-  console.debug("!!!", sectionName);
-  console.debug("!!!", entityId);
-  const response = await getDataAsync({
-    endpoint: `/${sectionName.value}/get/${entityId.value}`,
-  });
-
-  console.debug(response);
-
-  data.value = response.data;
-  formData.value = { ...response.data };
-
-  // Поиск полей с датами
-  const dateFields = Object.keys(formData.value).filter(isDateField);
-  dateFields.forEach((key) => {
-    dateModel[key] = formData.value[key]
-      ? formData.value[key].slice(0, 10)
-      : null;
-    watch(
-      () => dateModel[key],
-      (val) => {
-        formData.value[key] = val || null;
-      }
-    );
-  });
-
-  // Поиск полей-объектов (foreign keys)
-  const objectFields = Object.entries(formData.value).filter(([, value]) =>
-    isObjectField(value)
+  const { data, loading, error, refetch } = useFetch<any>(
+    `${defaultEndpoint}/${sectionName.value}/get/${entityId.value}`
   );
 
-  for (const [key] of objectFields) {
-    await loadRelatedOptions(key);
-  }
+  watch(
+    () => loading.value,
+    (newVal) => {
+      loading.value = newVal;
+    }
+  );
+
+  // Ждём, пока данные появятся
+  watch(
+    () => data.value,
+    async (newData) => {
+      if (!newData) return;
+
+      resultData.value = newData;
+      formData.value = { ...newData };
+      console.debug({ ...newData });
+
+      // Поиск полей с датами
+      const dateFields = Object.keys(formData.value).filter(isDateField);
+      dateFields.forEach((key) => {
+        dateModel[key] = formData.value[key]
+          ? formData.value[key].slice(0, 10)
+          : null;
+
+        watch(
+          () => dateModel[key],
+          (val) => {
+            formData.value[key] = val || null;
+          }
+        );
+      });
+
+      // Поиск полей-объектов (foreign keys)
+      const objectFields = Object.entries(formData.value).filter(([, value]) =>
+        isObjectField(value)
+      );
+
+      for (const [key] of objectFields) {
+        await loadRelatedOptions(key);
+      }
+    },
+    { immediate: true }
+  );
 });
 
 onUnmounted(() => {
@@ -118,7 +133,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div id="modalWindow" class="modalWindow editModalWindow">
+  <LoadingLayout v-if="loading" />
+  <div
+    v-else-if="!loading"
+    id="modalWindow"
+    class="modalWindow editModalWindow"
+  >
     <component
       class="editModalWindow__closeIcon"
       id="closeIcon"
