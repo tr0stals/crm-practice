@@ -1,0 +1,17 @@
+.notificationIcon {
+  position: relative;
+  &__badge {
+    position: absolute;
+    top: -15%;
+    right: 0%;
+
+    &::after {
+      content: "";
+      position: absolute;
+      background-color: red;
+      width: 8px;
+      height: 8px;
+      border-radius: 100%;
+    }
+  }
+}

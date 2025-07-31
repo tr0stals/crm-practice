@@ -2,17 +2,17 @@
 import "../style.scss";
 import Button from "@/shared/ui/Button/ui/Button.vue";
 import { exportTable } from "../api/exportTable";
-import { useGlobalStore } from "@/shared/store/globalStore";
 import CustomDropdown from "@/shared/ui/CustomDropdown/ui/CustomDropdown.vue";
+import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 
 const props = defineProps<{
   onSuccessCallback: () => void;
 }>();
 
-const globalStore = useGlobalStore();
+const navigationStore = useNavigationStore();
 
 async function handleClick(format: string) {
-  const response = await exportTable(globalStore.currentSection, format);
+  const response = await exportTable(navigationStore.currentSection, format);
 }
 
 /*

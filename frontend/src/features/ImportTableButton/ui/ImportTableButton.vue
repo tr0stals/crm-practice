@@ -4,10 +4,11 @@ import { ref } from "vue";
 import Button from "@/shared/ui/Button/ui/Button.vue";
 import { useGlobalStore } from "@/shared/store/globalStore";
 import useImportTable from "../model/useImportTable";
+import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 
-const globalStore = useGlobalStore();
+const navigationStore = useNavigationStore();
 
-const { selectedFile, loading, importTable } = useImportTable(globalStore);
+const { selectedFile, loading, importTable } = useImportTable(navigationStore);
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const triggerFileSelect = () => {

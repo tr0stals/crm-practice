@@ -42,6 +42,7 @@ import RelatedTablesSidebar from "@/widgets/RelatedTablesSidebar/ui/RelatedTable
 import { relatedTables } from "@/shared/config/relatedTables";
 import { filter } from "@primeuix/themes/aura/datatable";
 import TreeviewMenu from "@/features/TreeviewMenu/ui/TreeviewMenu.vue";
+import NotificationButton from "@/features/Notifications/ui/NotificationButton.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -284,14 +285,18 @@ onMounted(async () => {
     user: user,
   };
 
+  console.debug();
   if (user) {
     authorizedUserStore.setUser({
+      id: authorizedUser.value.user?.id,
       firstName: user.employees.peoples.firstName,
       lastName: user.employees.peoples.lastName,
       professionTitle: user.employeeProfession.professions.title,
     });
   }
 
+  console.debug(authorizedUser.value.user?.id);
+  console.debug(authorizedUserStore);
   updateTime();
   timer = setInterval(updateTime, 1000);
   document.addEventListener("click", handleClickOutside);
@@ -550,6 +555,7 @@ const handleSelectSection = (item: any) => {
             </div>
           </div>
         </div>
+        <NotificationButton />
         <div class="header__controls">
           <CustomDropdown
             v-if="
