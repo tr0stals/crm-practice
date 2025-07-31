@@ -586,9 +586,9 @@ const handleSelectSection = (item: any) => {
               authorizedUserStore.user?.professionTitle.toLowerCase() ===
                 'test' ||
               authorizedUserStore.user?.professionTitle.toLowerCase() ===
-                'Администратор' ||
+                'администратор' ||
               authorizedUserStore.user?.professionTitle.toLowerCase() ===
-                'Директор'
+                'директор'
             "
             class="action-buttons"
           >
