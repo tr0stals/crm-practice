@@ -2,12 +2,16 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 
 export const useNavigationStore = defineStore("navigationStore", () => {
-  const selectedRow = ref();
-  const currentSection = ref<string>("");
-  const activeSection = ref<string>("");
+  const selectedRow = ref<any | null>(null);
+  const currentSection = ref<string | null>(null);
+  const activeSection = ref<string | null>(null);
 
   function setSelectedRow(row: any) {
     selectedRow.value = row;
+  }
+
+  function resetData() {
+    selectedRow.value = null;
   }
 
   function setActiveSection(section: string) {
@@ -25,5 +29,6 @@ export const useNavigationStore = defineStore("navigationStore", () => {
     setCurrentSection,
     activeSection,
     setActiveSection,
+    resetData,
   };
 });

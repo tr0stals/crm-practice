@@ -8,10 +8,12 @@ import Tree from "primevue/tree";
 import { useTreeviewMenu } from "../model/useTreeviewMenu";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
+import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 
 const selectedKey = ref(null);
 const expandedKeys = ref<any>({});
 const selectedSection = ref("");
+const navigationStore = useNavigationStore();
 
 const { data, loading, refetch } = useFetch(
   `${defaultEndpoint}/database/treeTables`
@@ -35,6 +37,7 @@ watch(
 );
 
 function onNodeSelect(event: any) {
+  navigationStore.resetData();
   selectedKey.value = event.key;
   console.debug(event);
   selectedSection.value = event.data.nodeType;

@@ -1,7 +1,7 @@
 {
   "tables": {
     "arrival_invoices": {
-      "displayName": "Накладные прибытия",
+      "displayName": "Накладные",
       "fields": {
         "id": "ID",
         "date": "Дата",
@@ -31,7 +31,7 @@
       }
     },
     "bills_for_pay": {
-      "displayName": "Счета к оплате",
+      "displayName": "Счета",
       "fields": {
         "id": "ID",
         "date": "Дата",

@@ -229,7 +229,7 @@ function handleEditModalWindow() {
    *
    * Желательно не трогать, иначе можно получить ошибки при открытии модалки редактирования
    */
-  const sectionName = navigationStore.selectedRow.data
+  const sectionName = navigationStore.selectedRow?.data
     ? navigationStore.selectedRow.data?.nodeType
     : navigationStore.currentSection;
   const entityId = navigationStore.selectedRow?.id;
@@ -240,8 +240,9 @@ function handleEditModalWindow() {
   };
   console.debug(cfg);
 
-  if (!cfg.entityId) {
+  if (!cfg.entityId || !cfg.sectionName) {
     alert("Выберите строку для редактирования");
+
     return;
   }
 
