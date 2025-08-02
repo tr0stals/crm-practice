@@ -49,3 +49,44 @@
   top: 50%;
   left: 50%;
 }
+
+.pagination {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+
+  &__btn {
+    font-size: 1.5rem;
+    border: none;
+    outline: none;
+    padding: 1rem 1rem;
+  }
+
+  &__text {
+    font-size: 1.75rem;
+  }
+
+  &__itemsPerPage {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+
+    &__label {
+      font-size: 1.75rem;
+      margin: 0;
+    }
+
+    &__selectWrapper {
+      &__select {
+        padding: 1rem 2rem;
+        font-size: 1.5rem;
+
+        &__option {
+          font-size: 1.5rem;
+        }
+      }
+    }
+  }
+}

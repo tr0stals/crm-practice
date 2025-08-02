@@ -157,7 +157,11 @@ onUnmounted(() => {
         :key="key"
         class="editModalWindow__content__field"
       >
-        <label class="editModalWindow__content__field__label" :for="key">
+        <label
+          v-if="key !== 'id'"
+          class="editModalWindow__content__field__label"
+          :for="key"
+        >
           {{ fieldDictionary[key] }}
         </label>
 
@@ -241,9 +245,8 @@ onUnmounted(() => {
 
         <!-- Generic input -->
         <input
-          v-else
+          v-else-if="key !== 'id'"
           class="editModalWindow__content__field__input"
-          :disabled="key === 'id'"
           :type="getInputType(key, value)"
           :id="key"
           :name="key"

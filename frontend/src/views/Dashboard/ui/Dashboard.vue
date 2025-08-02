@@ -496,7 +496,50 @@ watch(perPage, () => {
 
 const paginatedData = computed(() => {
   const start = (page.value - 1) * perPage.value;
-  return filteredTreeData.value.slice(start, start + perPage.value);
+
+  // выявляем отфильтрованые данные
+  const filteredData = computed(() => {
+    let result = data.value;
+    for (const [col, val] of Object.entries(columnFilters.value)) {
+      if (val) {
+        result = result.filter((row) => {
+          const cell = row[col];
+          if (cell == null) return false;
+          let cellValue = cell;
+          if (typeof cell === "object") {
+            if ("name" in cell) cellValue = cell.name;
+            else if ("title" in cell) cellValue = cell.title;
+            else if ("birthDate" in cell) cellValue = cell.birthDate;
+            else cellValue = Object.values(cell)[0];
+          }
+          return String(cellValue)
+            .toLowerCase()
+            .includes(String(val).toLowerCase());
+        });
+      }
+    }
+    // Поиск по строке (старый фильтр)
+    if (searchQuery.value) {
+      const query = searchQuery.value.toLowerCase();
+      result = result.filter((item) => {
+        return Object.values(item).some((value) => {
+          if (value === null || value === undefined) return false;
+          return String(value).toLowerCase().includes(query);
+        });
+      });
+    }
+    // Сортировка по id
+    return [...result].sort((a, b) => {
+      if (typeof a.id === "number" && typeof b.id === "number") {
+        return a.id - b.id;
+      } else if (typeof a.id === "string" && typeof b.id === "string") {
+        return a.id.localeCompare(b.id);
+      }
+      return 0;
+    });
+  });
+
+  return filteredData.value.slice(start, start + perPage.value);
 });
 
 function nextPage() {
@@ -659,57 +702,16 @@ const handleSelectSection = (item: any) => {
                   >
                     &#x1F50D;
                   </button>
-                  <div
+                  <input
                     v-if="filterDropdownOpen[key]"
                     :key="key"
-                    class="column-filter-popup"
-                    style="
-                      position: absolute;
-                      z-index: 10;
-                      background: #fff;
-                      border: 1px solid #ccc;
-                      padding: 8px;
-                      min-width: 180px;
-                      max-width: 300px;
-                      max-height: 200px;
-                      overflow: auto;
-                    "
-                  >
-                    <button
-                      @click.stop="closeFilterDropdown(key)"
-                      style="
-                        position: absolute;
-                        top: 4px;
-                        right: 4px;
-                        font-size: 18px;
-                        background: none;
-                        border: none;
-                        cursor: pointer;
-                      "
-                    >
-                      &times;
-                    </button>
-                    <div style="margin-bottom: 4px; font-weight: bold">
-                      Поиск по столбцу
-                    </div>
-                    <input
-                      v-model="columnFilters[key]"
-                      @input="setColumnFilter(key, columnFilters[key])"
-                      @click.stop
-                      type="text"
-                      :placeholder="'Поиск по ' + key"
-                      style="width: 100%; margin-bottom: 8px"
-                      autofocus
-                    />
-                    <div style="margin-top: 6px">
-                      <button
-                        @click="resetColumnFilter(key)"
-                        style="font-size: 12px"
-                      >
-                        Сбросить
-                      </button>
-                    </div>
-                  </div>
+                    v-model="columnFilters[key]"
+                    @input="setColumnFilter(key, columnFilters[key])"
+                    @click.stop
+                    type="text"
+                    :placeholder="'Поиск по ' + key"
+                    autofocus
+                  />
                 </th>
               </tr>
             </thead>

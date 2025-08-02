@@ -212,10 +212,6 @@ function toggleExpand(node: any) {
           >
             <option
               class="pagination__itemsPerPage__selectWrapper__select__option"
-              :value="9"
-            ></option>
-            <option
-              class="pagination__itemsPerPage__selectWrapper__select__option"
               :value="5"
             >
               5
