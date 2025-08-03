@@ -411,7 +411,13 @@ export class CurrentTasksService {
     });
     // Получаем все stand_tasks одним запросом
     const allStandTasks = await this.standTasksRepository.find({
-      relations: ['components', 'stands', 'professions'],
+      relations: [
+        'components',
+        'stands',
+        'professionRights',
+        'professionRights.professions',
+        'professionRights.rights',
+      ],
     });
     // Группируем stand_tasks по parentId
     const standTasksByParent = new Map<string, StandTasks[]>();

@@ -7,9 +7,11 @@ import {
   Body,
   Put,
   Query,
+  Headers,
 } from '@nestjs/common';
 import { DatabaseService } from './database.service';
 import { NODE_TYPE_TO_TABLE } from './nodeTypesMap';
+import { PERMISSION_MATRIX } from './rolePermissions';
 
 @Controller('database')
 export class DatabaseController {
@@ -31,6 +33,11 @@ export class DatabaseController {
     return await this.databaseService.getTreeTables();
   }
 
+  @Get('treeTables/:profession')
+  async getTreeByProfession(@Param('profession') profession: string) {
+    return await this.databaseService.getTreeTablesByProfession(profession);
+  }
+
   @Get('nodeTypesMap')
   getNodeTypesMap() {
     return NODE_TYPE_TO_TABLE;
@@ -41,9 +48,17 @@ export class DatabaseController {
     return this.databaseService.getFieldHints();
   }
 
+  @Get('permissions')
+  getPermissions() {
+    return PERMISSION_MATRIX;
+  }
+
   @Get(':tableName')
-  async getTableRows(@Param('tableName') tableName: string) {
-    return await this.databaseService.getTableRows(tableName);
+  async getTableRows(
+    @Param('tableName') tableName: string,
+    @Headers('profession') profession?: string,
+  ) {
+    return await this.databaseService.getTableRows(tableName, profession);
   }
 
   @Get(':tableName/search')
@@ -92,16 +107,18 @@ export class DatabaseController {
   async deleteTableRecord(
     @Param('tableName') tableName: string,
     @Param('id') id: string,
+    @Headers('profession') profession?: string,
   ) {
-    return await this.databaseService.deleteTableRecord(tableName, id);
+    return await this.databaseService.deleteTableRecord(tableName, id, profession);
   }
 
   @Post(':tableName')
   async addTableRecord(
     @Param('tableName') tableName: string,
     @Body() record: any,
+    @Headers('profession') profession?: string,
   ) {
-    return await this.databaseService.addTableRecord(tableName, record);
+    return await this.databaseService.addTableRecord(tableName, record, profession);
   }
 
   @Put(':tableName/:id')
@@ -109,7 +126,8 @@ export class DatabaseController {
     @Param('tableName') tableName: string,
     @Param('id') id: string,
     @Body() record: any,
+    @Headers('profession') profession?: string,
   ) {
-    return await this.databaseService.updateTableRecord(tableName, id, record);
+    return await this.databaseService.updateTableRecord(tableName, id, record, profession);
   }
 }

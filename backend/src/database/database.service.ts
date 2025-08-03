@@ -4,6 +4,7 @@ import { databaseParentIdStrategies } from './databaseParentIdStrategies';
 import { FIELD_HINTS_MAP } from './fieldHintsMap';
 import { CurrentTasksService } from '../current_tasks/current_tasks.service';
 import { entities } from './config/entitiesMap';
+import { getTreeViewEntities, canRead, canWrite, canWriteSelf } from './rolePermissions';
 
 @Injectable()
 export class DatabaseService {
@@ -46,8 +47,13 @@ export class DatabaseService {
     return columns.map((col) => col.Field);
   }
 
-  async getTableRows(tableName: string) {
+  async getTableRows(tableName: string, profession?: string) {
     try {
+      // Проверяем права доступа, если указана профессия
+      if (profession && !canRead(tableName, profession)) {
+        throw new Error(`Access denied: ${profession} cannot read ${tableName}`);
+      }
+      
       return await this.dataSource.query(`SELECT * FROM \`${tableName}\``);
     } catch (error) {
       console.error(`Error fetching data for table ${tableName}:`, error);
@@ -59,6 +65,45 @@ export class DatabaseService {
     const tree: any[] = [];
 
     for (const entity of entities) {
+      const tableRelations = await this.getTableRelations(entity);
+
+      // Убираем дубликаты по referencedColumn
+      const uniqueRelationsMap = new Map<string, (typeof tableRelations)[0]>();
+      for (const item of tableRelations) {
+        if (
+          item.referencedColumn &&
+          !uniqueRelationsMap.has(item.referencedColumn) &&
+          !entities.includes(item.referencedColumn)
+        ) {
+          uniqueRelationsMap.set(item.referencedColumn, item);
+        }
+      }
+
+      const uniqueRelations = Array.from(uniqueRelationsMap.values());
+
+      const children = uniqueRelations.map((item, index) => ({
+        id: index + 1,
+        name: item.referencedColumn,
+        nodeType: item.referencedColumn,
+      }));
+
+      tree.push({
+        name: entity,
+        nodeType: entity,
+        children,
+      });
+    }
+
+    return tree;
+  }
+
+  async getTreeTablesByProfession(profession: string) {
+    // Получаем список доступных сущностей для данной профессии
+    const availableEntities = getTreeViewEntities(profession);
+    
+    const tree: any[] = [];
+
+    for (const entity of availableEntities) {
       const tableRelations = await this.getTableRelations(entity);
 
       // Убираем дубликаты по referencedColumn
@@ -122,13 +167,23 @@ export class DatabaseService {
     );
   }
 
-  async deleteTableRecord(tableName: string, id: string) {
+  async deleteTableRecord(tableName: string, id: string, profession?: string) {
+    // Проверяем права доступа, если указана профессия
+    if (profession && !canWrite(tableName, profession)) {
+      throw new Error(`Access denied: ${profession} cannot write to ${tableName}`);
+    }
+    
     return await this.dataSource.query(
       `DELETE FROM \`${tableName}\` WHERE id = ${id}`,
     );
   }
 
-  async addTableRecord(tableName: string, record: any) {
+  async addTableRecord(tableName: string, record: any, profession?: string) {
+    // Проверяем права доступа, если указана профессия
+    if (profession && !canWrite(tableName, profession)) {
+      throw new Error(`Access denied: ${profession} cannot write to ${tableName}`);
+    }
+    
     if (tableName === 'current_tasks') {
       console.log('=== DATABASE SERVICE: ПЕРЕДАЕМ В CURRENTTASKSSERVICE ===');
       return await this.currentTasksService.create(record);
@@ -138,7 +193,12 @@ export class DatabaseService {
     ]);
   }
 
-  async updateTableRecord(tableName: string, id: string, record: any) {
+  async updateTableRecord(tableName: string, id: string, record: any, profession?: string) {
+    // Проверяем права доступа, если указана профессия
+    if (profession && !canWrite(tableName, profession)) {
+      throw new Error(`Access denied: ${profession} cannot write to ${tableName}`);
+    }
+    
     return await this.dataSource.query(
       `UPDATE \`${tableName}\` SET ? WHERE id = ${id}`,
       [record],
