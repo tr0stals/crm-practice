@@ -10,6 +10,7 @@ import { ProfessionsService } from 'src/professions/professions.service';
 import { StandsService } from 'src/stands/stands.service';
 import { WsGateway } from 'src/websocket/ws.gateway';
 import { User } from 'src/user/user.entity';
+import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
 
 @Injectable()
 export class StandTasksService {
@@ -20,9 +21,12 @@ export class StandTasksService {
     private currentTasksRepo: Repository<CurrentTasks>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(ProfessionRights)
+    private professionRights: Repository<ProfessionRights>,
     private componentService: ComponentsService,
     private professionService: ProfessionsService,
     private standService: StandsService,
+
     private wsGateway: WsGateway,
   ) {}
 
@@ -34,10 +38,13 @@ export class StandTasksService {
     }
     const { componentId, professionId, standId, ...defaultData } = data;
     const component = await this.componentService.findOne(componentId);
-    const profession = await this.professionService.findOne(professionId);
+    const professionRight = await this.professionRights.findOne({
+      where: { professions: { id: data.professionId } },
+      relations: ['professions', 'rights'],
+    });
     const stand = await this.standService.findOne(standId);
 
-    if (!component || !profession || !stand)
+    if (!component || !professionRight || !stand)
       throw new NotFoundException('Одна из сущностей не найдена');
 
     // Если parentId не передан, явно ставим null
@@ -46,7 +53,7 @@ export class StandTasksService {
       parentId: data.parentId ?? null,
       isCompleted: isCompleted,
       stands: stand,
-      professions: profession,
+      professionRights: professionRight,
       components: component,
     } as DeepPartial<StandTasks>);
 
@@ -62,9 +69,9 @@ export class StandTasksService {
         throw new NotFoundException('Ошибка при поиске задач стендов');
 
       tasks.map((item) => {
-        const { stands, professions, components, ...defaultData } = item;
+        const { stands, professionRights, components, ...defaultData } = item;
         const standTitle = stands?.title;
-        const professionTitle = professions?.title;
+        const professionTitle = professionRights?.professions?.title;
         const componentTitle = components?.title;
 
         data.push({
@@ -83,7 +90,13 @@ export class StandTasksService {
 
   async getAll() {
     return await this.repo.find({
-      relations: ['stands', 'professions', 'components'],
+      relations: [
+        'stands',
+        'professionRights',
+        'professionRights.professions',
+        'professionRights.rights',
+        'components',
+      ],
     });
   }
 
@@ -91,12 +104,24 @@ export class StandTasksService {
     if (parentId === null) {
       return await this.repo.find({
         where: { parentId: IsNull() },
-        relations: ['stands', 'professions', 'components'],
+        relations: [
+          'stands',
+          'professionRights',
+          'professionRights.professions',
+          'professionRights.rights',
+          'components',
+        ],
       });
     } else {
       return await this.repo.find({
         where: { parentId },
-        relations: ['stands', 'professions', 'components'],
+        relations: [
+          'stands',
+          'professionRights',
+          'professionRights.professions',
+          'professionRights.rights',
+          'components',
+        ],
       });
     }
   }
@@ -104,7 +129,13 @@ export class StandTasksService {
   async getOne(id: number) {
     return await this.repo.findOne({
       where: { id },
-      relations: ['stands', 'professions', 'components'],
+      relations: [
+        'stands',
+        'professionRights',
+        'professionRights.professions',
+        'professionRights.rights',
+        'components',
+      ],
     });
   }
 
@@ -118,12 +149,12 @@ export class StandTasksService {
   }
 
   async completeStandTask(id: number) {
-    const standTask = await this.repo.findOne({ 
+    const standTask = await this.repo.findOne({
       where: { id },
-      relations: ['stands', 'components']
+      relations: ['stands', 'components'],
     });
     if (!standTask) throw new NotFoundException('Подзадача не найдена');
-    
+
     standTask.isCompleted = true;
     await this.repo.save(standTask);
 
@@ -132,17 +163,34 @@ export class StandTasksService {
       // Находим текущую задачу через parentId
       const currentTask = await this.currentTasksRepo.findOne({
         where: { standTasks: { id: standTask.parentId } },
-        relations: ['employees', 'employees.users', 'employees.peoples', 'stands', 'standTasks'],
+        relations: [
+          'employees',
+          'employees.users',
+          'employees.peoples',
+          'stands',
+          'standTasks',
+        ],
       });
-      
-      if (currentTask?.employees?.users && currentTask.employees.users.length > 0) {
+
+      if (
+        currentTask?.employees?.users &&
+        currentTask.employees.users.length > 0
+      ) {
         const user = currentTask.employees.users[0];
         const message = `Подзадача "${standTask.title}" на стенде "${standTask.stands?.title}" завершена`;
-        
-        console.log(`[NOTIFICATION] Отправляем уведомление о подзадаче пользователю ${user.id}: ${message}`);
-        this.wsGateway.sendNotification(user.id.toString(), message, 'subtask_completed');
+
+        console.log(
+          `[NOTIFICATION] Отправляем уведомление о подзадаче пользователю ${user.id}: ${message}`,
+        );
+        this.wsGateway.sendNotification(
+          user.id.toString(),
+          message,
+          'subtask_completed',
+        );
       } else {
-        console.log(`[NOTIFICATION] Не найден пользователь для уведомления о подзадаче`);
+        console.log(
+          `[NOTIFICATION] Не найден пользователь для уведомления о подзадаче`,
+        );
       }
     }
 
@@ -165,20 +213,38 @@ export class StandTasksService {
         if (this.currentTasksRepo) {
           const currentTask = await this.currentTasksRepo.findOne({
             where: { standTasks: { id: standTask.parentId } },
-            relations: ['currentTaskStates', 'standTasks', 'employees', 'employees.users', 'employees.peoples', 'stands'],
+            relations: [
+              'currentTaskStates',
+              'standTasks',
+              'employees',
+              'employees.users',
+              'employees.peoples',
+              'stands',
+            ],
           });
           if (currentTask) {
             // Отправляем уведомление о завершении всей задачи
-            if (currentTask.employees?.users && currentTask.employees.users.length > 0) {
+            if (
+              currentTask.employees?.users &&
+              currentTask.employees.users.length > 0
+            ) {
               const user = currentTask.employees.users[0];
               const message = `Задача "${currentTask.title}" на стенде "${currentTask.stands?.title}" полностью завершена`;
-              
-              console.log(`[NOTIFICATION] Отправляем уведомление о завершении задачи пользователю ${user.id}: ${message}`);
-              this.wsGateway.sendNotification(user.id.toString(), message, 'task_completed');
+
+              console.log(
+                `[NOTIFICATION] Отправляем уведомление о завершении задачи пользователю ${user.id}: ${message}`,
+              );
+              this.wsGateway.sendNotification(
+                user.id.toString(),
+                message,
+                'task_completed',
+              );
             } else {
-              console.log(`[NOTIFICATION] Не найден пользователь для уведомления о завершении задачи`);
+              console.log(
+                `[NOTIFICATION] Не найден пользователь для уведомления о завершении задачи`,
+              );
             }
-            
+
             currentTask.currentTaskStates = { id: 3 } as any;
             await this.currentTasksRepo.save(currentTask);
           }

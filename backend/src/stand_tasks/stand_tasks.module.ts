@@ -9,10 +9,16 @@ import { ComponentsModule } from 'src/components/components.module';
 import { ProfessionsModule } from 'src/professions/professions.module';
 import { WebsocketModule } from 'src/websocket/websocket.module';
 import { User } from 'src/user/user.entity';
+import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([StandTasks, CurrentTasks, User]),
+    TypeOrmModule.forFeature([
+      StandTasks,
+      CurrentTasks,
+      User,
+      ProfessionRights,
+    ]),
     StandsModule,
     ComponentsModule,
     ProfessionsModule,

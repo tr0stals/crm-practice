@@ -48,6 +48,8 @@ import { Writeoff } from '../writeoff/writeoff.entity';
 import { WriteoffReasons } from '../writeoff_reasons/writeoff_reasons.entity';
 import { COMPONENT_CATEGORIES } from '../components/component_categories';
 import { PCB_CATEGORIES } from '../pcbs/pcbs_categories';
+import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
+import { Rights } from 'src/rights/rights.entity';
 
 @Injectable()
 export class DatabaseSeederService {
@@ -143,6 +145,10 @@ export class DatabaseSeederService {
     private readonly writeoffRepository: Repository<Writeoff>,
     @InjectRepository(WriteoffReasons)
     private readonly writeoffReasonsRepository: Repository<WriteoffReasons>,
+    @InjectRepository(ProfessionRights)
+    private readonly professionRightsRepository: Repository<ProfessionRights>,
+    @InjectRepository(Rights)
+    private readonly rightsRepository: Repository<Rights>,
   ) {}
 
   async seed() {
@@ -371,6 +377,10 @@ export class DatabaseSeederService {
     const peoples = await this.seedPeoples();
     this.logger.log(`Создано ${peoples.length} людей`);
 
+    // заполнение прав
+    const rights = await this.seedRights();
+    this.logger.log(`Создано ${rights.length} прав`);
+
     // Заполнение организаций
     const organizations = await this.seedOrganizations(peoples);
     this.logger.log(`Создано ${organizations.length} организаций`);
@@ -434,6 +444,16 @@ export class DatabaseSeederService {
       this.peoplesRepository.create(data),
     );
     return await this.peoplesRepository.save(peoples);
+  }
+
+  private async seedRights(): Promise<Rights[]> {
+    const rightsTitles = ['RW', 'R', 'RWs'];
+
+    const rightsData = rightsTitles.map((title) =>
+      this.rightsRepository.create({ title }),
+    );
+
+    return await this.rightsRepository.save(rightsData);
   }
 
   private async seedOrganizations(
@@ -601,52 +621,375 @@ export class DatabaseSeederService {
   }
 
   private generatePcbTitle(): string {
-    const prefixes = ['ВЛД', 'ТДЦ', 'Interpred', 'MCU', 'DSP', 'FPGA', 'ADC', 'DAC', 'PWR', 'SENS', 'CTRL', 'IO', 'USB', 'ETH', 'RS485', 'CAN', 'SPI', 'I2C'];
-    const suffixes = ['_0023', '_1000', '_02_logger', '_v1.0', '_rev2', '_pro', '_lite', '_mini', '_max', '_ultra', '_basic', '_advanced', '_master', '_slave', '_main', '_aux'];
-    
+    const prefixes = [
+      'ВЛД',
+      'ТДЦ',
+      'Interpred',
+      'MCU',
+      'DSP',
+      'FPGA',
+      'ADC',
+      'DAC',
+      'PWR',
+      'SENS',
+      'CTRL',
+      'IO',
+      'USB',
+      'ETH',
+      'RS485',
+      'CAN',
+      'SPI',
+      'I2C',
+    ];
+    const suffixes = [
+      '_0023',
+      '_1000',
+      '_02_logger',
+      '_v1.0',
+      '_rev2',
+      '_pro',
+      '_lite',
+      '_mini',
+      '_max',
+      '_ultra',
+      '_basic',
+      '_advanced',
+      '_master',
+      '_slave',
+      '_main',
+      '_aux',
+    ];
+
     const prefix = faker.helpers.arrayElement(prefixes);
     const suffix = faker.helpers.arrayElement(suffixes);
-    
+
     return `${prefix}${suffix}`;
   }
 
   private generateComponentTitle(): string {
     const componentTypes = [
       // Резисторы
-      { prefix: 'R', suffixes: ['10K', '100K', '1M', '220R', '470R', '1K', '2K', '4.7K', '10K', '22K', '47K', '100K', '220K', '470K', '1M'], type: 'Резистор' },
+      {
+        prefix: 'R',
+        suffixes: [
+          '10K',
+          '100K',
+          '1M',
+          '220R',
+          '470R',
+          '1K',
+          '2K',
+          '4.7K',
+          '10K',
+          '22K',
+          '47K',
+          '100K',
+          '220K',
+          '470K',
+          '1M',
+        ],
+        type: 'Резистор',
+      },
       // Конденсаторы
-      { prefix: 'C', suffixes: ['100nF', '1uF', '10uF', '100uF', '1nF', '10nF', '47nF', '220nF', '470nF', '2.2uF', '4.7uF', '22uF', '47uF', '220uF'], type: 'Конденсатор' },
+      {
+        prefix: 'C',
+        suffixes: [
+          '100nF',
+          '1uF',
+          '10uF',
+          '100uF',
+          '1nF',
+          '10nF',
+          '47nF',
+          '220nF',
+          '470nF',
+          '2.2uF',
+          '4.7uF',
+          '22uF',
+          '47uF',
+          '220uF',
+        ],
+        type: 'Конденсатор',
+      },
       // Индукторы
-      { prefix: 'L', suffixes: ['10uH', '100uH', '1mH', '10mH', '100mH', '1H', '22uH', '47uH', '220uH', '470uH', '2.2mH', '4.7mH', '22mH', '47mH'], type: 'Индуктор' },
+      {
+        prefix: 'L',
+        suffixes: [
+          '10uH',
+          '100uH',
+          '1mH',
+          '10mH',
+          '100mH',
+          '1H',
+          '22uH',
+          '47uH',
+          '220uH',
+          '470uH',
+          '2.2mH',
+          '4.7mH',
+          '22mH',
+          '47mH',
+        ],
+        type: 'Индуктор',
+      },
       // Диоды
-      { prefix: 'D', suffixes: ['1N4007', '1N4148', '1N5819', '1N5822', '1N5408', '1N5401', '1N4001', '1N4004', '1N4006', '1N4002', '1N4003', '1N4005'], type: 'Диод' },
+      {
+        prefix: 'D',
+        suffixes: [
+          '1N4007',
+          '1N4148',
+          '1N5819',
+          '1N5822',
+          '1N5408',
+          '1N5401',
+          '1N4001',
+          '1N4004',
+          '1N4006',
+          '1N4002',
+          '1N4003',
+          '1N4005',
+        ],
+        type: 'Диод',
+      },
       // Транзисторы
-      { prefix: 'Q', suffixes: ['2N2222', '2N3904', '2N3906', '2N4401', '2N4403', 'BC547', 'BC548', 'BC549', 'BC557', 'BC558', 'BC559', 'TIP31', 'TIP32', 'TIP41', 'TIP42'], type: 'Транзистор' },
+      {
+        prefix: 'Q',
+        suffixes: [
+          '2N2222',
+          '2N3904',
+          '2N3906',
+          '2N4401',
+          '2N4403',
+          'BC547',
+          'BC548',
+          'BC549',
+          'BC557',
+          'BC558',
+          'BC559',
+          'TIP31',
+          'TIP32',
+          'TIP41',
+          'TIP42',
+        ],
+        type: 'Транзистор',
+      },
       // Интегральные схемы
-      { prefix: 'IC', suffixes: ['74HC00', '74HC04', '74HC08', '74HC32', '74HC74', '74HC138', '74HC139', '74HC154', '74HC161', '74HC163', '74HC164', '74HC165', '74HC166', '74HC173', '74HC174'], type: 'ИС' },
+      {
+        prefix: 'IC',
+        suffixes: [
+          '74HC00',
+          '74HC04',
+          '74HC08',
+          '74HC32',
+          '74HC74',
+          '74HC138',
+          '74HC139',
+          '74HC154',
+          '74HC161',
+          '74HC163',
+          '74HC164',
+          '74HC165',
+          '74HC166',
+          '74HC173',
+          '74HC174',
+        ],
+        type: 'ИС',
+      },
       // Трансформаторы
-      { prefix: 'T', suffixes: ['220V-12V', '220V-5V', '220V-3.3V', '220V-24V', '110V-12V', '110V-5V', '110V-3.3V', '110V-24V', '12V-5V', '12V-3.3V', '24V-12V', '24V-5V'], type: 'Трансформатор' },
+      {
+        prefix: 'T',
+        suffixes: [
+          '220V-12V',
+          '220V-5V',
+          '220V-3.3V',
+          '220V-24V',
+          '110V-12V',
+          '110V-5V',
+          '110V-3.3V',
+          '110V-24V',
+          '12V-5V',
+          '12V-3.3V',
+          '24V-12V',
+          '24V-5V',
+        ],
+        type: 'Трансформатор',
+      },
       // Переключатели
-      { prefix: 'SW', suffixes: ['SPST', 'SPDT', 'DPST', 'DPDT', '3PST', '3PDT', '4PST', '4PDT', 'ROTARY', 'SLIDE', 'PUSH', 'TOGGLE', 'ROCKER', 'DIP'], type: 'Переключатель' },
+      {
+        prefix: 'SW',
+        suffixes: [
+          'SPST',
+          'SPDT',
+          'DPST',
+          'DPDT',
+          '3PST',
+          '3PDT',
+          '4PST',
+          '4PDT',
+          'ROTARY',
+          'SLIDE',
+          'PUSH',
+          'TOGGLE',
+          'ROCKER',
+          'DIP',
+        ],
+        type: 'Переключатель',
+      },
       // Регуляторы напряжения
-      { prefix: 'REG', suffixes: ['LM7805', 'LM7809', 'LM7812', 'LM7815', 'LM7824', 'LM7905', 'LM7909', 'LM7912', 'LM7915', 'LM317', 'LM337', 'LM1117', 'LM1084', 'LM1085', 'LM1086'], type: 'Регулятор' },
+      {
+        prefix: 'REG',
+        suffixes: [
+          'LM7805',
+          'LM7809',
+          'LM7812',
+          'LM7815',
+          'LM7824',
+          'LM7905',
+          'LM7909',
+          'LM7912',
+          'LM7915',
+          'LM317',
+          'LM337',
+          'LM1117',
+          'LM1084',
+          'LM1085',
+          'LM1086',
+        ],
+        type: 'Регулятор',
+      },
       // Кремниевые выпрямители
-      { prefix: 'SCR', suffixes: ['2N1595', '2N1597', '2N1599', '2N2323', '2N2324', '2N2325', '2N2326', '2N2327', '2N2328', '2N2329', '2N2330', '2N2331'], type: 'SCR' },
+      {
+        prefix: 'SCR',
+        suffixes: [
+          '2N1595',
+          '2N1597',
+          '2N1599',
+          '2N2323',
+          '2N2324',
+          '2N2325',
+          '2N2326',
+          '2N2327',
+          '2N2328',
+          '2N2329',
+          '2N2330',
+          '2N2331',
+        ],
+        type: 'SCR',
+      },
       // Кристаллические генераторы
-      { prefix: 'XTAL', suffixes: ['4MHz', '8MHz', '12MHz', '16MHz', '20MHz', '24MHz', '32MHz', '40MHz', '48MHz', '50MHz', '60MHz', '80MHz', '100MHz'], type: 'Кристалл' },
+      {
+        prefix: 'XTAL',
+        suffixes: [
+          '4MHz',
+          '8MHz',
+          '12MHz',
+          '16MHz',
+          '20MHz',
+          '24MHz',
+          '32MHz',
+          '40MHz',
+          '48MHz',
+          '50MHz',
+          '60MHz',
+          '80MHz',
+          '100MHz',
+        ],
+        type: 'Кристалл',
+      },
       // Светодиоды
-      { prefix: 'LED', suffixes: ['RED', 'GREEN', 'BLUE', 'YELLOW', 'WHITE', 'IR', 'UV', 'RGB', 'HIGH_POWER', 'SMD', 'THROUGH_HOLE', '5MM', '3MM', '10MM'], type: 'Светодиод' },
+      {
+        prefix: 'LED',
+        suffixes: [
+          'RED',
+          'GREEN',
+          'BLUE',
+          'YELLOW',
+          'WHITE',
+          'IR',
+          'UV',
+          'RGB',
+          'HIGH_POWER',
+          'SMD',
+          'THROUGH_HOLE',
+          '5MM',
+          '3MM',
+          '10MM',
+        ],
+        type: 'Светодиод',
+      },
       // Дополнительные компоненты
-      { prefix: 'FUSE', suffixes: ['1A', '2A', '3A', '5A', '10A', '15A', '20A', '25A', '30A', '35A', '40A', '50A'], type: 'Предохранитель' },
-      { prefix: 'RELAY', suffixes: ['5V', '12V', '24V', '48V', 'SPDT', 'DPDT', '3PDT', '4PDT', 'SOLID_STATE', 'REED', 'LATCHING'], type: 'Реле' },
-      { prefix: 'BUZZER', suffixes: ['PIEZO', 'MAGNETIC', '5V', '12V', '24V', 'ACTIVE', 'PASSIVE', 'SMD', 'THROUGH_HOLE'], type: 'Зуммер' },
-      { prefix: 'SENSOR', suffixes: ['TEMP', 'HUMIDITY', 'PRESSURE', 'LIGHT', 'MOTION', 'GAS', 'PH', 'CONDUCTIVITY', 'TURBIDITY', 'DISSOLVED_O2'], type: 'Датчик' }
+      {
+        prefix: 'FUSE',
+        suffixes: [
+          '1A',
+          '2A',
+          '3A',
+          '5A',
+          '10A',
+          '15A',
+          '20A',
+          '25A',
+          '30A',
+          '35A',
+          '40A',
+          '50A',
+        ],
+        type: 'Предохранитель',
+      },
+      {
+        prefix: 'RELAY',
+        suffixes: [
+          '5V',
+          '12V',
+          '24V',
+          '48V',
+          'SPDT',
+          'DPDT',
+          '3PDT',
+          '4PDT',
+          'SOLID_STATE',
+          'REED',
+          'LATCHING',
+        ],
+        type: 'Реле',
+      },
+      {
+        prefix: 'BUZZER',
+        suffixes: [
+          'PIEZO',
+          'MAGNETIC',
+          '5V',
+          '12V',
+          '24V',
+          'ACTIVE',
+          'PASSIVE',
+          'SMD',
+          'THROUGH_HOLE',
+        ],
+        type: 'Зуммер',
+      },
+      {
+        prefix: 'SENSOR',
+        suffixes: [
+          'TEMP',
+          'HUMIDITY',
+          'PRESSURE',
+          'LIGHT',
+          'MOTION',
+          'GAS',
+          'PH',
+          'CONDUCTIVITY',
+          'TURBIDITY',
+          'DISSOLVED_O2',
+        ],
+        type: 'Датчик',
+      },
     ];
-    
+
     const component = faker.helpers.arrayElement(componentTypes);
     const suffix = faker.helpers.arrayElement(component.suffixes);
     const number = faker.number.int({ min: 1, max: 999 });
-    
+
     return `${component.prefix}${number}_${suffix}`;
   }
 
@@ -952,6 +1295,8 @@ export class DatabaseSeederService {
       `Создано ${componentPlacements.length} размещений компонентов`,
     );
 
+    const professionRights = await this.seedProfessionRights();
+
     // Заполнение задач стендов
     const standTasks = await this.seedStandTasks(mainEntities.stands);
     this.logger.log(`Создано ${standTasks.length} задач стендов`);
@@ -1209,6 +1554,26 @@ export class DatabaseSeederService {
     return await this.componentPlacementsRepository.save(placements);
   }
 
+  private async seedProfessionRights(): Promise<void> {
+    const professions = await this.professionsRepository.find();
+    const rights = await this.rightsRepository.find();
+
+    const professionRightsData: ProfessionRights[] = [];
+
+    for (const profession of professions) {
+      const randomRight = faker.helpers.arrayElement(rights);
+
+      const professionRight = this.professionRightsRepository.create({
+        professions: profession, // убедись, что поле в сущности называется `professions`
+        rights: randomRight,
+      });
+
+      professionRightsData.push(professionRight);
+    }
+
+    await this.professionRightsRepository.save(professionRightsData);
+  }
+
   private async seedArrivalInvoices(): Promise<ArrivalInvoices[]> {
     const organizations = await this.organizationsRepository.find();
 
@@ -1218,7 +1583,10 @@ export class DatabaseSeederService {
 
       return {
         date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
-        numberInvoice: faker.number.int({ min: 1, max: 1000000 }).toString().substring(0, 45),
+        numberInvoice: faker.number
+          .int({ min: 1, max: 1000000 })
+          .toString()
+          .substring(0, 45),
         scanPhoto: faker.image.url().substring(0, 100),
         dateTimeToWarehouse: new Date(
           warehouseDate.getFullYear(),
@@ -1247,7 +1615,10 @@ export class DatabaseSeederService {
 
       return {
         date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
-        numberBill: faker.number.int({ min: 1, max: 1000000 }).toString().substring(0, 45),
+        numberBill: faker.number
+          .int({ min: 1, max: 1000000 })
+          .toString()
+          .substring(0, 45),
         scanPhoto: faker.image.url().substring(0, 45),
         expectedSupplyDate: new Date(
           supplyDate.getFullYear(),

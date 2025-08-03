@@ -6,6 +6,7 @@ import { DeepPartial, Repository } from 'typeorm';
 import { AssignProfessionDTO } from './dto/AssignProfessionDTO';
 import { EmployeesProfessions } from './employees_professions.entity';
 import { EmployeesProfessionsDTO } from './dto/EmployeesProfessionsDTO';
+import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
 
 @Injectable()
 export class EmployeesProfessionsService {
@@ -16,51 +17,58 @@ export class EmployeesProfessionsService {
     private employeesRepository: Repository<Employees>,
     @InjectRepository(Professions)
     private professionRepository: Repository<Professions>,
+    @InjectRepository(ProfessionRights)
+    private professionRightsRepository: Repository<ProfessionRights>,
   ) {}
 
   async assignProfession(data: AssignProfessionDTO) {
-    try {
-      const employee = await this.employeesRepository.findOne({
-        where: { id: data.employeeId },
-      });
+    const employee = await this.employeesRepository.findOne({
+      where: { id: data.employeeId },
+    });
 
-      /**
-       * Если передается professionId - тогда ищем профессию по ID.
-       * Если нет - задаем дефолтную профессию - Test
-       */
-      const profession = data.professionId
-        ? await this.professionRepository.findOne({
-            where: { id: data.professionId },
-          })
-        : await this.professionRepository.findOne({ where: { title: 'Test' } });
+    /**
+     * Если передается professionId - тогда ищем профессию по ID.
+     * Если нет - задаем дефолтную профессию - Test
+     */
+    const professionRights = data.professionId
+      ? await this.professionRightsRepository.findOne({
+          where: { professions: { id: data.professionId } },
+          relations: ['professions', 'rights'],
+        })
+      : await this.professionRightsRepository.findOne({
+          where: { professions: { title: 'Test' } },
+          relations: ['professions', 'rights'],
+        });
 
-      if (!profession) throw new NotFoundException('Profession not found');
-      if (!employee) throw new NotFoundException('Employee not found');
+    console.log('!!!!1', professionRights);
 
-      const entity = this.employeesProfessionsRepository.create({
-        employees: employee,
-        professions: profession,
-      });
+    if (!professionRights) throw new NotFoundException('Profession not found');
+    if (!employee) throw new NotFoundException('Employee not found');
 
-      return await this.employeesProfessionsRepository.save(entity);
-    } catch (e) {
-      throw Error('Ошибка при назначении профессии', e);
-    }
+    const entity = this.employeesProfessionsRepository.create({
+      employees: employee,
+      professionRights: professionRights,
+    });
+    console.log('!!!!!2', entity);
+
+    return await this.employeesProfessionsRepository.save(entity);
   }
 
   async findEmployeeProfessionByEmployeeId(employeeId: number) {
-    try {
-      console.log('employeeId', employeeId);
-      const data = await this.employeesProfessionsRepository.findOne({
-        where: { employees: { id: employeeId } },
-        relations: ['employees', 'employees.peoples', 'professions'],
-      });
-      console.log('data!!!!!!', data);
+    console.log('employeeId', employeeId);
+    const data = await this.employeesProfessionsRepository.findOne({
+      where: { employees: { id: employeeId } },
+      relations: [
+        'employees',
+        'employees.peoples',
+        'professionRights',
+        'professionRights.professions',
+        'professionRights.rights',
+      ],
+    });
+    console.log('data!!!!!!', data);
 
-      return data;
-    } catch (e) {
-      throw new Error('Ошибка при поиске EmployeeProfession', e);
-    }
+    return data;
   }
 
   async getDataForAdditional() {
@@ -69,7 +77,9 @@ export class EmployeesProfessionsService {
         relations: ['peoples'],
       });
 
-      const professions = await this.professionRepository.find();
+      const professions = await this.professionRightsRepository.find({
+        relations: ['professions', 'rights'],
+      });
 
       return {
         employees: employees,
@@ -89,7 +99,7 @@ export class EmployeesProfessionsService {
         throw new NotFoundException('Ошибка при поиске профессий сотрудников');
 
       employeeProfessions.map((item) => {
-        const { employees, professions, ...defaultData } = item;
+        const { employees, professionRights, ...defaultData } = item;
         console.log('employees', employees);
         const peoples = employees?.peoples;
 
@@ -101,7 +111,8 @@ export class EmployeesProfessionsService {
           .filter(Boolean)
           .join(' ');
 
-        const professionTitle = professions?.title;
+        const professionTitle = professionRights.professions?.title;
+        console.debug(professionTitle);
 
         data.push({
           ...defaultData,
@@ -124,13 +135,14 @@ export class EmployeesProfessionsService {
       relations: ['peoples'],
     });
 
-    const profession = await this.professionRepository.findOne({
-      where: { id: data.professionId },
+    const professionRight = await this.professionRightsRepository.findOne({
+      where: { professions: { id: data.professionId } },
+      relations: ['professions', 'rights'],
     });
 
     const entity = this.employeesProfessionsRepository.create({
       employees: employee,
-      professions: profession,
+      professionRights: professionRight,
     } as DeepPartial<EmployeesProfessions>);
 
     return await this.employeesProfessionsRepository.save(entity);
@@ -138,14 +150,26 @@ export class EmployeesProfessionsService {
 
   async getAll() {
     return await this.employeesProfessionsRepository.find({
-      relations: ['employees', 'employees.peoples', 'professions'],
+      relations: [
+        'employees',
+        'employees.peoples',
+        'professionRights',
+        'professionRights.professions',
+        'professionRights.rights',
+      ],
     });
   }
 
   async getOne(id: number) {
     return await this.employeesProfessionsRepository.findOne({
       where: { id },
-      relations: ['employees', 'employees.peoples', 'professions'],
+      relations: [
+        'employees',
+        'employees.peoples',
+        'professionRights',
+        'professionRights.professions',
+        'professionRights.rights',
+      ],
     });
   }
 

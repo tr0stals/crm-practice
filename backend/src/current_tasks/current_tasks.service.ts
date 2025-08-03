@@ -40,7 +40,7 @@ export class CurrentTasksService {
     // allUsers.forEach(user => {
     //   console.log(`[DEBUG] Пользователь ID: ${user.id}, userName: ${user.userName}, employeeId: ${user.employees?.id}`);
     // });
-    
+
     const employee = await this.employeeRepository.findOne({
       where: { id: data.employeeId },
       relations: ['peoples', 'users'],
@@ -80,12 +80,12 @@ export class CurrentTasksService {
     //     .leftJoinAndSelect('employee.peoples', 'peoples')
     //     .where('employee.id = :id', { id: data.employeeId })
     //     .getOne();
-      
+
     //   if (employeeWithUsers?.users && employeeWithUsers.users.length > 0) {
     //     console.log(`[DEBUG] Найден сотрудник с пользователями через QueryBuilder: ${employeeWithUsers.users.length} пользователей`);
     //     const user = employeeWithUsers.users[0];
     //     const message = `Вам назначена новая задача: "${data.title}" на стенде "${stands.title}". Дедлайн: ${data.deadline}`;
-        
+
     //     console.log(`[NOTIFICATION] Отправляем уведомление пользователю ${user.id}: ${message}`);
     //     this.wsGateway.sendNotification(user.id.toString(), message, 'task_assigned');
     //   } else {
@@ -96,27 +96,45 @@ export class CurrentTasksService {
     // Отправляем уведомление до создания entity
     if (employee.users && employee.users.length > 0) {
       const user = employee.users[0]; // Берем первого пользователя
-      const employeeName = `${employee.peoples?.lastName || ''} ${employee.peoples?.firstName || ''} ${employee.peoples?.middleName || ''}`.trim();
+      const employeeName =
+        `${employee.peoples?.lastName || ''} ${employee.peoples?.firstName || ''} ${employee.peoples?.middleName || ''}`.trim();
       const message = `Вам назначена новая задача: "${data.title}" на стенде "${stands.title}". Дедлайн: ${data.deadline}`;
-      
-      console.log(`[NOTIFICATION] Отправляем уведомление пользователю ${user.id}: ${message}`);
-      this.wsGateway.sendNotification(user.id.toString(), message, 'task_assigned');
+
+      console.log(
+        `[NOTIFICATION] Отправляем уведомление пользователю ${user.id}: ${message}`,
+      );
+      this.wsGateway.sendNotification(
+        user.id.toString(),
+        message,
+        'task_assigned',
+      );
     } else {
-      console.log(`[NOTIFICATION] У сотрудника ${employee.id} нет пользователей для уведомлений`);
+      console.log(
+        `[NOTIFICATION] У сотрудника ${employee.id} нет пользователей для уведомлений`,
+      );
       console.log(`[DEBUG] employee.users:`, employee.users);
-      
+
       // Попробуем найти пользователя напрямую
       const directUser = await this.userRepository.findOne({
         where: { employees: { id: employee.id } },
       });
-      
+
       if (directUser) {
-        const employeeName = `${employee.peoples?.lastName || ''} ${employee.peoples?.firstName || ''} ${employee.peoples?.middleName || ''}`.trim();
+        const employeeName =
+          `${employee.peoples?.lastName || ''} ${employee.peoples?.firstName || ''} ${employee.peoples?.middleName || ''}`.trim();
         const message = `Вам назначена новая задача: "${data.title}" на стенде "${stands.title}". Дедлайн: ${data.deadline}`;
-        console.log(`[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление`);
-        this.wsGateway.sendNotification(directUser.id.toString(), message, 'task_assigned');
+        console.log(
+          `[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление`,
+        );
+        this.wsGateway.sendNotification(
+          directUser.id.toString(),
+          message,
+          'task_assigned',
+        );
       } else {
-        console.log(`[DEBUG] Пользователь не найден даже напрямую для сотрудника ${employee.id}`);
+        console.log(
+          `[DEBUG] Пользователь не найден даже напрямую для сотрудника ${employee.id}`,
+        );
       }
     }
 
@@ -203,19 +221,30 @@ export class CurrentTasksService {
   async startTask(taskId: number, employeeId: number) {
     const task = await this.currentTasksRepository.findOne({
       where: { id: taskId },
-      relations: ['currentTaskStates', 'employees', 'employees.users', 'employees.peoples', 'stands'],
+      relations: [
+        'currentTaskStates',
+        'employees',
+        'employees.users',
+        'employees.peoples',
+        'stands',
+      ],
     });
     if (!task) throw new Error('Задача не найдена');
-    
+
     // Отправляем уведомление о начале задачи
     if (task.employees?.users && task.employees.users.length > 0) {
       const user = task.employees.users[0];
-      const employeeName = `${task.employees.peoples?.lastName || ''} ${task.employees.peoples?.firstName || ''} ${task.employees.peoples?.middleName || ''}`.trim();
+      const employeeName =
+        `${task.employees.peoples?.lastName || ''} ${task.employees.peoples?.firstName || ''} ${task.employees.peoples?.middleName || ''}`.trim();
       const message = `Задача "${task.title}" на стенде "${task.stands?.title}" начата`;
-      
-      this.wsGateway.sendNotification(user.id.toString(), message, 'task_started');
+
+      this.wsGateway.sendNotification(
+        user.id.toString(),
+        message,
+        'task_started',
+      );
     }
-    
+
     // Меняем статус на "Выполняется"
     const inProgressState = await this.currentTaskStatesRepository.findOne({
       where: [{ title: 'Выполняется' }, { title: 'Выполняется' }],
@@ -229,18 +258,28 @@ export class CurrentTasksService {
   async completeTask(taskId: number) {
     const task = await this.currentTasksRepository.findOne({
       where: { id: taskId },
-      relations: ['currentTaskStates', 'employees', 'employees.users', 'employees.peoples', 'stands'],
+      relations: [
+        'currentTaskStates',
+        'employees',
+        'employees.users',
+        'employees.peoples',
+        'stands',
+      ],
     });
     if (!task) throw new Error('Задача не найдена');
-    
+
     // Отправляем уведомление о завершении задачи
     if (task.employees?.users && task.employees.users.length > 0) {
       const user = task.employees.users[0];
       const message = `Задача "${task.title}" на стенде "${task.stands?.title}" завершена`;
-      
-      this.wsGateway.sendNotification(user.id.toString(), message, 'task_completed');
+
+      this.wsGateway.sendNotification(
+        user.id.toString(),
+        message,
+        'task_completed',
+      );
     }
-    
+
     // Меняем статус на "Завершена"
     const completedState = await this.currentTaskStatesRepository.findOne({
       where: [{ title: 'Завершена' }, { title: 'Завершена' }],
@@ -268,7 +307,13 @@ export class CurrentTasksService {
       ],
     });
     const allStandTasks = await this.standTasksRepository.find({
-      relations: ['components', 'stands', 'professions'],
+      relations: [
+        'components',
+        'stands',
+        'professionRights',
+        'professionRights.professions',
+        'professionRights.rights',
+      ],
     });
     const standTasksByParent = new Map<string, StandTasks[]>();
     for (const st of allStandTasks) {

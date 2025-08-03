@@ -1,4 +1,5 @@
 import { Employees } from 'src/employees/employees.entity';
+import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
 import { Professions } from 'src/professions/professions.entity';
 import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -11,7 +12,10 @@ export class EmployeesProfessions {
   @JoinColumn({ name: 'employeeId' })
   employees: Employees;
 
-  @ManyToOne(() => Professions, (profession) => profession.employeesProfessions)
-  @JoinColumn({ name: 'professionId' })
-  professions: Professions;
+  @ManyToOne(
+    () => ProfessionRights,
+    (professionRight) => professionRight.employeeProfessions,
+  )
+  @JoinColumn({ name: 'professionRightsId' })
+  professionRights: ProfessionRights;
 }

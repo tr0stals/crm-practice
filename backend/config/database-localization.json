@@ -344,6 +344,14 @@
         "title": "Название"
       }
     },
+    "profession_rights": {
+      "displayName": "Права профессий",
+      "fields": {
+        "id": "ID",
+        "professionId": "Профессия",
+        "rights": "Права"
+      }
+    },
     "server_arrivals": {
       "displayName": "Серверные приходы",
       "fields": {

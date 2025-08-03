@@ -59,10 +59,15 @@ export class CurrentTasksController {
     if (!employeeId) {
       return { name: 'Текущие задачи', children: [] };
     }
-    const empProf = await this.employeesProfessionsService.findEmployeeProfessionByEmployeeId(employeeId);
-    const role = empProf?.professions?.title?.toLowerCase() || '';
+    const empProf =
+      await this.employeesProfessionsService.findEmployeeProfessionByEmployeeId(
+        employeeId,
+      );
+    console.log('!!!!!', empProf);
+    const role =
+      empProf?.professionRights?.professions?.title?.toLowerCase() || '';
     const allowedRoles = ['директор', 'администратор', 'test'];
-    if (allowedRoles.some(r => role.includes(r))) {
+    if (allowedRoles.some((r) => role.includes(r))) {
       return await this.service.getCurrentTasksTreeForAll();
     } else {
       return await this.service.getCurrentTasksTreeForEmployee(employeeId);
@@ -106,7 +111,7 @@ export class CurrentTasksController {
   @Get('titles')
   async getAllTaskTitles() {
     const tasks = await this.service.findAll();
-    return tasks.map(task => ({ id: task.id, title: task.title }));
+    return tasks.map((task) => ({ id: task.id, title: task.title }));
   }
 
   @Get('rootStandTasks')

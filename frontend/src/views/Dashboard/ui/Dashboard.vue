@@ -292,7 +292,8 @@ onMounted(async () => {
       id: authorizedUser.value.user?.id,
       firstName: user.employees.peoples.firstName,
       lastName: user.employees.peoples.lastName,
-      professionTitle: user.employeeProfession.professions.title,
+      professionTitle:
+        user.employeeProfession.professionRights.professions.title,
     });
   }
 

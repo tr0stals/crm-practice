@@ -212,6 +212,7 @@ onUnmounted(() => {
                 item.numberBill ||
                 item.shortName ||
                 item.numberInvoice ||
+                item.professions?.title ||
                 item.date ||
                 item.shipmentDate ||
                 (item.licenseCode && item.licenseTypes

@@ -5,9 +5,17 @@ import { EmployeesProfessionsService } from './employees_professions.service';
 import { EmployeesProfessionsController } from './employees_professions.controller';
 import { Employees } from 'src/employees/employees.entity';
 import { Professions } from 'src/professions/professions.entity';
+import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([EmployeesProfessions, Employees, Professions])],
+  imports: [
+    TypeOrmModule.forFeature([
+      EmployeesProfessions,
+      Employees,
+      Professions,
+      ProfessionRights,
+    ]),
+  ],
   providers: [EmployeesProfessionsService],
   controllers: [EmployeesProfessionsController],
   exports: [EmployeesProfessionsService],

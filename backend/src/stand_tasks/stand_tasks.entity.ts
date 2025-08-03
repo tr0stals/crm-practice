@@ -1,5 +1,6 @@
 import { Components } from 'src/components/components.entity';
 import { CurrentTasks } from 'src/current_tasks/current_tasks.entity';
+import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
 import { Professions } from 'src/professions/professions.entity';
 import { Stands } from 'src/stands/stands.entity';
 import {
@@ -25,13 +26,13 @@ export class StandTasks {
   @Column()
   componentOutCount: number;
 
-  @Column({ length: 45})
+  @Column({ length: 45 })
   title: string;
 
-  @Column({ length: 100})
+  @Column({ length: 100 })
   photo: string;
 
-  @Column({ type: 'date'})
+  @Column({ type: 'date' })
   manufactureTime: Date;
 
   @Column({ default: false })
@@ -41,9 +42,12 @@ export class StandTasks {
   @JoinColumn({ name: 'standId' })
   stands: Stands;
 
-  @ManyToOne(() => Professions, (profession) => profession.standTasks)
-  @JoinColumn({ name: 'professionId' })
-  professions: Professions;
+  @ManyToOne(
+    () => ProfessionRights,
+    (professionRight) => professionRight.standTasks,
+  )
+  @JoinColumn({ name: 'professionRightId' })
+  professionRights: ProfessionRights;
 
   @ManyToOne(() => Components, (component) => component.standTasks)
   @JoinColumn({ name: 'componentId' })

@@ -212,6 +212,8 @@ export class DatabaseService {
         row.name ||
         row.state ||
         row.shortName ||
+        row.professions?.title ||
+        row.rights?.title ||
         row.numberBill ||
         row.numberInvoice ||
         (row.licenseCode && row.licenseTypes
