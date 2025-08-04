@@ -89,6 +89,16 @@
         "title": "Название"
       }
     },
+    "current_task_states_log": {
+      "displayName": "Логи состояний текущих задач",
+      "fields": {
+        "id": "ID",
+        "dateTime": "Дата и время",
+        "currentTaskId": "Задача",
+        "currentTaskStateId": "Состояние",
+        "formattedDateTime": "Дата и время"
+      }
+    },
     "current_tasks": {
       "displayName": "Текущие задачи",
       "fields": {

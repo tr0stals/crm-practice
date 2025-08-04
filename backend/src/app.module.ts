@@ -54,6 +54,7 @@ import { DatabaseExportImportModule } from './database_export_import/database_ex
 import { WebsocketModule } from './websocket/websocket.module';
 import { ProfessionRightsModule } from './profession_rights/profession_rights.module';
 import { RightsModule } from './rights/rights.module';
+import { CurrentTaskStatesLogModule } from './current_task_states_log/current_task_states_log.module';
 
 @Module({
   imports: [
@@ -125,6 +126,7 @@ import { RightsModule } from './rights/rights.module';
     WebsocketModule,
     ProfessionRightsModule,
     RightsModule,
+    CurrentTaskStatesLogModule,
   ],
   controllers: [AppController, StandsController],
   providers: [AppService],

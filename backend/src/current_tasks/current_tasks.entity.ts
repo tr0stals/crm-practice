@@ -13,6 +13,7 @@ import { StandTasks } from 'src/stand_tasks/stand_tasks.entity';
 import { ServerWriteoff } from 'src/server_writeoff/server_writeoff.entity';
 import { ServerArrivals } from 'src/server_arrivals/server_arrivals.entity';
 import { Stands } from 'src/stands/stands.entity';
+import { CurrentTaskStatesLog } from 'src/current_task_states_log/current_task_states_log.entity';
 
 export enum TaskStatus {
   NOT_STARTED = 'NOT_STARTED',
@@ -62,4 +63,7 @@ export class CurrentTasks {
     (serverArrival) => serverArrival.currentTasks,
   )
   serverArrivals: ServerArrivals[];
+
+  @OneToMany(() => CurrentTaskStatesLog, (log) => log.currentTask)
+  currentTaskStatesLogs: CurrentTaskStatesLog[];
 }

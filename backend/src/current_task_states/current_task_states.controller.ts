@@ -49,4 +49,9 @@ export class CurrentTaskStatesController {
   async delete(@Param('id') id: string) {
     return await this.service.delete(+id);
   }
+  
+  @Get('tree')
+  async getTasksTreeByStatus() {
+    return await this.service.getTasksTreeByStatus();
+  }
 }

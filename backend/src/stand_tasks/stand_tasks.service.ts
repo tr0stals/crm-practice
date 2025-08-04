@@ -11,6 +11,7 @@ import { StandsService } from 'src/stands/stands.service';
 import { WsGateway } from 'src/websocket/ws.gateway';
 import { User } from 'src/user/user.entity';
 import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
+import { CurrentTasksService } from 'src/current_tasks/current_tasks.service';
 
 @Injectable()
 export class StandTasksService {
@@ -28,6 +29,7 @@ export class StandTasksService {
     private standService: StandsService,
 
     private wsGateway: WsGateway,
+    private currentTasksService: CurrentTasksService,
   ) {}
 
   async create(data: StandTasksDTO) {
@@ -223,30 +225,8 @@ export class StandTasksService {
             ],
           });
           if (currentTask) {
-            // Отправляем уведомление о завершении всей задачи
-            if (
-              currentTask.employees?.users &&
-              currentTask.employees.users.length > 0
-            ) {
-              const user = currentTask.employees.users[0];
-              const message = `Задача "${currentTask.title}" на стенде "${currentTask.stands?.title}" полностью завершена`;
-
-              console.log(
-                `[NOTIFICATION] Отправляем уведомление о завершении задачи пользователю ${user.id}: ${message}`,
-              );
-              this.wsGateway.sendNotification(
-                user.id.toString(),
-                message,
-                'task_completed',
-              );
-            } else {
-              console.log(
-                `[NOTIFICATION] Не найден пользователь для уведомления о завершении задачи`,
-              );
-            }
-
-            currentTask.currentTaskStates = { id: 3 } as any;
-            await this.currentTasksRepo.save(currentTask);
+            // Вызываем метод completeTask для корректного завершения задачи
+            await this.currentTasksService.completeTask(currentTask.id);
           }
         }
       }

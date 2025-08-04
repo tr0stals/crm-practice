@@ -10,6 +10,8 @@ import { ProfessionsModule } from 'src/professions/professions.module';
 import { WebsocketModule } from 'src/websocket/websocket.module';
 import { User } from 'src/user/user.entity';
 import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
+import { CurrentTaskStatesLogModule } from 'src/current_task_states_log/current_task_states_log.module';
+import { CurrentTasksModule } from 'src/current_tasks/current_tasks.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { ProfessionRights } from 'src/profession_rights/profession_rights.entity
     ComponentsModule,
     ProfessionsModule,
     WebsocketModule,
+    CurrentTaskStatesLogModule,
+    CurrentTasksModule,
   ],
   providers: [StandTasksService],
   controllers: [StandTasksController],

@@ -10,6 +10,7 @@ import { StandTasks } from 'src/stand_tasks/stand_tasks.entity';
 import { Stands } from 'src/stands/stands.entity';
 import { WsGateway } from 'src/websocket/ws.gateway';
 import { User } from 'src/user/user.entity';
+import { CurrentTaskStatesLogService } from 'src/current_task_states_log/current_task_states_log.service';
 
 @Injectable()
 export class CurrentTasksService {
@@ -29,6 +30,7 @@ export class CurrentTasksService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private wsGateway: WsGateway,
+    private currentTaskStatesLogService: CurrentTaskStatesLogService,
   ) {}
 
   async create(data: CurrentTasksDTO): Promise<CurrentTasks> {
@@ -64,7 +66,7 @@ export class CurrentTasksService {
 
     const standTask = await this.standTasksRepository.findOne({
       where: { id: data.standTaskId },
-      relations: ['stands', 'professions', 'components'],
+      relations: ['stands', 'professionRights', 'professionRights.professions', 'components'],
     });
 
     if (!employee || !currentTaskState || !stands || !standTask) {
@@ -148,7 +150,12 @@ export class CurrentTasksService {
         title: data.title,
       });
 
-    return await this.currentTasksRepository.save(entity);
+    const savedTask = await this.currentTasksRepository.save(entity);
+    
+    // Логируем первоначальный статус задачи
+    await this.currentTaskStatesLogService.logStateChange(savedTask.id, currentTaskState.id);
+    
+    return savedTask;
   }
 
   async findAll(): Promise<CurrentTasks[]> {
@@ -208,7 +215,13 @@ export class CurrentTasksService {
   }
 
   async update(id: number, data: Partial<CurrentTasks>): Promise<CurrentTasks> {
-    await this.findOne(id); // Проверяем существование
+    const existingTask = await this.findOne(id); // Проверяем существование и получаем текущее состояние
+    
+    // Логируем изменение статуса, если оно произошло
+    if (data.currentTaskStates && data.currentTaskStates.id !== existingTask.currentTaskStates?.id) {
+      await this.currentTaskStatesLogService.logStateChange(id, data.currentTaskStates.id);
+    }
+    
     await this.currentTasksRepository.update(id, data);
     return await this.findOne(id);
   }
@@ -250,6 +263,8 @@ export class CurrentTasksService {
       where: [{ title: 'Выполняется' }, { title: 'Выполняется' }],
     });
     if (inProgressState) {
+      // Логируем изменение статуса
+      await this.currentTaskStatesLogService.logStateChange(taskId, inProgressState.id);
       task.currentTaskStates = inProgressState;
     }
     return await this.currentTasksRepository.save(task);
@@ -285,6 +300,8 @@ export class CurrentTasksService {
       where: [{ title: 'Завершена' }, { title: 'Завершена' }],
     });
     if (completedState) {
+      // Логируем изменение статуса
+      await this.currentTaskStatesLogService.logStateChange(taskId, completedState.id);
       task.currentTaskStates = completedState;
     }
     return await this.currentTasksRepository.save(task);
@@ -341,7 +358,7 @@ export class CurrentTasksService {
     }
     const children = Array.from(deadlineMap.entries()).map(
       ([deadline, standMap]) => ({
-        name: `Дедлайн: ${deadline}`,
+        name: deadline,
         deadline: deadline,
         children: Array.from(standMap.entries()).map(([stand, taskMap]) => {
           const firstTask = Array.from(taskMap.values())[0];
@@ -451,7 +468,7 @@ export class CurrentTasksService {
         name: state,
         children: Array.from(deadlineMap.entries()).map(
           ([deadline, standMap]) => ({
-            name: `Дедлайн: ${deadline}`,
+            name: deadline,
             deadline: deadline,
             children: Array.from(standMap.entries()).map(
               ([stand, taskMap]) => ({

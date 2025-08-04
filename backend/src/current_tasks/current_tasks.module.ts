@@ -12,6 +12,7 @@ import { Stands } from 'src/stands/stands.entity';
 import { EmployeesProfessionsModule } from 'src/employees_professions/employees_professions.module';
 import { WebsocketModule } from 'src/websocket/websocket.module';
 import { User } from 'src/user/user.entity';
+import { CurrentTaskStatesLogModule } from 'src/current_task_states_log/current_task_states_log.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { User } from 'src/user/user.entity';
     EmployeesModule,
     EmployeesProfessionsModule,
     WebsocketModule,
+    CurrentTaskStatesLogModule,
   ],
   providers: [CurrentTasksService],
   controllers: [CurrentTasksController],

@@ -104,6 +104,48 @@ export const PERMISSION_MATRIX: PermissionMatrix = {
     'Покрасчик': { read: true, write: false, writeSelf: true }
   },
 
+  // Текущие задачи
+  'current_task_states': {
+    'Администратор': { read: true, write: true, writeSelf: false },
+    'Директор': { read: false, write: false, writeSelf: false },
+    'Бухгалтер': { read: false, write: false, writeSelf: false },
+    'Зав. производством': { read: true, write: true, writeSelf: false },
+    'Снабженец': { read: false, write: false, writeSelf: false },
+    'Программист': { read: false, write: false, writeSelf: false },
+    'Дизайнер': { read: false, write: false, writeSelf: false },
+    'Конструктор': { read: false, write: false, writeSelf: false },
+    'Инженер': { read: false, write: false, writeSelf: false },
+    'Монтажник': { read: false, write: false, writeSelf: false },
+    'Слесарь': { read: false, write: false, writeSelf: false },
+    'Токарь': { read: false, write: false, writeSelf: false },
+    'Фрезеровщик': { read: false, write: false, writeSelf: false },
+    'Сварщик': { read: false, write: false, writeSelf: false },
+    'Столяр': { read: false, write: false, writeSelf: false },
+    'Технолог ПП': { read: false, write: false, writeSelf: false },
+    'Покрасчик': { read: false, write: false, writeSelf: false }
+  },
+
+  // Текущие задачи
+  'current_task_states_log': {
+    'Администратор': { read: true, write: true, writeSelf: false },
+    'Директор': { read: false, write: false, writeSelf: false },
+    'Бухгалтер': { read: false, write: false, writeSelf: false },
+    'Зав. производством': { read: true, write: true, writeSelf: false },
+    'Снабженец': { read: false, write: false, writeSelf: false },
+    'Программист': { read: false, write: false, writeSelf: false },
+    'Дизайнер': { read: false, write: false, writeSelf: false },
+    'Конструктор': { read: false, write: false, writeSelf: false },
+    'Инженер': { read: false, write: false, writeSelf: false },
+    'Монтажник': { read: false, write: false, writeSelf: false },
+    'Слесарь': { read: false, write: false, writeSelf: false },
+    'Токарь': { read: false, write: false, writeSelf: false },
+    'Фрезеровщик': { read: false, write: false, writeSelf: false },
+    'Сварщик': { read: false, write: false, writeSelf: false },
+    'Столяр': { read: false, write: false, writeSelf: false },
+    'Технолог ПП': { read: false, write: false, writeSelf: false },
+    'Покрасчик': { read: false, write: false, writeSelf: false }
+  },
+
   // Сотрудники
   'employees': {
     'Администратор': { read: true, write: true, writeSelf: false },
@@ -457,6 +499,8 @@ export function getTreeViewEntities(role: string): string[] {
     'bills_for_pay', 
     'components',
     'current_tasks',
+    'current_task_states',
+    'current_task_states_log',
     'employees',
     'inventarization',
     'license',
