@@ -44,6 +44,13 @@ export class InventarizationController {
     return await this.service.generateData();
   }
 
+  @ApiOperation({ summary: 'Получить дерево инвентаризации' })
+  @ApiResponse({ status: 200, description: 'Дерево инвентаризации получено' })
+  @Get('tree')
+  async getInventarizationTree() {
+    return await this.service.getInventarizationTree();
+  }
+
   @ApiOperation({ summary: 'Обновить запись инвентаризации' })
   @ApiResponse({ status: 200, description: 'Запись обновлена' })
   @Patch('update/:id')

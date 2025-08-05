@@ -82,4 +82,67 @@ export class InventarizationService {
   async remove(id: number) {
     return await this.repo.delete(id);
   }
+
+  async getInventarizationTree() {
+    const inventarizations = await this.repo.find({
+      relations: ['component', 'factory'],
+    });
+
+    // Группируем по дате инвентаризации
+    const dateMap = new Map<string, any[]>();
+    
+    for (const inv of inventarizations) {
+      // Преобразуем строку даты в объект Date
+      const dateObj = new Date(inv.inventarizationDate);
+      const dateKey = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+      const dateLabel = dateObj.toLocaleDateString('ru-RU');
+      
+      if (!dateMap.has(dateKey)) {
+        dateMap.set(dateKey, []);
+      }
+
+      const componentInfo = {
+        name: `${inv.component?.title || 'Неизвестная компонента'} | ${inv.componentCount} шт.`,
+        nodeType: 'components',
+        componentTitle: inv.component?.title,
+        componentCount: inv.componentCount,
+        inventarizationQuality: inv.inventarizationQuality,
+        factoryName: inv.factory?.shortName || inv.factory?.fullName,
+        id: inv.id,
+        component: inv.component,
+        factory: inv.factory,
+      };
+
+      dateMap.get(dateKey)!.push(componentInfo);
+    }
+
+    const result: any = {
+      name: 'Инвентаризация',
+      children: []
+    };
+
+    // Сортируем даты и создаем дерево
+    const sortedDates = Array.from(dateMap.keys()).sort();
+    
+    for (const dateKey of sortedDates) {
+      const dateLabel = new Date(dateKey);
+      const components = dateMap.get(dateKey)!;
+      
+      // Получаем id первой записи инвентаризации для этой даты
+      const firstInvForDate = inventarizations.find(inv => {
+        const invDate = new Date(inv.inventarizationDate).toISOString().split('T')[0];
+        return invDate === dateKey;
+      });
+      
+      result.children.push({
+        name: dateLabel,
+        nodeType: 'inventarization',
+        id: firstInvForDate?.id,
+        date: dateKey,
+        children: components
+      });
+    }
+
+    return result;
+  }
 }

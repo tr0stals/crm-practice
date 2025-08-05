@@ -148,13 +148,38 @@ export class PcbOrdersService {
       order: { orderDate: 'DESC' },
     });
 
-    // Получаем все платы для сопоставления parentId -> subcategory
+    // Получаем все платы с компонентами для сопоставления parentId -> subcategory
     const pcbIdToSubcategory = {};
     const pcbIdToName = {};
-    // Для простоты — получаем все платы через отдельный запрос
-    // (в реальном проекте лучше через сервис PCBS, но тут напрямую)
+    const pcbIdToComponents = {};
+    
+    // Получаем все платы с их компонентами
     const pcbsRepo = this.repository.manager.getRepository(PCBS);
+    const pcbsComponentsRepo = this.repository.manager.getRepository('PcbsComponents');
+    
     const allPcbs = await pcbsRepo.find();
+    const allPcbComponents = await pcbsComponentsRepo.find({
+      relations: ['component', 'pcb'],
+    });
+    
+    // Группируем компоненты по платам
+    allPcbComponents.forEach((pcbComp) => {
+      const pcbId = pcbComp.pcb?.id;
+      if (pcbId) {
+        if (!pcbIdToComponents[pcbId]) {
+          pcbIdToComponents[pcbId] = [];
+        }
+        pcbIdToComponents[pcbId].push({
+          name: `${pcbComp.component?.title || 'Неизвестная компонента'} | ${pcbComp.componentCount} шт.`,
+          nodeType: 'components',
+          componentTitle: pcbComp.component?.title,
+          componentCount: pcbComp.componentCount,
+          id: pcbComp.id,
+          component: pcbComp.component,
+        });
+      }
+    });
+    
     allPcbs.forEach((pcb) => {
       pcbIdToSubcategory[pcb.id] = pcb.parentId;
       pcbIdToName[pcb.id] = pcb.id;
@@ -182,26 +207,15 @@ export class PcbOrdersService {
       const pcbPrice = `${order.price} руб.` || '0 руб.';
       const widthHeight = `${order.width}x${order.height} мм`;
       const count = `${order.count} шт.`;
-      // Формируем строку для дерева (оставляем, но закомментируем)
-      // const row = [
-      //   order.pcbManufacturer?.fullName,
-      //   order.factory?.fullName,
-      //   subcategoryName,
-      //   pcbName,
-      //   count,
-      //   widthHeight,
-      //   order.article,
-      //   order.price,
-      //   order.pcbOrderState?.state
-      // ].join(' | ');
-      const rowObj = {
+      
+      // Создаем объект заказа
+      const orderObj = {
         id: order.id,
         nodeType: 'pcb_orders',
         name: [
           `Производитель: ${order.pcbManufacturer?.fullName}`,
           `Завод: ${order.factory?.fullName}`,
           `Подкатегория: ${subcategoryName}`,
-          `Плата: ${pcbName}`,
           `${count}`,
           `${widthHeight}`,
           `Артикул: ${order.article}`,
@@ -211,7 +225,6 @@ export class PcbOrdersService {
         manufacturer: order.pcbManufacturer?.fullName,
         factory: order.factory?.fullName,
         subcategoryName,
-        pcbName,
         count,
         width: order.width,
         height: order.height,
@@ -219,8 +232,19 @@ export class PcbOrdersService {
         price: order.price,
         status: order.pcbOrderState?.state,
         orderDate: order.orderDate,
+        children: [
+          {
+            name: pcbName,
+            nodeType: 'pcbs',
+            pcbTitle: pcbName,
+            id: pcb?.id,
+            pcb: pcb,
+            children: pcbIdToComponents[pcb?.id] || [],
+          }
+        ],
       };
-      grouped[date].push(rowObj);
+      
+      grouped[date].push(orderObj);
     }
 
     // Формируем объект для TreeView
@@ -228,10 +252,7 @@ export class PcbOrdersService {
       name: 'Заказы печатных плат',
       children: Object.entries(grouped).map(([date, orders]) => ({
         name: date,
-        children: (orders as any[]).map((orderObj) => ({
-          ...orderObj,
-          children: [],
-        })),
+        children: orders as any[],
       })),
     };
   }

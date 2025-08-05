@@ -12,5 +12,6 @@ export const NODE_TYPE_TO_TABLE = {
   bills_components: "bills_components",
   bills_for_pay: "bills_for_pay",
   arrival_invoices: "arrival_invoices",
-  invoices_components: "invoices_components"
+  invoices_components: "invoices_components",
+  inventarization: "inventarization",
 }; 

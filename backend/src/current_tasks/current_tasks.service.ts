@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository, IsNull } from 'typeorm';
+import { DeepPartial, Repository, IsNull, Not } from 'typeorm';
 import { CurrentTasks } from './current_tasks.entity';
 import { Employees } from 'src/employees/employees.entity';
 import { CurrentTasksDTO } from './dto/CurrentTasksDTO';
@@ -417,13 +417,22 @@ export class CurrentTasksService {
   // Новый метод: дерево только для сотрудника
   async getCurrentTasksTreeForEmployee(employeeId: number): Promise<any> {
     const tasks = await this.currentTasksRepository.find({
-      where: { employees: { id: employeeId } },
+      where: { 
+        employees: { id: employeeId },
+        currentTaskStates: { id: Not(3) } // Исключаем задачи со статусом "Завершена"
+      },
       relations: [
         'employees',
         'employees.peoples',
         'currentTaskStates',
         'stands',
+        'stands.employees',
+        'stands.employees.peoples',
+        'stands.orderRequests',
+        'stands.orderRequests.factory',
         'standTasks',
+        'standTasks.standTasksComponents',
+        'standTasks.standTasksComponents.component'
       ],
     });
     // Получаем все stand_tasks одним запросом
@@ -434,6 +443,8 @@ export class CurrentTasksService {
         'professionRights',
         'professionRights.professions',
         'professionRights.rights',
+        'standTasksComponents',
+        'standTasksComponents.component'
       ],
     });
     // Группируем stand_tasks по parentId
@@ -467,60 +478,110 @@ export class CurrentTasksService {
       ([state, deadlineMap]) => ({
         name: state,
         children: Array.from(deadlineMap.entries()).map(
-          ([deadline, standMap]) => ({
-            name: deadline,
-            deadline: deadline,
-            children: Array.from(standMap.entries()).map(
-              ([stand, taskMap]) => ({
-                name: `Стенд: ${stand}`,
-                stand: stand,
-                children: Array.from(taskMap.entries()).map(
-                  ([taskId, task]) => ({
-                    id: task.id,
-                    name: `Задача: ${task.title}`,
-                    nodeType: 'current_tasks',
-                    taskTitle: task.title || '',
-                    currentTaskStateId: task.currentTaskStates?.id,
-                    currentTaskState: task.currentTaskStates?.title || '',
-                    children: (
-                      standTasksByParent.get(String(task.standTasks?.id)) || []
-                    )
-                      .filter(
-                        (st) => state !== 'Выполняется' || !st.isCompleted,
-                      )
-                      .map((st) => ({
-                        id: st.id,
-                        name: [
-                          `Задача стенда: ${st.title}`,
-                          `Стенд: ${st.stands?.title || ''}`,
-                          `Компонент: ${st.components?.title || ''}`,
-                          `Кол-во: ${st.componentOutCount}`,
-                          `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
-                        ]
-                          .filter(Boolean)
-                          .join(' | '),
-                        nodeType: 'stand_tasks',
-                        isCompleted: st.isCompleted,
-                        standTask: st.title || '',
-                        component: st.components?.title || '',
-                        manufactureTime: st.manufactureTime
-                          ? typeof st.manufactureTime === 'string'
-                            ? st.manufactureTime
-                            : (st.manufactureTime as Date)
-                                .toISOString()
-                                .split('T')[0]
-                          : '',
-                        _parent: {
+          ([deadline, standMap]) => {
+            // Получаем информацию о заказчике из первой задачи
+            const firstTaskValues = Array.from(standMap.values());
+            const firstTaskMap = firstTaskValues[0];
+            const firstTask = Array.from(firstTaskMap.values())[0];
+            const customerName = firstTask?.stands?.orderRequests?.[0]?.factory?.shortName || 
+                               firstTask?.stands?.orderRequests?.[0]?.factory?.fullName || 
+                               'Не указан';
+            
+            return {
+              name: [` Крайний срок: ${deadline}`,`Заказчик: ${customerName}`]
+                .filter(Boolean)
+                .join(' | '),
+              deadline: deadline,
+              customerName: customerName,
+              children: Array.from(standMap.entries()).map(
+                ([stand, taskMap]) => {
+                  // Получаем ответственного за стенд из первой задачи
+                  const firstTaskInStand = Array.from(taskMap.values())[0];
+                  const standResponsible = firstTaskInStand?.stands?.employees?.peoples ? 
+                    `${firstTaskInStand.stands.employees.peoples.lastName || ''} ${firstTaskInStand.stands.employees.peoples.firstName || ''} ${firstTaskInStand.stands.employees.peoples.middleName || ''}`.trim() : 
+                    'Не распределен';
+                  
+                  return {
+                    name: [`Стенд: ${stand}`, `Ответственный: ${standResponsible}`]
+                      .filter(Boolean)
+                      .join(' | '),
+                    stand: stand,
+                    standResponsible: standResponsible,
+                    children: Array.from(taskMap.entries()).map(
+                      ([taskId, task]) => {
+                        // Получаем ответственного за задачу
+                        const taskResponsible = task.employees?.peoples ? 
+                          `${task.employees.peoples.lastName || ''} ${task.employees.peoples.firstName || ''} ${task.employees.peoples.middleName || ''}`.trim() : 
+                          'Не распределена';
+                        
+                        return {
                           id: task.id,
+                          name: [`Задача: ${task.title}`, `Ответственный: ${taskResponsible}`, `Состояние: ${task.currentTaskStates?.title || ''}`, `Крайний срок: ${task.deadline ? (typeof task.deadline === 'string' ? task.deadline : (task.deadline as Date).toISOString().split('T')[0]) : 'Без срока'}`]
+                            .filter(Boolean)
+                            .join(' | '),
+                          nodeType: 'current_tasks',
+                          taskTitle: task.title || '',
+                          taskResponsible: taskResponsible,
                           currentTaskStateId: task.currentTaskStates?.id,
-                        },
-                        children: [],
-                      })),
-                  }),
-                ),
-              }),
-            ),
-          }),
+                          currentTaskState: task.currentTaskStates?.title || '',
+                          deadline: task.deadline ? (typeof task.deadline === 'string' ? task.deadline : (task.deadline as Date).toISOString().split('T')[0]) : '',
+                          children: (
+                            standTasksByParent.get(String(task.standTasks?.id)) || []
+                          )
+                            .filter(
+                              (st) => state !== 'Выполняется' || !st.isCompleted,
+                            )
+                            .map((st) => ({
+                              id: st.id,
+                              name: [
+                                `Задача стенда: ${st.title}`,
+                                `Стенд: ${st.stands?.title || ''}`,
+                                `Компонент: ${st.components?.title || ''}`,
+                                `Кол-во: ${st.componentOutCount}`,
+                                `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
+                              ]
+                                .filter(Boolean)
+                                .join(' | '),
+                              nodeType: 'stand_tasks',
+                              isCompleted: st.isCompleted,
+                              hasEnoughComponents: (() => {
+                                // Если задача не требует компонентов
+                                if (st.componentOutCount === 0) return true;
+                                
+                                // Находим запись компонента для этой конкретной задачи
+                                const taskComponent = st.standTasksComponents?.find(
+                                  sc => sc.component?.id === st.components?.id
+                                );
+                                
+                                // Если нет записи о компоненте, значит компонентов 0
+                                if (!taskComponent) return false;
+                                
+                                // Сравниваем доступное количество с требуемым
+                                return taskComponent.componentCount >= st.componentOutCount;
+                              })(),
+                              standTask: st.title || '',
+                              component: st.components?.title || '',
+                              manufactureTime: st.manufactureTime
+                                ? typeof st.manufactureTime === 'string'
+                                  ? st.manufactureTime
+                                  : (st.manufactureTime as Date)
+                                      .toISOString()
+                                      .split('T')[0]
+                                : '',
+                              _parent: {
+                                id: task.id,
+                                currentTaskStateId: task.currentTaskStates?.id,
+                              },
+                              children: [],
+                            })),
+                        };
+                      },
+                    ),
+                  };
+                },
+              ),
+            };
+          },
         ),
       }),
     );
