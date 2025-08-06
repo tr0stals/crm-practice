@@ -53,6 +53,15 @@ watch(data, (val) => {
   if (val) {
     const root = getTreeviewData(val);
     treeData.value = root.children || [];
+
+    if (props.currentSection === "current_tasks") {
+      expandedKeys.value = treeData.value.reduce((acc, node) => {
+        acc[node.key] = true;
+        return acc;
+      }, {} as Record<string, boolean>);
+    }
+
+    console.debug(treeData.value);
   }
 });
 

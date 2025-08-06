@@ -108,7 +108,7 @@ export class ComponentsService {
             placementInfo = `${placement.placementType?.title || ''}, Здание ${placement.building}, комната ${placement.room}`;
           }
           return {
-            name: c.title,
+            name: c.title + ' | ' + placementInfo,
             nodeType: 'components',
             subcategoryName: subcatName,
             ...c,

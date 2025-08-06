@@ -12,6 +12,8 @@ import { Professions } from 'src/professions/professions.entity';
 import { User } from 'src/user/user.entity';
 import { EmployeeDepartmentsService } from 'src/employee_departments/employee_departments.service';
 import { EmployeesProfessions } from 'src/employees_professions/employees_professions.entity';
+import { Organizations } from 'src/organizations/organizations.entity';
+import { EmployeeDepartments } from 'src/employee_departments/employee_departments.entity';
 
 @Injectable()
 export class EmployeesService {
@@ -27,6 +29,8 @@ export class EmployeesService {
     private employeeDepartmentsService: EmployeeDepartmentsService,
     @InjectRepository(EmployeesProfessions)
     private employeesProfessionsRepository: Repository<EmployeesProfessions>,
+    @InjectRepository(Organizations)
+    private organizationsRepo: Repository<Organizations>,
   ) {}
 
   async create(data: EmployeesDTO) {
@@ -122,6 +126,57 @@ export class EmployeesService {
 
   async delete(id: number) {
     return await this.employeesRepository.delete(id);
+  }
+
+  async getTree() {
+    try {
+      const employeeDepartments =
+        await this.employeeDepartmentsService.findAll();
+      const organizations = await this.organizationsRepo.find({
+        relations: ['peoples', 'organizationTypes'],
+      });
+
+      if (!employeeDepartments || !organizations)
+        throw new NotFoundException(
+          'Не найдены employeeDepartments || organizations',
+        );
+
+      const getDepartmentsChildren = (org: Organizations) => {
+        const { peoples } = org;
+
+        return employeeDepartments
+          .filter((dep) => dep.employees?.peoples?.id === peoples?.id)
+          .map((dep: EmployeeDepartments) => {
+            console.log('dep', dep);
+            const { employees, departments } = dep;
+            const { title } = departments;
+            const { peoples } = employees;
+            const fio = `${peoples.lastName} ${peoples.firstName} ${peoples.middleName}`;
+
+            return {
+              id: dep.departments?.id,
+              name: title,
+              nodeType: 'departments',
+              children: {
+                id: employees.id,
+                name: fio,
+                nodeType: 'employees',
+              },
+            };
+          });
+      };
+
+      const tree = organizations.map((org: Organizations) => ({
+        id: org.id,
+        name: org.shortName,
+        nodeType: 'organizations',
+        children: getDepartmentsChildren(org),
+      }));
+
+      return { name: 'Сотрудники', children: tree };
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async getEmployeesTree() {

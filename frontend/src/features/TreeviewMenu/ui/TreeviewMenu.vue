@@ -9,11 +9,13 @@ import { useTreeviewMenu } from "../model/useTreeviewMenu";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
 
 const selectedKey = ref(null);
 const expandedKeys = ref<any>({});
 const selectedSection = ref("");
 const navigationStore = useNavigationStore();
+const authorizedUserStore = useAuthorizedUserStore();
 
 const { data, loading, refetch } = useFetch(
   `${defaultEndpoint}/database/treeTables`

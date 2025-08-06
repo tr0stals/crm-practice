@@ -56,7 +56,7 @@ export class OrganizationsService {
   async get() {
     try {
       return await this.organizationRepository.find({
-        relations: ['organizationTypes'],
+        relations: ['peoples', 'organizationTypes'],
       });
     } catch (e) {
       console.error('Ошибка при получении организаций!', e);
@@ -84,7 +84,7 @@ export class OrganizationsService {
     try {
       const organization = await this.organizationRepository.findOne({
         where: { id: incomingId },
-        relations: ['organizationTypes'],
+        relations: ['peoples', 'organizationTypes'],
       });
 
       if (!organization) throw new NotFoundException('Организация не найдена');

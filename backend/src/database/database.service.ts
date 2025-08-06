@@ -4,7 +4,12 @@ import { databaseParentIdStrategies } from './databaseParentIdStrategies';
 import { FIELD_HINTS_MAP } from './fieldHintsMap';
 import { CurrentTasksService } from '../current_tasks/current_tasks.service';
 import { entities } from './config/entitiesMap';
-import { getTreeViewEntities, canRead, canWrite, canWriteSelf } from './rolePermissions';
+import {
+  getTreeViewEntities,
+  canRead,
+  canWrite,
+  canWriteSelf,
+} from './rolePermissions';
 
 @Injectable()
 export class DatabaseService {
@@ -51,9 +56,11 @@ export class DatabaseService {
     try {
       // Проверяем права доступа, если указана профессия
       if (profession && !canRead(tableName, profession)) {
-        throw new Error(`Access denied: ${profession} cannot read ${tableName}`);
+        throw new Error(
+          `Access denied: ${profession} cannot read ${tableName}`,
+        );
       }
-      
+
       return await this.dataSource.query(`SELECT * FROM \`${tableName}\``);
     } catch (error) {
       console.error(`Error fetching data for table ${tableName}:`, error);
@@ -73,7 +80,17 @@ export class DatabaseService {
         if (
           item.referencedColumn &&
           !uniqueRelationsMap.has(item.referencedColumn) &&
-          !entities.includes(item.referencedColumn)
+          !entities.includes(item.referencedColumn) &&
+          ![
+            'invoices_components',
+            'bills_components',
+            'component_placements',
+            'current_tasks_components',
+            'order_requests_components',
+            'organization_types',
+            'pcb_order_states',
+            'server_arrivals',
+          ].includes(item.referencedColumn)
         ) {
           uniqueRelationsMap.set(item.referencedColumn, item);
         }
@@ -100,7 +117,7 @@ export class DatabaseService {
   async getTreeTablesByProfession(profession: string) {
     // Получаем список доступных сущностей для данной профессии
     const availableEntities = getTreeViewEntities(profession);
-    
+
     const tree: any[] = [];
 
     for (const entity of availableEntities) {
@@ -170,9 +187,11 @@ export class DatabaseService {
   async deleteTableRecord(tableName: string, id: string, profession?: string) {
     // Проверяем права доступа, если указана профессия
     if (profession && !canWrite(tableName, profession)) {
-      throw new Error(`Access denied: ${profession} cannot write to ${tableName}`);
+      throw new Error(
+        `Access denied: ${profession} cannot write to ${tableName}`,
+      );
     }
-    
+
     return await this.dataSource.query(
       `DELETE FROM \`${tableName}\` WHERE id = ${id}`,
     );
@@ -181,9 +200,11 @@ export class DatabaseService {
   async addTableRecord(tableName: string, record: any, profession?: string) {
     // Проверяем права доступа, если указана профессия
     if (profession && !canWrite(tableName, profession)) {
-      throw new Error(`Access denied: ${profession} cannot write to ${tableName}`);
+      throw new Error(
+        `Access denied: ${profession} cannot write to ${tableName}`,
+      );
     }
-    
+
     if (tableName === 'current_tasks') {
       console.log('=== DATABASE SERVICE: ПЕРЕДАЕМ В CURRENTTASKSSERVICE ===');
       return await this.currentTasksService.create(record);
@@ -193,12 +214,19 @@ export class DatabaseService {
     ]);
   }
 
-  async updateTableRecord(tableName: string, id: string, record: any, profession?: string) {
+  async updateTableRecord(
+    tableName: string,
+    id: string,
+    record: any,
+    profession?: string,
+  ) {
     // Проверяем права доступа, если указана профессия
     if (profession && !canWrite(tableName, profession)) {
-      throw new Error(`Access denied: ${profession} cannot write to ${tableName}`);
+      throw new Error(
+        `Access denied: ${profession} cannot write to ${tableName}`,
+      );
     }
-    
+
     return await this.dataSource.query(
       `UPDATE \`${tableName}\` SET ? WHERE id = ${id}`,
       [record],

@@ -8,6 +8,7 @@ import { Professions } from 'src/professions/professions.entity';
 import { User } from 'src/user/user.entity';
 import { EmployeesProfessions } from 'src/employees_professions/employees_professions.entity';
 import { EmployeeDepartmentsModule } from 'src/employee_departments/employee_departments.module';
+import { Organizations } from 'src/organizations/organizations.entity';
 
 @Module({
   imports: [
@@ -17,8 +18,9 @@ import { EmployeeDepartmentsModule } from 'src/employee_departments/employee_dep
       Professions,
       User,
       EmployeesProfessions,
+      Organizations,
     ]),
-    EmployeeDepartmentsModule
+    EmployeeDepartmentsModule,
   ],
   providers: [EmployeesService],
   controllers: [EmployeesController],

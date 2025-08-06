@@ -68,7 +68,7 @@ export class EmployeesController {
   })
   @Get('tree')
   async getEmployeesTree() {
-    return await this.employeesService.getEmployeesTree();
+    return await this.employeesService.getTree();
   }
 
   @ApiOperation({ summary: 'Обновление данных сотрудника' })
@@ -85,6 +85,11 @@ export class EmployeesController {
   @Delete('delete/:id')
   async delete(@Param('id') id: string) {
     return await this.employeesService.delete(+id);
+  }
+
+  @Get('getTree')
+  async getTree() {
+    return await this.employeesService.getTree();
   }
 
   // @ApiOperation({

@@ -43,4 +43,9 @@ export class PeoplesController {
   async remove(@Param('id') id) {
     return this.peoplesService.remove(id);
   }
+
+  @Get('tree')
+  async getTree() {
+    return await this.peoplesService.getTree();
+  }
 }

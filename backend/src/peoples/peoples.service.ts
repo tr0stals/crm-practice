@@ -1,14 +1,22 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Peoples } from './peoples.entity';
 import { PeoplesDTO } from './dto/PeoplesDTO';
+import { OrganizationsService } from 'src/organizations/organizations.service';
+import { Organizations } from 'src/organizations/organizations.entity';
 
 @Injectable()
 export class PeoplesService {
   constructor(
     @InjectRepository(Peoples)
     private peoplesRepository: Repository<Peoples>,
+    @InjectRepository(Organizations)
+    private organizationsRepo: Repository<Organizations>,
   ) {}
 
   async create(data: PeoplesDTO) {
@@ -77,6 +85,42 @@ export class PeoplesService {
       return await this.peoplesRepository.delete(id);
     } catch (e) {
       console.error('Ошибка при удалении People');
+    }
+  }
+
+  async getTree() {
+    try {
+      const organizations = await this.organizationsRepo.find({
+        relations: ['peoples', 'organizationTypes'],
+      });
+      const peoples = await this.getPeoples();
+
+      if (!organizations) {
+        alert('Ошибка при поиске организаций');
+        throw new NotFoundException('Ошибка при поиске организаций');
+      }
+
+      if (!peoples) {
+        alert('Ошибка при поиске людей');
+        throw new NotFoundException('Ошибка при поиске людей');
+      }
+
+      const tree = organizations.map((org: Organizations) => ({
+        id: org.id,
+        name: org.shortName,
+        nodeType: 'organizations',
+        children: peoples
+          .filter((people) => org.peoples?.id === people.id)
+          .map((people: Peoples) => ({
+            id: people.id,
+            name: `${people.lastName} ${people.firstName} ${people.middleName} | ${people.phone}`,
+            nodeType: 'peoples',
+          })),
+      }));
+
+      return { name: 'Люди', children: tree };
+    } catch (e) {
+      throw new Error(e);
     }
   }
 }
