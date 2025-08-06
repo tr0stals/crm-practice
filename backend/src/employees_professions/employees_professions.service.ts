@@ -28,7 +28,7 @@ export class EmployeesProfessionsService {
 
     /**
      * Если передается professionId - тогда ищем профессию по ID.
-     * Если нет - задаем дефолтную профессию - Test
+     * Если нет - задаем дефолтную профессию - Директор
      */
     const professionRights = data.professionId
       ? await this.professionRightsRepository.findOne({
@@ -36,7 +36,7 @@ export class EmployeesProfessionsService {
           relations: ['professions', 'rights'],
         })
       : await this.professionRightsRepository.findOne({
-          where: { professions: { title: 'Test' } },
+          where: { professions: { title: 'Директор' } },
           relations: ['professions', 'rights'],
         });
 
