@@ -61,4 +61,9 @@ export class StandTasksController {
     }
     return await this.service.getAllByParent(+parentId);
   }
+
+  @Get('tree')
+  async getTree() {
+    return await this.service.getTree();
+  }
 }

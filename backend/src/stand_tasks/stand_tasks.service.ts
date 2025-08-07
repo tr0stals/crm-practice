@@ -12,6 +12,8 @@ import { WsGateway } from 'src/websocket/ws.gateway';
 import { User } from 'src/user/user.entity';
 import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
 import { CurrentTasksService } from 'src/current_tasks/current_tasks.service';
+import { Stands } from 'src/stands/stands.entity';
+import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_components.entity';
 
 @Injectable()
 export class StandTasksService {
@@ -24,6 +26,8 @@ export class StandTasksService {
     private userRepository: Repository<User>,
     @InjectRepository(ProfessionRights)
     private professionRights: Repository<ProfessionRights>,
+    @InjectRepository(StandTasksComponents)
+    private standTasksComponentsRepo: Repository<StandTasksComponents>,
     private componentService: ComponentsService,
     private professionService: ProfessionsService,
     private standService: StandsService,
@@ -232,5 +236,45 @@ export class StandTasksService {
       }
     }
     return { success: true };
+  }
+
+  async getTree() {
+    try {
+      const stands = await this.standService.findAll();
+      const standTasks = await this.getAll();
+      const standTasksComponents = await this.standTasksComponentsRepo.find({
+        relations: ['standTask', 'component'],
+      });
+
+      const tree = stands.map((stand: Stands) => {
+        return {
+          id: stand.id,
+          name: `Стенд: ${stand.title} | ${stand.standType?.title}`,
+          nodeType: 'stands',
+          children: standTasks
+            .filter((task) => task.stands?.id === stand.id)
+            .map((task) => {
+              return {
+                id: task.id,
+                name: `Задача: ${task.title}`,
+                nodeType: 'stand_tasks',
+                children: standTasksComponents
+                  .filter((item) => item.standTask?.id === task.id)
+                  .map((item) => {
+                    return {
+                      id: item.id,
+                      name: `Компонент: ${item.component?.title} | Кол-во: ${item.componentCount}`,
+                      nodeType: 'stand_tasks_components',
+                    };
+                  }),
+              };
+            }),
+        };
+      });
+
+      return { name: 'Задачи стенда', children: tree };
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 }

@@ -12,6 +12,7 @@ import { User } from 'src/user/user.entity';
 import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
 import { CurrentTaskStatesLogModule } from 'src/current_task_states_log/current_task_states_log.module';
 import { CurrentTasksModule } from 'src/current_tasks/current_tasks.module';
+import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_components.entity';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CurrentTasksModule } from 'src/current_tasks/current_tasks.module';
       CurrentTasks,
       User,
       ProfessionRights,
+      StandTasksComponents,
     ]),
     StandsModule,
     ComponentsModule,
