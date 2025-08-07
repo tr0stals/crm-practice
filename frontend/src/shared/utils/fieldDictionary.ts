@@ -172,5 +172,6 @@ export const fieldDictionary: { [key: string]: string } = {
   componentsTitle: "Название компонента",
   writeoffReasonTitle: "Причина списания",
   professionRightsId: "Профессия",
+  professionRightId: "Профессия",
   professionRights: "Профессия",
 };
