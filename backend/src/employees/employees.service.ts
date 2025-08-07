@@ -47,6 +47,25 @@ export class EmployeesService {
     return await this.employeesRepository.save(employee);
   }
 
+  /**
+   * Поиск уволенных сотрудников
+   * @returns Employees[]
+   */
+  async getDismissalEmployees() {
+    try {
+      const dismissialEmployees = await this.employeesRepository.find({
+        relations: ['peoples'],
+      });
+
+      if (!dismissialEmployees || dismissialEmployees.length === 0)
+        throw new NotFoundException('Не найдены уволенные сотрудники');
+
+      return dismissialEmployees.filter((item) => item.dismissalDate !== null);
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async getAll() {
     return await this.employeesRepository.find({
       relations: [
@@ -117,7 +136,7 @@ export class EmployeesService {
 
       return await this.employeesProfessionsRepository.find({
         where: { employees: { id: employee?.id } },
-        relations: ['professions'],
+        relations: ['professionRights', 'professionRights.professions'],
       });
     } catch (e) {
       throw new Error(`Failed to find employee professions: ${e.message}`);
@@ -128,58 +147,75 @@ export class EmployeesService {
     return await this.employeesRepository.delete(id);
   }
 
-  async getTree() {
+  async getEmployeesTree() {
     try {
       const employeeDepartments =
         await this.employeeDepartmentsService.findAll();
-      const organizations = await this.organizationsRepo.find({
-        relations: ['peoples', 'organizationTypes'],
-      });
 
-      if (!employeeDepartments || !organizations)
-        throw new NotFoundException(
-          'Не найдены employeeDepartments || organizations',
-        );
+      const employeeProfessions =
+        await this.employeesProfessionsRepository.find({
+          relations: [
+            'employees',
+            'professionRights',
+            'professionRights.professions',
+          ],
+        });
 
-      const getDepartmentsChildren = (org: Organizations) => {
-        const { peoples } = org;
+      const dismissialEmployees = await this.getDismissalEmployees();
 
-        return employeeDepartments
-          .filter((dep) => dep.employees?.peoples?.id === peoples?.id)
-          .map((dep: EmployeeDepartments) => {
-            console.log('dep', dep);
-            const { employees, departments } = dep;
-            const { title } = departments;
-            const { peoples } = employees;
-            const fio = `${peoples.lastName} ${peoples.firstName} ${peoples.middleName}`;
+      if (!dismissialEmployees || dismissialEmployees.length === 0)
+        throw new NotFoundException('Не найдены уволенные сотрудники');
 
-            return {
-              id: dep.departments?.id,
-              name: title,
-              nodeType: 'departments',
-              children: {
-                id: employees.id,
-                name: fio,
-                nodeType: 'employees',
-              },
-            };
+      if (!employeeDepartments)
+        throw new NotFoundException('Не найдены employeeDepartments');
+
+      const depMap = new Map<
+        number,
+        { id: number; name: string; nodeType: string; children: any[] }
+      >();
+
+      for (const depRel of employeeDepartments) {
+        const depId = depRel.departments?.id;
+        const depName = depRel.departments?.title || 'Без отдела';
+
+        if (!depMap.has(depId)) {
+          depMap.set(depId, {
+            id: depId,
+            name: depName,
+            nodeType: 'departments',
+            children: [],
           });
-      };
+        }
 
-      const tree = organizations.map((org: Organizations) => ({
-        id: org.id,
-        name: org.shortName,
-        nodeType: 'organizations',
-        children: getDepartmentsChildren(org),
-      }));
+        const employee = depRel.employees;
+        if (employee) {
+          // Проверяем, есть ли сотрудник в списке уволенных. Если есть - пропускаем
+          if (dismissialEmployees.some((e) => e.id === employee.id)) continue;
 
-      return { name: 'Сотрудники', children: tree };
+          const professions = employeeProfessions
+            .filter((item) => item.employees?.id === employee.id)
+            .map(
+              (item: EmployeesProfessions) =>
+                item.professionRights?.professions?.title,
+            )
+            .filter(Boolean)
+            .join(', ');
+
+          depMap.get(depId)!.children.push({
+            id: employee.id,
+            name: `${employee.peoples?.lastName} ${employee.peoples?.firstName} ${employee.peoples?.middleName} | ${employee.peoples?.phone} | ${professions}`,
+            nodeType: 'employees',
+          });
+        }
+      }
+
+      return { name: 'Сотрудники', children: Array.from(depMap.values()) };
     } catch (e) {
       throw new Error(e);
     }
   }
 
-  async getEmployeesTree() {
+  async getTree() {
     const employeeDepartments = await this.employeeDepartmentsService.findAll();
     const depMap = new Map();
 

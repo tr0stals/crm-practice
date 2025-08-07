@@ -13,4 +13,5 @@ export const treeviewTables = [
   "arrival_invoices",
   "inventarization",
   "peoples",
+  "license",
 ];

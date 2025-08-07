@@ -7,4 +7,5 @@ export const entities = [
   'pcbs',
   'bills_for_pay',
   'arrival_invoices',
+  'license',
 ];

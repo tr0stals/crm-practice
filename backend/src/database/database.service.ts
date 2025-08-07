@@ -90,6 +90,8 @@ export class DatabaseService {
             'organization_types',
             'pcb_order_states',
             'server_arrivals',
+            'employees_vacations',
+            'license_types',
           ].includes(item.referencedColumn)
         ) {
           uniqueRelationsMap.set(item.referencedColumn, item);

@@ -43,4 +43,9 @@ export class LicenseController {
   async generateData() {
     return await this.licenseService.generateData();
   }
+
+  @Get('tree')
+  async getTree() {
+    return await this.licenseService.getTree();
+  }
 }

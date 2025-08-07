@@ -68,7 +68,7 @@ export class EmployeesController {
   })
   @Get('tree')
   async getEmployeesTree() {
-    return await this.employeesService.getTree();
+    return await this.employeesService.getEmployeesTree();
   }
 
   @ApiOperation({ summary: 'Обновление данных сотрудника' })
