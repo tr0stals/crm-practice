@@ -14,4 +14,6 @@ export const treeviewTables = [
   "inventarization",
   "peoples",
   "license",
+  "order_requests",
+  "shipments",
 ];

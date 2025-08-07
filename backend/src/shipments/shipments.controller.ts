@@ -44,4 +44,9 @@ export class ShipmentsController {
   async generateData() {
     return await this.service.generateData();
   }
+
+  @Get('tree')
+  async getTree() {
+    return await this.service.getTree();
+  }
 }

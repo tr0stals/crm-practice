@@ -6,12 +6,15 @@ import { OrderRequestsDTO } from './dto/OrderRequestsDTO';
 import { EmployeesService } from 'src/employees/employees.service';
 import { StandsService } from 'src/stands/stands.service';
 import { OrganizationsService } from 'src/organizations/organizations.service';
+import { OrderRequestsComponents } from 'src/order_requests_components/order_requests_components.entity';
 
 @Injectable()
 export class OrderRequestsService {
   constructor(
     @InjectRepository(OrderRequests)
     private readonly repository: Repository<OrderRequests>,
+    @InjectRepository(OrderRequestsComponents)
+    private orderRequestsComponentsRepo: Repository<OrderRequestsComponents>,
     private employeeService: EmployeesService,
     private standService: StandsService,
     private organizationService: OrganizationsService,
@@ -98,5 +101,40 @@ export class OrderRequestsService {
   async remove(id: number): Promise<void> {
     await this.findOne(id); // Проверяем существование
     await this.repository.delete(id);
+  }
+
+  async getTree() {
+    try {
+      const order_requests_components =
+        await this.orderRequestsComponentsRepo.find({
+          relations: ['orderRequests', 'component', 'supplier'],
+        });
+
+      const orderRequests = await this.findAll();
+
+      if (!orderRequests) throw new NotFoundException('Ошибка поиска заявок');
+
+      if (!order_requests_components)
+        throw new NotFoundException('Ошибка поиска компонентов на заявку');
+
+      const tree = orderRequests.map((item: OrderRequests) => ({
+        id: item.id,
+        name: item.title,
+        nodeType: 'order_requests',
+        children: order_requests_components
+          .filter((component) => component.orderRequests?.id === item.id)
+          .map((component: OrderRequestsComponents) => {
+            return {
+              id: component.id,
+              name: `${component.component?.title} | ${component.supplier?.shortName}`,
+              nodeType: 'order_requests_components',
+            };
+          }),
+      }));
+
+      return { name: 'Заявки на заказ', children: tree };
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 }

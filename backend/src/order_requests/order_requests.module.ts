@@ -6,10 +6,11 @@ import { OrderRequestsController } from './order_requests.controller';
 import { OrganizationsModule } from 'src/organizations/organizations.module';
 import { EmployeesModule } from 'src/employees/employees.module';
 import { StandsModule } from 'src/stands/stands.module';
+import { OrderRequestsComponents } from 'src/order_requests_components/order_requests_components.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OrderRequests]),
+    TypeOrmModule.forFeature([OrderRequests, OrderRequestsComponents]),
     OrganizationsModule,
     EmployeesModule,
     StandsModule,

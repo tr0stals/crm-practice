@@ -148,7 +148,7 @@ export class LicenseService {
 
               return {
                 id: license.id,
-                name: `${license.licenseCode} ${standTitle ? ' | ' + standTitle : ''} | ${placesCount}`,
+                name: `${license.licenseCode} ${standTitle ? ' | ' + standTitle : ''} | ${placesCount ? 'Кол-во мест: ' + placesCount : ''}`,
                 nodeType: 'license',
               };
             }),

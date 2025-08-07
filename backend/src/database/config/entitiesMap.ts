@@ -8,4 +8,5 @@ export const entities = [
   'bills_for_pay',
   'arrival_invoices',
   'license',
+  'shipments',
 ];

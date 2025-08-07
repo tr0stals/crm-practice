@@ -5,12 +5,21 @@ import { DeepPartial, Repository } from 'typeorm';
 import { ShipmentsDTO } from './dto/shipmentsDTO';
 import { OrganizationsService } from 'src/organizations/organizations.service';
 import { LicenseService } from 'src/license/license.service';
+import { Stands } from 'src/stands/stands.entity';
+import { ShipmentPackage } from 'src/shipment_package/shipment_package.entity';
+import { ShipmentsStands } from 'src/shipments_stands/shipments_stands.entity';
 
 @Injectable()
 export class ShipmentsService {
   constructor(
     @InjectRepository(Shipments)
     private repository: Repository<Shipments>,
+    @InjectRepository(Stands)
+    private standsRepo: Repository<Stands>,
+    @InjectRepository(ShipmentPackage)
+    private shipmentPackagesRepo: Repository<ShipmentPackage>,
+    @InjectRepository(ShipmentsStands)
+    private shipmentStandsRepo: Repository<ShipmentsStands>,
     private organizationService: OrganizationsService,
     private licenseService: LicenseService,
   ) {}
@@ -110,6 +119,59 @@ export class ShipmentsService {
       });
 
       return data;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
+  async #childrenGenerator(shipment: Shipments) {
+    const shipmentPackages = await this.shipmentPackagesRepo.find({
+      relations: ['shipmentPackageStates', 'shipments'],
+    });
+    const shipmentStands = await this.shipmentStandsRepo.find({
+      relations: ['shipments', 'stands', 'stands.standType'],
+    });
+
+    const children = [
+      ...shipmentStands
+        .filter((item) => item.shipments?.id === shipment.id)
+        .map((item) => ({
+          id: item.stands.id,
+          name: `Стенд: ${item.stands.title} | ${item.stands?.standType?.title}`,
+          nodeType: 'stands',
+        })),
+      ...shipmentPackages
+        .filter((item) => item.shipments?.id === shipment.id)
+        .map((item) => ({
+          id: item.id,
+          name: `Номер упаковки: ${item.id}`,
+          nodeType: 'shipment_package',
+        })),
+    ];
+
+    return children;
+  }
+
+  async getTree() {
+    try {
+      const shipments = await this.findAll();
+
+      if (!shipments) throw new NotFoundException('Ошибка при поиске отгрузок');
+
+      const tree = await Promise.all(
+        shipments.map(async (shipment: Shipments) => {
+          const children = await this.#childrenGenerator(shipment);
+
+          return {
+            id: shipment.id,
+            name: `${shipment.client?.shortName} | Прибытие: ${shipment.arrivalDate}`,
+            nodeType: 'shipments',
+            children,
+          };
+        }),
+      );
+
+      return { name: 'Отгрузки', children: tree };
     } catch (e) {
       throw new Error(e);
     }

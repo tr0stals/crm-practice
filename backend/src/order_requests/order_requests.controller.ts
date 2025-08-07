@@ -44,4 +44,9 @@ export class OrderRequestsController {
   async remove(@Param('id') id: string) {
     return await this.service.remove(+id);
   }
+
+  @Get('tree')
+  async getTree() {
+    return await this.service.getTree();
+  }
 }
