@@ -47,7 +47,7 @@
         color: #555;
         flex-basis: 120px;
         flex-shrink: 0;
-        font-size: 1.3em;
+        font-size: 1.6rem;
       }
 
       &__input {
@@ -55,36 +55,37 @@
         padding: 12px 18px;
         border: 1px solid #ccc;
         border-radius: 6px;
-        font-size: 1.5em;
+        font-size: 1.5rem;
         min-width: 220px;
         min-height: 44px;
       }
 
       // Стили для VueDatePicker
-      .vue-datepicker, .dp__main {
-        font-size: 1.3em;
+      .dp__main {
+        font-size: 1.6rem;
         min-width: 260px;
       }
       .dp__input {
-        font-size: 1.2em;
+        font-size: 1.5rem;
         min-height: 44px;
         padding: 12px 18px;
       }
       .dp__menu {
         min-width: 340px;
         min-height: 340px;
-        font-size: 1.2em;
+        font-size: 1.75rem;
       }
       .dp__calendar {
-        font-size: 1.1em;
+        font-size: 1.75rem;
       }
       .dp__cell_inner {
-        font-size: 1.1em;
-        min-width: 2.5em;
-        min-height: 2.5em;
+        font-size: 1.75rem;
+        min-width: 2.5rem;
+        min-height: 2.5rem;
       }
-      .dp__month_year_row, .dp__calendar_header {
-        font-size: 1.1em;
+      .dp__month_year_row,
+      .dp__calendar_header {
+        font-size: 1.75rem;
       }
     }
   }
@@ -102,7 +103,7 @@
       padding: 8px 15px; /* Отступы */
       border-radius: 4px; /* Скругление углов */
       cursor: pointer; /* Курсор */
-      font-size: 1.5em; /* Размер шрифта */
+      font-size: 1.5rem; /* Размер шрифта */
 
       &:hover {
         background-color: #e0e0e0; /* Темнее при наведении */

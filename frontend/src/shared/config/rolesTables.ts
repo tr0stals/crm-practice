@@ -32,6 +32,7 @@ export const roleTables = [
       "bills_for_pay",
       "components",
       "current_tasks",
+      "current_tasks_states",
       "employees",
       "inventarization",
       "license",

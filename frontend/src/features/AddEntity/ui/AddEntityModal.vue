@@ -80,7 +80,9 @@ console.debug(formData);
           class="addModalWindow__content__field"
         >
           <template v-if="item !== 'id' && item !== 'passwordSalt'">
-            <label :for="item">{{ fieldDictionary[item] || item }}</label>
+            <label class="addModalWindow__content__field__label" :for="item">{{
+              fieldDictionary[item] || item
+            }}</label>
             <template v-if="item.endsWith('Id')">
               <select
                 v-model="formData[item]"
