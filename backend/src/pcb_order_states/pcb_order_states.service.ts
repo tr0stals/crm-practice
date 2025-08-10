@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PcbOrderStates } from './pcb_order_states.entity';
@@ -59,7 +64,22 @@ export class PcbOrderStatesService {
   }
 
   async remove(id: number): Promise<void> {
-    await this.findOne(id); // Проверяем существование
-    await this.repository.delete(id);
+    try {
+      await this.findOne(id); // Проверяем существование
+      await this.repository.delete(id);
+    } catch (e: any) {
+      if (e.code === 'ER_ROW_IS_REFERENCED_2') {
+        const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);
+        let tableName = match ? match[2] : '';
+
+        throw new HttpException(
+          {
+            message: `Невозможно удалить запись. Есть связанные записи в таблице "${tableName}". Удалите их сначала.`,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw e;
+    }
   }
 }

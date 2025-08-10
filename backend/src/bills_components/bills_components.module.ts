@@ -7,12 +7,14 @@ import { BillsForPay } from '../bills_for_pay/bills_for_pay.entity';
 import { Components } from 'src/components/components.entity';
 import { BillsForPayModule } from 'src/bills_for_pay/bills_for_pay.module';
 import { ComponentsModule } from 'src/components/components.module';
+import { DatabaseLocalizationModule } from 'src/database_localization/database_localization.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([BillsComponents, BillsForPay, Components]),
     BillsForPayModule,
     ComponentsModule,
+    DatabaseLocalizationModule,
   ],
   providers: [BillsComponentsService],
   controllers: [BillsComponentsController],

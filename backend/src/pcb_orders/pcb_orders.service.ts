@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PcbOrders } from './pcb_orders.entity';
@@ -137,8 +142,23 @@ export class PcbOrdersService {
   }
 
   async remove(id: number): Promise<void> {
-    await this.findOne(id); // Проверяем существование
-    await this.repository.delete(id);
+    try {
+      await this.findOne(id); // Проверяем существование
+      await this.repository.delete(id);
+    } catch (e: any) {
+      if (e.code === 'ER_ROW_IS_REFERENCED_2') {
+        const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);
+        let tableName = match ? match[2] : '';
+
+        throw new HttpException(
+          {
+            message: `Невозможно удалить запись. Есть связанные записи в таблице "${tableName}". Удалите их сначала.`,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw e;
+    }
   }
 
   async getPcbOrdersTree() {
@@ -152,16 +172,17 @@ export class PcbOrdersService {
     const pcbIdToSubcategory = {};
     const pcbIdToName = {};
     const pcbIdToComponents = {};
-    
+
     // Получаем все платы с их компонентами
     const pcbsRepo = this.repository.manager.getRepository(PCBS);
-    const pcbsComponentsRepo = this.repository.manager.getRepository('PcbsComponents');
-    
+    const pcbsComponentsRepo =
+      this.repository.manager.getRepository('PcbsComponents');
+
     const allPcbs = await pcbsRepo.find();
     const allPcbComponents = await pcbsComponentsRepo.find({
       relations: ['component', 'pcb'],
     });
-    
+
     // Группируем компоненты по платам
     allPcbComponents.forEach((pcbComp) => {
       const pcbId = pcbComp.pcb?.id;
@@ -179,7 +200,7 @@ export class PcbOrdersService {
         });
       }
     });
-    
+
     allPcbs.forEach((pcb) => {
       pcbIdToSubcategory[pcb.id] = pcb.parentId;
       pcbIdToName[pcb.id] = pcb.id;
@@ -207,7 +228,7 @@ export class PcbOrdersService {
       const pcbPrice = `${order.price} руб.` || '0 руб.';
       const widthHeight = `${order.width}x${order.height} мм`;
       const count = `${order.count} шт.`;
-      
+
       // Создаем объект заказа
       const orderObj = {
         id: order.id,
@@ -240,10 +261,10 @@ export class PcbOrdersService {
             id: pcb?.id,
             pcb: pcb,
             children: pcbIdToComponents[pcb?.id] || [],
-          }
+          },
         ],
       };
-      
+
       grouped[date].push(orderObj);
     }
 

@@ -2,6 +2,8 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
@@ -96,7 +98,22 @@ export class ProfessionsService {
   }
 
   async delete(id: number) {
-    return await this.professionsRepository.delete(id);
+    try {
+      await this.professionsRepository.delete(id);
+    } catch (e: any) {
+      if (e.code === 'ER_ROW_IS_REFERENCED_2') {
+        const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);
+        let tableName = match ? match[2] : '';
+
+        throw new HttpException(
+          {
+            message: `Невозможно удалить запись. Есть связанные записи в таблице "${tableName}". Удалите их сначала.`,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw e;
+    }
   }
 
   async findByTitle(title: string) {

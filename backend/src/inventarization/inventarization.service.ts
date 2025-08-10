@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { Inventarization } from './inventarization.entity';
@@ -80,7 +85,22 @@ export class InventarizationService {
   }
 
   async remove(id: number) {
-    return await this.repo.delete(id);
+    try {
+      await this.repo.delete(id);
+    } catch (e: any) {
+      if (e.code === 'ER_ROW_IS_REFERENCED_2') {
+        const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);
+        let tableName = match ? match[2] : '';
+
+        throw new HttpException(
+          {
+            message: `Невозможно удалить запись. Есть связанные записи в таблице "${tableName}". Удалите их сначала.`,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw e;
+    }
   }
 
   async getInventarizationTree() {
@@ -90,13 +110,13 @@ export class InventarizationService {
 
     // Группируем по дате инвентаризации
     const dateMap = new Map<string, any[]>();
-    
+
     for (const inv of inventarizations) {
       // Преобразуем строку даты в объект Date
       const dateObj = new Date(inv.inventarizationDate);
       const dateKey = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
       const dateLabel = dateObj.toLocaleDateString('ru-RU');
-      
+
       if (!dateMap.has(dateKey)) {
         dateMap.set(dateKey, []);
       }
@@ -118,28 +138,30 @@ export class InventarizationService {
 
     const result: any = {
       name: 'Инвентаризация',
-      children: []
+      children: [],
     };
 
     // Сортируем даты и создаем дерево
     const sortedDates = Array.from(dateMap.keys()).sort();
-    
+
     for (const dateKey of sortedDates) {
       const dateLabel = new Date(dateKey);
       const components = dateMap.get(dateKey)!;
-      
+
       // Получаем id первой записи инвентаризации для этой даты
-      const firstInvForDate = inventarizations.find(inv => {
-        const invDate = new Date(inv.inventarizationDate).toISOString().split('T')[0];
+      const firstInvForDate = inventarizations.find((inv) => {
+        const invDate = new Date(inv.inventarizationDate)
+          .toISOString()
+          .split('T')[0];
         return invDate === dateKey;
       });
-      
+
       result.children.push({
         name: dateLabel,
         nodeType: 'inventarization',
         id: firstInvForDate?.id,
         date: dateKey,
-        children: components
+        children: components,
       });
     }
 

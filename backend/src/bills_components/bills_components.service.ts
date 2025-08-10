@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { BillsComponents } from './bills_components.entity';
@@ -7,6 +12,7 @@ import { BillsComponentsDTO } from './dto/BillsComponentsDTO';
 import { Components } from 'src/components/components.entity';
 import { BillsForPayService } from 'src/bills_for_pay/bills_for_pay.service';
 import { ComponentsService } from 'src/components/components.service';
+import { DatabaseLocalizationService } from 'src/database_localization/database_localization.service';
 
 @Injectable()
 export class BillsComponentsService {
@@ -19,6 +25,7 @@ export class BillsComponentsService {
     private readonly componentsRepo: Repository<Components>,
     private billsForPayService: BillsForPayService,
     private componentsService: ComponentsService,
+    private databaseLocalizationService: DatabaseLocalizationService,
   ) {}
 
   async getAll() {
@@ -120,6 +127,24 @@ export class BillsComponentsService {
   }
 
   async delete(id: number) {
-    return this.repo.delete(id);
+    try {
+      await this.repo.delete(id);
+    } catch (e: any) {
+      if (e.code === 'ER_ROW_IS_REFERENCED_2') {
+        const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);
+        let tableName = match ? match[2] : '';
+        let localizatedTable =
+          this.databaseLocalizationService.getTableDisplayName(tableName);
+        console.log(localizatedTable);
+
+        throw new HttpException(
+          {
+            message: `Невозможно удалить запись. Есть связанные записи в таблице "${localizatedTable}". Удалите их сначала.`,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw e;
+    }
   }
 }

@@ -4,7 +4,7 @@ import { ref } from "vue";
 export const useNavigationStore = defineStore("navigationStore", () => {
   const selectedRow = ref<any | null>(null);
   const currentSection = ref<string | null>(null);
-  const activeSection = ref<string | null>(null);
+  const activeRow = ref<string | null>(null);
 
   function setSelectedRow(row: any) {
     selectedRow.value = row;
@@ -14,8 +14,8 @@ export const useNavigationStore = defineStore("navigationStore", () => {
     selectedRow.value = null;
   }
 
-  function setActiveSection(section: string) {
-    activeSection.value = section;
+  function setActiveRow(section: string) {
+    activeRow.value = section;
   }
 
   function setCurrentSection(section: string) {
@@ -27,8 +27,8 @@ export const useNavigationStore = defineStore("navigationStore", () => {
     setSelectedRow,
     currentSection,
     setCurrentSection,
-    activeSection,
-    setActiveSection,
+    activeRow,
+    setActiveRow,
     resetData,
   };
 });

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository, IsNull, Not } from 'typeorm';
 import { CurrentTasks } from './current_tasks.entity';
@@ -66,7 +71,12 @@ export class CurrentTasksService {
 
     const standTask = await this.standTasksRepository.findOne({
       where: { id: data.standTaskId },
-      relations: ['stands', 'professionRights', 'professionRights.professions', 'components'],
+      relations: [
+        'stands',
+        'professionRights',
+        'professionRights.professions',
+        'components',
+      ],
     });
 
     if (!employee || !currentTaskState || !stands || !standTask) {
@@ -151,10 +161,13 @@ export class CurrentTasksService {
       });
 
     const savedTask = await this.currentTasksRepository.save(entity);
-    
+
     // Логируем первоначальный статус задачи
-    await this.currentTaskStatesLogService.logStateChange(savedTask.id, currentTaskState.id);
-    
+    await this.currentTaskStatesLogService.logStateChange(
+      savedTask.id,
+      currentTaskState.id,
+    );
+
     return savedTask;
   }
 
@@ -216,19 +229,40 @@ export class CurrentTasksService {
 
   async update(id: number, data: Partial<CurrentTasks>): Promise<CurrentTasks> {
     const existingTask = await this.findOne(id); // Проверяем существование и получаем текущее состояние
-    
+
     // Логируем изменение статуса, если оно произошло
-    if (data.currentTaskStates && data.currentTaskStates.id !== existingTask.currentTaskStates?.id) {
-      await this.currentTaskStatesLogService.logStateChange(id, data.currentTaskStates.id);
+    if (
+      data.currentTaskStates &&
+      data.currentTaskStates.id !== existingTask.currentTaskStates?.id
+    ) {
+      await this.currentTaskStatesLogService.logStateChange(
+        id,
+        data.currentTaskStates.id,
+      );
     }
-    
+
     await this.currentTasksRepository.update(id, data);
     return await this.findOne(id);
   }
 
   async remove(id: number): Promise<void> {
-    await this.findOne(id); // Проверяем существование
-    await this.currentTasksRepository.delete(id);
+    try {
+      await this.findOne(id); // Проверяем существование
+      await this.currentTasksRepository.delete(id);
+    } catch (e: any) {
+      if (e.code === 'ER_ROW_IS_REFERENCED_2') {
+        const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);
+        let tableName = match ? match[2] : '';
+
+        throw new HttpException(
+          {
+            message: `Невозможно удалить запись. Есть связанные записи в таблице "${tableName}". Удалите их сначала.`,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw e;
+    }
   }
 
   async startTask(taskId: number, employeeId: number) {
@@ -264,7 +298,10 @@ export class CurrentTasksService {
     });
     if (inProgressState) {
       // Логируем изменение статуса
-      await this.currentTaskStatesLogService.logStateChange(taskId, inProgressState.id);
+      await this.currentTaskStatesLogService.logStateChange(
+        taskId,
+        inProgressState.id,
+      );
       task.currentTaskStates = inProgressState;
     }
     return await this.currentTasksRepository.save(task);
@@ -301,7 +338,10 @@ export class CurrentTasksService {
     });
     if (completedState) {
       // Логируем изменение статуса
-      await this.currentTaskStatesLogService.logStateChange(taskId, completedState.id);
+      await this.currentTaskStatesLogService.logStateChange(
+        taskId,
+        completedState.id,
+      );
       task.currentTaskStates = completedState;
     }
     return await this.currentTasksRepository.save(task);
@@ -417,9 +457,9 @@ export class CurrentTasksService {
   // Новый метод: дерево только для сотрудника
   async getCurrentTasksTreeForEmployee(employeeId: number): Promise<any> {
     const tasks = await this.currentTasksRepository.find({
-      where: { 
+      where: {
         employees: { id: employeeId },
-        currentTaskStates: { id: Not(3) } // Исключаем задачи со статусом "Завершена"
+        currentTaskStates: { id: Not(3) }, // Исключаем задачи со статусом "Завершена"
       },
       relations: [
         'employees',
@@ -432,7 +472,7 @@ export class CurrentTasksService {
         'stands.orderRequests.factory',
         'standTasks',
         'standTasks.standTasksComponents',
-        'standTasks.standTasksComponents.component'
+        'standTasks.standTasksComponents.component',
       ],
     });
     // Получаем все stand_tasks одним запросом
@@ -444,7 +484,7 @@ export class CurrentTasksService {
         'professionRights.professions',
         'professionRights.rights',
         'standTasksComponents',
-        'standTasksComponents.component'
+        'standTasksComponents.component',
       ],
     });
     // Группируем stand_tasks по parentId
@@ -483,12 +523,13 @@ export class CurrentTasksService {
             const firstTaskValues = Array.from(standMap.values());
             const firstTaskMap = firstTaskValues[0];
             const firstTask = Array.from(firstTaskMap.values())[0];
-            const customerName = firstTask?.stands?.orderRequests?.[0]?.factory?.shortName || 
-                               firstTask?.stands?.orderRequests?.[0]?.factory?.fullName || 
-                               'Не указан';
-            
+            const customerName =
+              firstTask?.stands?.orderRequests?.[0]?.factory?.shortName ||
+              firstTask?.stands?.orderRequests?.[0]?.factory?.fullName ||
+              'Не указан';
+
             return {
-              name: [` Крайний срок: ${deadline}`,`Заказчик: ${customerName}`]
+              name: [` Крайний срок: ${deadline}`, `Заказчик: ${customerName}`]
                 .filter(Boolean)
                 .join(' | '),
               deadline: deadline,
@@ -497,12 +538,16 @@ export class CurrentTasksService {
                 ([stand, taskMap]) => {
                   // Получаем ответственного за стенд из первой задачи
                   const firstTaskInStand = Array.from(taskMap.values())[0];
-                  const standResponsible = firstTaskInStand?.stands?.employees?.peoples ? 
-                    `${firstTaskInStand.stands.employees.peoples.lastName || ''} ${firstTaskInStand.stands.employees.peoples.firstName || ''} ${firstTaskInStand.stands.employees.peoples.middleName || ''}`.trim() : 
-                    'Не распределен';
-                  
+                  const standResponsible = firstTaskInStand?.stands?.employees
+                    ?.peoples
+                    ? `${firstTaskInStand.stands.employees.peoples.lastName || ''} ${firstTaskInStand.stands.employees.peoples.firstName || ''} ${firstTaskInStand.stands.employees.peoples.middleName || ''}`.trim()
+                    : 'Не распределен';
+
                   return {
-                    name: [`Стенд: ${stand}`, `Ответственный: ${standResponsible}`]
+                    name: [
+                      `Стенд: ${stand}`,
+                      `Ответственный: ${standResponsible}`,
+                    ]
                       .filter(Boolean)
                       .join(' | '),
                     stand: stand,
@@ -510,13 +555,18 @@ export class CurrentTasksService {
                     children: Array.from(taskMap.entries()).map(
                       ([taskId, task]) => {
                         // Получаем ответственного за задачу
-                        const taskResponsible = task.employees?.peoples ? 
-                          `${task.employees.peoples.lastName || ''} ${task.employees.peoples.firstName || ''} ${task.employees.peoples.middleName || ''}`.trim() : 
-                          'Не распределена';
-                        
+                        const taskResponsible = task.employees?.peoples
+                          ? `${task.employees.peoples.lastName || ''} ${task.employees.peoples.firstName || ''} ${task.employees.peoples.middleName || ''}`.trim()
+                          : 'Не распределена';
+
                         return {
                           id: task.id,
-                          name: [`Задача: ${task.title}`, `Ответственный: ${taskResponsible}`, `Состояние: ${task.currentTaskStates?.title || ''}`, `Крайний срок: ${task.deadline ? (typeof task.deadline === 'string' ? task.deadline : (task.deadline as Date).toISOString().split('T')[0]) : 'Без срока'}`]
+                          name: [
+                            `Задача: ${task.title}`,
+                            `Ответственный: ${taskResponsible}`,
+                            `Состояние: ${task.currentTaskStates?.title || ''}`,
+                            `Крайний срок: ${task.deadline ? (typeof task.deadline === 'string' ? task.deadline : (task.deadline as Date).toISOString().split('T')[0]) : 'Без срока'}`,
+                          ]
                             .filter(Boolean)
                             .join(' | '),
                           nodeType: 'current_tasks',
@@ -524,12 +574,21 @@ export class CurrentTasksService {
                           taskResponsible: taskResponsible,
                           currentTaskStateId: task.currentTaskStates?.id,
                           currentTaskState: task.currentTaskStates?.title || '',
-                          deadline: task.deadline ? (typeof task.deadline === 'string' ? task.deadline : (task.deadline as Date).toISOString().split('T')[0]) : '',
+                          deadline: task.deadline
+                            ? typeof task.deadline === 'string'
+                              ? task.deadline
+                              : (task.deadline as Date)
+                                  .toISOString()
+                                  .split('T')[0]
+                            : '',
                           children: (
-                            standTasksByParent.get(String(task.standTasks?.id)) || []
+                            standTasksByParent.get(
+                              String(task.standTasks?.id),
+                            ) || []
                           )
                             .filter(
-                              (st) => state !== 'Выполняется' || !st.isCompleted,
+                              (st) =>
+                                state !== 'Выполняется' || !st.isCompleted,
                             )
                             .map((st) => ({
                               id: st.id,
@@ -547,17 +606,22 @@ export class CurrentTasksService {
                               hasEnoughComponents: (() => {
                                 // Если задача не требует компонентов
                                 if (st.componentOutCount === 0) return true;
-                                
+
                                 // Находим запись компонента для этой конкретной задачи
-                                const taskComponent = st.standTasksComponents?.find(
-                                  sc => sc.component?.id === st.components?.id
-                                );
-                                
+                                const taskComponent =
+                                  st.standTasksComponents?.find(
+                                    (sc) =>
+                                      sc.component?.id === st.components?.id,
+                                  );
+
                                 // Если нет записи о компоненте, значит компонентов 0
                                 if (!taskComponent) return false;
-                                
+
                                 // Сравниваем доступное количество с требуемым
-                                return taskComponent.componentCount >= st.componentOutCount;
+                                return (
+                                  taskComponent.componentCount >=
+                                  st.componentOutCount
+                                );
                               })(),
                               standTask: st.title || '',
                               component: st.components?.title || '',

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Employees } from 'src/employees/employees.entity';
 import { Professions } from 'src/professions/professions.entity';
@@ -179,7 +184,22 @@ export class EmployeesProfessionsService {
   }
 
   async delete(id: number) {
-    return await this.employeesProfessionsRepository.delete(id);
+    try {
+      await this.employeesProfessionsRepository.delete(id);
+    } catch (e: any) {
+      if (e.code === 'ER_ROW_IS_REFERENCED_2') {
+        const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);
+        let tableName = match ? match[2] : '';
+
+        throw new HttpException(
+          {
+            message: `Невозможно удалить запись. Есть связанные записи в таблице "${tableName}". Удалите их сначала.`,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw e;
+    }
   }
 
   // async changeEmployee(employeeId: number, newEmployeeId: number) {

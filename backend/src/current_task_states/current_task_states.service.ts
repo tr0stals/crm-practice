@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentTaskStates } from './current_task_states.entity';
@@ -48,14 +53,29 @@ export class CurrentTaskStatesService {
   }
 
   async delete(id: number) {
-    return await this.repo.delete(id);
+    try {
+      await this.repo.delete(id);
+    } catch (e: any) {
+      if (e.code === 'ER_ROW_IS_REFERENCED_2') {
+        const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);
+        let tableName = match ? match[2] : '';
+
+        throw new HttpException(
+          {
+            message: `Невозможно удалить запись. Есть связанные записи в таблице "${tableName}". Удалите их сначала.`,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw e;
+    }
   }
 
   async getTasksTreeByStatus() {
     try {
       // Получаем все статусы задач
       const states = await this.repo.find({
-        order: { id: 'ASC' }
+        order: { id: 'ASC' },
       });
 
       if (!states || states.length === 0) {
@@ -68,20 +88,29 @@ export class CurrentTaskStatesService {
         // Получаем задачи для каждого статуса с relations
         const stateWithTasks = await this.repo.findOne({
           where: { id: state.id },
-          relations: ['currentTasks', 'currentTasks.employees', 'currentTasks.employees.peoples', 'currentTasks.stands']
+          relations: [
+            'currentTasks',
+            'currentTasks.employees',
+            'currentTasks.employees.peoples',
+            'currentTasks.stands',
+          ],
         });
 
         const stateNode: any = {
           id: state.id,
           name: state.title,
           nodeType: 'current_task_states',
-          children: []
+          children: [],
         };
 
         // Добавляем задачи как дочерние элементы
-        if (stateWithTasks && stateWithTasks.currentTasks && stateWithTasks.currentTasks.length > 0) {
+        if (
+          stateWithTasks &&
+          stateWithTasks.currentTasks &&
+          stateWithTasks.currentTasks.length > 0
+        ) {
           for (const task of stateWithTasks.currentTasks) {
-            const employeeName = task.employees?.peoples 
+            const employeeName = task.employees?.peoples
               ? `${task.employees.peoples.lastName || ''} ${task.employees.peoples.firstName || ''} ${task.employees.peoples.middleName || ''}`.trim()
               : 'Не назначен';
 
@@ -99,7 +128,7 @@ export class CurrentTaskStatesService {
               deadline: task.deadline,
               employee: employeeName,
               stand: task.stands?.title || 'Не указан',
-              status: state.title
+              status: state.title,
             };
 
             stateNode.children.push(taskNode);

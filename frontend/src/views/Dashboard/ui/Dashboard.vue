@@ -412,16 +412,13 @@ const handleDeleteRow = async () => {
 
   console.debug(navigationStore.selectedRow, navigationStore.selectedRow?.id);
 
-  try {
-    await deleteDataAsync(
-      navigationStore.selectedRow?.id,
-      currentSection.value
-    );
-    getCurrentData();
-  } catch (e) {
-    alert("Ошибка при удалении записи");
-    console.error(e);
-  }
+  const response = await deleteDataAsync(
+    navigationStore.activeRow?.data.id,
+    navigationStore.activeRow?.data.nodeType
+  );
+  console.debug(response);
+
+  if (response?.status === 200) getCurrentData();
 };
 
 const handleCreateModalWindow = () => {

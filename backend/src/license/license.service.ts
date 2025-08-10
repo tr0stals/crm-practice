@@ -70,7 +70,7 @@ export class LicenseService {
 
         throw new HttpException(
           {
-            message: `Невозможно удалить компонент. Есть связанные записи в таблице "${tableName}". Удалите их сначала.`,
+            message: `Невозможно удалить запись. Есть связанные записи в таблице "${tableName}". Удалите их сначала.`,
           },
           HttpStatus.BAD_REQUEST,
         );

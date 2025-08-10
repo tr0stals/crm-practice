@@ -2,7 +2,9 @@ import { api } from "@/shared/api/axiosInstance";
 
 export const deleteDataAsync = async (id: number, sectionName: string) => {
   try {
-    await api.delete(`/${sectionName}/delete/${id}`);
+    console.debug("id: ", id);
+    console.debug("sectionName: ", sectionName);
+    return await api.delete(`/${sectionName}/delete/${id}`);
   } catch (e: any) {
     console.debug(e);
     const message =

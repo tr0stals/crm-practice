@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentTaskStatesLog } from './current_task_states_log.entity';
@@ -18,9 +23,9 @@ export class CurrentTaskStatesLogService {
   async getAll() {
     const result = await this.repo.find({
       relations: ['currentTask', 'currentTaskState'],
-      order: { dateTime: 'DESC' }
+      order: { dateTime: 'DESC' },
     });
-    
+
     return result;
   }
 
@@ -28,7 +33,7 @@ export class CurrentTaskStatesLogService {
     return await this.repo.find({
       where: { currentTask: { id: taskId } },
       relations: ['currentTask', 'currentTaskState'],
-      order: { dateTime: 'DESC' }
+      order: { dateTime: 'DESC' },
     });
   }
 
@@ -36,14 +41,14 @@ export class CurrentTaskStatesLogService {
     return await this.repo.find({
       where: { currentTaskState: { id: stateId } },
       relations: ['currentTask', 'currentTaskState'],
-      order: { dateTime: 'DESC' }
+      order: { dateTime: 'DESC' },
     });
   }
 
   async getOne(id: number) {
-    return await this.repo.findOne({ 
+    return await this.repo.findOne({
       where: { id },
-      relations: ['currentTask', 'currentTaskState']
+      relations: ['currentTask', 'currentTaskState'],
     });
   }
 
@@ -53,7 +58,22 @@ export class CurrentTaskStatesLogService {
   }
 
   async delete(id: number) {
-    return await this.repo.delete(id);
+    try {
+      await this.repo.delete(id);
+    } catch (e: any) {
+      if (e.code === 'ER_ROW_IS_REFERENCED_2') {
+        const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);
+        let tableName = match ? match[2] : '';
+
+        throw new HttpException(
+          {
+            message: `Невозможно удалить запись. Есть связанные записи в таблице "${tableName}". Удалите их сначала.`,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw e;
+    }
   }
 
   async logStateChange(taskId: number, stateId: number) {
@@ -65,9 +85,8 @@ export class CurrentTaskStatesLogService {
 
   async generateData() {
     try {
-      
       const currentTaskStatesLogs = await this.getAll();
-      
+
       const data: any[] = [];
 
       if (!currentTaskStatesLogs || currentTaskStatesLogs.length === 0) {
@@ -76,21 +95,21 @@ export class CurrentTaskStatesLogService {
 
       for (let i = 0; i < currentTaskStatesLogs.length; i++) {
         const item = currentTaskStatesLogs[i];
-        
+
         const { currentTask, currentTaskState, ...defaultData } = item;
-        
+
         const taskTitle = currentTask?.title || 'Неизвестная задача';
         const stateTitle = currentTaskState?.title || 'Неизвестное состояние';
-        
+
         // Форматируем дату без миллисекунд
-        const formattedDateTime = defaultData.dateTime 
+        const formattedDateTime = defaultData.dateTime
           ? new Date(defaultData.dateTime).toLocaleString('ru-RU', {
               year: 'numeric',
               month: '2-digit',
               day: '2-digit',
               hour: '2-digit',
               minute: '2-digit',
-              second: '2-digit'
+              second: '2-digit',
             })
           : '';
 
@@ -101,7 +120,7 @@ export class CurrentTaskStatesLogService {
           taskTitle,
           stateTitle,
         };
-        
+
         data.push(logData);
       }
 
@@ -110,4 +129,4 @@ export class CurrentTaskStatesLogService {
       throw new Error(e);
     }
   }
-} 
+}

@@ -96,10 +96,13 @@ defineExpose({
 
 function onNodeSelect(event: any) {
   selectedKey.value = event.key;
-  console.debug(event);
+
   selectedSection.value = event.data.nodeType;
+  navigationStore.setActiveRow(event);
 
   emit("node-select", event);
+
+  console.debug(navigationStore.activeRow);
 }
 
 function getExpandedKeysForSearch(nodes: any, search: any) {
