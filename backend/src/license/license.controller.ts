@@ -25,7 +25,7 @@ export class LicenseController {
   }
 
   @Delete('delete/:id')
-  async remove(@Param('id') id) {
+  async remove(@Param('id') id: string) {
     return this.licenseService.remove(id);
   }
 
