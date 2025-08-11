@@ -8,10 +8,13 @@ import {
   Put,
   Query,
   Headers,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { DatabaseService } from './database.service';
 import { NODE_TYPE_TO_TABLE } from './nodeTypesMap';
 import { PERMISSION_MATRIX } from './rolePermissions';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('database')
 export class DatabaseController {
@@ -103,13 +106,26 @@ export class DatabaseController {
     return await this.databaseService.getTableRowById(tableName, id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':tableName/:id')
   async deleteTableRecord(
     @Param('tableName') tableName: string,
     @Param('id') id: string,
+    @Request() req,
     @Headers('profession') profession?: string,
   ) {
-    return await this.databaseService.deleteTableRecord(tableName, id, profession);
+    return await this.databaseService.deleteTableRecord(tableName, id, profession, req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':tableName/:id/cleanup')
+  async deleteTableRecordWithCleanup(
+    @Param('tableName') tableName: string,
+    @Param('id') id: string,
+    @Request() req,
+    @Headers('profession') profession?: string,
+  ) {
+    return await this.databaseService.deleteTableRecordWithCleanup(tableName, id, profession, req.user.id);
   }
 
   @Post(':tableName')

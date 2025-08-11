@@ -122,14 +122,14 @@ export class ArrivalInvoicesService {
       order: { date: 'DESC' },
     });
 
-    console.log(
-      'Arrival invoices with components:',
-      arrivalInvoices.map((invoice) => ({
-        id: invoice.id,
-        numberInvoice: invoice.numberInvoice,
-        componentsCount: invoice.invoicesComponents?.length || 0,
-      })),
-    );
+    // console.log(
+    //   'Arrival invoices with components:',
+    //   arrivalInvoices.map((invoice) => ({
+    //     id: invoice.id,
+    //     numberInvoice: invoice.numberInvoice,
+    //     componentsCount: invoice.invoicesComponents?.length || 0,
+    //   })),
+    // );
 
     // Группируем по дате
     const grouped = {};

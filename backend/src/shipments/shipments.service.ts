@@ -151,8 +151,8 @@ export class ShipmentsService {
       ...shipmentStands
         .filter((item) => item.shipments?.id === shipment.id)
         .map((item) => ({
-          id: item.stands.id,
-          name: `Стенд: ${item.stands.title} | ${item.stands?.standType?.title}`,
+          id: item.stands?.id,
+          name: `Стенд: ${item.stands?.title ? item.stands?.title : 'Неизвестный стенд'} | ${item.stands?.standType?.title ? item.stands?.standType?.title : 'Неизвестный тип стенда'} ` ,
           nodeType: 'stands',
         })),
       ...shipmentPackages
@@ -168,7 +168,6 @@ export class ShipmentsService {
   }
 
   async getTree() {
-    try {
       const shipments = await this.findAll();
 
       if (!shipments) throw new NotFoundException('Ошибка при поиске отгрузок');
@@ -187,8 +186,5 @@ export class ShipmentsService {
       );
 
       return { name: 'Отгрузки', children: tree };
-    } catch (e) {
-      throw new Error(e);
-    }
   }
 }

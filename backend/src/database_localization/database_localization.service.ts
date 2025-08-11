@@ -29,7 +29,7 @@ export class DatabaseLocalizationService {
   }
 
   getTableDisplayName(tableName: string): string {
-    console.log(tableName);
+    // console.log(tableName);
     return this.localizationData.tables[tableName]?.displayName || tableName;
   }
 

@@ -138,7 +138,7 @@ export class LicenseService {
         throw new NotFoundException('Ошибка поиска отгрузок стендов');
 
       const tree = licenseTypes.map((licenseType: LicenseTypes) => {
-        console.log('licenseType', licenseType);
+        // console.log('licenseType', licenseType);
         return {
           id: licenseType.id,
           name: licenseType.title,

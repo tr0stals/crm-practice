@@ -132,14 +132,14 @@ export class BillsForPayService {
       order: { date: 'DESC' },
     });
 
-    console.log(
-      'Bills with components:',
-      bills.map((bill) => ({
-        id: bill.id,
-        numberBill: bill.numberBill,
-        componentsCount: bill.billsComponents?.length || 0,
-      })),
-    );
+    // console.log(
+    //   'Bills with components:',
+    //   bills.map((bill) => ({
+    //     id: bill.id,
+    //     numberBill: bill.numberBill,
+    //     componentsCount: bill.billsComponents?.length || 0,
+    //   })),
+    // );
 
     // Группируем по дате
     const grouped = {};

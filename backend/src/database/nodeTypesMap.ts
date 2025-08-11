@@ -1,7 +1,10 @@
 export const NODE_TYPE_TO_TABLE = {
   stands: "stands",
   stand_tasks: "stand_tasks",
+  stand_tasks_components: "stand_tasks_components",
   current_tasks: "current_tasks",
+  license: "license",
+  license_types: "license_types",
   employees: "employees",
   departments: "departments",
   organizations: "organizations",
@@ -14,4 +17,6 @@ export const NODE_TYPE_TO_TABLE = {
   arrival_invoices: "arrival_invoices",
   invoices_components: "invoices_components",
   inventarization: "inventarization",
+  shipments: "shipments",
+  shipment_package: "shipment_package",
 }; 

@@ -10,12 +10,14 @@ import {
   canWrite,
   canWriteSelf,
 } from './rolePermissions';
+import { WsGateway } from '../websocket/ws.gateway';
 
 @Injectable()
 export class DatabaseService {
   constructor(
     private dataSource: DataSource,
     private currentTasksService: CurrentTasksService,
+    private readonly wsGateway: WsGateway,
   ) {}
 
   async getAllTablesData() {
@@ -191,17 +193,156 @@ export class DatabaseService {
     );
   }
 
-  async deleteTableRecord(tableName: string, id: string, profession?: string) {
+  // Находит все внешние ключи, которые ссылаются на указанную таблицу в текущей БД
+  private async getReferencingForeignKeys(targetTable: string): Promise<Array<{ tableName: string; columnName: string }>> {
+    const rows = await this.dataSource.query(
+      `SELECT TABLE_NAME as tableName, COLUMN_NAME as columnName
+       FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+       WHERE REFERENCED_TABLE_SCHEMA = DATABASE()
+         AND REFERENCED_TABLE_NAME = ?`,
+      [targetTable],
+    );
+    return rows?.map((r: any) => ({ tableName: r.tableName, columnName: r.columnName })) ?? [];
+  }
+
+  // Считает, сколько записей реально блокируют удаление по каждому FK
+  private async getBlockingReferences(targetTable: string, id: string): Promise<Array<{ tableName: string; columnName: string; count: number }>> {
+    const fks = await this.getReferencingForeignKeys(targetTable);
+    if (!fks || fks.length === 0) return [];
+
+    const counts = await Promise.all(
+      fks.map(async (fk) => {
+        try {
+          const res = await this.dataSource.query(
+            `SELECT COUNT(*) as cnt FROM \`${fk.tableName}\` WHERE \`${fk.columnName}\` = ?`,
+            [id],
+          );
+          const cnt = Array.isArray(res) ? Number(res[0]?.cnt || 0) : 0;
+          return { ...fk, count: cnt };
+        } catch (_) {
+          // Если не удалось посчитать — не блокируем
+          return { ...fk, count: 0 };
+        }
+      }),
+    );
+
+    // Оставляем только реальные блокировки и агрегируем по таблице
+    const byTable = new Map<string, number>();
+    for (const c of counts) {
+      if (c.count > 0) {
+        byTable.set(c.tableName, (byTable.get(c.tableName) || 0) + c.count);
+      }
+    }
+    return Array.from(byTable.entries()).map(([tableName, count]) => ({ tableName, columnName: '', count }));
+  }
+
+  private buildBlockedMessage(blocks: Array<{ tableName: string; count: number }>): string {
+    const parts = blocks
+      .sort((a, b) => a.tableName.localeCompare(b.tableName))
+      .map((b) => `${b.tableName} (${b.count})`);
+    const list = parts.join(', ');
+    return `Невозможно удалить запись. Есть связанные записи: ${list}. Удалите их сначала.`;
+  }
+
+  async deleteTableRecord(tableName: string, id: string, profession?: string, userId?: number) {
     // Проверяем права доступа, если указана профессия
     if (profession && !canWrite(tableName, profession)) {
       throw new Error(
         `Access denied: ${profession} cannot write to ${tableName}`,
       );
     }
+    try {
+      // удаляет запись, если нет связанных записей
+      const blocks = await this.getBlockingReferences(tableName, id);
+      if (blocks.length > 0) {
+        const msg = this.buildBlockedMessage(blocks);
+        if (userId) {
+          this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+        }
+        // Выбрасываем ту же информацию в ответ API
+        const { HttpException, HttpStatus } = await import('@nestjs/common');
+        throw new HttpException({ message: msg }, HttpStatus.BAD_REQUEST);
+      }
+      console.log('DELETE START', tableName, id, profession, userId);
+      const result = await this.dataSource.query(
+        `DELETE FROM \`${tableName}\` WHERE id = ?`,
+        [id],
+      );
+      // Если дошли сюда — удаление прошло успешно
+      if (userId) {
+        const successMsg = `Запись удалена из таблицы "${tableName}"`;
+        this.wsGateway.sendNotification(userId.toString(), successMsg, 'success');
+      }
+      return result;
+    } catch (e: any) {
+      console.log('DELETE ERROR', e);
+      // Fallback: если вдруг всё же прилетела низкоуровневая ошибка FK — отправим одно уведомление
+      if (e.code === 'ER_ROW_IS_REFERENCED_2' && userId) {
+        const match = e.sqlMessage?.match(/`([^`]+)`\.`([^`]+)`/);
+        const fkTable = match ? match[2] : '';
+        const msg = `Невозможно удалить запись. Есть связанные записи: ${fkTable ? fkTable + ' (1)' : 'в связанных таблицах'}. Удалите их сначала.`;
+        this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+      }
+      throw e;
+    }
+  }
 
-    return await this.dataSource.query(
-      `DELETE FROM \`${tableName}\` WHERE id = ${id}`,
-    );
+  async deleteTableRecordWithCleanup(tableName: string, id: string, profession?: string, userId?: number) {
+    // Проверяем права доступа, если указана профессия
+    if (profession && !canWrite(tableName, profession)) {
+      throw new Error(
+        `Access denied: ${profession} cannot write to ${tableName}`,
+      );
+    }
+    try {
+      console.log('DELETE WITH CLEANUP START', tableName, id, profession, userId);
+
+      // Пытаемся обнулить все FK-ссылки (SET NULL) перед удалением
+      const fks = await this.getReferencingForeignKeys(tableName);
+      try {
+        await this.dataSource.transaction(async (manager) => {
+          for (const fk of fks) {
+            // Обнуляем FK, если колонка допускает NULL; если нет — БД выбросит ошибку
+            await manager.query(
+              `UPDATE \`${fk.tableName}\` SET \`${fk.columnName}\` = NULL WHERE \`${fk.columnName}\` = ?`,
+              [id],
+            );
+          }
+          // После обнуления пробуем удалить запись
+          await manager.query(`DELETE FROM \`${tableName}\` WHERE id = ?`, [id]);
+        });
+      } catch (nullifyErr: any) {
+        // Если не удалось обнулить (например, NOT NULL), вернём детерминированную ошибку со списком блокировок
+        const blocks = await this.getBlockingReferences(tableName, id);
+        if (blocks.length > 0) {
+          const msg = this.buildBlockedMessage(blocks);
+          if (userId) {
+            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+          }
+          const { HttpException, HttpStatus } = await import('@nestjs/common');
+          throw new HttpException({ message: msg }, HttpStatus.BAD_REQUEST);
+        }
+        // Иначе перебросим исходную ошибку
+        throw nullifyErr;
+      }
+
+      // Если дошли сюда — удаление прошло успешно
+      if (userId) {
+        const successMsg = `Запись удалена из таблицы "${tableName}" (с очисткой связей)`;
+        this.wsGateway.sendNotification(userId.toString(), successMsg, 'success');
+      }
+      return { affected: 1 };
+    } catch (e: any) {
+      console.log('DELETE WITH CLEANUP ERROR', e);
+      // Fallback: если вдруг всё же прилетела низкоуровневая ошибка FK — отправим одно уведомление
+      if (e.code === 'ER_ROW_IS_REFERENCED_2' && userId) {
+        const match = e.sqlMessage?.match(/`([^`]+)`\.`([^`]+)`/);
+        const fkTable = match ? match[2] : '';
+        const msg = `Невозможно удалить запись. Есть связанные записи: ${fkTable ? fkTable + ' (1)' : 'в связанных таблицах'}. Удалите их сначала.`;
+        this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+      }
+      throw e;
+    }
   }
 
   async addTableRecord(tableName: string, record: any, profession?: string) {
