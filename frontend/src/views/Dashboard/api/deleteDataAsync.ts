@@ -1,10 +1,11 @@
 import { api } from "@/shared/api/axiosInstance";
+import { treeviewTables } from "@/shared/config/treeviewTables";
 
 export const deleteDataAsync = async (id: number, sectionName: string) => {
   try {
-    console.debug("id: ", id);
-    console.debug("sectionName: ", sectionName);
-    return await api.delete(`/${sectionName}/delete/${id}`);
+    if (treeviewTables.includes(sectionName))
+      return await api.delete(`database/${sectionName}/${id}/cleanup`);
+    else return await api.delete(`database/${sectionName}/${id}`);
   } catch (e: any) {
     console.debug(e);
     const message =
@@ -13,6 +14,6 @@ export const deleteDataAsync = async (id: number, sectionName: string) => {
       e.message || // fallback: стандартное сообщение ошибки
       "Произошла ошибка при удалении";
 
-    alert(message);
+    return message;
   }
 };

@@ -98,11 +98,11 @@ function onNodeSelect(event: any) {
   selectedKey.value = event.key;
 
   selectedSection.value = event.data.nodeType;
-  navigationStore.setActiveRow(event);
+  navigationStore.setSelectedRow(event);
 
   emit("node-select", event);
 
-  console.debug(navigationStore.activeRow);
+  console.debug(navigationStore.selectedRow);
 }
 
 function getExpandedKeysForSearch(nodes: any, search: any) {

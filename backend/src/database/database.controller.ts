@@ -114,7 +114,12 @@ export class DatabaseController {
     @Request() req,
     @Headers('profession') profession?: string,
   ) {
-    return await this.databaseService.deleteTableRecord(tableName, id, profession, req.user.id);
+    return await this.databaseService.deleteTableRecord(
+      tableName,
+      id,
+      profession,
+      req.user.id,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -125,7 +130,12 @@ export class DatabaseController {
     @Request() req,
     @Headers('profession') profession?: string,
   ) {
-    return await this.databaseService.deleteTableRecordWithCleanup(tableName, id, profession, req.user.id);
+    return await this.databaseService.deleteTableRecordWithCleanup(
+      tableName,
+      id,
+      profession,
+      req.user.id,
+    );
   }
 
   @Post(':tableName')
@@ -134,7 +144,11 @@ export class DatabaseController {
     @Body() record: any,
     @Headers('profession') profession?: string,
   ) {
-    return await this.databaseService.addTableRecord(tableName, record, profession);
+    return await this.databaseService.addTableRecord(
+      tableName,
+      record,
+      profession,
+    );
   }
 
   @Put(':tableName/:id')
@@ -144,6 +158,11 @@ export class DatabaseController {
     @Body() record: any,
     @Headers('profession') profession?: string,
   ) {
-    return await this.databaseService.updateTableRecord(tableName, id, record, profession);
+    return await this.databaseService.updateTableRecord(
+      tableName,
+      id,
+      record,
+      profession,
+    );
   }
 }

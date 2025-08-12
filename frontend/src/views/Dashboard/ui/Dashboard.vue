@@ -38,11 +38,10 @@ import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
 import NavigationSidebar from "@/features/NavigationSidebar/ui/NavigationSidebar.vue";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
-import RelatedTablesSidebar from "@/widgets/RelatedTablesSidebar/ui/RelatedTablesSidebar.vue";
-import { relatedTables } from "@/shared/config/relatedTables";
-import { filter } from "@primeuix/themes/aura/datatable";
 import TreeviewMenu from "@/features/TreeviewMenu/ui/TreeviewMenu.vue";
 import NotificationButton from "@/features/Notifications/ui/NotificationButton.vue";
+import useFetch from "@/shared/lib/useFetch";
+import { defaultEndpoint } from "@/shared/api/axiosInstance";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -409,16 +408,23 @@ const handleDeleteRow = async () => {
     alert("Выберите запись для удаления");
     return;
   }
+  console.debug(navigationStore.selectedRow);
+  const targetId = navigationStore.selectedRow?.data
+    ? navigationStore.selectedRow?.data?.id
+    : navigationStore.selectedRow?.id;
+
+  const targetNodeType = navigationStore.selectedRow?.data
+    ? navigationStore.selectedRow?.data?.nodeType
+    : navigationStore.currentSection;
 
   console.debug(navigationStore.selectedRow, navigationStore.selectedRow?.id);
 
-  const response = await deleteDataAsync(
-    navigationStore.activeRow?.data.id,
-    navigationStore.activeRow?.data.nodeType
-  );
+  const response = await deleteDataAsync(targetId, targetNodeType);
   console.debug(response);
 
-  if (response?.status === 200) getCurrentData();
+  if (response?.status === 200) {
+    onUpdateCallBack();
+  }
 };
 
 const handleCreateModalWindow = () => {

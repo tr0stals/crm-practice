@@ -11,8 +11,16 @@ export function useNotifications(userId: string) {
   socket.onmessage = (event) => {
     const { message, type } = JSON.parse(event.data);
 
+    switch (type) {
+      case "error":
+        toast.error(message, { timeout: 3000 });
+        break;
+
+      case "success":
+        toast.success(message, { timeout: 3000 });
+        break;
+    }
     // 1. Показываем уведомление (авто скрытие через 3с)
-    toast.info(message, { timeout: 3000 });
 
     // 2. Сохраняем в store
     store.addNotification({ message, type });

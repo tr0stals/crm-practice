@@ -1349,12 +1349,6 @@ export class DatabaseSeederService {
     const serverWriteoff = await this.seedServerWriteoff();
     this.logger.log(`Создано ${serverWriteoff.length} серверных списаний`);
 
-    // Заполнение поставщиков компонентов
-    const supplierComponents = await this.seedSupplierComponents();
-    this.logger.log(
-      `Создано ${supplierComponents.length} поставщиков компонентов`,
-    );
-
     // Заполнение списаний
     const writeoff = await this.seedWriteoff();
     this.logger.log(`Создано ${writeoff.length} списаний`);
