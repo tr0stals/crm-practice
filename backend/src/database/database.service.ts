@@ -11,6 +11,7 @@ import {
   canWriteSelf,
 } from './rolePermissions';
 import { WsGateway } from '../websocket/ws.gateway';
+import { DatabaseLocalizationService } from 'src/database_localization/database_localization.service';
 
 @Injectable()
 export class DatabaseService {
@@ -18,6 +19,7 @@ export class DatabaseService {
     private dataSource: DataSource,
     private currentTasksService: CurrentTasksService,
     private readonly wsGateway: WsGateway,
+    private readonly databaseLocalizationService: DatabaseLocalizationService,
   ) {}
 
   async getAllTablesData() {
@@ -194,7 +196,9 @@ export class DatabaseService {
   }
 
   // Находит все внешние ключи, которые ссылаются на указанную таблицу в текущей БД
-  private async getReferencingForeignKeys(targetTable: string): Promise<Array<{ tableName: string; columnName: string }>> {
+  private async getReferencingForeignKeys(
+    targetTable: string,
+  ): Promise<Array<{ tableName: string; columnName: string }>> {
     const rows = await this.dataSource.query(
       `SELECT TABLE_NAME as tableName, COLUMN_NAME as columnName
        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
@@ -202,11 +206,19 @@ export class DatabaseService {
          AND REFERENCED_TABLE_NAME = ?`,
       [targetTable],
     );
-    return rows?.map((r: any) => ({ tableName: r.tableName, columnName: r.columnName })) ?? [];
+    return (
+      rows?.map((r: any) => ({
+        tableName: r.tableName,
+        columnName: r.columnName,
+      })) ?? []
+    );
   }
 
   // Считает, сколько записей реально блокируют удаление по каждому FK
-  private async getBlockingReferences(targetTable: string, id: string): Promise<Array<{ tableName: string; columnName: string; count: number }>> {
+  private async getBlockingReferences(
+    targetTable: string,
+    id: string,
+  ): Promise<Array<{ tableName: string; columnName: string; count: number }>> {
     const fks = await this.getReferencingForeignKeys(targetTable);
     if (!fks || fks.length === 0) return [];
 
@@ -233,18 +245,32 @@ export class DatabaseService {
         byTable.set(c.tableName, (byTable.get(c.tableName) || 0) + c.count);
       }
     }
-    return Array.from(byTable.entries()).map(([tableName, count]) => ({ tableName, columnName: '', count }));
+    return Array.from(byTable.entries()).map(([tableName, count]) => ({
+      tableName,
+      columnName: '',
+      count,
+    }));
   }
 
-  private buildBlockedMessage(blocks: Array<{ tableName: string; count: number }>): string {
+  private buildBlockedMessage(
+    blocks: Array<{ tableName: string; count: number }>,
+  ): string {
     const parts = blocks
       .sort((a, b) => a.tableName.localeCompare(b.tableName))
-      .map((b) => `${b.tableName} (${b.count})`);
+      .map(
+        (b) =>
+          `${this.databaseLocalizationService.getTableDisplayName(b.tableName)} (${b.count})`,
+      );
     const list = parts.join(', ');
     return `Невозможно удалить запись. Есть связанные записи: ${list}. Удалите их сначала.`;
   }
 
-  async deleteTableRecord(tableName: string, id: string, profession?: string, userId?: number) {
+  async deleteTableRecord(
+    tableName: string,
+    id: string,
+    profession?: string,
+    userId?: number,
+  ) {
     // Проверяем права доступа, если указана профессия
     if (profession && !canWrite(tableName, profession)) {
       throw new Error(
@@ -271,7 +297,11 @@ export class DatabaseService {
       // Если дошли сюда — удаление прошло успешно
       if (userId) {
         const successMsg = `Запись удалена из таблицы "${tableName}"`;
-        this.wsGateway.sendNotification(userId.toString(), successMsg, 'success');
+        this.wsGateway.sendNotification(
+          userId.toString(),
+          successMsg,
+          'success',
+        );
       }
       return result;
     } catch (e: any) {
@@ -287,7 +317,12 @@ export class DatabaseService {
     }
   }
 
-  async deleteTableRecordWithCleanup(tableName: string, id: string, profession?: string, userId?: number) {
+  async deleteTableRecordWithCleanup(
+    tableName: string,
+    id: string,
+    profession?: string,
+    userId?: number,
+  ) {
     // Проверяем права доступа, если указана профессия
     if (profession && !canWrite(tableName, profession)) {
       throw new Error(
@@ -295,13 +330,21 @@ export class DatabaseService {
       );
     }
     try {
-      console.log('DELETE WITH CLEANUP START', tableName, id, profession, userId);
+      console.log(
+        'DELETE WITH CLEANUP START',
+        tableName,
+        id,
+        profession,
+        userId,
+      );
 
       // Пытаемся обнулить все FK-ссылки (SET NULL) перед удалением
       const fks = await this.getReferencingForeignKeys(tableName);
       try {
         await this.dataSource.transaction(async (manager) => {
           for (const fk of fks) {
+            console.log(fk);
+
             // Обнуляем FK, если колонка допускает NULL; если нет — БД выбросит ошибку
             await manager.query(
               `UPDATE \`${fk.tableName}\` SET \`${fk.columnName}\` = NULL WHERE \`${fk.columnName}\` = ?`,
@@ -309,7 +352,9 @@ export class DatabaseService {
             );
           }
           // После обнуления пробуем удалить запись
-          await manager.query(`DELETE FROM \`${tableName}\` WHERE id = ?`, [id]);
+          await manager.query(`DELETE FROM \`${tableName}\` WHERE id = ?`, [
+            id,
+          ]);
         });
       } catch (nullifyErr: any) {
         // Если не удалось обнулить (например, NOT NULL), вернём детерминированную ошибку со списком блокировок
@@ -329,7 +374,11 @@ export class DatabaseService {
       // Если дошли сюда — удаление прошло успешно
       if (userId) {
         const successMsg = `Запись удалена из таблицы "${tableName}" (с очисткой связей)`;
-        this.wsGateway.sendNotification(userId.toString(), successMsg, 'success');
+        this.wsGateway.sendNotification(
+          userId.toString(),
+          successMsg,
+          'success',
+        );
       }
       return { affected: 1 };
     } catch (e: any) {

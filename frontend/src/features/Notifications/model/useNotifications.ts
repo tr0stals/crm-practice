@@ -11,6 +11,7 @@ export function useNotifications(userId: string) {
   socket.onmessage = (event) => {
     const { message, type } = JSON.parse(event.data);
 
+    // 1. Показываем уведомление в зависимости от типа уведомления
     switch (type) {
       case "error":
         toast.error(message, { timeout: 3000 });
@@ -20,7 +21,6 @@ export function useNotifications(userId: string) {
         toast.success(message, { timeout: 3000 });
         break;
     }
-    // 1. Показываем уведомление (авто скрытие через 3с)
 
     // 2. Сохраняем в store
     store.addNotification({ message, type });

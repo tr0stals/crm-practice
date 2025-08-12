@@ -3,9 +3,10 @@ import { DatabaseService } from './database.service';
 import { DatabaseController } from './database.controller';
 import { CurrentTasksModule } from '../current_tasks/current_tasks.module';
 import { WebsocketModule } from '../websocket/websocket.module';
+import { DatabaseLocalizationModule } from 'src/database_localization/database_localization.module';
 
 @Module({
-  imports: [CurrentTasksModule, WebsocketModule],
+  imports: [CurrentTasksModule, WebsocketModule, DatabaseLocalizationModule],
   providers: [DatabaseService],
   controllers: [DatabaseController],
   exports: [DatabaseService],

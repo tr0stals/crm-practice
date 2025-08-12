@@ -89,7 +89,7 @@ export class EmployeesController {
 
   @Get('getTree')
   async getTree() {
-    return await this.employeesService.getTree();
+    return await this.employeesService.getEmployeesTree();
   }
 
   // @ApiOperation({

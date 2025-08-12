@@ -42,7 +42,9 @@ interface TreeNode {
 console.debug(props.currentSection);
 
 const { data, error, loading, canAbort, abort, refetch } = useFetch<TreeNode[]>(
-  `${defaultEndpoint}/${props.currentSection}/tree`,
+  props.currentSection === "employees"
+    ? `${defaultEndpoint}/${props.currentSection}/getTree`
+    : `${defaultEndpoint}/${props.currentSection}/tree`,
   {
     immediate: true,
     timeout: 3000,

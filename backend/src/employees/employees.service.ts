@@ -164,6 +164,10 @@ export class EmployeesService {
     }
   }
 
+  /**
+   * Не удалять - метод работает на фронте
+   * @returns
+   */
   async getEmployeesTree() {
     try {
       const employeeDepartments =
@@ -180,7 +184,7 @@ export class EmployeesService {
 
       const dismissialEmployees = await this.getDismissalEmployees();
 
-      if (!dismissialEmployees || dismissialEmployees.length === 0)
+      if (!dismissialEmployees)
         throw new NotFoundException('Не найдены уволенные сотрудники');
 
       if (!employeeDepartments)
