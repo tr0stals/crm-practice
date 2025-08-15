@@ -43,6 +43,7 @@ export class EmployeesService {
     if (!people) throw new Error('Target people not found');
 
     const employee = this.employeesRepository.create({
+      hiringDate: data.hiringDate,
       dismissalDate: data.dismissalDate,
       peoples: people,
     } as Partial<Employees>);
