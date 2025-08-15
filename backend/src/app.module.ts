@@ -55,6 +55,7 @@ import { WebsocketModule } from './websocket/websocket.module';
 import { ProfessionRightsModule } from './profession_rights/profession_rights.module';
 import { RightsModule } from './rights/rights.module';
 import { CurrentTaskStatesLogModule } from './current_task_states_log/current_task_states_log.module';
+import { EmployeeUnitModule } from './BusinessUnits/employee_unit/employee-unit.module';
 
 @Module({
   imports: [
@@ -127,6 +128,7 @@ import { CurrentTaskStatesLogModule } from './current_task_states_log/current_ta
     ProfessionRightsModule,
     RightsModule,
     CurrentTaskStatesLogModule,
+    EmployeeUnitModule,
   ],
   controllers: [AppController, StandsController],
   providers: [AppService],

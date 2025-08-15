@@ -7,6 +7,6 @@ export class StandTasksDTO {
   manufactureTime: Date;
   isCompleted: boolean;
   standId: number;
-  professionId: number;
+  professionRightId: number;
   componentId: number;
 }

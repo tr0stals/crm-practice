@@ -6,10 +6,14 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
   const formData = reactive<any>({});
   const tableColumns = ref<string[]>([]);
   const selectOptions = reactive<Record<string, any[]>>({});
+  const endpoint =
+    sectionName === "employees"
+      ? `employee_unit/getFormMetaData`
+      : `database/getFormMetaData/${sectionName}`;
 
   const fetchColumnsAndRelations = async () => {
     const data = await getDataAsync({
-      endpoint: `database/getFormMetaData/${sectionName}`,
+      endpoint: endpoint,
     }).then((res) => res.data);
 
     tableColumns.value = Object.keys(data);
@@ -25,7 +29,11 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
   onMounted(fetchColumnsAndRelations);
 
   const submit = async () => {
-    await createEntityAsync(sectionName, formData);
+    if (sectionName === "employees") {
+      await createEntityAsync("employee_unit", formData);
+    } else {
+      await createEntityAsync(sectionName, formData);
+    }
     onSuccess();
   };
 

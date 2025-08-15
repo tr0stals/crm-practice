@@ -101,6 +101,8 @@ export class DatabaseService {
             'shipment_trips',
             'shipments_stands',
             'supplier_components',
+            'employee_departments',
+            'employees_professions',
           ].includes(item.referencedColumn)
         ) {
           uniqueRelationsMap.set(item.referencedColumn, item);
@@ -451,7 +453,7 @@ export class DatabaseService {
     return found?.referencedColumn ?? null;
   }
 
-  private async getSelectOptions(
+  async getSelectOptions(
     relatedTable: any,
     currentId?: number,
     columnName?: string,

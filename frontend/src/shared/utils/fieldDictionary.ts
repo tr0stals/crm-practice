@@ -174,4 +174,6 @@ export const fieldDictionary: { [key: string]: string } = {
   professionRightsId: "Профессия",
   professionRightId: "Профессия",
   professionRights: "Профессия",
+  employeeDepartment: "Отдел",
+  employeeProfession: "Профессия",
 };

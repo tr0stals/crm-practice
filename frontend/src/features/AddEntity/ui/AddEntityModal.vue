@@ -14,6 +14,7 @@ const props = defineProps<{
   onClose: () => void;
   onSuccess: () => void;
 }>();
+console.debug(props.sectionName);
 
 const { formData, tableColumns, selectOptions, submit } = useAddEntity(
   props.sectionName,

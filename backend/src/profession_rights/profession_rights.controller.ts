@@ -12,6 +12,11 @@ export class ProfessionRightsController {
     return await this.professionRightsService.getProfessions();
   }
 
+  @Get('getProfessions')
+  async getAllProfessions() {
+    return await this.professionRightsService.getAllProfessions();
+  }
+
   @Get('getAll')
   async getAll() {
     return await this.professionRightsService.getAll();

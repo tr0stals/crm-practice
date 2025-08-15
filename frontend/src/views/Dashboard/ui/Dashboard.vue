@@ -42,6 +42,8 @@ import TreeviewMenu from "@/features/TreeviewMenu/ui/TreeviewMenu.vue";
 import NotificationButton from "@/features/Notifications/ui/NotificationButton.vue";
 import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
+import EmployeesEditModal from "@/features/EditModalWindow/ui/EmployeesEditModal.vue";
+import AddEmployeeModal from "@/features/AddEntity/ui/AddEmployeeModal.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -245,10 +247,21 @@ function handleEditModalWindow() {
     return;
   }
 
-  ModalManager.getInstance().open(EditModalWindow, {
-    config: cfg,
-    onApplyCallback: onUpdateCallBack,
-  });
+  switch (sectionName) {
+    case "employees":
+      ModalManager.getInstance().open(EmployeesEditModal, {
+        config: cfg,
+        onApplyCallback: onUpdateCallBack,
+      });
+      break;
+
+    default:
+      ModalManager.getInstance().open(EditModalWindow, {
+        config: cfg,
+        onApplyCallback: onUpdateCallBack,
+      });
+      break;
+  }
 }
 
 watch(
@@ -348,7 +361,7 @@ const currentTableHeaders = computed(() => {
 });
 
 const columnCount = computed(() => {
-  return currentTableHeaders.value.length;
+  return currentTableHeaders.value?.length;
 });
 
 onUnmounted(() => {
@@ -439,11 +452,23 @@ const handleCreateModalWindow = () => {
     return;
   }
 
-  ModalManager.getInstance().open(AddEntity, {
-    sectionName: currentSection.value,
-    onClose: () => ModalManager.getInstance().closeModal(),
-    onSuccess: onUpdateCallBack,
-  });
+  switch (navigationStore.currentSection) {
+    case "employees":
+      ModalManager.getInstance().open(AddEmployeeModal, {
+        sectionName: navigationStore.currentSection,
+        onClose: () => ModalManager.getInstance().closeModal(),
+        onSuccess: onUpdateCallBack,
+      });
+      break;
+
+    default:
+      ModalManager.getInstance().open(AddEntity, {
+        sectionName: currentSection.value,
+        onClose: () => ModalManager.getInstance().closeModal(),
+        onSuccess: onUpdateCallBack,
+      });
+      break;
+  }
 };
 
 const firstPage = () => {

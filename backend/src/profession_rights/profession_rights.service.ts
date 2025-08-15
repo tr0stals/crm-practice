@@ -28,6 +28,24 @@ export class ProfessionRightsService {
     }
   }
 
+  async getAllProfessions() {
+    try {
+      const data: any[] = [];
+      const professionRights = await this.repo.find({
+        relations: ['professions', 'rights'],
+      });
+
+      professionRights.map((item: any) => {
+        console.log(item);
+        data.push(item.professions);
+      });
+
+      return data;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async getAll() {
     try {
       return await this.repo.find({

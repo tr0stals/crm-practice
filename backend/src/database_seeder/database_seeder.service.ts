@@ -395,6 +395,11 @@ export class DatabaseSeederService {
       `Создано ${employeeDepartments.length} связей сотрудников с отделами`,
     );
 
+    const employeesProfessions = await this.seedEmployeeProfessions(employees);
+    this.logger.log(
+      `Создано ${employeesProfessions.length} связей сотрудников с профессиями`,
+    );
+
     // Заполнение лицензий
     const licenses = await this.seedLicenses(organizations);
     this.logger.log(`Создано ${licenses.length} лицензий`);
@@ -492,6 +497,27 @@ export class DatabaseSeederService {
       this.organizationsRepository.create(data),
     );
     return await this.organizationsRepository.save(organizations);
+  }
+
+  private async seedEmployeeProfessions(employees: Employees[]) {
+    const professionRights = await this.professionRightsRepository.find({
+      relations: ['professions', 'rights'],
+    });
+
+    const employeeProfessionsData = employees.flatMap((employee) =>
+      faker.helpers
+        .arrayElements(professionRights, { min: 1, max: 3 })
+        .map((professionRight) => ({
+          employees: employee,
+          professionRights: professionRight,
+        })),
+    );
+
+    const employeeProfessions = employeeProfessionsData.map((data) =>
+      this.employeesProfessionsRepository.create(data),
+    );
+
+    return await this.employeesProfessionsRepository.save(employeeProfessions);
   }
 
   private async seedEmployees(peoples: Peoples[]): Promise<Employees[]> {
