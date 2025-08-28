@@ -6,13 +6,22 @@ import {
 } from '@nestjs/common';
 import { InvoicesComponents } from './invoices_components.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
+import { InvoicesComponentsDTO } from './dto/InvoiceComponentsDTO';
+import { ArrivalInvoices } from 'src/arrival_invoices/arrival_invoices.entity';
+import { Components } from 'src/components/components.entity';
 
 @Injectable()
 export class InvoicesComponentsService {
   constructor(
     @InjectRepository(InvoicesComponents)
     private readonly repo: Repository<InvoicesComponents>,
+
+    @InjectRepository(ArrivalInvoices)
+    private readonly arrivalInvoicesRepo: Repository<ArrivalInvoices>,
+
+    @InjectRepository(Components)
+    private readonly componentsRepo: Repository<Components>,
   ) {}
 
   async getAll() {
@@ -90,9 +99,35 @@ export class InvoicesComponentsService {
     }
   }
 
-  async create(data: Partial<InvoicesComponents>) {
+  async create(data: InvoicesComponentsDTO) {
     try {
-      const entity = this.repo.create(data);
+      const { arrivalInvoiceId, componentId, ...defaultData } = data;
+
+      const arrivalInvoice = await this.arrivalInvoicesRepo.findOne({
+        where: {
+          id: arrivalInvoiceId,
+        },
+        relations: ['suppliers', 'factory'],
+      });
+
+      const component = await this.componentsRepo.findOne({
+        where: {
+          id: componentId,
+        },
+        relations: ['componentPlacements'],
+      });
+
+      if (!arrivalInvoice)
+        throw new NotFoundException('Ошибка при поиске arrivalInvoices');
+      if (!component)
+        throw new NotFoundException('Ошибка при поиске components');
+
+      const entity = this.repo.create({
+        componentCount: String(data?.componentCount),
+        arrivalInvoices: arrivalInvoice,
+        components: component,
+      });
+
       return await this.repo.save(entity);
     } catch (e) {
       throw new Error(e);

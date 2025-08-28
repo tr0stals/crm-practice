@@ -3,9 +3,13 @@ import { InvoicesComponentsController } from './invoices_components.controller';
 import { InvoicesComponentsService } from './invoices_components.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { InvoicesComponents } from './invoices_components.entity';
+import { Components } from 'src/components/components.entity';
+import { ArrivalInvoices } from 'src/arrival_invoices/arrival_invoices.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([InvoicesComponents])],
+  imports: [
+    TypeOrmModule.forFeature([InvoicesComponents, Components, ArrivalInvoices]),
+  ],
   controllers: [InvoicesComponentsController],
   providers: [InvoicesComponentsService],
 })

@@ -200,6 +200,7 @@ export class EmployeesService {
    */
   async getEmployeesTree() {
     try {
+      const departments = await this.departmentsRepo.find();
       const employeeDepartments =
         await this.employeeDepartmentsService.findAll();
 
@@ -208,44 +209,50 @@ export class EmployeesService {
           relations: ['employees', 'professions'],
         });
 
-      const dismissialEmployees = await this.getDismissalEmployees();
+      const dismissalEmployees = await this.getDismissalEmployees();
 
-      if (!dismissialEmployees)
+      if (!dismissalEmployees)
         throw new NotFoundException('Не найдены уволенные сотрудники');
 
       if (!employeeDepartments)
         throw new NotFoundException('Не найдены employeeDepartments');
 
+      // Инициализируем узлы для всех отделов (пустые тоже попадут в карту)
       const depMap = new Map<
         number,
         { id: number; name: string; nodeType: string; children: any[] }
       >();
 
+      for (const dep of departments) {
+        depMap.set(dep.id, {
+          id: dep.id,
+          name: dep.title || 'Без названия',
+          nodeType: 'departments',
+          children: [],
+        });
+      }
+
+      // Заполняем сотрудниками
       for (const depRel of employeeDepartments) {
         const depId = depRel.departments?.id;
-        const depName = depRel.departments?.title || 'Без отдела';
-
-        if (!depMap.has(depId)) {
-          depMap.set(depId, {
-            id: depId,
-            name: depName,
-            nodeType: 'departments',
-            children: [],
-          });
-        }
+        if (!depId) continue;
 
         const employee = depRel.employees;
         if (employee) {
-          // Проверяем, есть ли сотрудник в списке уволенных. Если есть - пропускаем
-          if (dismissialEmployees.some((e) => e.id === employee.id)) continue;
+          // Проверяем, не уволен ли сотрудник
+          if (dismissalEmployees.some((e) => e.id === employee.id)) continue;
 
           const professions = employeeProfessions
-            .filter((item) => item.employees?.id === employee.id)
-            .map((item: EmployeesProfessions) => item.professions?.title)
-            .filter(Boolean)
-            .join(', ');
+            ?.filter((item) => item.employees?.id === employee.id)
+            ?.map((item: EmployeesProfessions) => item.professions?.title)
+            ?.filter(Boolean);
 
-          depMap.get(depId)!.children.push({
+          const node = depMap.get(depId);
+          if (!node) continue;
+
+          console.log(professions);
+
+          node.children.push({
             id: employee.id,
             name: `${employee.peoples?.lastName} ${employee.peoples?.firstName} ${employee.peoples?.middleName} | ${employee.peoples?.phone} | ${professions}`,
             nodeType: 'employees',
@@ -253,7 +260,13 @@ export class EmployeesService {
         }
       }
 
-      return { name: 'Сотрудники', children: Array.from(depMap.values()) };
+      // Формируем итоговую структуру
+      const result: any = { name: 'Сотрудники', children: [] };
+      for (const [, depNode] of depMap.entries()) {
+        result.children.push(depNode);
+      }
+
+      return result;
     } catch (e) {
       throw new Error(e);
     }
@@ -265,7 +278,10 @@ export class EmployeesService {
     const employeeDepartments = await this.employeeDepartmentsService.findAll();
 
     // depId -> { id, name, nodeType, children: [] }
-    const depMap = new Map<number, { id: number; name: string; nodeType: string; children: any[] }>();
+    const depMap = new Map<
+      number,
+      { id: number; name: string; nodeType: string; children: any[] }
+    >();
 
     // Инициализируем узлы для всех отделов
     for (const dep of allDepartments) {
@@ -326,7 +342,10 @@ export class EmployeesService {
     const allDepartments = await this.departmentsRepo.find();
     const employeeDepartments = await this.employeeDepartmentsService.findAll();
 
-    const depMap = new Map<number, { id: number; name: string; nodeType: string; children: any[] }>();
+    const depMap = new Map<
+      number,
+      { id: number; name: string; nodeType: string; children: any[] }
+    >();
     for (const dep of allDepartments) {
       depMap.set(dep.id, {
         id: dep.id,
@@ -355,7 +374,9 @@ export class EmployeesService {
         name: [
           `${fio}`,
           employee.hiringDate ? `Дата приема: ${employee.hiringDate}` : '',
-          employee.dismissalDate ? `Дата увольнения: ${employee.dismissalDate}` : '',
+          employee.dismissalDate
+            ? `Дата увольнения: ${employee.dismissalDate}`
+            : '',
         ]
           .filter(Boolean)
           .join(' | '),

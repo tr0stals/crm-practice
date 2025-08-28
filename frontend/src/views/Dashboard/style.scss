@@ -114,6 +114,10 @@
   font-size: 1.5em;
 }
 
+.button__disabled {
+  opacity: 0.5;
+}
+
 .logout-button:hover {
   background-color: #e0e0e0; /* Темнее при наведении */
 }

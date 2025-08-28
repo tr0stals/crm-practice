@@ -446,6 +446,30 @@ const handleCreateModalWindow = () => {
         section.value = "employees";
       break;
 
+    case "organizations":
+      if (!navigationStore.selectedRow) section.value = "organization_types";
+      if (navigationStore.selectedRow?.data?.nodeType === "organization_types")
+        section.value = "organizations";
+      break;
+
+    case "arrival_invoices":
+      if (!navigationStore.selectedRow) section.value = "arrival_invoices";
+      if (navigationStore.selectedRow?.data?.nodeType === "arrival_invoices")
+        section.value = "invoices_components";
+      break;
+
+    case "bills_for_pay":
+      if (!navigationStore.selectedRow) section.value = "bills_for_pay";
+      if (navigationStore.selectedRow?.data?.nodeType === "bills_for_pay")
+        section.value = "bills_components";
+      break;
+
+    case "license":
+      if (!navigationStore.selectedRow) section.value = "license_types";
+      if (navigationStore.selectedRow?.data?.nodeType === "license_types")
+        section.value = "license";
+      break;
+
     default:
       section.value = navigationStore.currentSection;
       break;
@@ -636,7 +660,13 @@ const handleSelectSection = (item: any) => {
             "
             class="action-buttons"
           >
-            <Button :onClick="handleCreateModalWindow">
+            <Button
+              :class="
+                navigationStore.selectedRow?.level > 2 && 'button__disabled'
+              "
+              :disabled="navigationStore.selectedRow?.level > 2"
+              :onClick="handleCreateModalWindow"
+            >
               <PlusIcon /> добавить
             </Button>
             <Button :onClick="handleEditModalWindow">

@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { InvoicesComponentsService } from './invoices_components.service';
 import { InvoicesComponents } from './invoices_components.entity';
+import { InvoicesComponentsDTO } from './dto/InvoiceComponentsDTO';
 
 @Controller('invoices_components')
 export class InvoicesComponentsController {
@@ -35,7 +36,7 @@ export class InvoicesComponentsController {
   }
 
   @Post('create')
-  async create(@Body() data: Partial<InvoicesComponents>) {
+  async create(@Body() data: InvoicesComponentsDTO) {
     return await this.service.create(data);
   }
 

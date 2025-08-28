@@ -10,6 +10,9 @@ import "@vuepic/vue-datepicker/dist/main.css";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import { useAddEmployees } from "../model/useAddEmployees";
+import { useAddOrganizations } from "../model/useAddOrganizations";
+import { useAddArrivalInvoices } from "../model/useAddArrivalInvoices";
+import { useAddLicenses } from "../model/useAddLicenses";
 
 const props = defineProps<{
   sectionName: string;
@@ -18,15 +21,31 @@ const props = defineProps<{
 }>();
 const navigationStore = useNavigationStore();
 
-const { formData, tableColumns, selectOptions, submit } = props.sectionName
-  ? useAddEmployees(props.sectionName, () => {
-      props.onSuccess();
-      props.onClose();
-    })
-  : useAddEntity(props.sectionName, () => {
-      props.onSuccess();
-      props.onClose();
-    });
+const { formData, tableColumns, selectOptions, submit } =
+  props.sectionName === "employees"
+    ? useAddEmployees(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      })
+    : props.sectionName === "organizations"
+    ? useAddOrganizations(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      })
+    : props.sectionName === "arrival_invoices"
+    ? useAddArrivalInvoices(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      })
+    : props.sectionName === "license"
+    ? useAddLicenses(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      })
+    : useAddArrivalInvoices(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      });
 
 function isDateField(key) {
   const lower = key.toLowerCase();
@@ -93,13 +112,14 @@ const handleSubmit = async () => {
                 class="addModalWindow__content__field__option"
               >
                 <option value="" disabled>Выберите значение</option>
-                <option
-                  v-for="option in selectOptions[item]"
+                <template
                   :key="option.id"
-                  :value="option.id"
+                  v-for="option in selectOptions[item]"
                 >
-                  {{ option.label }}
-                </option>
+                  <option :value="option.id">
+                    {{ option.label }}
+                  </option>
+                </template>
               </select>
             </template>
             <template v-else-if="isDateField(item)">
