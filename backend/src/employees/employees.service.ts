@@ -15,6 +15,7 @@ import { User } from 'src/user/user.entity';
 import { EmployeeDepartmentsService } from 'src/employee_departments/employee_departments.service';
 import { EmployeesProfessions } from 'src/employees_professions/employees_professions.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
+import { Departments } from 'src/departments/departments.entity';
 import { EmployeeDepartments } from 'src/employee_departments/employee_departments.entity';
 
 @Injectable()
@@ -33,7 +34,30 @@ export class EmployeesService {
     private employeesProfessionsRepository: Repository<EmployeesProfessions>,
     @InjectRepository(Organizations)
     private organizationsRepo: Repository<Organizations>,
+    @InjectRepository(Departments)
+    private departmentsRepo: Repository<Departments>,
   ) {}
+
+  private normalizeDate(v: any): Date | null {
+    if (v === undefined || v === null) return null;
+    if (typeof v === 'string') {
+      const s = v.trim();
+      if (!s) return null;
+      // ожидаем yyyy-MM-dd
+      const parts = s.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        const d = new Date(Date.UTC(year, month, day));
+        return isNaN(d.getTime()) ? null : (d as unknown as Date);
+      }
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    if (v instanceof Date) return v;
+    return null;
+  }
 
   async create(data: EmployeesDTO) {
     const people = await this.peoplesRepository.findOne({
@@ -43,7 +67,8 @@ export class EmployeesService {
     if (!people) throw new Error('Target people not found');
 
     const employee = this.employeesRepository.create({
-      dismissalDate: data.dismissalDate,
+      hiringDate: this.normalizeDate((data as any).hiringDate),
+      dismissalDate: this.normalizeDate((data as any).dismissalDate),
       peoples: people,
     } as Partial<Employees>);
     return await this.employeesRepository.save(employee);
@@ -115,7 +140,12 @@ export class EmployeesService {
       where: { id: data.peoples?.id },
     });
 
-    Object.assign(employee, data, { peoples: people });
+    const patch: any = { ...data, peoples: people };
+    if ('hiringDate' in (data as any))
+      patch.hiringDate = this.normalizeDate((data as any).hiringDate);
+    if ('dismissalDate' in (data as any))
+      patch.dismissalDate = this.normalizeDate((data as any).dismissalDate);
+    Object.assign(employee, patch);
     return await this.employeesRepository.save(employee);
   }
 
@@ -230,52 +260,126 @@ export class EmployeesService {
   }
 
   async getTree() {
+    // Загружаем все отделы, чтобы отобразить даже пустые
+    const allDepartments = await this.departmentsRepo.find();
     const employeeDepartments = await this.employeeDepartmentsService.findAll();
-    const depMap = new Map();
 
+    // depId -> { id, name, nodeType, children: [] }
+    const depMap = new Map<number, { id: number; name: string; nodeType: string; children: any[] }>();
+
+    // Инициализируем узлы для всех отделов
+    for (const dep of allDepartments) {
+      depMap.set(dep.id, {
+        id: dep.id,
+        name: dep.title || 'Без названия',
+        nodeType: 'departments',
+        children: [],
+      });
+    }
+
+    // Заполняем сотрудниками связи employee_departments
     for (const ed of employeeDepartments) {
-      const depName = ed.departments?.title || 'Без названия';
+      const depId = ed.departments?.id;
+      if (!depId) continue;
+      const employee = ed.employees;
+      // В основном дереве не показываем уволенных
+      if (employee?.dismissalDate) continue;
 
-      if (!depMap.has(depName)) depMap.set(depName, []);
-
-      const people = ed.employees?.peoples;
-
+      const people = employee?.peoples;
       const fio = people
         ? `${people.lastName} ${people.firstName} ${people.middleName}`
         : 'Без ФИО';
 
-      depMap.get(depName).push({
+      const node = depMap.get(depId);
+      if (!node) continue;
+
+      node.children.push({
         name: [
           `${fio}`,
-          `Дата приема: ${ed.employees?.hiringDate}`,
-          ed.employees?.dismissalDate
-            ? `Дата увольнения: ${ed.employees?.dismissalDate}`
-            : '',
+          employee?.hiringDate ? `Дата приема: ${employee.hiringDate}` : '',
         ]
           .filter(Boolean)
           .join(' | '),
         nodeType: 'employees',
         employees: fio,
-        birthDate: ed.employees?.peoples?.birthDate,
-        departmentId: ed.departments?.id,
-        ...ed.employees,
-        peoples: ed.employees?.peoples,
+        birthDate: employee?.peoples?.birthDate,
+        departmentId: depId,
+        ...employee,
+        peoples: employee?.peoples,
       });
     }
 
-    const result: any = {};
-    result.name = 'Сотрудники';
-    result.children = [];
-
-    for (const [depName, employees] of depMap.entries()) {
+    const result: any = { name: 'Сотрудники', children: [] };
+    for (const [, depNode] of depMap.entries()) {
       result.children.push({
-        name: depName,
+        name: depNode.name,
         nodeType: 'departments',
-        id: employees[0]?.departmentId ?? null,
-        children: employees,
+        id: depNode.id,
+        children: depNode.children,
+      });
+    }
+    return result;
+  }
+
+  async getTreeDismissed() {
+    // Показываем только уволенных сотрудников, сгруппированных по отделам
+    const allDepartments = await this.departmentsRepo.find();
+    const employeeDepartments = await this.employeeDepartmentsService.findAll();
+
+    const depMap = new Map<number, { id: number; name: string; nodeType: string; children: any[] }>();
+    for (const dep of allDepartments) {
+      depMap.set(dep.id, {
+        id: dep.id,
+        name: dep.title || 'Без названия',
+        nodeType: 'departments',
+        children: [],
       });
     }
 
+    for (const ed of employeeDepartments) {
+      const depId = ed.departments?.id;
+      if (!depId) continue;
+      const employee = ed.employees;
+      // Берём только уволенных
+      if (!employee?.dismissalDate) continue;
+
+      const people = employee.peoples;
+      const fio = people
+        ? `${people.lastName} ${people.firstName} ${people.middleName}`
+        : 'Без ФИО';
+
+      const node = depMap.get(depId);
+      if (!node) continue;
+
+      node.children.push({
+        name: [
+          `${fio}`,
+          employee.hiringDate ? `Дата приема: ${employee.hiringDate}` : '',
+          employee.dismissalDate ? `Дата увольнения: ${employee.dismissalDate}` : '',
+        ]
+          .filter(Boolean)
+          .join(' | '),
+        nodeType: 'employees',
+        employees: fio,
+        birthDate: employee?.peoples?.birthDate,
+        departmentId: depId,
+        ...employee,
+        peoples: employee?.peoples,
+      });
+    }
+
+    const result: any = { name: 'Уволенные сотрудники', children: [] };
+    for (const [, depNode] of depMap.entries()) {
+      // Добавляем только отделы, где есть уволенные дети, чтобы не засорять пустыми
+      if (depNode.children.length > 0) {
+        result.children.push({
+          name: depNode.name,
+          nodeType: 'departments',
+          id: depNode.id,
+          children: depNode.children,
+        });
+      }
+    }
     return result;
   }
 

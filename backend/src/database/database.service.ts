@@ -12,12 +12,14 @@ import {
 } from './rolePermissions';
 import { WsGateway } from '../websocket/ws.gateway';
 import { DatabaseLocalizationService } from 'src/database_localization/database_localization.service';
+import { EmployeesService } from 'src/employees/employees.service';
 
 @Injectable()
 export class DatabaseService {
   constructor(
     private dataSource: DataSource,
     private currentTasksService: CurrentTasksService,
+    private employeesService: EmployeesService,
     private readonly wsGateway: WsGateway,
     private readonly databaseLocalizationService: DatabaseLocalizationService,
   ) {}
@@ -402,9 +404,38 @@ export class DatabaseService {
       );
     }
 
+    // Санитизация дат: пустые строки -> NULL для всех date-колонок
+    try {
+      const columnsInfo = await this.dataSource.query(
+        `SHOW COLUMNS FROM \`${tableName}\``,
+      );
+      const dateFields = new Set<string>(
+        (columnsInfo || [])
+          .filter((c: any) =>
+            typeof c?.Type === 'string' && c.Type.toLowerCase().startsWith('date'),
+          )
+          .map((c: any) => c.Field),
+      );
+      for (const key of Object.keys(record || {})) {
+        const val = record[key];
+        const isEmpty = val === '' || val === undefined || val === null;
+        if (dateFields.has(key)) {
+          if (isEmpty) {
+            record[key] = null;
+          }
+        }
+      }
+    } catch (_) {
+      // no-op: если не удалось получить метаданные — продолжаем как есть
+    }
+
     if (tableName === 'current_tasks') {
       console.log('=== DATABASE SERVICE: ПЕРЕДАЕМ В CURRENTTASKSSERVICE ===');
       return await this.currentTasksService.create(record);
+    }
+    if (tableName === 'employees') {
+      console.log('=== DATABASE SERVICE: ПЕРЕДАЕМ В EMPLOYEESSERVICE ===');
+      return await this.employeesService.create(record);
     }
     return await this.dataSource.query(`INSERT INTO \`${tableName}\` SET ?`, [
       record,
@@ -424,6 +455,9 @@ export class DatabaseService {
       );
     }
 
+    if (tableName === 'employees') {
+      return await this.employeesService.update(+id, record);
+    }
     return await this.dataSource.query(
       `UPDATE \`${tableName}\` SET ? WHERE id = ${id}`,
       [record],

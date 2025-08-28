@@ -71,6 +71,13 @@ export class EmployeesController {
     return await this.employeesService.getTree();
   }
 
+  @ApiOperation({ summary: 'Дерево уволенных сотрудников' })
+  @ApiResponse({ status: 200, description: 'Дерево уволенных сотрудников' })
+  @Get('treeDismissed')
+  async getDismissedTree() {
+    return await this.employeesService.getTreeDismissed();
+  }
+
   @ApiOperation({ summary: 'Обновление данных сотрудника' })
   @ApiResponse({ status: 200, description: 'Данные сотрудника обновлены' })
   @ApiResponse({ status: 404, description: 'Сотрудник не найден' })
