@@ -52,8 +52,6 @@ import { StandTasksComponentsModule } from './stand_tasks_components/stand_tasks
 import { DatabaseEagerCachingModule } from './database_eager_caching/database_eager_caching.module';
 import { DatabaseExportImportModule } from './database_export_import/database_export_import.module';
 import { WebsocketModule } from './websocket/websocket.module';
-import { ProfessionRightsModule } from './profession_rights/profession_rights.module';
-import { RightsModule } from './rights/rights.module';
 import { CurrentTaskStatesLogModule } from './current_task_states_log/current_task_states_log.module';
 
 @Module({
@@ -124,8 +122,6 @@ import { CurrentTaskStatesLogModule } from './current_task_states_log/current_ta
     CurrentTasksModule,
     DatabaseExportImportModule,
     WebsocketModule,
-    ProfessionRightsModule,
-    RightsModule,
     CurrentTaskStatesLogModule,
   ],
   controllers: [AppController, StandsController],

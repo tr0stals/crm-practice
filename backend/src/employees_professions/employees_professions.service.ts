@@ -11,7 +11,6 @@ import { DeepPartial, Repository } from 'typeorm';
 import { AssignProfessionDTO } from './dto/AssignProfessionDTO';
 import { EmployeesProfessions } from './employees_professions.entity';
 import { EmployeesProfessionsDTO } from './dto/EmployeesProfessionsDTO';
-import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
 
 @Injectable()
 export class EmployeesProfessionsService {
@@ -22,8 +21,6 @@ export class EmployeesProfessionsService {
     private employeesRepository: Repository<Employees>,
     @InjectRepository(Professions)
     private professionRepository: Repository<Professions>,
-    @InjectRepository(ProfessionRights)
-    private professionRightsRepository: Repository<ProfessionRights>,
   ) {}
 
   async assignProfession(data: AssignProfessionDTO) {
@@ -35,24 +32,18 @@ export class EmployeesProfessionsService {
      * Если передается professionId - тогда ищем профессию по ID.
      * Если нет - задаем дефолтную профессию - Директор
      */
-    const professionRights = data.professionId
-      ? await this.professionRightsRepository.findOne({
-          where: { professions: { id: data.professionId } },
-          relations: ['professions', 'rights'],
-        })
-      : await this.professionRightsRepository.findOne({
-          where: { professions: { title: 'Директор' } },
-          relations: ['professions', 'rights'],
-        });
+    const profession = data.professionId
+      ? await this.professionRepository.findOne({ where: { id: data.professionId } })
+      : await this.professionRepository.findOne({ where: { title: 'Директор' } });
 
-    console.log('!!!!1', professionRights);
+    console.log('!!!!1', profession);
 
-    if (!professionRights) throw new NotFoundException('Profession not found');
+    if (!profession) throw new NotFoundException('Profession not found');
     if (!employee) throw new NotFoundException('Employee not found');
 
     const entity = this.employeesProfessionsRepository.create({
       employees: employee,
-      professionRights: professionRights,
+      professions: profession,
     });
     console.log('!!!!!2', entity);
 
@@ -66,9 +57,7 @@ export class EmployeesProfessionsService {
       relations: [
         'employees',
         'employees.peoples',
-        'professionRights',
-        'professionRights.professions',
-        'professionRights.rights',
+        'professions',
       ],
     });
     console.log('data!!!!!!', data);
@@ -82,9 +71,7 @@ export class EmployeesProfessionsService {
         relations: ['peoples'],
       });
 
-      const professions = await this.professionRightsRepository.find({
-        relations: ['professions', 'rights'],
-      });
+      const professions = await this.professionRepository.find();
 
       return {
         employees: employees,
@@ -104,7 +91,7 @@ export class EmployeesProfessionsService {
         throw new NotFoundException('Ошибка при поиске профессий сотрудников');
 
       employeeProfessions.map((item) => {
-        const { employees, professionRights, ...defaultData } = item;
+        const { employees, professions, ...defaultData } = item;
         console.log('employees', employees);
         const peoples = employees?.peoples;
 
@@ -116,7 +103,7 @@ export class EmployeesProfessionsService {
           .filter(Boolean)
           .join(' ');
 
-        const professionTitle = professionRights.professions?.title;
+        const professionTitle = professions?.title;
         console.debug(professionTitle);
 
         data.push({
@@ -140,14 +127,13 @@ export class EmployeesProfessionsService {
       relations: ['peoples'],
     });
 
-    const professionRight = await this.professionRightsRepository.findOne({
-      where: { professions: { id: data.professionId } },
-      relations: ['professions', 'rights'],
+    const profession = await this.professionRepository.findOne({
+      where: { id: data.professionId },
     });
 
     const entity = this.employeesProfessionsRepository.create({
       employees: employee,
-      professionRights: professionRight,
+      professions: profession,
     } as DeepPartial<EmployeesProfessions>);
 
     return await this.employeesProfessionsRepository.save(entity);
@@ -158,9 +144,7 @@ export class EmployeesProfessionsService {
       relations: [
         'employees',
         'employees.peoples',
-        'professionRights',
-        'professionRights.professions',
-        'professionRights.rights',
+        'professions',
       ],
     });
   }
@@ -171,9 +155,7 @@ export class EmployeesProfessionsService {
       relations: [
         'employees',
         'employees.peoples',
-        'professionRights',
-        'professionRights.professions',
-        'professionRights.rights',
+        'professions',
       ],
     });
   }

@@ -59,13 +59,9 @@ export class CurrentTasksController {
     if (!employeeId) {
       return { name: 'Текущие задачи', children: [] };
     }
-    const empProf =
-      await this.employeesProfessionsService.findEmployeeProfessionByEmployeeId(
-        employeeId,
-      );
+    const empProf = await this.employeesProfessionsService.findEmployeeProfessionByEmployeeId(employeeId);
     console.log('!!!!!', empProf);
-    const role =
-      empProf?.professionRights?.professions?.title?.toLowerCase() || '';
+    const role = empProf?.professions?.title?.toLowerCase() || '';
     const allowedRoles = ['директор', 'администратор', 'test'];
     if (allowedRoles.some((r) => role.includes(r))) {
       return await this.service.getCurrentTasksTreeForAll();

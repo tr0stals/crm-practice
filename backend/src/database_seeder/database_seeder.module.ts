@@ -68,8 +68,6 @@ import { ShipmentsStands } from '../shipments_stands/shipments_stands.entity';
 import { User } from '../user/user.entity';
 import { Writeoff } from '../writeoff/writeoff.entity';
 import { WriteoffReasons } from '../writeoff_reasons/writeoff_reasons.entity';
-import { Rights } from 'src/rights/rights.entity';
-import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
 
 @Module({
   imports: [
@@ -118,8 +116,6 @@ import { ProfessionRights } from 'src/profession_rights/profession_rights.entity
       User,
       Writeoff,
       WriteoffReasons,
-      Rights,
-      ProfessionRights,
     ]),
     OrganizationTypesModule,
     LicenseTypesModule,

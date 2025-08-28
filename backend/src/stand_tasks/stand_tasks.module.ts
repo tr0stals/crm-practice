@@ -9,10 +9,10 @@ import { ComponentsModule } from 'src/components/components.module';
 import { ProfessionsModule } from 'src/professions/professions.module';
 import { WebsocketModule } from 'src/websocket/websocket.module';
 import { User } from 'src/user/user.entity';
-import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
 import { CurrentTaskStatesLogModule } from 'src/current_task_states_log/current_task_states_log.module';
 import { CurrentTasksModule } from 'src/current_tasks/current_tasks.module';
 import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_components.entity';
+import { Professions } from 'src/professions/professions.entity';
 
 @Module({
   imports: [
@@ -20,7 +20,7 @@ import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_com
       StandTasks,
       CurrentTasks,
       User,
-      ProfessionRights,
+      Professions,
       StandTasksComponents,
     ]),
     StandsModule,

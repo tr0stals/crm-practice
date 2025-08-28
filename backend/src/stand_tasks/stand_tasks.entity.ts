@@ -1,6 +1,5 @@
 import { Components } from 'src/components/components.entity';
 import { CurrentTasks } from 'src/current_tasks/current_tasks.entity';
-import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
 import { Professions } from 'src/professions/professions.entity';
 import { Stands } from 'src/stands/stands.entity';
 import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_components.entity';
@@ -43,12 +42,9 @@ export class StandTasks {
   @JoinColumn({ name: 'standId' })
   stands: Stands;
 
-  @ManyToOne(
-    () => ProfessionRights,
-    (professionRight) => professionRight.standTasks,
-  )
-  @JoinColumn({ name: 'professionRightId' })
-  professionRights: ProfessionRights;
+  @ManyToOne(() => Professions, (profession) => profession.standTasks)
+  @JoinColumn({ name: 'professionId' })
+  professions: Professions;
 
   @ManyToOne(() => Components, (component) => component.standTasks)
   @JoinColumn({ name: 'componentId' })

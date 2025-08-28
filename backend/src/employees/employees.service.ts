@@ -138,7 +138,7 @@ export class EmployeesService {
 
       return await this.employeesProfessionsRepository.find({
         where: { employees: { id: employee?.id } },
-        relations: ['professionRights', 'professionRights.professions'],
+        relations: ['professions'],
       });
     } catch (e) {
       throw new Error(`Failed to find employee professions: ${e.message}`);
@@ -175,11 +175,7 @@ export class EmployeesService {
 
       const employeeProfessions =
         await this.employeesProfessionsRepository.find({
-          relations: [
-            'employees',
-            'professionRights',
-            'professionRights.professions',
-          ],
+          relations: ['employees', 'professions'],
         });
 
       const dismissialEmployees = await this.getDismissalEmployees();
@@ -215,10 +211,7 @@ export class EmployeesService {
 
           const professions = employeeProfessions
             .filter((item) => item.employees?.id === employee.id)
-            .map(
-              (item: EmployeesProfessions) =>
-                item.professionRights?.professions?.title,
-            )
+            .map((item: EmployeesProfessions) => item.professions?.title)
             .filter(Boolean)
             .join(', ');
 

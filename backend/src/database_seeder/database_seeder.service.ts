@@ -48,8 +48,7 @@ import { Writeoff } from '../writeoff/writeoff.entity';
 import { WriteoffReasons } from '../writeoff_reasons/writeoff_reasons.entity';
 import { COMPONENT_CATEGORIES } from '../components/component_categories';
 import { PCB_CATEGORIES } from '../pcbs/pcbs_categories';
-import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
-import { Rights } from 'src/rights/rights.entity';
+// removed rights/profession_rights
 
 @Injectable()
 export class DatabaseSeederService {
@@ -145,10 +144,7 @@ export class DatabaseSeederService {
     private readonly writeoffRepository: Repository<Writeoff>,
     @InjectRepository(WriteoffReasons)
     private readonly writeoffReasonsRepository: Repository<WriteoffReasons>,
-    @InjectRepository(ProfessionRights)
-    private readonly professionRightsRepository: Repository<ProfessionRights>,
-    @InjectRepository(Rights)
-    private readonly rightsRepository: Repository<Rights>,
+    // removed repositories for rights/profession_rights
   ) {}
 
   async seed() {
@@ -377,9 +373,7 @@ export class DatabaseSeederService {
     const peoples = await this.seedPeoples();
     this.logger.log(`Создано ${peoples.length} людей`);
 
-    // заполнение прав
-    const rights = await this.seedRights();
-    this.logger.log(`Создано ${rights.length} прав`);
+    // убрали сид прав, права считаются по матрице rolePermissions
 
     // Заполнение организаций
     const organizations = await this.seedOrganizations(peoples);
@@ -446,15 +440,7 @@ export class DatabaseSeederService {
     return await this.peoplesRepository.save(peoples);
   }
 
-  private async seedRights(): Promise<Rights[]> {
-    const rightsTitles = ['RW', 'R', 'RWs'];
-
-    const rightsData = rightsTitles.map((title) =>
-      this.rightsRepository.create({ title }),
-    );
-
-    return await this.rightsRepository.save(rightsData);
-  }
+  // removed seedRights
 
   private async seedOrganizations(
     peoples: Peoples[],
@@ -1295,7 +1281,7 @@ export class DatabaseSeederService {
       `Создано ${componentPlacements.length} размещений компонентов`,
     );
 
-    const professionRights = await this.seedProfessionRights();
+    // убрали сид profession_rights
 
     // Заполнение задач стендов
     const standTasks = await this.seedStandTasks(mainEntities.stands);
@@ -1548,25 +1534,7 @@ export class DatabaseSeederService {
     return await this.componentPlacementsRepository.save(placements);
   }
 
-  private async seedProfessionRights(): Promise<void> {
-    const professions = await this.professionsRepository.find();
-    const rights = await this.rightsRepository.find();
-
-    const professionRightsData: ProfessionRights[] = [];
-
-    for (const profession of professions) {
-      const randomRight = faker.helpers.arrayElement(rights);
-
-      const professionRight = this.professionRightsRepository.create({
-        professions: profession, // убедись, что поле в сущности называется `professions`
-        rights: randomRight,
-      });
-
-      professionRightsData.push(professionRight);
-    }
-
-    await this.professionRightsRepository.save(professionRightsData);
-  }
+  // removed seedProfessionRights
 
   private async seedArrivalInvoices(): Promise<ArrivalInvoices[]> {
     const organizations = await this.organizationsRepository.find();

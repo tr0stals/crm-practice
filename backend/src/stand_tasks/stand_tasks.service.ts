@@ -15,7 +15,7 @@ import { ProfessionsService } from 'src/professions/professions.service';
 import { StandsService } from 'src/stands/stands.service';
 import { WsGateway } from 'src/websocket/ws.gateway';
 import { User } from 'src/user/user.entity';
-import { ProfessionRights } from 'src/profession_rights/profession_rights.entity';
+import { Professions } from 'src/professions/professions.entity';
 import { CurrentTasksService } from 'src/current_tasks/current_tasks.service';
 import { Stands } from 'src/stands/stands.entity';
 import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_components.entity';
@@ -29,8 +29,8 @@ export class StandTasksService {
     private currentTasksRepo: Repository<CurrentTasks>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @InjectRepository(ProfessionRights)
-    private professionRights: Repository<ProfessionRights>,
+    @InjectRepository(Professions)
+    private professionsRepo: Repository<Professions>,
     @InjectRepository(StandTasksComponents)
     private standTasksComponentsRepo: Repository<StandTasksComponents>,
     private componentService: ComponentsService,
@@ -49,13 +49,10 @@ export class StandTasksService {
     }
     const { componentId, professionId, standId, ...defaultData } = data;
     const component = await this.componentService.findOne(componentId);
-    const professionRight = await this.professionRights.findOne({
-      where: { professions: { id: data.professionId } },
-      relations: ['professions', 'rights'],
-    });
+    const profession = await this.professionsRepo.findOne({ where: { id: data.professionId } });
     const stand = await this.standService.findOne(standId);
 
-    if (!component || !professionRight || !stand)
+    if (!component || !profession || !stand)
       throw new NotFoundException('Одна из сущностей не найдена');
 
     // Если parentId не передан, явно ставим null
@@ -64,7 +61,7 @@ export class StandTasksService {
       parentId: data.parentId ?? null,
       isCompleted: isCompleted,
       stands: stand,
-      professionRights: professionRight,
+      professions: profession,
       components: component,
     } as DeepPartial<StandTasks>);
 
@@ -80,9 +77,9 @@ export class StandTasksService {
         throw new NotFoundException('Ошибка при поиске задач стендов');
 
       tasks.map((item) => {
-        const { stands, professionRights, components, ...defaultData } = item;
+        const { stands, professions, components, ...defaultData } = item;
         const standTitle = stands?.title;
-        const professionTitle = professionRights?.professions?.title;
+        const professionTitle = professions?.title;
         const componentTitle = components?.title;
 
         data.push({
@@ -103,9 +100,7 @@ export class StandTasksService {
     return await this.repo.find({
       relations: [
         'stands',
-        'professionRights',
-        'professionRights.professions',
-        'professionRights.rights',
+        'professions',
         'components',
       ],
     });
@@ -117,9 +112,7 @@ export class StandTasksService {
         where: { parentId: IsNull() },
         relations: [
           'stands',
-          'professionRights',
-          'professionRights.professions',
-          'professionRights.rights',
+          'professions',
           'components',
         ],
       });
@@ -128,9 +121,7 @@ export class StandTasksService {
         where: { parentId },
         relations: [
           'stands',
-          'professionRights',
-          'professionRights.professions',
-          'professionRights.rights',
+          'professions',
           'components',
         ],
       });
@@ -142,9 +133,7 @@ export class StandTasksService {
       where: { id },
       relations: [
         'stands',
-        'professionRights',
-        'professionRights.professions',
-        'professionRights.rights',
+        'professions',
         'components',
       ],
     });
