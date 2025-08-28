@@ -79,7 +79,7 @@ export class CurrentTaskStatesService {
       });
 
       if (!states || states.length === 0) {
-        throw new NotFoundException('Статусы задач не найдены');
+        return { name: 'Состояния текущих задач', children: [] };
       }
 
       const treeData: any[] = [];
@@ -139,8 +139,8 @@ export class CurrentTaskStatesService {
       }
 
       return { name: 'Состояния текущих задач', children: treeData };
-    } catch (error) {
-      throw new Error(`Ошибка при получении дерева задач: ${error.message}`);
+    } catch (error: any) {
+      return { name: 'Состояния текущих задач', children: [] };
     }
   }
 }

@@ -73,8 +73,7 @@ export class CurrentTasksService {
       where: { id: data.standTaskId },
       relations: [
         'stands',
-        'professionRights',
-        'professionRights.professions',
+        'professions',
         'components',
       ],
     });
@@ -367,9 +366,7 @@ export class CurrentTasksService {
       relations: [
         'components',
         'stands',
-        'professionRights',
-        'professionRights.professions',
-        'professionRights.rights',
+        'professions',
       ],
     });
     const standTasksByParent = new Map<string, StandTasks[]>();
@@ -480,9 +477,7 @@ export class CurrentTasksService {
       relations: [
         'components',
         'stands',
-        'professionRights',
-        'professionRights.professions',
-        'professionRights.rights',
+        'professions',
         'standTasksComponents',
         'standTasksComponents.component',
       ],
