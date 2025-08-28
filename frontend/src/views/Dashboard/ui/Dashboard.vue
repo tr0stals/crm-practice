@@ -180,13 +180,13 @@ async function getCurrentData() {
   const config: IData = {
     endpoint: `/${navigationStore.currentSection}/generateData`,
   };
-  console.debug(config.endpoint);
+  console.debug(config);
 
   try {
     const response = await getDataAsync(config);
+    console.debug("Response", response);
 
     if (Array.isArray(response.data)) {
-      // Заменяем массив реактивно
       data.value.splice(0, data.value.length, ...response.data);
     } else {
       console.warn(
@@ -432,33 +432,30 @@ const handleCreateModalWindow = () => {
     sectionName: currentSection.value,
     endpoint: `${currentSection.value}/create`,
   };
+  const section = ref<string | null>(null);
 
   if (!cfg.sectionName) {
     alert("Выберите таблицу для добавления!");
     return;
   }
 
+  switch (currentSection.value) {
+    case "employees":
+      if (!navigationStore.selectedRow) section.value = "departments";
+      if (navigationStore.selectedRow?.data?.nodeType === "departments")
+        section.value = "employees";
+      break;
+
+    default:
+      section.value = navigationStore.currentSection;
+      break;
+  }
+
   ModalManager.getInstance().open(AddEntity, {
-    sectionName: currentSection.value,
+    sectionName: section.value,
     onClose: () => ModalManager.getInstance().closeModal(),
     onSuccess: onUpdateCallBack,
   });
-};
-
-const firstPage = () => {
-  currentPage.value = 1;
-};
-
-const gotoPage = (page: number) => {
-  currentPage.value = page;
-};
-
-const lastPage = () => {
-  currentPage.value = totalPages.value;
-};
-
-const handleClick = (node: any) => {
-  selectedRow.value = node.data;
 };
 
 const handleMoreDetails = () => {

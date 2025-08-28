@@ -8,22 +8,25 @@ import { reactive, watch, computed } from "vue";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
+import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import { useAddEmployees } from "../model/useAddEmployees";
 
 const props = defineProps<{
   sectionName: string;
   onClose: () => void;
   onSuccess: () => void;
 }>();
+const navigationStore = useNavigationStore();
 
-const { formData, tableColumns, selectOptions, submit } = useAddEntity(
-  props.sectionName,
-  () => {
-    props.onSuccess();
-    props.onClose();
-  }
-);
-
-console.debug(tableColumns);
+const { formData, tableColumns, selectOptions, submit } = props.sectionName
+  ? useAddEmployees(props.sectionName, () => {
+      props.onSuccess();
+      props.onClose();
+    })
+  : useAddEntity(props.sectionName, () => {
+      props.onSuccess();
+      props.onClose();
+    });
 
 function isDateField(key) {
   const lower = key.toLowerCase();
@@ -64,7 +67,6 @@ const handleSubmit = async () => {
     console.error("Ошибка при добавлении", e);
   }
 };
-console.debug(formData);
 </script>
 
 <template>

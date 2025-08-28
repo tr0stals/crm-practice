@@ -1,17 +1,13 @@
-import { ref, reactive, onMounted } from "vue";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { createEntityAsync } from "../api/createEntityAsync";
+import { onMounted, reactive, ref } from "vue";
+import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 
-/**
- * Добавление записей в сущности-таблицы (не тривью)
- * @param sectionName
- * @param onSuccess
- * @returns
- */
-export function useAddEntity(sectionName: string, onSuccess: () => void) {
+export function useAddEmployees(sectionName: string, onSuccess: () => void) {
   const formData = reactive<any>({});
   const tableColumns = ref<string[]>([]);
   const selectOptions = reactive<Record<string, any[]>>({});
+  const navigationStore = useNavigationStore();
 
   const fetchColumnsAndRelations = async () => {
     const data = await getDataAsync({
@@ -31,7 +27,20 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
   onMounted(fetchColumnsAndRelations);
 
   const submit = async () => {
-    await createEntityAsync(sectionName, formData);
+    const response = await createEntityAsync(sectionName, formData);
+
+    const employeeId = response.data?.id;
+    const departmentId = navigationStore.selectedRow?.data?.id;
+
+    const employeeDepartmentResponse = await createEntityAsync(
+      "employee_departments",
+      {
+        employeeId: employeeId,
+        departmentId: departmentId,
+      }
+    );
+
+    console.debug(employeeDepartmentResponse);
     onSuccess();
   };
 
