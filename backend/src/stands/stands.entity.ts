@@ -53,7 +53,7 @@ export class Stands {
   @Column({ type: 'date' })
   manufactureTime: Date;
 
-  @Column({ length: 45 })
+  @Column({ length: 45, nullable: true })
   comment: string;
 
   @ManyToOne(() => StandsTypes, (type) => type.stands)

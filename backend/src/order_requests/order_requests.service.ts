@@ -53,7 +53,7 @@ export class OrderRequestsService {
 
   async findAll(): Promise<OrderRequests[]> {
     return await this.repository.find({
-      relations: ['employeeCreator', 'employeeCreator.peoples', 'factory'],
+      relations: ['employeeCreator', 'employeeCreator.peoples', 'factory', 'stands'],
     });
   }
 
@@ -125,34 +125,62 @@ export class OrderRequestsService {
 
   async getTree() {
     try {
-      const order_requests_components =
-        await this.orderRequestsComponentsRepo.find({
-          relations: ['orderRequests', 'component', 'supplier'],
-        });
+      const order_requests_components = await this.orderRequestsComponentsRepo.find({
+        relations: ['orderRequests', 'component', 'supplier'],
+      });
 
       const orderRequests = await this.findAll();
-
       if (!orderRequests) throw new NotFoundException('Ошибка поиска заявок');
-
       if (!order_requests_components)
         throw new NotFoundException('Ошибка поиска компонентов на заявку');
 
-      const tree = orderRequests.map((item: OrderRequests) => ({
-        id: item.id,
-        name: item.title,
-        nodeType: 'order_requests',
-        children: order_requests_components
-          .filter((component) => component.orderRequests?.id === item.id)
-          .map((component: OrderRequestsComponents) => {
-            return {
-              id: component.id,
-              name: `${component.component?.title} | ${component.supplier?.shortName}`,
-              nodeType: 'order_requests_components',
-            };
-          }),
-      }));
+      // Группируем заявки по дате requestDatetime
+      const groups = new Map<string, OrderRequests[]>();
+      for (const req of orderRequests) {
+        const dateStr = req.requestDatetime
+          ? new Date(req.requestDatetime).toISOString().slice(0, 10)
+          : 'Без даты';
+        if (!groups.has(dateStr)) groups.set(dateStr, []);
+        groups.get(dateStr)!.push(req);
+      }
 
-      return { name: 'Заявки на заказ', children: tree };
+      const childrenByDate: any[] = [];
+      for (const [dateStr, reqs] of groups.entries()) {
+        const dateNodeChildren = reqs.map((item: OrderRequests) => {
+          const standTitle = (item.stands as any)?.title || (item.stands as any)?.name;
+          const factoryName = (item.factory as any)?.shortName || (item.factory as any)?.fullName;
+          const creatorFio = item.employeeCreator?.peoples
+            ? `${item.employeeCreator.peoples.firstName} ${item.employeeCreator.peoples.middleName} ${item.employeeCreator.peoples.lastName}`
+            : undefined;
+          const parts = [] as string[];
+          if (standTitle) parts.push(`Стенд: ${standTitle}`);
+          if (factoryName) parts.push(`Фабрика: ${factoryName}`);
+          if (creatorFio) parts.push(`Создатель заявки: ${creatorFio}`);
+          const label = parts.join(' | ');
+
+          const components = order_requests_components
+            .filter((c) => c.orderRequests?.id === item.id)
+            .map((c: OrderRequestsComponents) => ({ 
+              id: c.id,
+              name: `Компонент: ${c.component?.title} | Поставщик: ${c.supplier?.shortName}`,
+              nodeType: 'order_requests_components',
+            }));
+
+          return {
+            id: item.id,
+            name: label || item.title,
+            nodeType: 'order_requests',
+            children: components,
+          };
+        });
+
+        childrenByDate.push({ name: dateStr, date: dateStr, children: dateNodeChildren });
+      }
+
+      // Сортируем группы по дате по убыванию (новее выше) — опционально
+      childrenByDate.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+
+      return { name: 'Заявки на заказ', children: childrenByDate };
     } catch (e) {
       throw new Error(e);
     }

@@ -143,6 +143,7 @@ export class ComponentsService {
       name: category.name,
       nodeType: 'category',
       children: category.subcategories.map((subcat) => ({
+        id: subcat.id,
         name: subcat.name,
         nodeType: 'subcategory',
         children: getComponentsBySubcat(subcat.id, subcat.name),
