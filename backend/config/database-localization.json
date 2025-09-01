@@ -472,7 +472,7 @@
       "displayName": "Задачи стенда",
       "fields": {
         "id": "ID",
-        "parentId": "ID родителя",
+        "parentId": "Родительская задача",
         "order": "Порядок",
         "componentOutCount": "Количество компонентов на выходе",
         "title": "Название",
@@ -505,7 +505,7 @@
       "displayName": "Стенды",
       "fields": {
         "id": "ID",
-        "parentId": "ID родителя",
+        "parentId": "Категория",
         "title": "Название",
         "image": "Изображение",
         "width": "Ширина",

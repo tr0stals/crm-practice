@@ -20,7 +20,7 @@ export class Stands {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ nullable: true })
   parentId: number;
 
   @Column()

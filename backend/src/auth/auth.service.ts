@@ -47,7 +47,7 @@ export class AuthService {
     }
 
     /**
-     * Здесь не указываем professionId: при регистрации установится дефолт - Test
+     * Здесь не указываем professionId: при регистрации установится дефолт - Администратор
      */
     const employeeProfession =
       await this.employeeProfessionService.assignProfession({

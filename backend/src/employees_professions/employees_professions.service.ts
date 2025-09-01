@@ -30,11 +30,11 @@ export class EmployeesProfessionsService {
 
     /**
      * Если передается professionId - тогда ищем профессию по ID.
-     * Если нет - задаем дефолтную профессию - Директор
+     * Если нет - задаем дефолтную профессию - Администратор
      */
     const profession = data.professionId
       ? await this.professionRepository.findOne({ where: { id: data.professionId } })
-      : await this.professionRepository.findOne({ where: { title: 'Директор' } });
+      : await this.professionRepository.findOne({ where: { title: 'Администратор' } });
 
     console.log('!!!!1', profession);
 
