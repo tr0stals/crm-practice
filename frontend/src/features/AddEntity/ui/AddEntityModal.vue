@@ -22,12 +22,7 @@ const props = defineProps<{
 const navigationStore = useNavigationStore();
 
 const { formData, tableColumns, selectOptions, submit } =
-  props.sectionName === "employees"
-    ? useAddEmployees(props.sectionName, () => {
-        props.onSuccess();
-        props.onClose();
-      })
-    : props.sectionName === "organizations"
+  props.sectionName === "organizations"
     ? useAddOrganizations(props.sectionName, () => {
         props.onSuccess();
         props.onClose();
@@ -65,6 +60,7 @@ watch(
   dateFields,
   (fields) => {
     fields.forEach((key) => {
+      console.debug(key);
       if (!(key in dateModel)) {
         dateModel[key] = formData[key] ? formData[key].slice(0, 10) : null;
         watch(
@@ -185,16 +181,16 @@ const handleSubmit = async () => {
       </div>
       <div class="addModalWindow__controls">
         <Button
-          @click="props.onClose"
-          :extra-classes="['addModalWindow__controls__btn']"
-        >
-          Отмена
-        </Button>
-        <Button
           @click="handleSubmit"
           :extra-classes="['addModalWindow__controls__btn']"
         >
           Добавить
+        </Button>
+        <Button
+          @click="props.onClose"
+          :extra-classes="['addModalWindow__controls__btn']"
+        >
+          Отмена
         </Button>
       </div>
     </div>

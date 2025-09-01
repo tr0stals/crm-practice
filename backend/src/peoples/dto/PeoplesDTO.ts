@@ -1,4 +1,7 @@
+import { IsNotEmpty } from 'class-validator';
+
 export class PeoplesDTO {
+  @IsNotEmpty()
   email: string;
   phone?: string;
   firstName: string;

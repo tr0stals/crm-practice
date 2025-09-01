@@ -6,6 +6,7 @@ import { useRouter } from "vue-router";
 import type { IUserRegister } from "../interface/IUserRegister";
 import { register } from "../api/registerApi";
 import { useToast } from "vue-toastification";
+import { loginApi } from "../api/loginApi";
 
 const userEmail = ref("");
 const password = ref("");
@@ -20,6 +21,7 @@ const error = ref<string | null>(null);
 const phone = ref("");
 const birthday = ref<any>(null);
 const toast = useToast();
+const token = ref<string | null>(localStorage.getItem("token") || null);
 
 const handleSubmit = async () => {
   try {
@@ -35,12 +37,30 @@ const handleSubmit = async () => {
       birthDate: birthday.value,
       comment: "",
     };
-    await registerUser(user);
+    const response = await registerUser(user);
+    console.debug(response);
     toast.success("Успешная регистрация!");
+    await loginUser(user.userName, user.password);
     router.push("/dashboard");
   } catch (error) {
     toast.error("Ошибка регистрации");
     console.error("Registration failed:", error);
+  }
+};
+
+const loginUser = async (userName: string, password: string) => {
+  try {
+    const response = await loginApi(userName, password);
+
+    if (response.data.token) {
+      token.value = response.data.token;
+      localStorage.setItem("token", response.data.token);
+      authStore.token = token.value;
+      error.value = null;
+    }
+  } catch (err) {
+    error.value = "Неверные учетные данные";
+    throw err;
   }
 };
 
@@ -61,7 +81,7 @@ const registerUser = async (user: any) => {
 
 <template>
   <div class="register-form">
-    <h2 class="register-form__title">Регистрация</h2>
+    <h2 class="register-form__title">Создание нового пользователя</h2>
     <form @submit.prevent="handleSubmit">
       <div class="form-group">
         <label class="form-group__label" for="email">Электронная почта</label>
@@ -94,16 +114,6 @@ const registerUser = async (user: any) => {
         />
       </div>
       <div class="form-group">
-        <label class="form-group__label" for="firstName">Имя</label>
-        <input
-          class="form-group__text"
-          type="text"
-          id="firstName"
-          v-model="firstName"
-          required
-        />
-      </div>
-      <div class="form-group">
         <label class="form-group__label" for="lastName">Фамилия</label>
         <input
           class="form-group__text"
@@ -114,13 +124,13 @@ const registerUser = async (user: any) => {
         />
       </div>
       <div class="form-group">
-        <label class="form-group__label" for="birthday">День рождения</label>
+        <label class="form-group__label" for="firstName">Имя</label>
         <input
           class="form-group__text"
-          type="date"
-          name="birthday"
-          id="birthday"
-          v-model="birthday"
+          type="text"
+          id="firstName"
+          v-model="firstName"
+          required
         />
       </div>
       <div class="form-group">
@@ -130,6 +140,16 @@ const registerUser = async (user: any) => {
           type="text"
           id="middleName"
           v-model="middleName"
+        />
+      </div>
+      <div class="form-group">
+        <label class="form-group__label" for="birthday">День рождения</label>
+        <input
+          class="form-group__text"
+          type="date"
+          name="birthday"
+          id="birthday"
+          v-model="birthday"
         />
       </div>
       <div class="form-group">

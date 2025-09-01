@@ -160,8 +160,12 @@ function toggleExpand(node: any) {
 
 <template>
   <LoadingLayout v-if="loading" />
-  <template v-else-if="treeData">
+  <template v-else>
+    <div v-if="treeData.length === 0">
+      <h1>Нет данных для отображения</h1>
+    </div>
     <Tree
+      v-else
       :value="paginatedTreeData"
       selectionMode="single"
       class="treeview"
@@ -246,8 +250,5 @@ function toggleExpand(node: any) {
         </div>
       </div>
     </div>
-  </template>
-  <template v-else>
-    <h1>Нет данных для отображения</h1>
   </template>
 </template>

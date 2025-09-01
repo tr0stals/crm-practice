@@ -19,16 +19,30 @@ import PcbOrdersTreeView from "@/views/Pages/PcbOrdersTreeview/ui/PcbOrdersTreeV
 import UsersTreeView from "@/views/Pages/UsersTreeview/ui/UsersTreeView.vue";
 import WarehouseComponentsTreeView from "@/views/Pages/WarehouseComponentsTreeview/ui/WarehouseComponentsTreeView.vue";
 import EmployeesTreeView from "@/views/Pages/EmployeesTreeview/ui/EmployeesTreeview.vue";
+import useFetch from "@/shared/lib/useFetch";
+import { defaultEndpoint } from "@/shared/api/axiosInstance";
+import SuperAdmin from "@/views/SuperAdmin/ui/SuperAdmin.vue";
+import RegisterForm from "@/features/RegisterForm/ui/RegisterForm.vue";
+import { watch } from "vue";
+import LoginForm from "@/features/LoginForm/ui/LoginForm.vue";
 
 const routes: RouteRecordRaw[] = [
   {
-    path: "/",
-    redirect: "/login",
-  },
-  {
     path: "/login",
     name: "Login",
-    component: AuthView,
+    component: LoginForm,
+    meta: { public: true },
+  },
+  {
+    path: "/",
+    name: "SuperAdmin",
+    component: SuperAdmin,
+    meta: { public: true },
+  },
+  {
+    path: "/register",
+    name: "Register",
+    component: RegisterForm,
     meta: { public: true },
   },
   {
@@ -90,20 +104,36 @@ const router = createRouter({
 });
 
 router.beforeEach(
-  (
+  async (
     to: RouteLocationNormalized,
     from: RouteLocationNormalized,
     next: NavigationGuardNext
   ) => {
-    const authStore = useAuthStore();
+    if (to.path === "/") {
+      // ⚡ вызываем наш useFetch-хук
+      const { data, error } = useFetch(`${defaultEndpoint}/user/get`, {
+        immediate: true,
+      });
 
-    if (to.meta.requiresAuth && !authStore.token) {
-      next("/login");
-    } else if (to.meta.public && authStore.token) {
-      next("/dashboard");
-    } else {
-      next();
+      // подождём пока загрузится
+      while (data.value === null && !error.value) {
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      console.debug(data.value);
+
+      if (error.value) {
+        console.error("Ошибка проверки пользователей:", error.value);
+        return next("/login"); // fallback
+      }
+
+      if (data.value?.length !== 0) {
+        return next("/login");
+      } else {
+        return next(); // остаёмся на /
+      }
     }
+
+    next();
   }
 );
 

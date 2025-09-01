@@ -3,8 +3,6 @@ import "../style.scss";
 import { ref } from "vue";
 import LoginForm from "@/features/LoginForm/ui/LoginForm.vue";
 import RegisterForm from "@/features/RegisterForm/ui/RegisterForm.vue";
-
-const isLogin = ref(true);
 </script>
 
 <template>

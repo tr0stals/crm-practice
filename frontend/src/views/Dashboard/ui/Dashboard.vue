@@ -40,8 +40,7 @@ import NavigationSidebar from "@/features/NavigationSidebar/ui/NavigationSidebar
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import TreeviewMenu from "@/features/TreeviewMenu/ui/TreeviewMenu.vue";
 import NotificationButton from "@/features/Notifications/ui/NotificationButton.vue";
-import useFetch from "@/shared/lib/useFetch";
-import { defaultEndpoint } from "@/shared/api/axiosInstance";
+import AddEmployees from "@/features/AddEntity/ui/AddEmployees.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -281,6 +280,7 @@ onMounted(async () => {
 
   const { user } = await getUserInfoAsync();
 
+  console.debug(user);
   authorizedUser.value = {
     user: user,
   };
@@ -441,9 +441,24 @@ const handleCreateModalWindow = () => {
 
   switch (currentSection.value) {
     case "employees":
-      if (!navigationStore.selectedRow) section.value = "departments";
-      if (navigationStore.selectedRow?.data?.nodeType === "departments")
+      if (!navigationStore.selectedRow) {
+        section.value = "departments";
+        ModalManager.getInstance().open(AddEntity, {
+          sectionName: section.value,
+          onClose: () => ModalManager.getInstance().closeModal(),
+          onSuccess: onUpdateCallBack,
+        });
+      }
+
+      if (navigationStore.selectedRow?.data?.nodeType === "departments") {
         section.value = "employees";
+        ModalManager.getInstance().open(AddEmployees, {
+          sectionName: section.value,
+          onClose: () => ModalManager.getInstance().closeModal(),
+          onSuccess: onUpdateCallBack,
+        });
+      }
+
       break;
 
     case "organizations":
@@ -475,11 +490,12 @@ const handleCreateModalWindow = () => {
       break;
   }
 
-  ModalManager.getInstance().open(AddEntity, {
-    sectionName: section.value,
-    onClose: () => ModalManager.getInstance().closeModal(),
-    onSuccess: onUpdateCallBack,
-  });
+  if (currentSection.value !== "employees")
+    ModalManager.getInstance().open(AddEntity, {
+      sectionName: section.value,
+      onClose: () => ModalManager.getInstance().closeModal(),
+      onSuccess: onUpdateCallBack,
+    });
 };
 
 const handleMoreDetails = () => {

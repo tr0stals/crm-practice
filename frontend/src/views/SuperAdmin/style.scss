@@ -1,0 +1,43 @@
+@keyframes onMountedAnim {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.superAdmin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-content: center;
+  animation: onMountedAnim 1.5s;
+
+  &__title {
+    font-size: 3.5rem;
+    color: #00249a;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  &__registerButton {
+    width: 60%;
+    margin: 2rem auto;
+    padding: 2rem 4rem;
+    font-size: 2rem;
+    border-radius: 1rem;
+    border: 1px solid #a9a9a9;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border: 1px solid #525252;
+      transition: all 0.1s ease;
+    }
+  }
+}

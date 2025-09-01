@@ -22,13 +22,16 @@ export class PeoplesService {
   ) {}
 
   async create(data: PeoplesDTO) {
-    const { email } = data;
+    /**
+     * Если раскомментировать, то при нехватке какого-либо значения data будет браться первая запись peoples в БД.
+     */
+    // const { email } = data;
 
-    const existing = await this.peoplesRepository.findOne({
-      where: { email },
-    });
+    // const existing = await this.peoplesRepository.findOne({
+    //   where: { email },
+    // });
 
-    if (existing) return existing;
+    // if (existing) return existing;
 
     const people = this.peoplesRepository.create(data);
     return await this.peoplesRepository.save(people);
