@@ -46,8 +46,11 @@ import { ShipmentsStands } from '../shipments_stands/shipments_stands.entity';
 import { User } from '../user/user.entity';
 import { Writeoff } from '../writeoff/writeoff.entity';
 import { WriteoffReasons } from '../writeoff_reasons/writeoff_reasons.entity';
-import { COMPONENT_CATEGORIES } from '../components/component_categories';
-import { PCB_CATEGORIES } from '../pcbs/pcbs_categories';
+import { ComponentsCategories } from '../components_categories/components_categories.entity';
+import { ComponentsSubcategories } from '../components_categories/components_subcategories.entity';
+import { PcbsCategories } from '../pcbs_categories/pcbs_categories.entity';
+import { PcbsSubcategories } from '../pcbs_categories/pcbs_subcategories.entity';
+// NOTE: статические списки категорий удалены
 // removed rights/profession_rights
 
 @Injectable()
@@ -144,6 +147,14 @@ export class DatabaseSeederService {
     private readonly writeoffRepository: Repository<Writeoff>,
     @InjectRepository(WriteoffReasons)
     private readonly writeoffReasonsRepository: Repository<WriteoffReasons>,
+    @InjectRepository(ComponentsCategories)
+    private readonly componentsCategoriesRepository: Repository<ComponentsCategories>,
+    @InjectRepository(ComponentsSubcategories)
+    private readonly componentsSubcategoriesRepository: Repository<ComponentsSubcategories>,
+    @InjectRepository(PcbsCategories)
+    private readonly pcbsCategoriesRepository: Repository<PcbsCategories>,
+    @InjectRepository(PcbsSubcategories)
+    private readonly pcbsSubcategoriesRepository: Repository<PcbsSubcategories>,
     // removed repositories for rights/profession_rights
   ) {}
 
@@ -205,7 +216,11 @@ export class DatabaseSeederService {
       `Создано ${currentTaskStates.length} статусов текущих задач`,
     );
 
-    // Сначала сидируем типы и размещения компонентов
+    // Сначала сидируем категории/подкатегории
+    await this.ensureComponentCategories();
+    await this.ensurePcbCategories();
+
+    // Затем сидируем типы и размещения компонентов
     const componentPlacementTypes = await this.seedComponentPlacementTypes();
     this.logger.log(
       `Создано ${componentPlacementTypes.length} типов размещения компонентов`,
@@ -338,10 +353,12 @@ export class DatabaseSeederService {
   }
 
   private async seedComponents(): Promise<Components[]> {
-    // Собираем все подкатегории
-    const allSubcategories = COMPONENT_CATEGORIES.flatMap(
-      (cat) => cat.subcategories,
-    );
+    // Подтягиваем реальные подкатегории из БД
+    let allSubcategories = await this.componentsSubcategoriesRepository.find();
+    if (!allSubcategories || allSubcategories.length === 0) {
+      await this.ensureComponentCategories();
+      allSubcategories = await this.componentsSubcategoriesRepository.find();
+    }
     const placements = await this.componentPlacementsRepository.find();
     const componentsData = Array.from({ length: 100 }, (_, i) => {
       const subcat = faker.helpers.arrayElement(allSubcategories);
@@ -981,9 +998,11 @@ export class DatabaseSeederService {
 
   private async seedPCBS(stands: Stands[]): Promise<PCBS[]> {
     const components = await this.componentsRepository.find();
-    const allPcbSubcategories = PCB_CATEGORIES.flatMap(
-      (cat) => cat.subcategories,
-    );
+    let allPcbSubcategories = await this.pcbsSubcategoriesRepository.find();
+    if (!allPcbSubcategories || allPcbSubcategories.length === 0) {
+      await this.ensurePcbCategories();
+      allPcbSubcategories = await this.pcbsSubcategoriesRepository.find();
+    }
     // Для синхронизации componentId между pcbs и pcbs-components
     const pcbsData = stands.map((stand, i) => {
       const subcat = faker.helpers.arrayElement(allPcbSubcategories);
@@ -1603,6 +1622,41 @@ export class DatabaseSeederService {
       this.billsForPayRepository.create(data),
     );
     return await this.billsForPayRepository.save(bills);
+  }
+
+  // === Ensure categories/subcategories exist ===
+  private async ensureComponentCategories() {
+    // Если нет ни одной категории — создаём минимальный набор
+    const existing = await this.componentsCategoriesRepository.find({ relations: ['subcategories'] });
+    if (existing.length > 0 && (existing[0].subcategories?.length || 0) > 0) return;
+
+    const cat = await this.componentsCategoriesRepository.save(
+      this.componentsCategoriesRepository.create({ name: 'Микросхемы' }),
+    );
+    const subNames = [
+      'Преобразователи интерфейсов',
+      'Операционные усилители',
+      'Микроконтроллеры',
+      'Логические элементы',
+    ];
+    const subs = subNames.map((name) =>
+      this.componentsSubcategoriesRepository.create({ name, category: cat }),
+    );
+    await this.componentsSubcategoriesRepository.save(subs);
+  }
+
+  private async ensurePcbCategories() {
+    const existing = await this.pcbsCategoriesRepository.find({ relations: ['subcategories'] });
+    if (existing.length > 0 && (existing[0].subcategories?.length || 0) > 0) return;
+
+    const cat = await this.pcbsCategoriesRepository.save(
+      this.pcbsCategoriesRepository.create({ name: 'Сварочные технологии - WT' }),
+    );
+    const subNames = ['ТСВ-02 (WT02)', 'ТСВ-03 (WT03)', 'ТСВ-04 (WT04)'];
+    const subs = subNames.map((name) =>
+      this.pcbsSubcategoriesRepository.create({ name, category: cat }),
+    );
+    await this.pcbsSubcategoriesRepository.save(subs);
   }
 
   private async seedBillsComponents(): Promise<BillsComponents[]> {

@@ -20,6 +20,7 @@ import { BillsComponents } from 'src/bills_components/bills_components.entity';
 import { CurrentTasksComponents } from 'src/current_tasks_components/current_tasks_components.entity';
 import { PcbsComponents } from 'src/pcbs_components/pcbs_components.entity';
 import { PCBS } from 'src/pcbs/pcbs.entity';
+import { ComponentsSubcategories } from '../components_categories/components_subcategories.entity';
 
 @Entity()
 export class Components {
@@ -98,6 +99,10 @@ export class Components {
 
   @OneToMany(() => PcbsComponents, (pcbsComponent) => pcbsComponent.component)
   pcbsComponents: PcbsComponents[];
+
+  @ManyToOne(() => ComponentsSubcategories, (sub) => sub.components)
+  @JoinColumn({ name: 'parentId' })
+  componentSubcategory: ComponentsSubcategories;
 
   @OneToMany(
     () => BillsComponents,

@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { PCBS } from './pcbs.entity';
-import { PCB_CATEGORIES } from './pcbs_categories';
+import { PcbsCategories } from 'src/pcbs_categories/pcbs_categories.entity';
 import { PCBSDTO } from './dto/PCBSDTO';
 import { ComponentsService } from 'src/components/components.service';
 import { StandsService } from 'src/stands/stands.service';
@@ -112,9 +112,14 @@ export class PcbsService {
   }
 
   async getPcbsTree() {
-    const pcbs = await this.repository.find({
-      relations: ['pcbsComponents', 'pcbsComponents.component'],
-    });
+    const [pcbs, categories] = await Promise.all([
+      this.repository.find({
+        relations: ['pcbsComponents', 'pcbsComponents.component'],
+      }),
+      this.repository.manager.getRepository(PcbsCategories).find({
+        relations: ['subcategories'],
+      }),
+    ]);
 
     function buildPcbChildren(parentId) {
       return pcbs
@@ -139,13 +144,15 @@ export class PcbsService {
         }));
     }
 
-    const tree = PCB_CATEGORIES.map((cat) => ({
+    const tree = categories.map((cat) => ({
+      id: cat.id,
       name: cat.name,
-      nodeType: 'categories',
-      children: cat.subcategories.map((subcat) => ({
+      nodeType: 'pcbs_categories',
+      children: (cat.subcategories || []).map((subcat) => ({
+        id: subcat.id,
         name: subcat.name,
         subcategoryName: subcat.name,
-        nodeType: 'subcategories',
+        nodeType: 'pcbs_subcategories',
         children: buildPcbChildren(subcat.id),
       })),
     }));

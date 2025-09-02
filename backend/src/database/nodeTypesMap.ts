@@ -19,4 +19,8 @@ export const NODE_TYPE_TO_TABLE = {
   inventarization: "inventarization",
   shipments: "shipments",
   shipment_package: "shipment_package",
+  components_categories: "components_categories",
+  components_subcategories: "components_subcategories",
+  pcbs_categories: "pcbs_categories",
+  pcbs_subcategories: "pcbs_subcategories",
 }; 

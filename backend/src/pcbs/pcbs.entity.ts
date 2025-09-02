@@ -2,6 +2,7 @@ import { PcbOrders } from 'src/pcb_orders/pcb_orders.entity';
 import { Stands } from 'src/stands/stands.entity';
 import { Components } from '../components/components.entity';
 import { PcbsComponents } from '../pcbs_components/pcbs_components.entity';
+import { PcbsSubcategories } from '../pcbs_categories/pcbs_subcategories.entity';
 import {
   Column,
   Entity,
@@ -35,4 +36,8 @@ export class PCBS {
 
   @OneToMany(() => PcbsComponents, (pcbsComponent) => pcbsComponent.pcb)
   pcbsComponents: PcbsComponents[];
+
+  @ManyToOne(() => PcbsSubcategories, (sub) => sub.pcbs)
+  @JoinColumn({ name: 'parentId' })
+  pcbSubcategory: PcbsSubcategories;
 }

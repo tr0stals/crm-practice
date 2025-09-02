@@ -48,6 +48,21 @@
         "amount": "Сумма"
       }
     },
+    "components_categories": {
+      "displayName": "Категории компонентов",
+      "fields": {
+        "id": "ID",
+        "name": "Название"
+      }
+    },
+    "components_subcategories": {
+      "displayName": "Подкатегории компонентов",
+      "fields": {
+        "id": "ID",
+        "name": "Название",
+        "categoryId": "Категория"
+      }
+    },
     "components": {
       "displayName": "Компоненты",
       "fields": {
@@ -324,6 +339,21 @@
         "employeeId": "Сотрудник",
         "pcbOrderStatusId": "Статус заказа",
         "orderDate": "Дата заказа"
+      }
+    },
+    "pcbs_categories": {
+      "displayName": "Категории печатных плат",
+      "fields": {
+        "id": "ID",
+        "name": "Название"
+      }
+    },
+    "pcbs_subcategories": {
+      "displayName": "Подкатегории печатных плат",
+      "fields": {
+        "id": "ID",
+        "name": "Название",
+        "categoryId": "Категория"
       }
     },
     "pcbs": {

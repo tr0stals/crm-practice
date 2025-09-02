@@ -53,6 +53,8 @@ import { DatabaseEagerCachingModule } from './database_eager_caching/database_ea
 import { DatabaseExportImportModule } from './database_export_import/database_export_import.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { CurrentTaskStatesLogModule } from './current_task_states_log/current_task_states_log.module';
+import { ComponentsCategoriesModule } from './components_categories/components_categories.module';
+import { PcbsCategoriesModule } from './pcbs_categories/pcbs_categories.module';
 
 @Module({
   imports: [
@@ -123,6 +125,8 @@ import { CurrentTaskStatesLogModule } from './current_task_states_log/current_ta
     DatabaseExportImportModule,
     WebsocketModule,
     CurrentTaskStatesLogModule,
+    ComponentsCategoriesModule,
+    PcbsCategoriesModule,
   ],
   controllers: [AppController, StandsController],
   providers: [AppService],

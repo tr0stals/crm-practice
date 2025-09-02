@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { PCB_CATEGORIES } from '../pcbs/pcbs_categories';
-import { COMPONENT_CATEGORIES } from '../components/component_categories';
+import { PcbsCategories } from 'src/pcbs_categories/pcbs_categories.entity';
+import { ComponentsCategories } from 'src/components_categories/components_categories.entity';
 
 @Injectable()
 export class DatabaseEagerCachingService implements OnModuleInit {
@@ -14,9 +14,17 @@ export class DatabaseEagerCachingService implements OnModuleInit {
   }
 
   async refreshAll() {
-    // Статические справочники
-    this.cache['component-categories'] = COMPONENT_CATEGORIES;
-    this.cache['pcb-categories'] = PCB_CATEGORIES;
+    // Кэш из БД
+    const [compCats, pcbCats] = await Promise.all([
+      this.databaseService['dataSource']
+        .getRepository(ComponentsCategories)
+        .find({ relations: ['subcategories'] }),
+      this.databaseService['dataSource']
+        .getRepository(PcbsCategories)
+        .find({ relations: ['subcategories'] }),
+    ]);
+    this.cache['component-categories'] = compCats;
+    this.cache['pcb-categories'] = pcbCats;
 
     // Все таблицы из БД
     const tableNames = await this.databaseService.getTableNames();

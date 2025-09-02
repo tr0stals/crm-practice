@@ -581,7 +581,9 @@ export class DatabaseService {
         formStructure[column] = {
           type: 'select',
           options:
-            typeof strategy.options === 'function' ? strategy.options() : [],
+            typeof strategy.options === 'function'
+              ? await strategy.options(this.dataSource)
+              : [],
         };
         continue;
       }

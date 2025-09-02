@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { Components } from './components.entity';
-import { COMPONENT_CATEGORIES } from './component_categories';
+import { ComponentsCategories } from 'src/components_categories/components_categories.entity';
 import { ComponentsDTO } from './dto/ComponentsDTO';
 import { ComponentPlacementsService } from 'src/component_placements/component_placements.service';
 
@@ -112,21 +112,23 @@ export class ComponentsService {
   }
 
   async getComponentsTree() {
-    const components = await this.repository.find({
-      relations: ['componentPlacements', 'componentPlacements.placementType'],
-    });
+    const [components, categories] = await Promise.all([
+      this.repository.find({
+        relations: ['componentPlacements', 'componentPlacements.placementType'],
+      }),
+      this.repository.manager.getRepository(ComponentsCategories).find({
+        relations: ['subcategories'],
+      }),
+    ]);
 
-    // Быстрый доступ к компонентам по subcategoryId
-    function getComponentsBySubcat(subcatId, subcatName) {
-      return components
+    const getComponentsBySubcat = (subcatId: number, subcatName: string) =>
+      components
         .filter((c) => c.parentId === subcatId)
         .map((c) => {
-          // Данные о размещении
           const placement = c.componentPlacements;
-          let placementInfo = '';
-          if (placement) {
-            placementInfo = `${placement.placementType?.title || ''}, Здание ${placement.building}, комната ${placement.room}`;
-          }
+          const placementInfo = placement
+            ? `${placement.placementType?.title || ''}, Здание ${placement.building}, комната ${placement.room}`
+            : '';
           return {
             name: c.title + ' | ' + placementInfo,
             nodeType: 'components',
@@ -136,16 +138,15 @@ export class ComponentsService {
             children: [],
           };
         });
-    }
 
-    // Строим дерево по категориям и подкатегориям
-    const tree = COMPONENT_CATEGORIES.map((category) => ({
+    const tree = categories.map((category) => ({
+      id: category.id,
       name: category.name,
-      nodeType: 'category',
-      children: category.subcategories.map((subcat) => ({
+      nodeType: 'components_categories',
+      children: (category.subcategories || []).map((subcat) => ({
         id: subcat.id,
         name: subcat.name,
-        nodeType: 'subcategory',
+        nodeType: 'components_subcategories',
         children: getComponentsBySubcat(subcat.id, subcat.name),
       })),
     }));
