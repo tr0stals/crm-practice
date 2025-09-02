@@ -14,12 +14,16 @@ import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
+import { updateAsync } from "../api/updateAsync";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
 const dateModel = reactive<Record<string, any>>({});
 const relatedOptions = reactive<Record<string, any[]>>({});
 const loading = ref<boolean>(false);
+const peopleId = ref<number>();
+const people = ref();
+const employeeProfessionsId = ref<number>();
 
 let model: EditModalWindowModel;
 
@@ -70,6 +74,48 @@ async function loadRelatedOptions(key: string) {
   }
 }
 
+const getEmployeesProfessions = async (employeeId: number) => {
+  const res = await getDataAsync({
+    endpoint: `employees_professions/getByEmployeeId/${employeeId}`,
+  });
+
+  return res;
+};
+
+async function handleSubmit() {
+  const employeeData = {
+    id: formData.value.id,
+    hiringDate: formData.value.hiringDate,
+    dismissalDate: formData.value.dismissalDate,
+    peoples: people.value,
+  };
+
+  const peopleData = {
+    id: peopleId.value,
+    firstName: formData.value.firstName,
+    middleName: formData.value.middleName,
+    lastName: formData.value.lastName,
+    phone: formData.value.phone,
+    email: formData.value.email,
+    comment: formData.value.comment,
+    birthDate: formData.value.birthDate,
+  };
+
+  const profession = formData.value.professions;
+  const employeesProfessionsData = {
+    id: employeeProfessionsId.value,
+    employees: employeeData,
+    professions: profession,
+  };
+
+  await updateAsync("peoples", peopleData);
+  await updateAsync("employees", employeeData);
+  await updateAsync("employees_professions", employeesProfessionsData);
+
+  model.destroy();
+  props.onApplyCallback();
+}
+
 onMounted(async () => {
   model = new EditModalWindowModel(props.onApplyCallback);
 
@@ -91,8 +137,22 @@ onMounted(async () => {
       if (!newData) return;
 
       resultData.value = newData;
-      formData.value = { ...newData };
-      console.debug({ ...newData });
+      const { peoples, ...defaultData } = newData;
+      people.value = peoples;
+
+      const { id, ...defaultPeoples } = peoples;
+      peopleId.value = id;
+
+      const employeesProfessions = await getEmployeesProfessions(
+        defaultData?.id
+      );
+      employeeProfessionsId.value = employeesProfessions.data?.id;
+
+      formData.value = {
+        ...defaultData,
+        ...defaultPeoples,
+        professions: employeesProfessions.data.professions,
+      };
 
       // Поиск полей с датами
       const dateFields = Object.keys(formData.value).filter(isDateField);
@@ -252,6 +312,7 @@ onUnmounted(() => {
     </div>
     <div class="editModalWindow__controls">
       <Button
+        @click="handleSubmit()"
         :data-js-apply-btn="
           JSON.stringify({ sectionName: props.config?.sectionName, formData })
         "

@@ -41,6 +41,7 @@ import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import TreeviewMenu from "@/features/TreeviewMenu/ui/TreeviewMenu.vue";
 import NotificationButton from "@/features/Notifications/ui/NotificationButton.vue";
 import AddEmployees from "@/features/AddEntity/ui/AddEmployees.vue";
+import EmployeesEditModal from "@/features/EditModalWindow/ui/EmployeesEditModal.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -244,10 +245,17 @@ function handleEditModalWindow() {
     return;
   }
 
-  ModalManager.getInstance().open(EditModalWindow, {
-    config: cfg,
-    onApplyCallback: onUpdateCallBack,
-  });
+  if (cfg.sectionName === "employees")
+    ModalManager.getInstance().open(EmployeesEditModal, {
+      config: cfg,
+      onApplyCallback: onUpdateCallBack,
+    });
+  else {
+    ModalManager.getInstance().open(EditModalWindow, {
+      config: cfg,
+      onApplyCallback: onUpdateCallBack,
+    });
+  }
 }
 
 watch(

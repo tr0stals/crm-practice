@@ -27,6 +27,14 @@ export class EditModalWindowModel {
     }
   }
 
+  private async employeesUpdate() {
+    const employeeData = {
+      id: this.data.id,
+      hiringDate: this.data.hiringDate,
+      dismissalDate: this.data.dismissalDate,
+    };
+  }
+
   #onClick(e: Event) {
     const target = e.target as HTMLElement;
 
@@ -37,15 +45,19 @@ export class EditModalWindowModel {
       this.endpoint = key.sectionName;
       this.data = key.formData;
 
-      this.applyData()
-        .then((res) => {
-          if (res?.status === 200) {
-            this.cb();
-            ModalManager.getInstance().closeModal();
-            console.debug("this.cb()", this.cb);
-          }
-        })
-        .catch((e) => console.error("Error!", e));
+      if (this.endpoint !== "employees")
+        this.applyData()
+          .then((res) => {
+            if (res?.status === 200) {
+              this.cb();
+              ModalManager.getInstance().closeModal();
+              console.debug("this.cb()", this.cb);
+            }
+          })
+          .catch((e) => console.error("Error!", e));
+      else {
+        this.employeesUpdate();
+      }
     }
 
     if (target === document.querySelector(this.attrs.cancelBtn)) {
@@ -54,6 +66,7 @@ export class EditModalWindowModel {
   }
 
   public destroy() {
+    ModalManager.getInstance().closeModal();
     document.removeEventListener("click", this.handleClick);
   }
 }

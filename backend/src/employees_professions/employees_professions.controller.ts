@@ -39,6 +39,11 @@ export class EmployeesProfessionsController {
     return await this.service.generateData();
   }
 
+  @Get('getByEmployeeId/:id')
+  async getByEmployeeId(@Param('id') id: string) {
+    return await this.service.findEmployeeProfessionByEmployeeId(+id);
+  }
+
   @Patch('update/:id')
   async update(
     @Param('id') id: string,

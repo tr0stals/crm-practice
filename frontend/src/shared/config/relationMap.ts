@@ -40,4 +40,5 @@ export const relationMap: Record<string, string> = {
   employeeProfessions: "employees_professions",
   arrivalInvoices: "arrival_invoices",
   writeoffReasons: "writeoff_reasons",
+  employeesProfessions: "employees_professions",
 };
