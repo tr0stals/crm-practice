@@ -1,5 +1,6 @@
 export const NODE_TYPE_TO_TABLE = {
   stands: "stands",
+  stands_types: "stands_types",
   stand_tasks: "stand_tasks",
   stand_tasks_components: "stand_tasks_components",
   current_tasks: "current_tasks",

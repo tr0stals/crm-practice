@@ -35,6 +35,11 @@ export class StandsController {
     return await this.service.generateData();
   }
 
+  @Get('tree')
+  async getTree() {
+    return await this.service.getTree();
+  }
+
   @Patch('update/:id')
   async update(@Param('id') id: string, @Body() data: Partial<Stands>) {
     return await this.service.update(+id, data);

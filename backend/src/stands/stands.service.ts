@@ -10,6 +10,7 @@ import { Stands } from './stands.entity';
 import { StandsDTO } from './dto/StandsDTO';
 import { EmployeesService } from 'src/employees/employees.service';
 import { StandTypesService } from 'src/stand_types/stand_types.service';
+import { StandsTypes } from 'src/stand_types/stand_types.entity';
 
 @Injectable()
 export class StandsService {
@@ -102,6 +103,37 @@ export class StandsService {
         );
       }
       throw e;
+    }
+  }
+
+  async getTree() {
+    try {
+      const [types, stands] = await Promise.all([
+        this.repo.manager.getRepository(StandsTypes).find(),
+        this.repo.find({ relations: ['standType', 'employees', 'employees.peoples'] }),
+      ]);
+
+      const tree = (types || []).map((t: any) => ({
+        id: t.id,
+        name: t.title,
+        nodeType: 'stands_types',
+        children: (stands || [])
+          .filter((s) => s.standType && (s.standType as any).id === t.id)
+          .map((s) => {
+            const emp = s.employees?.peoples;
+            const employeeName = emp ? `${emp.firstName || ''} ${emp.middleName || ''} ${emp.lastName || ''}`.trim() : '';
+            const suffix = employeeName ? ` | Сотрудник: ${employeeName}` : '';
+            return {
+              id: s.id,
+              name: `${s.title}${suffix}`,
+              nodeType: 'stands',
+            };
+          }),
+      }));
+
+      return { name: 'Стенды', children: tree };
+    } catch (e) {
+      throw new Error(e as any);
     }
   }
 }
