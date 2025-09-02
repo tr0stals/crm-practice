@@ -42,6 +42,24 @@ export class ShipmentsStandsService {
     }
   }
 
+  async getByShipment(shipmentId: number) {
+    try {
+      const shipmentStand = await this.repo.findOne({
+        where: {
+          shipments: { id: shipmentId },
+        },
+        relations: ['shipments', 'stands'],
+      });
+
+      if (!shipmentStand)
+        throw new NotFoundException('Не удалось найти shipmentStand');
+
+      return shipmentStand;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async getAll() {
     return await this.repo.find({
       relations: ['shipments', 'stands'],

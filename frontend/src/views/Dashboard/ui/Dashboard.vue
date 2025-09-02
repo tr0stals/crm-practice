@@ -43,6 +43,8 @@ import NotificationButton from "@/features/Notifications/ui/NotificationButton.v
 import AddEmployees from "@/features/AddEntity/ui/AddEmployees.vue";
 import EmployeesEditModal from "@/features/EditModalWindow/ui/EmployeesEditModal.vue";
 import AddLicenses from "@/features/AddEntity/ui/AddLicenses.vue";
+import AddShipments from "@/features/AddEntity/ui/AddShipments.vue";
+import ShipmentsEditModal from "@/features/EditModalWindow/ui/ShipmentsEditModal.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -248,6 +250,11 @@ function handleEditModalWindow() {
 
   if (cfg.sectionName === "employees")
     ModalManager.getInstance().open(EmployeesEditModal, {
+      config: cfg,
+      onApplyCallback: onUpdateCallBack,
+    });
+  else if (cfg.sectionName === "shipments")
+    ModalManager.getInstance().open(ShipmentsEditModal, {
       config: cfg,
       onApplyCallback: onUpdateCallBack,
     });
@@ -507,6 +514,16 @@ const handleCreateModalWindow = () => {
       }
       break;
 
+    case "shipments":
+      section.value = "shipments";
+      ModalManager.getInstance().open(AddShipments, {
+        sectionName: section.value,
+        onClose: () => ModalManager.getInstance().closeModal(),
+        onSuccess: onUpdateCallBack,
+      });
+
+      break;
+
     default:
       section.value = navigationStore.currentSection;
       break;
@@ -514,7 +531,8 @@ const handleCreateModalWindow = () => {
 
   if (
     currentSection.value !== "employees" &&
-    currentSection.value !== "license"
+    currentSection.value !== "license" &&
+    currentSection.value !== "shipments"
   )
     ModalManager.getInstance().open(AddEntity, {
       sectionName: section.value,

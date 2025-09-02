@@ -28,6 +28,11 @@ export class ShipmentsStandsController {
     return await this.service.getAll();
   }
 
+  @Get('getByShipment/:id')
+  async getByShipment(@Param('id') id: string) {
+    return await this.service.getByShipment(+id);
+  }
+
   @Get('get/:id')
   async getOne(@Param('id') id: string) {
     return await this.service.getOne(+id);
