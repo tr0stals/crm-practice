@@ -28,7 +28,6 @@ export function useAddLicenses(sectionName: string, onSuccess: () => void) {
 
   const submit = async () => {
     await createEntityAsync(sectionName, formData);
-
     onSuccess();
   };
 

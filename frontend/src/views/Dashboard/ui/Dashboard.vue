@@ -42,6 +42,7 @@ import TreeviewMenu from "@/features/TreeviewMenu/ui/TreeviewMenu.vue";
 import NotificationButton from "@/features/Notifications/ui/NotificationButton.vue";
 import AddEmployees from "@/features/AddEntity/ui/AddEmployees.vue";
 import EmployeesEditModal from "@/features/EditModalWindow/ui/EmployeesEditModal.vue";
+import AddLicenses from "@/features/AddEntity/ui/AddLicenses.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -488,9 +489,22 @@ const handleCreateModalWindow = () => {
       break;
 
     case "license":
-      if (!navigationStore.selectedRow) section.value = "license_types";
-      if (navigationStore.selectedRow?.data?.nodeType === "license_types")
+      if (!navigationStore.selectedRow) {
+        section.value = "license_types";
+        ModalManager.getInstance().open(AddEntity, {
+          sectionName: section.value,
+          onClose: () => ModalManager.getInstance().closeModal(),
+          onSuccess: onUpdateCallBack,
+        });
+      }
+      if (navigationStore.selectedRow?.data?.nodeType === "license_types") {
         section.value = "license";
+        ModalManager.getInstance().open(AddLicenses, {
+          sectionName: section.value,
+          onClose: () => ModalManager.getInstance().closeModal(),
+          onSuccess: onUpdateCallBack,
+        });
+      }
       break;
 
     default:
@@ -498,7 +512,10 @@ const handleCreateModalWindow = () => {
       break;
   }
 
-  if (currentSection.value !== "employees")
+  if (
+    currentSection.value !== "employees" &&
+    currentSection.value !== "license"
+  )
     ModalManager.getInstance().open(AddEntity, {
       sectionName: section.value,
       onClose: () => ModalManager.getInstance().closeModal(),
