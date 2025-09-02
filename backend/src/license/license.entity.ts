@@ -1,5 +1,6 @@
 import { LicenseTypes } from 'src/license_types/license_types.entity';
 import { Shipments } from 'src/shipments/shipments.entity';
+import { Stands } from 'src/stands/stands.entity';
 import {
   Column,
   Entity,
@@ -35,6 +36,10 @@ export class License {
   @ManyToOne(() => LicenseTypes, (licenseType) => licenseType.licenses)
   @JoinColumn({ name: 'licenseTypeId' })
   licenseTypes: LicenseTypes;
+
+  @ManyToOne(() => Stands, (stand) => stand.licenses)
+  @JoinColumn({ name: 'standId' })
+  stands: Stands;
 
   @OneToOne(() => Shipments, (shipment) => shipment.licenses)
   shipment: Shipments[];

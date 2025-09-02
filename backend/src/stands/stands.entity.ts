@@ -1,5 +1,6 @@
 import { CurrentTasks } from 'src/current_tasks/current_tasks.entity';
 import { Employees } from 'src/employees/employees.entity';
+import { License } from 'src/license/license.entity';
 import { OrderRequests } from 'src/order_requests/order_requests.entity';
 import { PCBS } from 'src/pcbs/pcbs.entity';
 import { ShipmentsStands } from 'src/shipments_stands/shipments_stands.entity';
@@ -72,6 +73,9 @@ export class Stands {
 
   @OneToMany(() => PCBS, (pcbs) => pcbs.stands)
   pcbs: PCBS[];
+
+  @OneToMany(() => License, (license) => license.stands)
+  licenses: License[];
 
   @OneToMany(() => ShipmentsStands, (shipmentStand) => shipmentStand.stands)
   shipmentsStands: ShipmentsStands[];

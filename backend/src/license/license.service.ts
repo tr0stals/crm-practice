@@ -34,15 +34,23 @@ export class LicenseService {
 
   async create(data: LicenseDTO) {
     try {
-      const { licenseTypeId, ...defaultData } = data;
+      const { licenseTypeId, standId, ...defaultData } = data;
 
       const licenseType =
         await this.licenseTypesService.findById(licenseTypeId);
+
+      const stand = await this.standsRepo.findOne({
+        where: {
+          id: standId,
+        },
+        relations: ['standType', 'employees'],
+      });
 
       if (licenseType) {
         const newLicense = this.licenseRepository.create({
           ...defaultData,
           licenseTypes: licenseType,
+          stands: stand,
         } as DeepPartial<License>);
 
         return this.licenseRepository.save(newLicense);
@@ -81,7 +89,7 @@ export class LicenseService {
 
   async find() {
     return this.licenseRepository.find({
-      relations: ['licenseTypes'],
+      relations: ['stands', 'licenseTypes'],
     });
   }
 
@@ -89,7 +97,7 @@ export class LicenseService {
     try {
       const license = await this.licenseRepository.findOne({
         where: { id: id },
-        relations: ['licenseTypes'],
+        relations: ['stands', 'licenseTypes'],
       });
 
       return license;
@@ -126,6 +134,9 @@ export class LicenseService {
       const shipments = await this.shipmentsRepo.find({
         relations: ['licenses'],
       });
+      const stands = await this.standsRepo.find({
+        relations: ['standType', 'employees'],
+      });
       const licenseTypes = await this.licenseTypesRepository.find();
 
       const shipmentStands = await this.shipmentStandsRepo.find({
@@ -152,15 +163,19 @@ export class LicenseService {
                 (shipment) => shipment.licenses?.id === license.id,
               );
 
-              const shipmentStand = shipmentStands
+              // const shipmentStand = shipmentStands
+              //   .filter(Boolean)
+              //   .find(
+              //     (shipment) => shipment.shipments?.id === licenseShipment?.id,
+              //   );
+              const targetStand = stands
                 .filter(Boolean)
-                .find(
-                  (shipment) => shipment.shipments?.id === licenseShipment?.id,
-                );
+                .find((stand) => license.stands?.id === stand.id);
+              console.log('targetStand', targetStand);
 
               const placesCount =
                 licenseType?.title !== 'Пробная' ? license?.places : '';
-              const standTitle = shipmentStand?.stands?.title || '';
+              const standTitle = targetStand?.title || '';
 
               return {
                 id: license.id,
