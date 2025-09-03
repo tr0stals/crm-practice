@@ -17,4 +17,5 @@ export const treeviewTables = [
   "order_requests",
   "shipments",
   "stand_tasks",
+  "stands",
 ];

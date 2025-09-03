@@ -35,5 +35,5 @@ const handleClick = async () => {
 </script>
 
 <template>
-  <Button @click="handleClick">Пометить как Выполнено</Button>
+  <Button @click="handleClick">Пометить как Завершена</Button>
 </template>

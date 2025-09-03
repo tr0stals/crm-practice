@@ -24,7 +24,7 @@ const handleClick = async (e: any) => {
     return;
   }
 
-  if (currentTask.data.currentTaskState !== "Новая") {
+  if (currentTask.data.currentTaskState !== "Не распределено") {
     alert("Невозможно взять себе эту задачу");
     return;
   }
