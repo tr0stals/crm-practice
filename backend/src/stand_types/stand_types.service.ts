@@ -44,12 +44,12 @@ export class StandTypesService {
     }
   }
 
-  findOne(id: number) {
-    return this.repository.findOne({ where: { id } });
+  async findOne(id: number) {
+    return await this.repository.findOne({ where: { id } });
   }
 
-  update(id: number, data: Partial<StandsTypes>) {
-    return this.repository.update(id, data);
+  async update(id: number, data: Partial<StandsTypes>) {
+    return await this.repository.update(id, data);
   }
 
   async remove(id: number) {

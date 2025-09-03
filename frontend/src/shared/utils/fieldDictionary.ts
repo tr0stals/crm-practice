@@ -171,4 +171,5 @@ export const fieldDictionary: { [key: string]: string } = {
   standTypeTitle: "Название типа стенда",
   componentsTitle: "Название компонента",
   writeoffReasonTitle: "Причина списания",
+  stands_types: "Тип стенда",
 };

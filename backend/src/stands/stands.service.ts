@@ -87,6 +87,19 @@ export class StandsService {
     return await this.repo.update(id, data);
   }
 
+  async getParents() {
+    const stands = await this.repo.find({
+      relations: ['standType', 'employees'],
+    });
+    console.log('stands', stands);
+
+    // Фильтруем стенды, у которых parentId === null
+    const parentStands = stands.filter((stand) => stand?.parentId === null);
+
+    console.log('parentStands', parentStands);
+    return parentStands;
+  }
+
   async remove(id: number) {
     try {
       await this.repo.delete(id);
@@ -110,7 +123,9 @@ export class StandsService {
     try {
       const [types, stands] = await Promise.all([
         this.repo.manager.getRepository(StandsTypes).find(),
-        this.repo.find({ relations: ['standType', 'employees', 'employees.peoples'] }),
+        this.repo.find({
+          relations: ['standType', 'employees', 'employees.peoples'],
+        }),
       ]);
 
       const tree = (types || []).map((t: any) => ({
@@ -121,7 +136,9 @@ export class StandsService {
           .filter((s) => s.standType && (s.standType as any).id === t.id)
           .map((s) => {
             const emp = s.employees?.peoples;
-            const employeeName = emp ? `${emp.firstName || ''} ${emp.middleName || ''} ${emp.lastName || ''}`.trim() : '';
+            const employeeName = emp
+              ? `${emp.firstName || ''} ${emp.middleName || ''} ${emp.lastName || ''}`.trim()
+              : '';
             const suffix = employeeName ? ` | Сотрудник: ${employeeName}` : '';
             return {
               id: s.id,
@@ -132,6 +149,86 @@ export class StandsService {
       }));
 
       return { name: 'Стенды', children: tree };
+    } catch (e) {
+      throw new Error(e as any);
+    }
+  }
+
+  async getTreeWithParent() {
+    try {
+      const [types, stands] = await Promise.all([
+        this.repo.manager.getRepository(StandsTypes).find(),
+        this.repo.find({
+          relations: ['standType', 'employees', 'employees.peoples'],
+          order: { parentId: 'ASC', id: 'ASC' },
+        }),
+      ]);
+
+      // Создаем карту стендов для быстрого доступа
+      const standsMap = new Map<number, any>();
+      const rootStands: any[] = [];
+
+      // Подготавливаем все узлы стендов
+      stands.forEach((stand) => {
+        const emp = stand.employees?.peoples;
+        const employeeName = emp
+          ? `${emp.firstName || ''} ${emp.middleName || ''} ${emp.lastName || ''}`.trim()
+          : '';
+        const suffix = employeeName ? ` | Сотрудник: ${employeeName}` : '';
+
+        const standNode = {
+          id: stand.id,
+          name: `${stand.title}${suffix}`,
+          nodeType: 'stands',
+          parentId: stand.parentId,
+          standTypeId: stand.standType?.id,
+          children: [],
+        };
+
+        standsMap.set(stand.id, standNode);
+
+        if (!stand.parentId) {
+          rootStands.push(standNode);
+        }
+      });
+
+      // Строим дерево, добавляя детей к родителям
+      stands.forEach((stand) => {
+        if (stand.parentId) {
+          const parent = standsMap.get(stand.parentId);
+          if (parent) {
+            parent.children.push(standsMap.get(stand.id));
+          } else {
+            // Если родитель не найден, добавляем в корень
+            rootStands.push(standsMap.get(stand.id));
+          }
+        }
+      });
+
+      // Группируем по типам стендов
+      const tree = (types || []).map((type: any) => ({
+        id: type.id,
+        name: type.title,
+        nodeType: 'stands_types',
+        children: rootStands
+          .filter((stand) => stand.standTypeId === type.id)
+          .map((stand) => ({
+            id: stand.id,
+            name: stand.name,
+            nodeType: stand.nodeType,
+            parentId: stand.parentId,
+            children: stand.children,
+          })),
+      }));
+
+      // Фильтруем типы, у которых есть стенды
+      const filteredTree = tree.filter((type) => type.children.length > 0);
+
+      return {
+        name: 'Стенды',
+        nodeType: 'root',
+        children: filteredTree,
+      };
     } catch (e) {
       throw new Error(e as any);
     }

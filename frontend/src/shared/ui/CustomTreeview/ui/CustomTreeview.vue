@@ -40,9 +40,10 @@ interface TreeNode {
   level: any;
 }
 console.debug(props.currentSection);
+const treeTablesExceptions = ["employees", "stands"];
 
 const { data, error, loading, canAbort, abort, refetch } = useFetch<TreeNode[]>(
-  props.currentSection === "employees"
+  treeTablesExceptions.includes(props.currentSection)
     ? `${defaultEndpoint}/${props.currentSection}/getTree`
     : `${defaultEndpoint}/${props.currentSection}/tree`,
   {

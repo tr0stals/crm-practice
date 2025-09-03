@@ -524,7 +524,7 @@
         "componentTitle": "Название компонента"
       }
     },
-    "stand_types": {
+    "stands_types": {
       "displayName": "Типы стендов",
       "fields": {
         "id": "ID",

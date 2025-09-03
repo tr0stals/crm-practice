@@ -30,6 +30,11 @@ export class StandsController {
     return await this.service.findOne(+id);
   }
 
+  @Get('getParents')
+  async getParents() {
+    return await this.service.getParents();
+  }
+
   @Get('generateData')
   async generateData() {
     return await this.service.generateData();
@@ -38,6 +43,11 @@ export class StandsController {
   @Get('tree')
   async getTree() {
     return await this.service.getTree();
+  }
+
+  @Get('getTree')
+  async getTreeWithParent() {
+    return await this.service.getTreeWithParent();
   }
 
   @Patch('update/:id')

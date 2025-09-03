@@ -10,7 +10,7 @@ import {
 import { StandTypesService } from './stand_types.service';
 import { StandsTypes } from './stand_types.entity';
 
-@Controller('stand_types')
+@Controller('stands_types')
 export class StandTypesController {
   constructor(private readonly service: StandTypesService) {}
 
@@ -22,6 +22,11 @@ export class StandTypesController {
   @Get('get')
   async findAll() {
     return await this.service.findAll();
+  }
+
+  @Get('get/:id')
+  async getById(@Param('id') id: string) {
+    return await this.service.findOne(+id);
   }
 
   @Get('generateData')
