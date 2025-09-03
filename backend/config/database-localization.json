@@ -222,7 +222,8 @@
         "timeout": "Таймаут",
         "comment": "Комментарий",
         "licenseTypeId": "Тип лицензии",
-        "licenseTypeTitle": "Название типа лицензии"
+        "licenseTypeTitle": "Название типа лицензии",
+        "standId": "Стенд"
       }
     },
     "license_types": {

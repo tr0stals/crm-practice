@@ -25,7 +25,7 @@ export class OrderRequests {
   @Column({ type: 'date' })
   executionDatetime: Date;
 
-  @Column({ length: 45 })
+  @Column({ length: 45, nullable: true })
   comment: string;
 
   @ManyToOne(() => Organizations)
