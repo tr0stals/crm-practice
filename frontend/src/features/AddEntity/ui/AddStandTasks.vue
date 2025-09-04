@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useAddEntity } from "../model/useAddEntity";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import Button from "@/shared/ui/Button/ui/Button.vue";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
@@ -9,11 +8,8 @@ import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
-import { useAddEmployees } from "../model/useAddEmployees";
-import { useAddOrganizations } from "../model/useAddOrganizations";
-import { useAddArrivalInvoices } from "../model/useAddArrivalInvoices";
-import { useAddLicenses } from "../model/useAddLicenses";
-import { useAddStandTasksComponents } from "../model/useAddStandTasksComponents";
+import { useAddStands } from "../model/useAddStands";
+import { useAddStandTasks } from "../model/useAddStandTasks";
 
 const props = defineProps<{
   sectionName: string;
@@ -22,32 +18,13 @@ const props = defineProps<{
 }>();
 const navigationStore = useNavigationStore();
 
-const { formData, tableColumns, selectOptions, submit } =
-  props.sectionName === "organizations"
-    ? useAddOrganizations(props.sectionName, () => {
-        props.onSuccess();
-        props.onClose();
-      })
-    : props.sectionName === "arrival_invoices"
-    ? useAddArrivalInvoices(props.sectionName, () => {
-        props.onSuccess();
-        props.onClose();
-      })
-    : props.sectionName === "license"
-    ? useAddLicenses(props.sectionName, () => {
-        props.onSuccess();
-        props.onClose();
-      })
-    : props.sectionName === "stand_tasks_components"
-    ? useAddStandTasksComponents(props.sectionName, () => {
-        props.onSuccess();
-        props.onClose();
-      })
-    : useAddArrivalInvoices(props.sectionName, () => {
-        props.onSuccess();
-        props.onClose();
-      });
-
+const { formData, tableColumns, selectOptions, submit } = useAddStandTasks(
+  props.sectionName,
+  () => {
+    props.onSuccess();
+    props.onClose();
+  }
+);
 function isDateField(key) {
   const lower = key.toLowerCase();
   return (
@@ -106,14 +83,31 @@ const handleSubmit = async () => {
             <label class="addModalWindow__content__field__label" :for="item">{{
               fieldDictionary[item] || item
             }}</label>
-            <template v-if="item.endsWith('Id')">
+            <template v-if="item === 'parentId'">
               <select
                 v-model="formData[item]"
                 :id="item"
                 :name="item"
                 class="addModalWindow__content__field__option"
               >
-                <option value="" disabled>Выберите значение</option>
+                <option :value="null">Без категории</option>
+                <template
+                  :key="option.id"
+                  v-for="option in selectOptions[item]"
+                >
+                  <option :value="option.id">
+                    {{ option.label }}
+                  </option>
+                </template>
+              </select>
+            </template>
+            <template v-else-if="item.endsWith('Id')">
+              <select
+                v-model="formData[item]"
+                :id="item"
+                :name="item"
+                class="addModalWindow__content__field__option"
+              >
                 <template
                   :key="option.id"
                   v-for="option in selectOptions[item]"

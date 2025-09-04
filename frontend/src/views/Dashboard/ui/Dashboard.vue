@@ -47,6 +47,8 @@ import AddShipments from "@/features/AddEntity/ui/AddShipments.vue";
 import ShipmentsEditModal from "@/features/EditModalWindow/ui/ShipmentsEditModal.vue";
 import AddStands from "@/features/AddEntity/ui/AddStands.vue";
 import StandsEditModal from "@/features/EditModalWindow/ui/StandsEditModal.vue";
+import AddStandTasks from "@/features/AddEntity/ui/AddStandTasks.vue";
+import StandTasksEditModal from "@/features/EditModalWindow/ui/StandTasksEditModal.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -262,6 +264,11 @@ function handleEditModalWindow() {
     });
   else if (cfg.sectionName === "stands") {
     ModalManager.getInstance().open(StandsEditModal, {
+      config: cfg,
+      onApplyCallback: onUpdateCallBack,
+    });
+  } else if (cfg.sectionName === "stand_tasks") {
+    ModalManager.getInstance().open(StandTasksEditModal, {
       config: cfg,
       onApplyCallback: onUpdateCallBack,
     });
@@ -504,6 +511,27 @@ const handleCreateModalWindow = () => {
       }
       break;
 
+    case "stand_tasks":
+      if (navigationStore.selectedRow?.data?.nodeType === "stands") {
+        section.value = "stand_tasks";
+        ModalManager.getInstance().open(AddStandTasks, {
+          sectionName: section.value,
+          onClose: () => ModalManager.getInstance().closeModal(),
+          onSuccess: onUpdateCallBack,
+        });
+      }
+
+      if (navigationStore.selectedRow?.data?.nodeType === "stand_tasks") {
+        section.value = "stand_tasks_components";
+        ModalManager.getInstance().open(AddEntity, {
+          sectionName: section.value,
+          onClose: () => ModalManager.getInstance().closeModal(),
+          onSuccess: onUpdateCallBack,
+        });
+      }
+
+      break;
+
     case "organizations":
       if (!navigationStore.selectedRow) section.value = "organization_types";
       if (navigationStore.selectedRow?.data?.nodeType === "organization_types")
@@ -560,7 +588,8 @@ const handleCreateModalWindow = () => {
     currentSection.value !== "employees" &&
     currentSection.value !== "license" &&
     currentSection.value !== "shipments" &&
-    currentSection.value !== "stands"
+    currentSection.value !== "stands" &&
+    currentSection.value !== "stand_tasks"
   )
     ModalManager.getInstance().open(AddEntity, {
       sectionName: section.value,
