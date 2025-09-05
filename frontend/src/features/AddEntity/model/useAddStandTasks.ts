@@ -1,6 +1,7 @@
 import { ref, reactive, onMounted } from "vue";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { createEntityAsync } from "../api/createEntityAsync";
+import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 
 /**
  * Добавление записей в сущности-таблицы (не тривью)
@@ -12,6 +13,7 @@ export function useAddStandTasks(sectionName: string, onSuccess: () => void) {
   const formData = reactive<any>({});
   const tableColumns = ref<string[]>([]);
   const selectOptions = reactive<Record<string, any[]>>({});
+  const navigationStore = useNavigationStore();
 
   const fetchColumnsAndRelations = async () => {
     const data = await getDataAsync({
@@ -27,7 +29,7 @@ export function useAddStandTasks(sectionName: string, onSuccess: () => void) {
         label: item.title,
       }));
 
-    tableColumns.value = Object.keys(data);
+    tableColumns.value = Object.keys(data).filter((item) => item !== "standId");
 
     for (const [key, value] of Object.entries(data)) {
       console.debug(key, value);
@@ -49,7 +51,9 @@ export function useAddStandTasks(sectionName: string, onSuccess: () => void) {
       formData.parentId = null;
     }
 
-    console.debug(formData);
+    const standId = navigationStore.selectedRow?.data?.id;
+
+    formData.standId = standId;
 
     const standTasksResponse = await createEntityAsync(sectionName, formData);
     const standTasksComponentsResponse = await createEntityAsync(
