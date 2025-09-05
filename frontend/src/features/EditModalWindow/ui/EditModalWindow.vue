@@ -14,6 +14,7 @@ import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
+import { relatedTables } from "../config/relatedTables";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
@@ -47,7 +48,7 @@ function isDateField(key: any) {
 }
 
 function isObjectField(value: any) {
-  return value && typeof value === "object" && !Array.isArray(value);
+  return value && typeof value === "object";
 }
 
 const getInputType = (key: string, value: any): string => {
@@ -68,6 +69,10 @@ async function loadRelatedOptions(key: string) {
     console.error(`Не удалось загрузить справочник для ${key}`, error);
     relatedOptions[key] = [];
   }
+}
+
+function isRelatedField(key: string, value: any): boolean {
+  return isObjectField(value) || relatedTables.includes(key);
 }
 
 onMounted(async () => {
@@ -92,7 +97,6 @@ onMounted(async () => {
 
       resultData.value = newData;
       formData.value = { ...newData };
-      console.debug({ ...newData });
 
       // Поиск полей с датами
       const dateFields = Object.keys(formData.value).filter(isDateField);
@@ -110,9 +114,10 @@ onMounted(async () => {
       });
 
       // Поиск полей-объектов (foreign keys)
-      const objectFields = Object.entries(formData.value).filter(([, value]) =>
-        isObjectField(value)
+      const objectFields = Object.entries(formData.value).filter(
+        ([key, value]) => isObjectField(value) || relatedTables.includes(key)
       );
+      console.debug(objectFields);
 
       for (const [key] of objectFields) {
         await loadRelatedOptions(key);
@@ -176,30 +181,32 @@ onUnmounted(() => {
 
         <!-- Select for object (relation) -->
         <select
-          v-else-if="isObjectField(value)"
+          v-else-if="isRelatedField(key, value)"
           class="editModalWindow__content__field__input"
           :id="key"
           :name="key"
           :value="formData[key]?.id"
           @change="
             (e: any) => {
-              const selected = relatedOptions[key]?.find(
-                (item: any) => item.id === Number(e.target.value)
-              );
-              formData[key] = selected || null;
+              const selectedId = e.target.value;
+              if (selectedId === 'null') {
+                formData[key] = null;
+              } else {
+                const selected = relatedOptions[key]?.find(
+                  (item: any) => item.id === Number(selectedId)
+                );
+                formData[key] = selected || null;
+              }
             }
           "
         >
-          <option value="">Не выбрано</option>
+          <option :value="null">Не выбрано</option>
           <option
             v-for="item in relatedOptions[key]"
             :key="item.id"
             :value="item.id"
           >
-            <template v-if="item === null">
-              <option value="">Не выбрано</option>
-            </template>
-            <template v-else>
+            <template>
               {{
                 item.title ||
                 item.name ||

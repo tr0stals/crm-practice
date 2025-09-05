@@ -15,6 +15,7 @@ import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { updateAsync } from "../api/updateAsync";
+import { relatedTables } from "../config/relatedTables";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
@@ -112,6 +113,10 @@ async function handleSubmit() {
   props.onApplyCallback();
 }
 
+function isRelatedField(key: string, value: any): boolean {
+  return isObjectField(value) || relatedTables.includes(key);
+}
+
 onMounted(async () => {
   model = new EditModalWindowModel(props.onApplyCallback);
 
@@ -162,8 +167,8 @@ onMounted(async () => {
       });
 
       // Поиск полей-объектов (foreign keys)
-      const objectFields = Object.entries(formData.value).filter(([, value]) =>
-        isObjectField(value)
+      const objectFields = Object.entries(formData.value).filter(
+        ([key, value]) => isObjectField(value) || relatedTables.includes(key)
       );
 
       for (const [key] of objectFields) {
@@ -228,17 +233,22 @@ onUnmounted(() => {
 
         <!-- Select for object (relation) -->
         <select
-          v-else-if="isObjectField(value)"
+          v-else-if="isRelatedField(key, value)"
           class="editModalWindow__content__field__input"
           :id="key"
           :name="key"
           :value="formData[key]?.id"
           @change="
             (e: any) => {
-              const selected = relatedOptions[key]?.find(
-                (item: any) => item.id === Number(e.target.value)
-              );
-              formData[key] = selected || null;
+              const selectedId = e.target.value;
+              if (selectedId === 'null') {
+                formData[key] = null;
+              } else {
+                const selected = relatedOptions[key]?.find(
+                  (item: any) => item.id === Number(selectedId)
+                );
+                formData[key] = selected || null;
+              }
             }
           "
         >

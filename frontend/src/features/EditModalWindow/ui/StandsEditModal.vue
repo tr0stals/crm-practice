@@ -14,6 +14,7 @@ import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
+import { relatedTables } from "../config/relatedTables";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
@@ -77,6 +78,10 @@ async function loadStands() {
   return stands;
 }
 
+function isRelatedField(key: string, value: any): boolean {
+  return isObjectField(value) || relatedTables.includes(key);
+}
+
 onMounted(async () => {
   model = new EditModalWindowModel(props.onApplyCallback);
 
@@ -118,8 +123,8 @@ onMounted(async () => {
       });
 
       // Поиск полей-объектов (foreign keys)
-      const objectFields = Object.entries(formData.value).filter(([, value]) =>
-        isObjectField(value)
+      const objectFields = Object.entries(formData.value).filter(
+        ([key, value]) => isObjectField(value) || relatedTables.includes(key)
       );
 
       for (const [key] of objectFields) {
@@ -182,6 +187,7 @@ onUnmounted(() => {
           auto-apply
         />
 
+        <!-- для поля parentId (Категории) -->
         <select
           v-else-if="key === 'parentId'"
           class="editModalWindow__content__field__input"
@@ -199,17 +205,22 @@ onUnmounted(() => {
         </select>
         <!-- Select for object (relation) -->
         <select
-          v-else-if="isObjectField(value)"
+          v-else-if="isRelatedField(key, value)"
           class="editModalWindow__content__field__input"
           :id="key"
           :name="key"
           :value="formData[key]?.id"
           @change="
             (e: any) => {
-              const selected = relatedOptions[key]?.find(
-                (item: any) => item.id === Number(e.target.value)
-              );
-              formData[key] = selected || null;
+              const selectedId = e.target.value;
+              if (selectedId === 'null') {
+                formData[key] = null;
+              } else {
+                const selected = relatedOptions[key]?.find(
+                  (item: any) => item.id === Number(selectedId)
+                );
+                formData[key] = selected || null;
+              }
             }
           "
         >
