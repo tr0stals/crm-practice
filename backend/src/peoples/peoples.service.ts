@@ -121,18 +121,40 @@ export class PeoplesService {
         throw new NotFoundException('Ошибка при поиске людей');
       }
 
+      // Собираем дерево по организациям
       const tree = organizations.map((org: Organizations) => ({
         id: org.id,
         name: org.shortName,
         nodeType: 'organizations',
-        children: peoples
-          .filter((people) => org.peoples?.id === people.id)
+        children: ([] as Peoples[])
+          .concat(org.peoples ?? [])
           .map((people: Peoples) => ({
             id: people.id,
             name: `${people.lastName} ${people.firstName} ${people.middleName} | ${people.phone}`,
             nodeType: 'peoples',
           })),
       }));
+
+      const peoplesWithOrgIds = organizations.flatMap((org) =>
+        ([] as Peoples[]).concat(org.peoples ?? []).map((p) => p.id),
+      );
+
+      const unassignedPeoples = peoples.filter(
+        (p) => !peoplesWithOrgIds.includes(p.id),
+      );
+
+      if (unassignedPeoples.length > 0) {
+        tree.push({
+          id: -1,
+          name: 'Без организации',
+          nodeType: 'organizations',
+          children: unassignedPeoples.map((p) => ({
+            id: p.id,
+            name: `${p.lastName} ${p.firstName} ${p.middleName} | ${p.phone}`,
+            nodeType: 'peoples',
+          })),
+        });
+      }
 
       return { name: 'Люди', children: tree };
     } catch (e) {
