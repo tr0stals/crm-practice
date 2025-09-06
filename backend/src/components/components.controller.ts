@@ -6,18 +6,24 @@ import {
   Param,
   Delete,
   Patch,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { ComponentsService } from './components.service';
 import { Components } from './components.entity';
 import { ComponentsDTO } from './dto/ComponentsDTO';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('components')
+@UseGuards(JwtAuthGuard)
 export class ComponentsController {
   constructor(private readonly service: ComponentsService) {}
 
   @Post('create')
-  async create(@Body() data: ComponentsDTO) {
-    return await this.service.create(data);
+  async create(@Body() data: ComponentsDTO, @Request() req) {
+    // Получаем userId из JWT токена
+    const userId = req.user?.id;
+    return await this.service.create(data, userId);
   }
 
   @Get('get')

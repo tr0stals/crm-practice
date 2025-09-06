@@ -2,7 +2,6 @@ import { PcbOrders } from 'src/pcb_orders/pcb_orders.entity';
 import { Stands } from 'src/stands/stands.entity';
 import { Components } from '../components/components.entity';
 import { PcbsComponents } from '../pcbs_components/pcbs_components.entity';
-import { PcbsSubcategories } from '../pcbs_categories/pcbs_subcategories.entity';
 import {
   Column,
   Entity,
@@ -17,7 +16,7 @@ export class PCBS {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ nullable: true })
   parentId: number;
 
   @Column({ length: 100 })
@@ -37,7 +36,21 @@ export class PCBS {
   @OneToMany(() => PcbsComponents, (pcbsComponent) => pcbsComponent.pcb)
   pcbsComponents: PcbsComponents[];
 
-  @ManyToOne(() => PcbsSubcategories, (sub) => sub.pcbs)
+  // Self-referencing для категорий/подкатегорий
+  @ManyToOne(() => PCBS, (pcb) => pcb.children, { nullable: true })
   @JoinColumn({ name: 'parentId' })
-  pcbSubcategory: PcbsSubcategories;
+  parent: PCBS;
+
+  @OneToMany(() => PCBS, (pcb) => pcb.parent)
+  children: PCBS[];
+
+  // Метод для определения типа записи
+  isCategory(): boolean {
+    // Если заполнены только parentId и title, то это категория
+    return !this.component && !this.stands;
+  }
+
+  isPcb(): boolean {
+    return !this.isCategory();
+  }
 }

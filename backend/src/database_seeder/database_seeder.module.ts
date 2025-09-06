@@ -68,10 +68,6 @@ import { ShipmentsStands } from '../shipments_stands/shipments_stands.entity';
 import { User } from '../user/user.entity';
 import { Writeoff } from '../writeoff/writeoff.entity';
 import { WriteoffReasons } from '../writeoff_reasons/writeoff_reasons.entity';
-import { ComponentsCategories } from '../components_categories/components_categories.entity';
-import { ComponentsSubcategories } from '../components_categories/components_subcategories.entity';
-import { PcbsCategories } from '../pcbs_categories/pcbs_categories.entity';
-import { PcbsSubcategories } from '../pcbs_categories/pcbs_subcategories.entity';
 
 @Module({
   imports: [
@@ -120,10 +116,6 @@ import { PcbsSubcategories } from '../pcbs_categories/pcbs_subcategories.entity'
       User,
       Writeoff,
       WriteoffReasons,
-      ComponentsCategories,
-      ComponentsSubcategories,
-      PcbsCategories,
-      PcbsSubcategories,
     ]),
     OrganizationTypesModule,
     LicenseTypesModule,

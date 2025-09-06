@@ -5,9 +5,12 @@ import { CurrentTasksModule } from '../current_tasks/current_tasks.module';
 import { WebsocketModule } from '../websocket/websocket.module';
 import { DatabaseLocalizationModule } from 'src/database_localization/database_localization.module';
 import { EmployeesModule } from 'src/employees/employees.module';
+import { StandsModule } from 'src/stands/stands.module';
+import { ComponentsModule } from 'src/components/components.module';
+import { PcbsModule } from 'src/pcbs/pcbs.module';
 
 @Module({
-  imports: [CurrentTasksModule, WebsocketModule, DatabaseLocalizationModule, EmployeesModule],
+  imports: [CurrentTasksModule, WebsocketModule, DatabaseLocalizationModule, EmployeesModule, PcbsModule, ComponentsModule, StandsModule],
   providers: [DatabaseService],
   controllers: [DatabaseController],
   exports: [DatabaseService],

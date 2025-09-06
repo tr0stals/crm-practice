@@ -6,18 +6,24 @@ import {
   Param,
   Delete,
   Patch,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { StandsService } from './stands.service';
 import { Stands } from './stands.entity';
 import { StandsDTO } from './dto/StandsDTO';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('stands')
+@UseGuards(JwtAuthGuard)
 export class StandsController {
   constructor(private readonly service: StandsService) {}
 
   @Post('create')
-  async create(@Body() data: StandsDTO) {
-    return await this.service.create(data);
+  async create(@Body() data: StandsDTO, @Request() req) {
+    // Получаем userId из JWT токена
+    const userId = req.user?.id;
+    return await this.service.create(data, userId);
   }
 
   @Get('get')
@@ -33,6 +39,17 @@ export class StandsController {
   @Get('getParents')
   async getParents() {
     return await this.service.getParents();
+  }
+
+  @Get('categories')
+  async getCategories() {
+    return await this.service.findCategories();
+  }
+
+  @Get('byParent/:parentId')
+  async getByParent(@Param('parentId') parentId: string) {
+    const id = parentId === 'null' ? null : +parentId;
+    return await this.service.findByParent(id);
   }
 
   @Get('generateData')

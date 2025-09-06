@@ -22,36 +22,36 @@ export class Stands {
   id: number;
 
   @Column({ nullable: true })
-  parentId: number;
+  parentId: number | null;
 
   @Column()
   title: string;
 
-  @Column()
+  @Column({ nullable: true })
   image: string;
 
-  @Column({ length: 100 })
+  @Column({ length: 100, nullable: true })
   width: string;
 
-  @Column({ length: 100 })
+  @Column({ length: 100, nullable: true })
   height: string;
 
-  @Column({ length: 100 })
+  @Column({ length: 100, nullable: true })
   thickness: string;
 
-  @Column({ type: 'float' })
+  @Column({ type: 'float', nullable: true })
   weightNetto: number;
 
-  @Column({ type: 'float' })
+  @Column({ type: 'float', nullable: true })
   weightBrutto: number;
 
-  @Column({ length: 100 })
+  @Column({ length: 100, nullable: true })
   link: string;
 
-  @Column()
+  @Column({ nullable: true })
   vendorCode: string;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   manufactureTime: Date;
 
   @Column({ length: 45, nullable: true })
@@ -85,4 +85,25 @@ export class Stands {
 
   @OneToMany(() => CurrentTasks, (currentTask) => currentTask.stands)
   currentTasks: CurrentTasks[];
+
+  // Self-referencing для категорий/подкатегорий
+  @ManyToOne(() => Stands, (stand) => stand.children, { nullable: true })
+  @JoinColumn({ name: 'parentId' })
+  parent: Stands;
+
+  @OneToMany(() => Stands, (stand) => stand.parent)
+  children: Stands[];
+
+  // Метод для определения типа записи
+  isCategory(): boolean {
+    // Если заполнены только parentId и title, то это категория
+    return !this.image && !this.width && !this.height && !this.thickness &&
+           !this.weightNetto && !this.weightBrutto && !this.link &&
+           !this.vendorCode && !this.manufactureTime && !this.comment &&
+           !this.standType && !this.employees;
+  }
+
+  isStand(): boolean {
+    return !this.isCategory();
+  }
 }

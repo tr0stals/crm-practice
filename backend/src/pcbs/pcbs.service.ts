@@ -7,29 +7,68 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { PCBS } from './pcbs.entity';
-import { PcbsCategories } from 'src/pcbs_categories/pcbs_categories.entity';
 import { PCBSDTO } from './dto/PCBSDTO';
 import { ComponentsService } from 'src/components/components.service';
 import { StandsService } from 'src/stands/stands.service';
+import { WsGateway } from '../websocket/ws.gateway';
+import { User } from 'src/user/user.entity';
 
 @Injectable()
 export class PcbsService {
   constructor(
     @InjectRepository(PCBS)
     private repository: Repository<PCBS>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private componentService: ComponentsService,
     private standService: StandsService,
+    private wsGateway: WsGateway,
   ) {}
 
-  async create(data: PCBSDTO) {
+  async create(data: PCBSDTO, userId?: number) {
     try {
       const { componentId, standId, ...defaultData } = data;
+      
+      // Валидация: если это плата (заполнены дополнительные поля), то все обязательные поля должны быть заполнены
+      const isPcb = this.isPcbData(defaultData);
+      if (isPcb) {
+        const missingFields = this.validatePcbFields(defaultData, componentId, standId);
+        if (missingFields.length > 0) {
+          const errorMessage = `Для создания платы необходимо заполнить все обязательные поля: ${missingFields.join(', ')}`;
+          
+          // Отправляем уведомление об ошибке валидации
+          let targetUserId = userId ? userId.toString() : '1';
+          
+          // Если userId не передан, пытаемся найти пользователя напрямую
+          if (!userId) {
+            const directUser = await this.userRepository.findOne({
+              where: {}, // Берем первого доступного пользователя
+            });
+            if (directUser) {
+              targetUserId = directUser.id.toString();
+              console.log(`[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${errorMessage}`);
+            }
+          }
+          
+          console.log(`[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${errorMessage}`);
+          this.wsGateway.sendNotification(targetUserId, errorMessage, 'validation_error');
+          
+          throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
+        }
+      }
 
-      const component = await this.componentService.findOne(componentId);
-      const stand = await this.standService.findOne(standId);
-
-      if (!component || !stand)
-        throw new NotFoundException('Не найдена одна из сущностей');
+      let component: any = undefined;
+      let stand: any = undefined;
+      
+      if (componentId) {
+        component = await this.componentService.findOne(componentId);
+        if (!component) throw new NotFoundException('Компонент не найден');
+      }
+      
+      if (standId) {
+        stand = await this.standService.findOne(standId);
+        if (!stand) throw new NotFoundException('Стенд не найден');
+      }
 
       const entity = this.repository.create({
         ...defaultData,
@@ -37,16 +76,77 @@ export class PcbsService {
         stands: stand,
       } as DeepPartial<PCBS>);
 
-      return await this.repository.save(entity);
+      const savedEntity = await this.repository.save(entity);
+      
+      // Отправляем уведомление об успешном создании
+      const recordType = isPcb ? 'плату' : 'категорию плат';
+      const message = `Успешно создана ${recordType}: "${savedEntity.title}"`;
+      let targetUserId = userId ? userId.toString() : '1';
+      
+      // Если userId не передан, пытаемся найти пользователя напрямую
+      if (!userId) {
+        const directUser = await this.userRepository.findOne({
+          where: {}, // Берем первого доступного пользователя
+        });
+        if (directUser) {
+          targetUserId = directUser.id.toString();
+          console.log(`[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${message}`);
+        }
+      }
+      
+      console.log(`[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${message}`);
+      this.wsGateway.sendNotification(targetUserId, message, 'success');
+      
+      return savedEntity;
     } catch (e) {
       throw new Error(e);
     }
   }
 
+  // Метод для определения, является ли данные платой (а не категорией)
+  private isPcbData(data: any): boolean {
+    // Для PCBS пока нет дополнительных полей кроме component и stands
+    // Если в будущем добавятся поля, их нужно будет проверить здесь
+    return !!(data.component || data.stands);
+  }
+
+  // Валидация обязательных полей для платы
+  private validatePcbFields(data: any, componentId?: number, standId?: number): string[] {
+    const missingFields: string[] = [];
+    
+    // Проверяем componentId
+    if (!componentId) {
+      missingFields.push('Компонент');
+    }
+
+    // Проверяем standId
+    if (!standId) {
+      missingFields.push('Стенд');
+    }
+
+    return missingFields;
+  }
+
   async findAll(): Promise<PCBS[]> {
     return await this.repository.find({
-      relations: ['stands', 'component'],
+      relations: ['stands', 'component', 'parent', 'children'],
     });
+  }
+
+  // Получить только категории (без плат)
+  async findCategories(): Promise<PCBS[]> {
+    const allItems = await this.repository.find({
+      relations: ['parent', 'children', 'component', 'stands'],
+    });
+    return allItems.filter(item => item.isCategory());
+  }
+
+  // Получить только платы (без категорий)
+  async findPcbs(): Promise<PCBS[]> {
+    const allItems = await this.repository.find({
+      relations: ['stands', 'component', 'parent', 'pcbsComponents', 'pcbsComponents.component'],
+    });
+    return allItems.filter(item => item.isPcb());
   }
 
   async findOne(id: number): Promise<PCBS> {
@@ -112,50 +212,53 @@ export class PcbsService {
   }
 
   async getPcbsTree() {
-    const [pcbs, categories] = await Promise.all([
-      this.repository.find({
-        relations: ['pcbsComponents', 'pcbsComponents.component'],
-      }),
-      this.repository.manager.getRepository(PcbsCategories).find({
-        relations: ['subcategories'],
-      }),
-    ]);
+    const allItems = await this.repository.find({
+      relations: ['stands', 'component', 'parent', 'children', 'pcbsComponents', 'pcbsComponents.component'],
+    });
 
-    function buildPcbChildren(parentId) {
-      return pcbs
-        .filter((pcb) => pcb.parentId === parentId)
-        .map((pcb) => ({
-          id: pcb.id,
-          name: pcb.title || `Плата #${pcb.id}`,
-          pcbName: pcb.title,
-          nodeType: 'pcbs',
-          children: Array.isArray(pcb.pcbsComponents)
-            ? pcb.pcbsComponents.map((comp) => ({
-                name: `${comp.component?.title || `Компонент #${comp.id}`} (${comp.componentCount} шт)`,
-                nodeType: 'components',
-                componentTitle: comp.component?.title,
-                material: comp.component?.material,
-                receiptDate: comp.component?.receiptDate,
-                id: comp.id,
-                componentCount: comp.componentCount,
-                component: comp.component,
+    // Разделяем на категории и платы
+    const categories = allItems.filter(item => item.isCategory());
+    const pcbs = allItems.filter(item => item.isPcb());
+
+    // Строим дерево категорий
+    const buildCategoryTree = (parentId: number | null = null): any[] => {
+      return categories
+        .filter(cat => cat.parentId === parentId)
+        .map(cat => ({
+          id: cat.id,
+          name: cat.title,
+          nodeType: 'pcbs_categories',
+          isCategory: true,
+          children: [
+            // Рекурсивно добавляем подкатегории
+            ...buildCategoryTree(cat.id),
+            // Добавляем платы этой категории
+            ...pcbs
+              .filter(pcb => pcb.parentId === cat.id)
+              .map(pcb => ({
+                id: pcb.id,
+                name: pcb.title || `Плата #${pcb.id}`,
+                pcbName: pcb.title,
+                nodeType: 'pcbs',
+                isPcb: true,
+                children: Array.isArray(pcb.pcbsComponents)
+                  ? pcb.pcbsComponents.map((comp) => ({
+                      name: `${comp.component?.title || `Компонент #${comp.id}`} (${comp.componentCount} шт)`,
+                      nodeType: 'components',
+                      componentTitle: comp.component?.title,
+                      material: comp.component?.material,
+                      receiptDate: comp.component?.receiptDate,
+                      id: comp.id,
+                      componentCount: comp.componentCount,
+                      component: comp.component,
+                    }))
+                  : [],
               }))
-            : [],
+          ],
         }));
-    }
+    };
 
-    const tree = categories.map((cat) => ({
-      id: cat.id,
-      name: cat.name,
-      nodeType: 'pcbs_categories',
-      children: (cat.subcategories || []).map((subcat) => ({
-        id: subcat.id,
-        name: subcat.name,
-        subcategoryName: subcat.name,
-        nodeType: 'pcbs_subcategories',
-        children: buildPcbChildren(subcat.id),
-      })),
-    }));
+    const tree = buildCategoryTree();
 
     return { name: 'Платы', children: tree };
   }

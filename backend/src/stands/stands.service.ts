@@ -5,11 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, IsNull, Repository } from 'typeorm';
 import { Stands } from './stands.entity';
 import { StandsDTO } from './dto/StandsDTO';
 import { EmployeesService } from 'src/employees/employees.service';
 import { StandTypesService } from 'src/stand_types/stand_types.service';
+import { WsGateway } from '../websocket/ws.gateway';
+import { User } from 'src/user/user.entity';
 import { StandsTypes } from 'src/stand_types/stand_types.entity';
 
 @Injectable()
@@ -17,19 +19,57 @@ export class StandsService {
   constructor(
     @InjectRepository(Stands)
     private readonly repo: Repository<Stands>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private employeeService: EmployeesService,
     private standTypeService: StandTypesService,
+    private wsGateway: WsGateway,
   ) {}
 
-  async create(data: StandsDTO) {
+  async create(data: StandsDTO, userId?: number) {
     try {
       const { employeeId, standTypeId, ...defaultData } = data;
+      
+      // Валидация: если это стенд (заполнены дополнительные поля), то все обязательные поля должны быть заполнены
+      const isStand = this.isStandData(defaultData);
+      if (isStand) {
+        const missingFields = this.validateStandFields(defaultData, employeeId, standTypeId);
+        if (missingFields.length > 0) {
+          const errorMessage = `Для создания стенда необходимо заполнить все обязательные поля: ${missingFields.join(', ')}`;
+          
+          // Отправляем уведомление об ошибке валидации
+          let targetUserId = userId ? userId.toString() : '1';
+          
+          // Если userId не передан, пытаемся найти пользователя напрямую
+          if (!userId) {
+            const directUser = await this.userRepository.findOne({
+              where: {}, // Берем первого доступного пользователя
+            });
+            if (directUser) {
+              targetUserId = directUser.id.toString();
+              console.log(`[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${errorMessage}`);
+            }
+          }
+          
+          console.log(`[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${errorMessage}`);
+          this.wsGateway.sendNotification(targetUserId, errorMessage, 'validation_error');
+          
+          throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
+        }
+      }
 
-      const employee = await this.employeeService.findById(employeeId);
-      const standType = await this.standTypeService.findOne(standTypeId);
-
-      if (!employee || !standType)
-        throw new NotFoundException('Одна из сущностей не найдена');
+      let employee: any = undefined;
+      let standType: any = undefined;
+      
+      if (employeeId) {
+        employee = await this.employeeService.findById(employeeId);
+        if (!employee) throw new NotFoundException('Сотрудник не найден');
+      }
+      
+      if (standTypeId) {
+        standType = await this.standTypeService.findOne(standTypeId);
+        if (!standType) throw new NotFoundException('Тип стенда не найден');
+      }
 
       const entity = this.repo.create({
         ...defaultData,
@@ -37,15 +77,97 @@ export class StandsService {
         standType: standType,
       } as DeepPartial<Stands>);
 
-      return await this.repo.save(entity);
+      const savedEntity = await this.repo.save(entity);
+      
+      // Отправляем уведомление об успешном создании
+      const recordType = isStand ? 'стенд' : 'категорию стендов';
+      const message = `Успешно создан ${recordType}: "${savedEntity.title}"`;
+      let targetUserId = userId ? userId.toString() : '1';
+      
+      // Если userId не передан, пытаемся найти пользователя напрямую
+      if (!userId) {
+        const directUser = await this.userRepository.findOne({
+          where: {}, // Берем первого доступного пользователя
+        });
+        if (directUser) {
+          targetUserId = directUser.id.toString();
+          console.log(`[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${message}`);
+        }
+      }
+      
+      console.log(`[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${message}`);
+      this.wsGateway.sendNotification(targetUserId, message, 'success');
+      
+      return savedEntity;
     } catch (e) {
       throw new Error(e);
     }
   }
 
+  private isStandData(data: any): boolean {
+    return !!(data.image || data.width || data.height || data.thickness ||
+              data.weightNetto || data.weightBrutto || data.link ||
+              data.vendorCode || data.manufactureTime || data.comment);
+  }
+
+  // Валидация обязательных полей для стенда
+  private validateStandFields(data: any, employeeId?: number, standTypeId?: number): string[] {
+    const missingFields: string[] = [];
+    
+    // Обязательные поля для стенда
+    const requiredFields = [
+      { field: 'image', name: 'Изображение' },
+      { field: 'width', name: 'Ширина' },
+      { field: 'height', name: 'Высота' },
+      { field: 'thickness', name: 'Толщина' },
+      { field: 'weightNetto', name: 'Вес нетто' },
+      { field: 'weightBrutto', name: 'Вес брутто' },
+      { field: 'link', name: 'Ссылка' },
+      { field: 'vendorCode', name: 'Артикул' },
+      { field: 'manufactureTime', name: 'Время изготовления' },
+      { field: 'comment', name: 'Комментарий' },
+    ];
+
+    // Проверяем каждое обязательное поле
+    for (const { field, name } of requiredFields) {
+      if (!data[field] || data[field] === '' || data[field] === null) {
+        missingFields.push(name);
+      }
+    }
+
+    // Проверяем employeeId
+    if (!employeeId) {
+      missingFields.push('Сотрудник');
+    }
+
+    // Проверяем standTypeId
+    if (!standTypeId) {
+      missingFields.push('Тип стенда');
+    }
+
+    return missingFields;
+  }
+
   async findAll() {
     return await this.repo.find({
-      relations: ['standType', 'employees', 'employees.peoples'],
+      relations: ['standType', 'employees', 'employees.peoples', 'parent', 'children'],
+    });
+  }
+
+  async findCategories(): Promise<Stands[]> {
+    const allItems = await this.findAll();
+    return allItems.filter(item => item.isCategory());
+  }
+
+  async findStands(): Promise<Stands[]> {
+    const allItems = await this.findAll();
+    return allItems.filter(item => item.isStand());
+  }
+
+  async findByParent(parentId: number | null): Promise<Stands[]> {
+    return await this.repo.find({
+      where: { parentId: parentId ?? IsNull() },
+      relations: ['standType', 'employees', 'employees.peoples', 'parent', 'children'],
     });
   }
 
@@ -120,38 +242,73 @@ export class StandsService {
   }
 
   async getTree() {
-    try {
-      const [types, stands] = await Promise.all([
-        this.repo.manager.getRepository(StandsTypes).find(),
-        this.repo.find({
-          relations: ['standType', 'employees', 'employees.peoples'],
-        }),
-      ]);
+    const [standTypes, allItems] = await Promise.all([
+      this.repo.manager.getRepository(StandsTypes).find(),
+      this.repo.find({
+        relations: ['standType', 'employees', 'employees.peoples', 'parent', 'children'],
+      }),
+    ]);
 
-      const tree = (types || []).map((t: any) => ({
-        id: t.id,
-        name: t.title,
-        nodeType: 'stands_types',
-        children: (stands || [])
-          .filter((s) => s.standType && (s.standType as any).id === t.id)
-          .map((s) => {
-            const emp = s.employees?.peoples;
+    const categories = allItems.filter(item => item.isCategory());
+    const stands = allItems.filter(item => item.isStand());
+
+    const buildCategoryTree = (parentId: number | null = null): any[] => {
+      return categories
+        .filter(cat => cat.parentId === parentId)
+        .map(cat => ({
+          id: cat.id,
+          name: cat.title,
+          nodeType: 'stands_categories',
+          isCategory: true,
+          children: [
+            ...buildCategoryTree(cat.id),
+            ...stands
+              .filter(stand => stand.parentId === cat.id)
+              .map(stand => {
+                const emp = stand.employees?.peoples;
+                const employeeName = emp
+                  ? `${emp.firstName || ''} ${emp.middleName || ''} ${emp.lastName || ''}`.trim()
+                  : '';
+                const suffix = employeeName ? ` | Сотрудник: ${employeeName}` : '';
+                return {
+                  name: `${stand.title}${suffix}`,
+                  nodeType: 'stands',
+                  ...stand,
+                  children: [],
+                };
+              })
+          ],
+        }));
+    };
+
+    // Строим дерево с типами стендов как корнем
+    const tree = (standTypes || []).map((standType: any) => ({
+      id: standType.id,
+      name: standType.title,
+      nodeType: 'stands_types',
+      children: [
+        // Добавляем категории стендов (parentId == null)
+        ...buildCategoryTree(null),
+        // Добавляем стенды без категорий (parentId == null, но заполнены дополнительные поля)
+        ...stands
+          .filter(stand => stand.parentId === null)
+          .map(stand => {
+            const emp = stand.employees?.peoples;
             const employeeName = emp
               ? `${emp.firstName || ''} ${emp.middleName || ''} ${emp.lastName || ''}`.trim()
               : '';
             const suffix = employeeName ? ` | Сотрудник: ${employeeName}` : '';
             return {
-              id: s.id,
-              name: `${s.title}${suffix}`,
+              name: `${stand.title}${suffix}`,
               nodeType: 'stands',
+              ...stand,
+              children: [],
             };
-          }),
-      }));
+          })
+      ],
+    }));
 
-      return { name: 'Стенды', children: tree };
-    } catch (e) {
-      throw new Error(e as any);
-    }
+    return { name: 'Стенды', children: tree };
   }
 
   async getTreeWithParent() {

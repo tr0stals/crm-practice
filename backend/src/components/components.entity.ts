@@ -20,7 +20,6 @@ import { BillsComponents } from 'src/bills_components/bills_components.entity';
 import { CurrentTasksComponents } from 'src/current_tasks_components/current_tasks_components.entity';
 import { PcbsComponents } from 'src/pcbs_components/pcbs_components.entity';
 import { PCBS } from 'src/pcbs/pcbs.entity';
-import { ComponentsSubcategories } from '../components_categories/components_subcategories.entity';
 
 @Entity()
 export class Components {
@@ -100,9 +99,13 @@ export class Components {
   @OneToMany(() => PcbsComponents, (pcbsComponent) => pcbsComponent.component)
   pcbsComponents: PcbsComponents[];
 
-  @ManyToOne(() => ComponentsSubcategories, (sub) => sub.components)
+  // Self-referencing для категорий/подкатегорий
+  @ManyToOne(() => Components, (component) => component.children, { nullable: true })
   @JoinColumn({ name: 'parentId' })
-  componentSubcategory: ComponentsSubcategories;
+  parent: Components;
+
+  @OneToMany(() => Components, (component) => component.parent)
+  children: Components[];
 
   @OneToMany(
     () => BillsComponents,
@@ -127,4 +130,16 @@ export class Components {
     (inventarization) => inventarization.component,
   )
   inventarizations: Inventarization[];
+
+  // Метод для определения типа записи
+  isCategory(): boolean {
+    // Если заполнены только parentId и title, то это категория
+    return !this.photo && !this.width && !this.height && !this.thickness && 
+           !this.weight && !this.material && !this.receiptDate && 
+           !this.drawingReference && !this.componentPlacements;
+  }
+
+  isComponent(): boolean {
+    return !this.isCategory();
+  }
 }

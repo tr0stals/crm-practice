@@ -8,7 +8,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PcbOrders } from './pcb_orders.entity';
 import { PCBS } from '../pcbs/pcbs.entity';
-import { PcbsCategories } from 'src/pcbs_categories/pcbs_categories.entity';
 import { PcbOrdersDTO } from './dto/PcbOrdersDTO';
 import { EmployeesService } from 'src/employees/employees.service';
 import { OrganizationsService } from 'src/organizations/organizations.service';
@@ -206,16 +205,8 @@ export class PcbOrdersService {
       pcbIdToName[pcb.id] = pcb.id;
     });
 
-    // Мапа: subcategoryId -> subcategoryName из БД
-    const cats = await this.repository.manager
-      .getRepository(PcbsCategories)
-      .find({ relations: ['subcategories'] });
+    // Мапа: subcategoryId -> subcategoryName из БД - categories удалены
     const subcategoryIdToName: Record<number, string> = {};
-    for (const cat of cats) {
-      for (const sub of cat.subcategories || []) {
-        subcategoryIdToName[sub.id] = sub.name;
-      }
-    }
 
     // Группируем по дате
     const grouped = {};

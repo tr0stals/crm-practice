@@ -46,10 +46,6 @@ import { ShipmentsStands } from '../shipments_stands/shipments_stands.entity';
 import { User } from '../user/user.entity';
 import { Writeoff } from '../writeoff/writeoff.entity';
 import { WriteoffReasons } from '../writeoff_reasons/writeoff_reasons.entity';
-import { ComponentsCategories } from '../components_categories/components_categories.entity';
-import { ComponentsSubcategories } from '../components_categories/components_subcategories.entity';
-import { PcbsCategories } from '../pcbs_categories/pcbs_categories.entity';
-import { PcbsSubcategories } from '../pcbs_categories/pcbs_subcategories.entity';
 // NOTE: статические списки категорий удалены
 // removed rights/profession_rights
 
@@ -147,14 +143,6 @@ export class DatabaseSeederService {
     private readonly writeoffRepository: Repository<Writeoff>,
     @InjectRepository(WriteoffReasons)
     private readonly writeoffReasonsRepository: Repository<WriteoffReasons>,
-    @InjectRepository(ComponentsCategories)
-    private readonly componentsCategoriesRepository: Repository<ComponentsCategories>,
-    @InjectRepository(ComponentsSubcategories)
-    private readonly componentsSubcategoriesRepository: Repository<ComponentsSubcategories>,
-    @InjectRepository(PcbsCategories)
-    private readonly pcbsCategoriesRepository: Repository<PcbsCategories>,
-    @InjectRepository(PcbsSubcategories)
-    private readonly pcbsSubcategoriesRepository: Repository<PcbsSubcategories>,
     // removed repositories for rights/profession_rights
   ) {}
 
@@ -216,9 +204,6 @@ export class DatabaseSeederService {
       `Создано ${currentTaskStates.length} статусов текущих задач`,
     );
 
-    // Сначала сидируем категории/подкатегории
-    await this.ensureComponentCategories();
-    await this.ensurePcbCategories();
 
     // Затем сидируем типы и размещения компонентов
     const componentPlacementTypes = await this.seedComponentPlacementTypes();
@@ -353,16 +338,14 @@ export class DatabaseSeederService {
   }
 
   private async seedComponents(): Promise<Components[]> {
-    // Подтягиваем реальные подкатегории из БД
-    let allSubcategories = await this.componentsSubcategoriesRepository.find();
-    if (!allSubcategories || allSubcategories.length === 0) {
-      await this.ensureComponentCategories();
-      allSubcategories = await this.componentsSubcategoriesRepository.find();
-    }
+    // Сначала создаем категории
+    const categories = await this.seedComponentCategories();
+    
+    // Затем создаем компоненты
     const placements = await this.componentPlacementsRepository.find();
     const componentsData = Array.from({ length: 100 }, (_, i) => {
-      const subcat = faker.helpers.arrayElement(allSubcategories);
       const placement = faker.helpers.arrayElement(placements);
+      const randomCategory = faker.helpers.arrayElement(categories);
       return {
         title: this.generateComponentTitle(),
         photo: faker.image.url().substring(0, 45),
@@ -373,7 +356,7 @@ export class DatabaseSeederService {
         material: faker.commerce.productMaterial().substring(0, 45),
         receiptDate: faker.date.past(),
         drawingReference: faker.string.alphanumeric(10).toUpperCase(),
-        parentId: subcat.id,
+        parentId: randomCategory.id,
         componentPlacements: placement,
       };
     });
@@ -381,6 +364,52 @@ export class DatabaseSeederService {
       this.componentsRepository.create(data),
     );
     return await this.componentsRepository.save(components);
+  }
+
+  private async seedComponentCategories(): Promise<Components[]> {
+    const categoryNames = [
+      'Микросхемы',
+      'Резисторы',
+      'Конденсаторы',
+      'Индуктивности',
+      'Диоды',
+      'Транзисторы',
+    ];
+
+    const subcategoryNames = [
+      ['Операционные усилители', 'Логические элементы', 'Микроконтроллеры'],
+      ['Постоянные резисторы', 'Переменные резисторы', 'Терморезисторы'],
+      ['Керамические', 'Электролитические', 'Пленочные'],
+      ['Катушки индуктивности', 'Дроссели', 'Трансформаторы'],
+      ['Выпрямительные', 'Стабилитроны', 'Светодиоды'],
+      ['Биполярные', 'Полевые', 'IGBT'],
+    ];
+
+    const categories: Components[] = [];
+    
+    // Создаем основные категории
+    for (let i = 0; i < categoryNames.length; i++) {
+      const category = await this.componentsRepository.save(
+        this.componentsRepository.create({
+          title: categoryNames[i],
+          parentId: undefined,
+        })
+      );
+      categories.push(category);
+
+      // Создаем подкатегории
+      for (const subName of subcategoryNames[i]) {
+        const subcategory = await this.componentsRepository.save(
+          this.componentsRepository.create({
+            title: subName,
+            parentId: category.id,
+          })
+        );
+        categories.push(subcategory);
+      }
+    }
+
+    return categories;
   }
 
   private async seedMainEntities() {
@@ -576,34 +605,91 @@ export class DatabaseSeederService {
   }
 
   private async seedStands(employees: Employees[]): Promise<Stands[]> {
+    // Сначала создаем категории
+    const categories = await this.seedStandCategories();
+    
+    // Затем создаем стенды
     const standTypes = await this.standTypesRepository.find();
-    const standsData = Array.from({ length: 20 }, () => ({
-      parentId: faker.number.int({ min: 0, max: 5 }),
-      title: faker.commerce.productName().substring(0, 45),
-      image: faker.image.url(),
-      width: `${faker.number.int({ min: 100, max: 1000 })}`,
-      height: `${faker.number.int({ min: 100, max: 1000 })}`,
-      thickness: `${faker.number.int({ min: 10, max: 100 })}`,
-      weightNetto: faker.number.float({
-        min: 10,
-        max: 1000,
-        fractionDigits: 2,
-      }),
-      weightBrutto: faker.number.float({
-        min: 10,
-        max: 1000,
-        fractionDigits: 2,
-      }),
-      link: faker.internet.url().substring(0, 100),
-      vendorCode: faker.string.alphanumeric(10).toUpperCase(),
-      manufactureTime: faker.date.future(),
-      comment: faker.lorem.sentence().substring(0, 45),
-      standType: faker.helpers.arrayElement(standTypes),
-      employees: faker.helpers.arrayElement(employees),
-    }));
+    const standsData = Array.from({ length: 20 }, () => {
+      const randomCategory = faker.helpers.arrayElement(categories);
+      return {
+        parentId: randomCategory.id,
+        title: faker.commerce.productName().substring(0, 45),
+        image: faker.image.url(),
+        width: `${faker.number.int({ min: 100, max: 1000 })}`,
+        height: `${faker.number.int({ min: 100, max: 1000 })}`,
+        thickness: `${faker.number.int({ min: 10, max: 100 })}`,
+        weightNetto: faker.number.float({
+          min: 10,
+          max: 1000,
+          fractionDigits: 2,
+        }),
+        weightBrutto: faker.number.float({
+          min: 10,
+          max: 1000,
+          fractionDigits: 2,
+        }),
+        link: faker.internet.url().substring(0, 100),
+        vendorCode: faker.string.alphanumeric(10).toUpperCase(),
+        manufactureTime: faker.date.future(),
+        comment: faker.lorem.sentence().substring(0, 45),
+        standType: faker.helpers.arrayElement(standTypes),
+        employees: faker.helpers.arrayElement(employees),
+      };
+    });
 
     const stands = standsData.map((data) => this.standsRepository.create(data));
     return await this.standsRepository.save(stands);
+  }
+
+  private async seedStandCategories(): Promise<Stands[]> {
+    const categoryNames = [
+      'Производственные стенды',
+      'Тестовые стенды',
+      'Сборочные стенды',
+      'Контрольные стенды',
+      'Упаковочные стенды'
+    ];
+
+    const subcategoryNames = [
+      'Основные',
+      'Вспомогательные',
+      'Специализированные',
+      'Универсальные',
+      'Мобильные'
+    ];
+
+    const categories: Stands[] = [];
+
+    // Создаем корневые категории
+    for (const categoryName of categoryNames) {
+      const category = this.standsRepository.create({
+        parentId: null,
+        title: categoryName,
+      });
+      const savedCategory = await this.standsRepository.save(category);
+      if (Array.isArray(savedCategory)) {
+        categories.push(savedCategory[0]);
+      } else {
+        categories.push(savedCategory);
+      }
+
+      // Создаем подкатегории для каждой корневой категории
+      for (const subcategoryName of subcategoryNames) {
+        const subcategory = this.standsRepository.create({
+          parentId: savedCategory.id,
+          title: subcategoryName,
+        });
+        const savedSubcategory = await this.standsRepository.save(subcategory);
+        if (Array.isArray(savedSubcategory)) {
+          categories.push(savedSubcategory[0]);
+        } else {
+          categories.push(savedSubcategory);
+        }
+      }
+    }
+
+    return categories;
   }
 
   private async seedStandPackages(stands: Stands[]): Promise<StandPackages[]> {
@@ -997,18 +1083,16 @@ export class DatabaseSeederService {
   }
 
   private async seedPCBS(stands: Stands[]): Promise<PCBS[]> {
+    // Сначала создаем категории
+    const categories = await this.seedPcbCategories();
+    
+    // Затем создаем платы
     const components = await this.componentsRepository.find();
-    let allPcbSubcategories = await this.pcbsSubcategoriesRepository.find();
-    if (!allPcbSubcategories || allPcbSubcategories.length === 0) {
-      await this.ensurePcbCategories();
-      allPcbSubcategories = await this.pcbsSubcategoriesRepository.find();
-    }
-    // Для синхронизации componentId между pcbs и pcbs-components
     const pcbsData = stands.map((stand, i) => {
-      const subcat = faker.helpers.arrayElement(allPcbSubcategories);
       const component = faker.helpers.arrayElement(components);
+      const randomCategory = faker.helpers.arrayElement(categories);
       return {
-        parentId: subcat.id,
+        parentId: randomCategory.id,
         title: this.generatePcbTitle(),
         component: component,
         stands: stand,
@@ -1016,6 +1100,48 @@ export class DatabaseSeederService {
     });
     const pcbs = pcbsData.map((data) => this.pcbsRepository.create(data));
     return await this.pcbsRepository.save(pcbs);
+  }
+
+  private async seedPcbCategories(): Promise<PCBS[]> {
+    const categoryNames = [
+      'Сварочные технологии - WT',
+      'Контрольные системы - CS',
+      'Системы безопасности - SS',
+      'Коммуникационные системы - COM',
+    ];
+
+    const subcategoryNames = [
+      ['ТСВ-02 (WT02)', 'ТСВ-03 (WT03)', 'ТСВ-04 (WT04)'],
+      ['Датчики давления', 'Датчики температуры', 'Датчики уровня'],
+      ['Пожарная сигнализация', 'Охранная сигнализация', 'Система контроля доступа'],
+      ['Радиосвязь', 'Спутниковая связь', 'Волоконно-оптическая связь'],
+    ];
+
+    const categories: PCBS[] = [];
+    
+    // Создаем основные категории
+    for (let i = 0; i < categoryNames.length; i++) {
+      const category = await this.pcbsRepository.save(
+        this.pcbsRepository.create({
+          title: categoryNames[i],
+          parentId: undefined,
+        })
+      );
+      categories.push(category);
+
+      // Создаем подкатегории
+      for (const subName of subcategoryNames[i]) {
+        const subcategory = await this.pcbsRepository.save(
+          this.pcbsRepository.create({
+            title: subName,
+            parentId: category.id,
+          })
+        );
+        categories.push(subcategory);
+      }
+    }
+
+    return categories;
   }
 
   private async seedOrdersAndShipments(): Promise<void> {
@@ -1624,40 +1750,6 @@ export class DatabaseSeederService {
     return await this.billsForPayRepository.save(bills);
   }
 
-  // === Ensure categories/subcategories exist ===
-  private async ensureComponentCategories() {
-    // Если нет ни одной категории — создаём минимальный набор
-    const existing = await this.componentsCategoriesRepository.find({ relations: ['subcategories'] });
-    if (existing.length > 0 && (existing[0].subcategories?.length || 0) > 0) return;
-
-    const cat = await this.componentsCategoriesRepository.save(
-      this.componentsCategoriesRepository.create({ name: 'Микросхемы' }),
-    );
-    const subNames = [
-      'Преобразователи интерфейсов',
-      'Операционные усилители',
-      'Микроконтроллеры',
-      'Логические элементы',
-    ];
-    const subs = subNames.map((name) =>
-      this.componentsSubcategoriesRepository.create({ name, category: cat }),
-    );
-    await this.componentsSubcategoriesRepository.save(subs);
-  }
-
-  private async ensurePcbCategories() {
-    const existing = await this.pcbsCategoriesRepository.find({ relations: ['subcategories'] });
-    if (existing.length > 0 && (existing[0].subcategories?.length || 0) > 0) return;
-
-    const cat = await this.pcbsCategoriesRepository.save(
-      this.pcbsCategoriesRepository.create({ name: 'Сварочные технологии - WT' }),
-    );
-    const subNames = ['ТСВ-02 (WT02)', 'ТСВ-03 (WT03)', 'ТСВ-04 (WT04)'];
-    const subs = subNames.map((name) =>
-      this.pcbsSubcategoriesRepository.create({ name, category: cat }),
-    );
-    await this.pcbsSubcategoriesRepository.save(subs);
-  }
 
   private async seedBillsComponents(): Promise<BillsComponents[]> {
     const bills = await this.billsForPayRepository.find();

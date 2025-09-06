@@ -13,6 +13,9 @@ import {
 import { WsGateway } from '../websocket/ws.gateway';
 import { DatabaseLocalizationService } from 'src/database_localization/database_localization.service';
 import { EmployeesService } from 'src/employees/employees.service';
+import { StandsService } from 'src/stands/stands.service';
+import { PcbsService } from 'src/pcbs/pcbs.service';
+import { ComponentsService } from 'src/components/components.service';
 
 @Injectable()
 export class DatabaseService {
@@ -20,6 +23,9 @@ export class DatabaseService {
     private dataSource: DataSource,
     private currentTasksService: CurrentTasksService,
     private employeesService: EmployeesService,
+    private standsService: StandsService,
+    private pcbsService: PcbsService,
+    private componentsService: ComponentsService,
     private readonly wsGateway: WsGateway,
     private readonly databaseLocalizationService: DatabaseLocalizationService,
   ) {}
@@ -437,6 +443,18 @@ export class DatabaseService {
     if (tableName === 'employees') {
       console.log('=== DATABASE SERVICE: ПЕРЕДАЕМ В EMPLOYEESSERVICE ===');
       return await this.employeesService.create(record);
+    }
+    if (tableName === 'stands') {
+      console.log('=== DATABASE SERVICE: ПЕРЕДАЕМ В STANDSSERVICE ===');
+      return await this.standsService.create(record);
+    }
+    if (tableName === 'pcbs') {
+      console.log('=== DATABASE SERVICE: ПЕРЕДАЕМ В PCBSSERVICE ===');
+      return await this.pcbsService.create(record);
+    }
+    if (tableName === 'components') {
+      console.log('=== DATABASE SERVICE: ПЕРЕДАЕМ В COMPONENTSSERVICE ===');
+      return await this.componentsService.create(record);
     }
     return await this.dataSource.query(`INSERT INTO \`${tableName}\` SET ?`, [
       record,
