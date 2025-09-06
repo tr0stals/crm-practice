@@ -6,7 +6,6 @@ import Button from "@/shared/ui/Button/ui/Button.vue";
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { EditModalWindowModel } from "../model/EditModalWindowModel";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
-import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { relationMap } from "@/shared/config/relationMap";
@@ -15,6 +14,7 @@ import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { relatedTables } from "../config/relatedTables";
+import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
@@ -174,17 +174,17 @@ onUnmounted(() => {
         </label>
 
         <!-- Date -->
-        <VueDatePicker
+        <DatePicker
           v-if="isDateField(key)"
           v-model="dateModel[key]"
           :id="key"
           :name="key"
-          :disabled="key === 'id'"
-          format="yyyy-MM-dd"
-          model-type="yyyy-MM-dd"
-          input-class-name="editModalWindow__content__field__input"
+          :config="{
+            disabled: key === 'id',
+            format: 'yyyy-MM-dd',
+            hideInputIcon: true,
+          }"
           placeholder="Выберите дату"
-          auto-apply
         />
 
         <!-- для поля parentId (Категории) -->

@@ -5,9 +5,9 @@ import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import "../style.scss";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
-import VueDatePicker from "@vuepic/vue-datepicker";
 import { computed, reactive, watch } from "vue";
 import { useAddShipments } from "../model/useAddShipments";
+import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 
 const props = defineProps<{
   sectionName: string;
@@ -94,16 +94,16 @@ const handleSubmit = async () => {
               v-model="formData[field.section][field.name]"
             />
             <template v-else-if="field.name.includes('Date')">
-              <VueDatePicker
-                required
+              <DatePicker
                 v-model="dateModel[field.name]"
                 :id="field.name"
                 :name="field.name"
-                format="yyyy-MM-dd"
-                model-type="yyyy-MM-dd"
-                input-class-name="addModalWindow__content__field__input"
+                :config="{
+                  disabled: field === 'id',
+                  format: 'yyyy-MM-dd',
+                  hideInputIcon: true,
+                }"
                 placeholder="Выберите дату"
-                auto-apply
               />
             </template>
             <select

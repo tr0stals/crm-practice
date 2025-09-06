@@ -4,12 +4,11 @@ import Button from "@/shared/ui/Button/ui/Button.vue";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import "../style.scss";
 import { reactive, watch, computed } from "vue";
-import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
-import { useAddStands } from "../model/useAddStands";
 import { useAddStandTasks } from "../model/useAddStandTasks";
+import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 
 const props = defineProps<{
   sectionName: string;
@@ -118,18 +117,18 @@ const handleSubmit = async () => {
                 </template>
               </select>
             </template>
-            <template v-else-if="isDateField(item)">
-              <VueDatePicker
-                v-model="dateModel[item]"
-                :id="item"
-                :name="item"
-                format="yyyy-MM-dd"
-                model-type="yyyy-MM-dd"
-                input-class-name="addModalWindow__content__field__input"
-                placeholder="Выберите дату"
-                auto-apply
-              />
-            </template>
+            <DatePicker
+              v-else-if="isDateField(item)"
+              v-model="dateModel[item]"
+              :id="item"
+              :name="item"
+              :config="{
+                disabled: item === 'id',
+                format: 'yyyy-MM-dd',
+                hideInputIcon: true,
+              }"
+              placeholder="Выберите дату"
+            />
             <template v-else-if="item === 'phone'">
               <input
                 type="text"

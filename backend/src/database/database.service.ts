@@ -90,7 +90,6 @@ export class DatabaseService {
           ![
             'invoices_components',
             'bills_components',
-            'component_placements',
             'current_tasks_components',
             'order_requests_components',
             'organization_types',
@@ -411,8 +410,10 @@ export class DatabaseService {
       );
       const dateFields = new Set<string>(
         (columnsInfo || [])
-          .filter((c: any) =>
-            typeof c?.Type === 'string' && c.Type.toLowerCase().startsWith('date'),
+          .filter(
+            (c: any) =>
+              typeof c?.Type === 'string' &&
+              c.Type.toLowerCase().startsWith('date'),
           )
           .map((c: any) => c.Field),
       );
