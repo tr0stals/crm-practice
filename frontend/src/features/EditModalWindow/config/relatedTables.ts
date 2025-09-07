@@ -3,4 +3,5 @@ export const relatedTables = [
   "employees",
   "professions",
   "profession",
+  "peoples",
 ];

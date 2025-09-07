@@ -94,9 +94,9 @@ const handleSubmit = async () => {
             />
             <template v-else-if="field.name.includes('Date')">
               <DatePicker
-                v-model="dateModel[field]"
-                :id="field"
-                :name="field"
+                v-model="dateModel[field.name]"
+                :id="field.name"
+                :name="field.name"
                 :config="{
                   disabled: field === 'id',
                   format: 'yyyy-MM-dd',

@@ -49,6 +49,8 @@ import AddStands from "@/features/AddEntity/ui/AddStands.vue";
 import StandsEditModal from "@/features/EditModalWindow/ui/StandsEditModal.vue";
 import AddStandTasks from "@/features/AddEntity/ui/AddStandTasks.vue";
 import StandTasksEditModal from "@/features/EditModalWindow/ui/StandTasksEditModal.vue";
+import OrganizationsEditModal from "@/features/EditModalWindow/ui/OrganizationsEditModal.vue";
+import OrderRequestsEditModal from "@/features/EditModalWindow/ui/OrderRequestsEditModal.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -262,7 +264,17 @@ function handleEditModalWindow() {
       config: cfg,
       onApplyCallback: onUpdateCallBack,
     });
-  else if (cfg.sectionName === "stands") {
+  else if (cfg.sectionName === "order_requests") {
+    ModalManager.getInstance().open(OrderRequestsEditModal, {
+      config: cfg,
+      onApplyCallback: onUpdateCallBack,
+    });
+  } else if (cfg.sectionName === "organizations") {
+    ModalManager.getInstance().open(OrganizationsEditModal, {
+      config: cfg,
+      onApplyCallback: onUpdateCallBack,
+    });
+  } else if (cfg.sectionName === "stands") {
     ModalManager.getInstance().open(StandsEditModal, {
       config: cfg,
       onApplyCallback: onUpdateCallBack,
@@ -534,7 +546,10 @@ const handleCreateModalWindow = () => {
 
     case "organizations":
       if (!navigationStore.selectedRow) section.value = "organization_types";
-      if (navigationStore.selectedRow?.data?.nodeType === "organization_types")
+      if (
+        navigationStore.selectedRow?.data?.nodeType === "organization_types" ||
+        navigationStore.selectedRow?.data?.nodeType === "organizations"
+      )
         section.value = "organizations";
       break;
 
@@ -788,7 +803,11 @@ const handleSelectSection = (item: any) => {
             <Button :onClick="handleEditModalWindow">
               <EditIcon /> редактировать
             </Button>
-            <Button id="deleteButton" :onClick="handleDeleteRow">
+            <Button
+              :disabled="navigationStore.selectedRow?.id < 0"
+              id="deleteButton"
+              :onClick="handleDeleteRow"
+            >
               <DeleteIcon /> удалить
             </Button>
             <Button :onClick="getCurrentData">

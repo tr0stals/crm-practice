@@ -6,7 +6,6 @@ import Button from "@/shared/ui/Button/ui/Button.vue";
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { EditModalWindowModel } from "../model/EditModalWindowModel";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
-import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { relationMap } from "@/shared/config/relationMap";
@@ -22,6 +21,7 @@ const formData = ref<any>({});
 const dateModel = reactive<Record<string, any>>({});
 const relatedOptions = reactive<Record<string, any[]>>({});
 const loading = ref<boolean>(false);
+const organizations = ref();
 
 let model: EditModalWindowModel;
 
@@ -44,13 +44,12 @@ function isDateField(key: any) {
     lower === "start" ||
     lower === "end" ||
     lower === "manufacturetime" ||
-    lower === "timeout" ||
-    lower === "deadline"
+    lower === "timeout"
   );
 }
 
 function isObjectField(value: any) {
-  return value && typeof value === "object";
+  return value && typeof value === "object" && !Array.isArray(value);
 }
 
 const getInputType = (key: string, value: any): string => {
@@ -71,6 +70,12 @@ async function loadRelatedOptions(key: string) {
     console.error(`Не удалось загрузить справочник для ${key}`, error);
     relatedOptions[key] = [];
   }
+}
+
+async function loadOrganizations() {
+  const organizations = await getDataAsync({ endpoint: "organizations/get" });
+
+  return organizations;
 }
 
 function isRelatedField(key: string, value: any): boolean {
@@ -99,6 +104,8 @@ onMounted(async () => {
 
       resultData.value = newData;
       formData.value = { ...newData };
+      const currentParentId = formData.value.parentId;
+      organizations.value = (await loadOrganizations()).data;
 
       // Поиск полей с датами
       const dateFields = Object.keys(formData.value).filter(isDateField);
@@ -119,7 +126,6 @@ onMounted(async () => {
       const objectFields = Object.entries(formData.value).filter(
         ([key, value]) => isObjectField(value) || relatedTables.includes(key)
       );
-      console.debug(objectFields);
 
       for (const [key] of objectFields) {
         await loadRelatedOptions(key);
@@ -164,7 +170,7 @@ onUnmounted(() => {
           class="editModalWindow__content__field__label"
           :for="key"
         >
-          {{ [key] }}
+          {{ fieldDictionary[key] }}
         </label>
 
         <!-- Date -->
@@ -181,6 +187,19 @@ onUnmounted(() => {
           placeholder="Выберите дату"
         />
 
+        <!-- для поля parentId (Категории) -->
+        <select
+          v-else-if="key === 'parentId'"
+          class="editModalWindow__content__field__input"
+          :id="key"
+          :name="key"
+          v-model="formData[key]"
+        >
+          <option :value="null">Без категории</option>
+          <option v-for="org in organizations" :value="org.id">
+            {{ org.fullName }}
+          </option>
+        </select>
         <!-- Select for object (relation) -->
         <select
           v-else-if="isRelatedField(key, value)"
@@ -202,13 +221,16 @@ onUnmounted(() => {
             }
           "
         >
-          <option :value="null">Не выбрано</option>
+          <option value="">Не выбрано</option>
           <option
             v-for="item in relatedOptions[key]"
             :key="item.id"
             :value="item.id"
           >
-            <template>
+            <template v-if="item === null">
+              <option value="">Не выбрано</option>
+            </template>
+            <template v-else>
               {{
                 item.title ||
                 item.name ||
