@@ -63,7 +63,7 @@ export class Organizations {
   @Column({ type: 'float'})
   rating: number;
 
-  @Column({ length: 45})
+  @Column({ length: 45, nullable: true })
   comment: string;
 
   @ManyToOne(() => Peoples, (people) => people.organizations)

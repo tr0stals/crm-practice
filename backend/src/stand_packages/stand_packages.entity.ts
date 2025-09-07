@@ -27,7 +27,7 @@ export class StandPackages {
   @Column({ length: 100 })
   image: string;
 
-  @Column({ length: 45})
+  @Column({ length: 45, nullable: true })
   comment: string;
 
   @ManyToOne(() => Stands, (stand) => stand.standPackages)

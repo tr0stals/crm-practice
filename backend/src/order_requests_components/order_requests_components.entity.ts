@@ -14,7 +14,7 @@ export class OrderRequestsComponents {
   @Column({ length: 255 })
   link: string;
 
-  @Column({ length: 45 })
+  @Column({ length: 45, nullable: true })
   comment: string;
 
   @ManyToOne(() => OrderRequests, (orderReq) => orderReq.orderRequestsComponents)

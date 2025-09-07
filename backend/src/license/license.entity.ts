@@ -30,7 +30,7 @@ export class License {
   @Column({ type: 'date' })
   timeout: Date;
 
-  @Column({ length: 45 })
+  @Column({ length: 45, nullable: true })
   comment: string;
 
   @ManyToOne(() => LicenseTypes, (licenseType) => licenseType.licenses)

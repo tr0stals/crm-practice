@@ -20,7 +20,7 @@ export class Writeoff {
   @Column()
   count: number;
 
-  @Column()
+  @Column({ length: 45, nullable: true })
   comment?: string;
 
   @ManyToOne(
