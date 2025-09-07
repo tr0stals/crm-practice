@@ -274,9 +274,15 @@ function handleEditModalWindow() {
       config: cfg,
       onApplyCallback: onUpdateCallBack,
     });
-  } else if (cfg.sectionName === "stands") {
+  } else if (
+    cfg.sectionName === "stands" ||
+    sectionName === "stands_categories"
+  ) {
     ModalManager.getInstance().open(StandsEditModal, {
-      config: cfg,
+      config: {
+        sectionName: "stands",
+        entityId: entityId,
+      },
       onApplyCallback: onUpdateCallBack,
     });
   } else if (cfg.sectionName === "stand_tasks") {
@@ -513,7 +519,10 @@ const handleCreateModalWindow = () => {
         });
       }
 
-      if (navigationStore.selectedRow?.data?.nodeType === "stands_types") {
+      if (
+        navigationStore.selectedRow?.data?.nodeType === "stands_types" ||
+        navigationStore.selectedRow?.data?.nodeType === "stands"
+      ) {
         section.value = "stands";
         ModalManager.getInstance().open(AddStands, {
           sectionName: section.value,
@@ -791,13 +800,7 @@ const handleSelectSection = (item: any) => {
             "
             class="action-buttons"
           >
-            <Button
-              :class="
-                navigationStore.selectedRow?.level > 2 && 'button__disabled'
-              "
-              :disabled="navigationStore.selectedRow?.level > 2"
-              :onClick="handleCreateModalWindow"
-            >
+            <Button :onClick="handleCreateModalWindow">
               <PlusIcon /> добавить
             </Button>
             <Button :onClick="handleEditModalWindow">

@@ -34,6 +34,7 @@ const emits = defineEmits(["close", "save"]);
 
 const sectionName = computed(() => props.config?.sectionName);
 const entityId = computed(() => props.config?.entityId);
+console.debug(entityId.value);
 // const { licenseTypeId, ...originalData } = props.config?.data;
 
 function isDateField(key: any) {
@@ -62,6 +63,7 @@ const getInputType = (key: string, value: any): string => {
 
 async function loadRelatedOptions(key: string) {
   try {
+    console.debug("key!!!", key);
     const response = await getDataAsync({
       endpoint: `${relationMap[key] ? relationMap[key] : key}/get`,
     });
@@ -86,7 +88,7 @@ onMounted(async () => {
   model = new EditModalWindowModel(props.onApplyCallback);
 
   const { data, loading, error, refetch } = useFetch<any>(
-    `${defaultEndpoint}/${sectionName.value}/get/${entityId.value}`
+    `${defaultEndpoint}/stands/get/${entityId.value}`
   );
 
   watch(

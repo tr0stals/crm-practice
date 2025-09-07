@@ -64,7 +64,7 @@ export class StandsController {
 
   @Get('getTree')
   async getTreeWithParent() {
-    return await this.service.getTreeWithParent();
+    return await this.service.getTreeForWeb();
   }
 
   @Patch('update/:id')

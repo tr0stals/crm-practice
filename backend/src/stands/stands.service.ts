@@ -29,17 +29,21 @@ export class StandsService {
   async create(data: StandsDTO, userId?: number) {
     try {
       const { employeeId, standTypeId, ...defaultData } = data;
-      
+
       // Валидация: если это стенд (заполнены дополнительные поля), то все обязательные поля должны быть заполнены
       const isStand = this.isStandData(defaultData);
       if (isStand) {
-        const missingFields = this.validateStandFields(defaultData, employeeId, standTypeId);
+        const missingFields = this.validateStandFields(
+          defaultData,
+          employeeId,
+          standTypeId,
+        );
         if (missingFields.length > 0) {
           const errorMessage = `Для создания стенда необходимо заполнить все обязательные поля: ${missingFields.join(', ')}`;
-          
+
           // Отправляем уведомление об ошибке валидации
           let targetUserId = userId ? userId.toString() : '1';
-          
+
           // Если userId не передан, пытаемся найти пользователя напрямую
           if (!userId) {
             const directUser = await this.userRepository.findOne({
@@ -47,25 +51,33 @@ export class StandsService {
             });
             if (directUser) {
               targetUserId = directUser.id.toString();
-              console.log(`[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${errorMessage}`);
+              console.log(
+                `[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${errorMessage}`,
+              );
             }
           }
-          
-          console.log(`[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${errorMessage}`);
-          this.wsGateway.sendNotification(targetUserId, errorMessage, 'validation_error');
-          
+
+          console.log(
+            `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${errorMessage}`,
+          );
+          this.wsGateway.sendNotification(
+            targetUserId,
+            errorMessage,
+            'validation_error',
+          );
+
           throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
         }
       }
 
       let employee: any = undefined;
       let standType: any = undefined;
-      
+
       if (employeeId) {
         employee = await this.employeeService.findById(employeeId);
         if (!employee) throw new NotFoundException('Сотрудник не найден');
       }
-      
+
       if (standTypeId) {
         standType = await this.standTypeService.findOne(standTypeId);
         if (!standType) throw new NotFoundException('Тип стенда не найден');
@@ -78,12 +90,12 @@ export class StandsService {
       } as DeepPartial<Stands>);
 
       const savedEntity = await this.repo.save(entity);
-      
+
       // Отправляем уведомление об успешном создании
       const recordType = isStand ? 'стенд' : 'категорию стендов';
       const message = `Успешно создан ${recordType}: "${savedEntity.title}"`;
       let targetUserId = userId ? userId.toString() : '1';
-      
+
       // Если userId не передан, пытаемся найти пользователя напрямую
       if (!userId) {
         const directUser = await this.userRepository.findOne({
@@ -91,13 +103,17 @@ export class StandsService {
         });
         if (directUser) {
           targetUserId = directUser.id.toString();
-          console.log(`[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${message}`);
+          console.log(
+            `[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${message}`,
+          );
         }
       }
-      
-      console.log(`[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${message}`);
+
+      console.log(
+        `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${message}`,
+      );
       this.wsGateway.sendNotification(targetUserId, message, 'success');
-      
+
       return savedEntity;
     } catch (e) {
       throw new Error(e);
@@ -105,15 +121,28 @@ export class StandsService {
   }
 
   private isStandData(data: any): boolean {
-    return !!(data.image || data.width || data.height || data.thickness ||
-              data.weightNetto || data.weightBrutto || data.link ||
-              data.vendorCode || data.manufactureTime || data.comment);
+    return !!(
+      data.image ||
+      data.width ||
+      data.height ||
+      data.thickness ||
+      data.weightNetto ||
+      data.weightBrutto ||
+      data.link ||
+      data.vendorCode ||
+      data.manufactureTime ||
+      data.comment
+    );
   }
 
   // Валидация обязательных полей для стенда
-  private validateStandFields(data: any, employeeId?: number, standTypeId?: number): string[] {
+  private validateStandFields(
+    data: any,
+    employeeId?: number,
+    standTypeId?: number,
+  ): string[] {
     const missingFields: string[] = [];
-    
+
     // Обязательные поля для стенда
     const requiredFields = [
       { field: 'image', name: 'Изображение' },
@@ -150,24 +179,36 @@ export class StandsService {
 
   async findAll() {
     return await this.repo.find({
-      relations: ['standType', 'employees', 'employees.peoples', 'parent', 'children'],
+      relations: [
+        'standType',
+        'employees',
+        'employees.peoples',
+        'parent',
+        'children',
+      ],
     });
   }
 
   async findCategories(): Promise<Stands[]> {
     const allItems = await this.findAll();
-    return allItems.filter(item => item.isCategory());
+    return allItems.filter((item) => item.isCategory());
   }
 
   async findStands(): Promise<Stands[]> {
     const allItems = await this.findAll();
-    return allItems.filter(item => item.isStand());
+    return allItems.filter((item) => item.isStand());
   }
 
   async findByParent(parentId: number | null): Promise<Stands[]> {
     return await this.repo.find({
       where: { parentId: parentId ?? IsNull() },
-      relations: ['standType', 'employees', 'employees.peoples', 'parent', 'children'],
+      relations: [
+        'standType',
+        'employees',
+        'employees.peoples',
+        'parent',
+        'children',
+      ],
     });
   }
 
@@ -245,17 +286,23 @@ export class StandsService {
     const [standTypes, allItems] = await Promise.all([
       this.repo.manager.getRepository(StandsTypes).find(),
       this.repo.find({
-        relations: ['standType', 'employees', 'employees.peoples', 'parent', 'children'],
+        relations: [
+          'standType',
+          'employees',
+          'employees.peoples',
+          'parent',
+          'children',
+        ],
       }),
     ]);
 
-    const categories = allItems.filter(item => item.isCategory());
-    const stands = allItems.filter(item => item.isStand());
+    const categories = allItems.filter((item) => item.isCategory());
+    const stands = allItems.filter((item) => item.isStand());
 
     const buildCategoryTree = (parentId: number | null = null): any[] => {
       return categories
-        .filter(cat => cat.parentId === parentId)
-        .map(cat => ({
+        .filter((cat) => cat.parentId === parentId)
+        .map((cat) => ({
           id: cat.id,
           name: cat.title,
           nodeType: 'stands_categories',
@@ -263,20 +310,22 @@ export class StandsService {
           children: [
             ...buildCategoryTree(cat.id),
             ...stands
-              .filter(stand => stand.parentId === cat.id)
-              .map(stand => {
+              .filter((stand) => stand.parentId === cat.id)
+              .map((stand) => {
                 const emp = stand.employees?.peoples;
                 const employeeName = emp
                   ? `${emp.firstName || ''} ${emp.middleName || ''} ${emp.lastName || ''}`.trim()
                   : '';
-                const suffix = employeeName ? ` | Сотрудник: ${employeeName}` : '';
+                const suffix = employeeName
+                  ? ` | Сотрудник: ${employeeName}`
+                  : '';
                 return {
                   name: `${stand.title}${suffix}`,
                   nodeType: 'stands',
                   ...stand,
                   children: [],
                 };
-              })
+              }),
           ],
         }));
     };
@@ -291,8 +340,8 @@ export class StandsService {
         ...buildCategoryTree(null),
         // Добавляем стенды без категорий (parentId == null, но заполнены дополнительные поля)
         ...stands
-          .filter(stand => stand.parentId === null)
-          .map(stand => {
+          .filter((stand) => stand.parentId === null)
+          .map((stand) => {
             const emp = stand.employees?.peoples;
             const employeeName = emp
               ? `${emp.firstName || ''} ${emp.middleName || ''} ${emp.lastName || ''}`.trim()
@@ -304,7 +353,7 @@ export class StandsService {
               ...stand,
               children: [],
             };
-          })
+          }),
       ],
     }));
 
@@ -386,6 +435,60 @@ export class StandsService {
         nodeType: 'root',
         children: filteredTree,
       };
+    } catch (e) {
+      throw new Error(e as any);
+    }
+  }
+
+  /**
+   * Метод работает только на Web-версии!
+   * Не удалять!
+   * @returns
+   */
+  async getTreeForWeb() {
+    try {
+      const [types, stands] = await Promise.all([
+        this.repo.manager.getRepository(StandsTypes).find(),
+        this.repo.find({
+          relations: ['standType', 'employees', 'employees.peoples'],
+        }),
+      ]);
+
+      // вспомогательная функция для построения иерархии по parentId
+      const buildStandTree = (
+        standsList: any[],
+        parentId: number | null = null,
+      ) => {
+        return standsList
+          .filter((s) => s.parentId === parentId)
+          .map((s) => {
+            const emp = s.employees?.peoples;
+            const employeeName = emp
+              ? `${emp.firstName || ''} ${emp.middleName || ''} ${emp.lastName || ''}`.trim()
+              : '';
+            const suffix = employeeName ? ` | Сотрудник: ${employeeName}` : '';
+
+            return {
+              id: s.id,
+              name: `${s.title}${suffix}`,
+              nodeType: 'stands',
+              children: buildStandTree(standsList, s.id), // рекурсия
+            };
+          });
+      };
+
+      const tree = (types || []).map((t: any) => ({
+        id: t.id,
+        name: t.title,
+        nodeType: 'stands_types',
+        children: buildStandTree(
+          (stands || []).filter(
+            (s) => s.standType && (s.standType as any).id === t.id,
+          ),
+        ),
+      }));
+
+      return { name: 'Стенды', children: tree };
     } catch (e) {
       throw new Error(e as any);
     }
