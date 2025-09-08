@@ -140,18 +140,17 @@ const handleSubmit = async () => {
                 v-model="formData[item]"
                 :id="item"
                 :name="item"
-                placeholder="+7 (___) ___-__-__"
-              />
-            </template>
-            <template v-else-if="item === 'isCompleted'">
-              <input
                 class="addModalWindow__content__field__input"
-                type="checkbox"
-                v-model="formData[item]"
-                :id="item"
-                :name="item"
               />
             </template>
+            <input
+              v-else-if="item === 'isCompleted'"
+              class="addModalWindow__content__field__input"
+              type="checkbox"
+              v-model="formData[item]"
+              :id="item"
+              :name="item"
+            />
             <template v-else-if="item === 'vat'">
               <div class="addModalWindow__content__field__inputControls">
                 <Button

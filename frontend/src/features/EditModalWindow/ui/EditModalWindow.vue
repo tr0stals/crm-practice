@@ -164,7 +164,7 @@ onUnmounted(() => {
           class="editModalWindow__content__field__label"
           :for="key"
         >
-          {{ [key] }}
+          {{ fieldDictionary[key] }}
         </label>
 
         <!-- Date -->

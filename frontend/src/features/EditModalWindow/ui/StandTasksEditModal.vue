@@ -278,6 +278,7 @@ onUnmounted(() => {
           v-else-if="key !== 'id'"
           class="editModalWindow__content__field__input"
           :type="getInputType(key, value)"
+          :class="getInputType(key, value) === 'checkbox' && 'inputCheckbox'"
           :id="key"
           :name="key"
           v-model="formData[key]"
