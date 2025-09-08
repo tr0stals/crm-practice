@@ -260,6 +260,29 @@ export class PcbsService {
 
     const tree = buildCategoryTree();
 
-    return { name: 'Платы', children: tree };
+    // Добавляем платы без категории (parentId = null) на корневой уровень
+    const rootPcbs = pcbs
+      .filter(pcb => pcb.parentId === null || pcb.parentId === undefined)
+      .map(pcb => ({
+        id: pcb.id,
+        name: pcb.title || `Плата #${pcb.id}`,
+        pcbName: pcb.title,
+        nodeType: 'pcbs',
+        isPcb: true,
+        children: Array.isArray(pcb.pcbsComponents)
+          ? pcb.pcbsComponents.map((comp) => ({
+              name: `${comp.component?.title || `Компонент #${comp.id}`} (${comp.componentCount} шт)`,
+              nodeType: 'components',
+              componentTitle: comp.component?.title,
+              material: comp.component?.material,
+              receiptDate: comp.component?.receiptDate,
+              id: comp.id,
+              componentCount: comp.componentCount,
+              component: comp.component,
+            }))
+          : [],
+      }));
+
+    return { name: 'Платы', children: [...rootPcbs, ...tree] };
   }
 }

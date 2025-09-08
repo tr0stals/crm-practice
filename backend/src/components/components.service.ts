@@ -262,6 +262,23 @@ export class ComponentsService {
 
     const tree = buildCategoryTree();
 
-    return { name: 'Актуальный склад', children: tree };
+    // Добавляем компоненты без категории (parentId = null) на корневой уровень
+    const rootComponents = components
+      .filter(comp => comp.parentId === null || comp.parentId === undefined)
+      .map(comp => {
+        const placement = comp.componentPlacements;
+        const placementInfo = placement
+          ? `${placement.placementType?.title || ''}, Здание ${placement.building}, комната ${placement.room}`
+          : '';
+        return {
+          name: comp.title + ' | ' + placementInfo,
+          nodeType: 'components',
+          placementInfo,
+          ...comp,
+          children: [],
+        };
+      });
+
+    return { name: 'Актуальный склад', children: [...rootComponents, ...tree] };
   }
 }
