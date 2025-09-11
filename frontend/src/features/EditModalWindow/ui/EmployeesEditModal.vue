@@ -13,7 +13,7 @@ import useFetch from "@/shared/lib/useFetch";
 import { api, defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { updateAsync } from "../api/updateAsync";
-import { relatedTables } from "../config/relatedTables";
+import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 
@@ -25,6 +25,7 @@ const loading = ref<boolean>(false);
 const peopleId = ref<number>();
 const people = ref();
 const employeeProfessionsId = ref<number>();
+const employeeDepartmentsId = ref<number>();
 
 let model: EditModalWindowModel;
 
@@ -83,6 +84,14 @@ const getEmployeesProfessions = async (employeeId: number) => {
   return res;
 };
 
+const getEmployeesDepartments = async (employeeId: number) => {
+  const res = await getDataAsync({
+    endpoint: `employee_departments/getByEmployeeId/${employeeId}`,
+  });
+
+  return res;
+};
+
 async function handleSubmit() {
   const employeeData = {
     id: formData.value.id,
@@ -103,11 +112,18 @@ async function handleSubmit() {
   };
 
   const profession = formData.value.professions;
+  const department = formData.value.departments;
 
   const employeesProfessionsData = {
     id: employeeProfessionsId.value,
     employees: employeeData,
     professions: profession,
+  };
+
+  const employeesDepartmentsData = {
+    id: employeeDepartmentsId.value,
+    employees: employeeData,
+    departments: department,
   };
 
   await updateAsync("peoples", peopleData);
@@ -122,12 +138,14 @@ async function handleSubmit() {
     });
   }
 
+  await updateAsync("employee_departments", employeesDepartmentsData);
+
   model.destroy();
   props.onApplyCallback();
 }
 
 function isRelatedField(key: string, value: any): boolean {
-  return isObjectField(value) || relatedTables.includes(key);
+  return isObjectField(value) || relatedFields.includes(key);
 }
 
 onMounted(async () => {
@@ -166,10 +184,16 @@ onMounted(async () => {
         employeeProfessionsId.value
       );
 
+      const employeesDepartments = await getEmployeesDepartments(
+        defaultData?.id
+      );
+      employeeDepartmentsId.value = employeesDepartments.data?.id;
+
       formData.value = {
         ...defaultData,
         ...defaultPeoples,
         professions: employeesProfessions.data.professions,
+        departments: employeesDepartments.data.departments,
       };
       console.debug("formData", formData.value);
 
@@ -190,7 +214,7 @@ onMounted(async () => {
 
       // Поиск полей-объектов (foreign keys)
       const objectFields = Object.entries(formData.value).filter(
-        ([key, value]) => isObjectField(value) || relatedTables.includes(key)
+        ([key, value]) => isObjectField(value) || relatedFields.includes(key)
       );
 
       for (const [key] of objectFields) {

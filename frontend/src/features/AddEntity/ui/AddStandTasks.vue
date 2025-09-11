@@ -138,6 +138,7 @@ const handleSubmit = async () => {
               :id="item"
               :name="item"
             />
+            <input v-else-if="item === 'photo'" type="image" />
 
             <template v-else>
               <input

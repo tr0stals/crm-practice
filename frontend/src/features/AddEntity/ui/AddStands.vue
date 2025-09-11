@@ -78,7 +78,11 @@ const handleSubmit = async () => {
           :key="item"
           class="addModalWindow__content__field"
         >
-          <template v-if="item !== 'id' && item !== 'passwordSalt'">
+          <template
+            v-if="
+              item !== 'id' && item !== 'passwordSalt' && item !== 'standTypeId'
+            "
+          >
             <label class="addModalWindow__content__field__label" :for="item">{{
               fieldDictionary[item] || item
             }}</label>

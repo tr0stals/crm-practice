@@ -13,7 +13,7 @@ import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
-import { relatedTables } from "../config/relatedTables";
+import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 
 const resultData = ref<any>();
@@ -83,8 +83,8 @@ async function loadOrders() {
 function isRelatedField(key: string, value: any): boolean {
   return (
     isObjectField(value) ||
-    relatedTables.includes(key) ||
-    relatedTables.includes(relationMap[key])
+    relatedFields.includes(key) ||
+    relatedFields.includes(relationMap[key])
   );
 }
 
@@ -131,8 +131,8 @@ onMounted(async () => {
       const objectFields = Object.entries(formData.value).filter(
         ([key, value]) =>
           isObjectField(value) ||
-          relatedTables.includes(key) ||
-          relatedTables.includes(relationMap[key])
+          relatedFields.includes(key) ||
+          relatedFields.includes(relationMap[key])
       );
 
       for (const [key] of objectFields) {

@@ -1,6 +1,8 @@
 import { ref, reactive, onMounted } from "vue";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { createEntityAsync } from "../api/createEntityAsync";
+import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import useFetch from "@/shared/lib/useFetch";
 
 /**
  * Добавление записей в сущности-таблицы (не тривью)
@@ -12,6 +14,9 @@ export function useAddStands(sectionName: string, onSuccess: () => void) {
   const formData = reactive<any>({});
   const tableColumns = ref<string[]>([]);
   const selectOptions = reactive<Record<string, any[]>>({});
+  const navigationStore = useNavigationStore();
+
+  const standTypeId = ref();
 
   const fetchColumnsAndRelations = async () => {
     const data = await getDataAsync({
@@ -29,8 +34,7 @@ export function useAddStands(sectionName: string, onSuccess: () => void) {
 
     tableColumns.value = Object.keys(data);
 
-    for (const [key, value] of Object.entries(data)) {
-      console.debug(key, value);
+    for (let [key, value] of Object.entries(data)) {
       if (value.options) {
         selectOptions[key] = value.options;
       }
@@ -41,6 +45,34 @@ export function useAddStands(sectionName: string, onSuccess: () => void) {
     }
   };
 
+  const getStandTypeId = async () => {
+    const standType = navigationStore.selectedRow?.data;
+    console.debug("debug!!!", standType);
+    const standTypeId = ref();
+
+    switch (standType?.nodeType) {
+      case "stands_types":
+        standTypeId.value = standType.id;
+        break;
+
+      case "stands":
+        const stand = await getDataAsync({
+          endpoint: `stands/get/${standType.id}`,
+        })
+          .then((res) => res.data)
+          .catch((e) => console.error(e));
+
+        if (!stand) {
+          throw new Error("Ошибка при поиске стенда => getStandTypeId()");
+        }
+
+        standTypeId.value = stand.standType?.id;
+        break;
+    }
+
+    return standTypeId.value;
+  };
+
   onMounted(fetchColumnsAndRelations);
 
   const submit = async () => {
@@ -48,6 +80,11 @@ export function useAddStands(sectionName: string, onSuccess: () => void) {
     if (!formData.parentId) {
       formData.parentId = null;
     }
+
+    const standTypeId = await getStandTypeId();
+
+    formData.standTypeId = standTypeId;
+    console.debug(formData);
 
     await createEntityAsync(sectionName, formData);
     onSuccess();

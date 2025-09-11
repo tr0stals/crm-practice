@@ -51,6 +51,7 @@ import AddStandTasks from "@/features/AddEntity/ui/AddStandTasks.vue";
 import StandTasksEditModal from "@/features/EditModalWindow/ui/StandTasksEditModal.vue";
 import OrganizationsEditModal from "@/features/EditModalWindow/ui/OrganizationsEditModal.vue";
 import OrderRequestsEditModal from "@/features/EditModalWindow/ui/OrderRequestsEditModal.vue";
+import PcbsEditModal from "@/features/EditModalWindow/ui/PcbsEditModal.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -287,6 +288,24 @@ function handleEditModalWindow() {
     });
   } else if (cfg.sectionName === "stand_tasks") {
     ModalManager.getInstance().open(StandTasksEditModal, {
+      config: cfg,
+      onApplyCallback: onUpdateCallBack,
+    });
+  } else if (
+    cfg.sectionName === "pcbs_categories" ||
+    cfg.sectionName === "pcbs"
+  ) {
+    cfg.sectionName = "pcbs";
+    ModalManager.getInstance().open(PcbsEditModal, {
+      config: cfg,
+      onApplyCallback: onUpdateCallBack,
+    });
+  } else if (
+    cfg.sectionName === "components_categories" ||
+    cfg.sectionName === "components"
+  ) {
+    cfg.sectionName = "components";
+    ModalManager.getInstance().open(EditModalWindow, {
       config: cfg,
       onApplyCallback: onUpdateCallBack,
     });

@@ -13,7 +13,7 @@ import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
-import { relatedTables } from "../config/relatedTables";
+import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 
 const resultData = ref<any>();
@@ -79,7 +79,7 @@ async function loadOrganizations() {
 }
 
 function isRelatedField(key: string, value: any): boolean {
-  return isObjectField(value) || relatedTables.includes(key);
+  return isObjectField(value) || relatedFields.includes(key);
 }
 
 onMounted(async () => {
@@ -124,7 +124,7 @@ onMounted(async () => {
 
       // Поиск полей-объектов (foreign keys)
       const objectFields = Object.entries(formData.value).filter(
-        ([key, value]) => isObjectField(value) || relatedTables.includes(key)
+        ([key, value]) => isObjectField(value) || relatedFields.includes(key)
       );
 
       for (const [key] of objectFields) {

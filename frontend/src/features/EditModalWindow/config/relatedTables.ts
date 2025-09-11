@@ -1,7 +1,8 @@
-export const relatedTables = [
+export const relatedFields = [
   "stands",
   "employees",
   "professions",
   "profession",
   "peoples",
+  "component",
 ];

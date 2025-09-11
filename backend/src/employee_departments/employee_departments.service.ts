@@ -43,6 +43,24 @@ export class EmployeeDepartmentsService {
     }
   }
 
+  async getByEmployeeId(id: number) {
+    try {
+      const employee = await this.repo.findOne({
+        where: {
+          employees: { id: id },
+        },
+        relations: ['departments', 'employees'],
+      });
+
+      if (!employee)
+        throw new NotFoundException('Ошибка при поиске сотрудника');
+
+      return employee;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async findAll() {
     return await this.repo.find({
       relations: ['departments', 'employees', 'employees.peoples'],

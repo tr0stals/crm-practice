@@ -6,7 +6,6 @@ import Button from "@/shared/ui/Button/ui/Button.vue";
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { EditModalWindowModel } from "../model/EditModalWindowModel";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
-import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { relationMap } from "@/shared/config/relationMap";
@@ -16,13 +15,16 @@ import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
+import { loadItems } from "../api/loadItems";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
 const dateModel = reactive<Record<string, any>>({});
 const relatedOptions = reactive<Record<string, any[]>>({});
 const loading = ref<boolean>(false);
-const stands = ref();
+const pcbs = ref();
+const components = ref();
+const componentsCount = ref();
 
 let model: EditModalWindowModel;
 
@@ -35,6 +37,7 @@ const emits = defineEmits(["close", "save"]);
 
 const sectionName = computed(() => props.config?.sectionName);
 const entityId = computed(() => props.config?.entityId);
+console.debug(entityId.value);
 // const { licenseTypeId, ...originalData } = props.config?.data;
 
 function isDateField(key: any) {
@@ -63,6 +66,7 @@ const getInputType = (key: string, value: any): string => {
 
 async function loadRelatedOptions(key: string) {
   try {
+    console.debug("key!!!", key);
     const response = await getDataAsync({
       endpoint: `${relationMap[key] ? relationMap[key] : key}/get`,
     });
@@ -77,17 +81,11 @@ function isRelatedField(key: string, value: any): boolean {
   return isObjectField(value) || relatedFields.includes(key);
 }
 
-async function loadStands() {
-  const stands = await getDataAsync({ endpoint: "stand_tasks/get" });
-
-  return stands;
-}
-
 onMounted(async () => {
   model = new EditModalWindowModel(props.onApplyCallback);
 
   const { data, loading, error, refetch } = useFetch<any>(
-    `${defaultEndpoint}/${sectionName.value}/get/${entityId.value}`
+    `${defaultEndpoint}/pcbs/get/${entityId.value}`
   );
 
   watch(
@@ -106,7 +104,8 @@ onMounted(async () => {
       resultData.value = newData;
       formData.value = { ...newData };
       const currentParentId = formData.value.parentId;
-      stands.value = (await loadStands()).data;
+      pcbs.value = (await loadItems("pcbs")).data;
+      const pcbsComponents = (await loadItems("pcbs_components")).data;
 
       // Поиск полей с датами
       const dateFields = Object.keys(formData.value).filter(isDateField);
@@ -188,6 +187,7 @@ onUnmounted(() => {
           placeholder="Выберите дату"
         />
 
+        <!-- для поля parentId (Категории) -->
         <select
           v-else-if="key === 'parentId'"
           class="editModalWindow__content__field__input"
@@ -199,10 +199,24 @@ onUnmounted(() => {
             console.debug(key)
           }}
           <option :value="null">Без категории</option>
-          <option v-for="stand in stands" :value="stand.id">
-            {{ stand.title }}
+          <option v-for="pcb in pcbs" :value="pcb.id">
+            {{ pcb.title }}
           </option>
         </select>
+        <!-- <select
+          v-else-if="key === 'component'"
+          class="editModalWindow__content__field__input"
+          :id="key"
+          :name="key"
+          v-model="formData[key].id"
+        >
+          <option :value="null">Без категории</option>
+          <option v-for="component in components" :value="component.id">
+            {{
+              component.title ? component.title : "Нет названия у компонента"
+            }}
+          </option>
+        </select> -->
         <!-- Select for object (relation) -->
         <select
           v-else-if="isRelatedField(key, value)"
@@ -272,14 +286,12 @@ onUnmounted(() => {
           :name="key"
           placeholder="+7 (___) ___-__-__"
         />
-        <input v-else-if="key === 'photo'" type="image" />
 
         <!-- Generic input -->
         <input
           v-else-if="key !== 'id'"
           class="editModalWindow__content__field__input"
           :type="getInputType(key, value)"
-          :class="getInputType(key, value) === 'checkbox' && 'inputCheckbox'"
           :id="key"
           :name="key"
           v-model="formData[key]"

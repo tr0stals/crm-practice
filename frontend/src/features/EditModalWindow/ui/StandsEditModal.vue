@@ -13,7 +13,7 @@ import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
-import { relatedTables } from "../config/relatedTables";
+import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 
 const resultData = ref<any>();
@@ -22,6 +22,7 @@ const dateModel = reactive<Record<string, any>>({});
 const relatedOptions = reactive<Record<string, any[]>>({});
 const loading = ref<boolean>(false);
 const stands = ref();
+const standTypeId = ref();
 
 let model: EditModalWindowModel;
 
@@ -75,13 +76,17 @@ async function loadRelatedOptions(key: string) {
 }
 
 async function loadStands() {
-  const stands = await getDataAsync({ endpoint: "stands/get" });
+  let stands = await getDataAsync({ endpoint: "stands/get" });
+
+  stands = stands.data?.filter(
+    (stand: any) => stand.standType?.id === standTypeId.value
+  );
 
   return stands;
 }
 
 function isRelatedField(key: string, value: any): boolean {
-  return isObjectField(value) || relatedTables.includes(key);
+  return isObjectField(value) || relatedFields.includes(key);
 }
 
 onMounted(async () => {
@@ -107,7 +112,8 @@ onMounted(async () => {
       resultData.value = newData;
       formData.value = { ...newData };
       const currentParentId = formData.value.parentId;
-      stands.value = (await loadStands()).data;
+      standTypeId.value = formData.value.standType?.id;
+      stands.value = await loadStands();
 
       // Поиск полей с датами
       const dateFields = Object.keys(formData.value).filter(isDateField);
@@ -126,7 +132,7 @@ onMounted(async () => {
 
       // Поиск полей-объектов (foreign keys)
       const objectFields = Object.entries(formData.value).filter(
-        ([key, value]) => isObjectField(value) || relatedTables.includes(key)
+        ([key, value]) => isObjectField(value) || relatedFields.includes(key)
       );
 
       for (const [key] of objectFields) {
