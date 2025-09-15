@@ -2,6 +2,7 @@ import type { TreeNode } from "primevue/treenode";
 
 export function useTreeviewMenu() {
   const getTreeviewData = (nodes: any[], level = 0): TreeNode[] => {
+    console.debug(nodes);
     return nodes.map((node) => {
       const treeNode: TreeNode = {
         id: node.id,

@@ -41,7 +41,7 @@ watch(
 function onNodeSelect(event: any) {
   navigationStore.resetData();
   selectedKey.value = event.key;
-  console.debug(event);
+
   selectedSection.value = event.data.nodeType;
 
   emit("node-select", event);

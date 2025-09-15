@@ -16,6 +16,7 @@ import { EmployeesService } from 'src/employees/employees.service';
 import { StandsService } from 'src/stands/stands.service';
 import { PcbsService } from 'src/pcbs/pcbs.service';
 import { ComponentsService } from 'src/components/components.service';
+import { treeTablesChildren } from './config/treeTablesChildren';
 
 @Injectable()
 export class DatabaseService {
@@ -120,6 +121,65 @@ export class DatabaseService {
         id: index + 1,
         name: item.referencedColumn,
         nodeType: item.referencedColumn,
+      }));
+
+      tree.push({
+        name: entity,
+        nodeType: entity,
+        children,
+      });
+    }
+
+    return tree;
+  }
+
+  async getTreeTablesChildren() {
+    const tree: any[] = [];
+
+    for (const entity of entities) {
+      // получаем ключ-значение объекта treeTablesChildren
+      const tableRelations = Object.entries(treeTablesChildren)
+        .map(([key, value]) => key === entity && value)
+        .filter(Boolean)
+        .flat();
+
+      if (tableRelations)
+        console.debug('!!!!!!!tableRelations!!!', tableRelations);
+
+      // Убираем дубликаты по referencedColumn
+      const uniqueRelationsMap = tableRelations.keys;
+      // for (const item of tableRelations) {
+      //   if (
+      //     item.referencedColumn &&
+      //     !uniqueRelationsMap.has(item.referencedColumn) &&
+      //     !entities.includes(item.referencedColumn) &&
+      //     ![
+      //       'invoices_components',
+      //       'bills_components',
+      //       'current_tasks_components',
+      //       'order_requests_components',
+      //       'organization_types',
+      //       'pcb_order_states',
+      //       'server_arrivals',
+      //       'employees_vacations',
+      //       'license_types',
+      //       'shipments',
+      //       'shipment_package',
+      //       'shipment_trips',
+      //       'shipments_stands',
+      //       'supplier_components',
+      //     ].includes(item.referencedColumn)
+      //   ) {
+      //     uniqueRelationsMap.set(item.referencedColumn, item);
+      //   }
+      // }
+
+      // const uniqueRelations = Array.from(uniqueRelationsMap.values());
+
+      const children = tableRelations.map((item, index) => ({
+        id: index + 1,
+        name: item,
+        nodeType: item,
       }));
 
       tree.push({

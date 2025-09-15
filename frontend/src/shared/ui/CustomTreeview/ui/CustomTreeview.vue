@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, onUnmounted, computed } from "vue";
-import { getDataAsync } from "@/shared/api/getDataAsync";
+import { ref, watch, computed } from "vue";
 import Tree from "primevue/tree";
-import { useRouter } from "vue-router";
 import "../style.scss";
 import { getTreeviewData } from "@/shared/ui/CustomTreeview/utils/getTreeviewData";
-import handlePagination from "@/shared/utils/handlePagination";
-import Pagination from "../../Pagination/ui/Pagination.vue";
 import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";

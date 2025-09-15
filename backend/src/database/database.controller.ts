@@ -33,7 +33,7 @@ export class DatabaseController {
 
   @Get('treeTables')
   async getTree() {
-    return await this.databaseService.getTreeTables();
+    return await this.databaseService.getTreeTablesChildren();
   }
 
   @Get('treeTables/:profession')
