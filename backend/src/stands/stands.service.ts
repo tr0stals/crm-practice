@@ -230,8 +230,10 @@ export class StandsService {
         const { parentId, standType, employees, ...defaultData } = item;
         const standTypeTitle = standType?.title;
 
-        if (!employees.peoples) throw new Error('Не найден сотрудник!');
-        const employeeName = `${employees.peoples?.firstName} ${employees.peoples?.middleName} ${employees.peoples?.lastName}`;
+        const emp = employees?.peoples;
+        const employeeName = emp
+          ? `${emp.firstName || ''} ${emp.middleName || ''} ${emp.lastName || ''}`.trim()
+          : '';
 
         data.push({
           ...defaultData,
