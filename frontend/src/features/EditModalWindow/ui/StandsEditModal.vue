@@ -178,7 +178,7 @@ onUnmounted(() => {
           class="editModalWindow__content__field__label"
           :for="key"
         >
-          {{ fieldDictionary[key] }}
+          {{ [key] }}
         </label>
 
         <!-- Date -->
@@ -203,9 +203,6 @@ onUnmounted(() => {
           :name="key"
           v-model="formData[key]"
         >
-          {{
-            console.debug(key)
-          }}
           <option :value="null">Без категории</option>
           <option v-for="stand in stands" :value="stand.id">
             {{ stand.title }}

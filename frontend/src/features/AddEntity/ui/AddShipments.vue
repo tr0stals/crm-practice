@@ -84,7 +84,7 @@ const handleSubmit = async () => {
             <label
               class="addModalWindow__content__field__label"
               :for="field.name"
-              >{{ fieldDictionary[field.name] }}</label
+              >{{ [field.name] }}</label
             >
             {{ console.debug(formData[field.section][field.name]) }}
             <input
@@ -117,7 +117,7 @@ const handleSubmit = async () => {
                 :value="opt.id"
                 required
               >
-                {{ opt.label }}
+                {{ opt.label || opt.shortName }}
               </option>
             </select>
           </template>

@@ -52,6 +52,7 @@ import StandTasksEditModal from "@/features/EditModalWindow/ui/StandTasksEditMod
 import OrganizationsEditModal from "@/features/EditModalWindow/ui/OrganizationsEditModal.vue";
 import OrderRequestsEditModal from "@/features/EditModalWindow/ui/OrderRequestsEditModal.vue";
 import PcbsEditModal from "@/features/EditModalWindow/ui/PcbsEditModal.vue";
+import ComponentsEditModal from "@/features/EditModalWindow/ui/ComponentsEditModal.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -305,7 +306,7 @@ function handleEditModalWindow() {
     cfg.sectionName === "components"
   ) {
     cfg.sectionName = "components";
-    ModalManager.getInstance().open(EditModalWindow, {
+    ModalManager.getInstance().open(ComponentsEditModal, {
       config: cfg,
       onApplyCallback: onUpdateCallBack,
     });

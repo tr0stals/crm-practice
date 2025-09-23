@@ -70,7 +70,19 @@ async function loadRelatedOptions(key: string) {
     const response = await getDataAsync({
       endpoint: `${relationMap[key] ? relationMap[key] : key}/get`,
     });
-    relatedOptions[key] = response?.data ?? [];
+
+    if (
+      key === "client" ||
+      key === "factory" ||
+      key === "supplier" ||
+      key === "transporter"
+    ) {
+      relatedOptions[key] = response.data.filter(
+        (item: any) => item.organizationTypes?.title === fieldDictionary[key]
+      );
+    } else {
+      relatedOptions[key] = response?.data ?? [];
+    }
   } catch (error) {
     console.error(`Не удалось загрузить справочник для ${key}`, error);
     relatedOptions[key] = [];
@@ -147,6 +159,7 @@ onMounted(async () => {
       const stand = shipmentStand.data.stands;
       const { id, ...defaultStand } = stand;
 
+      console.debug({ ...newData });
       formData.value = {
         ...newData,
         stands: stand,
@@ -253,7 +266,7 @@ onUnmounted(() => {
             }
           "
         >
-          <option value="">Не выбрано</option>
+          <option :value="null">Не выбрано</option>
           <option
             v-for="item in relatedOptions[key]"
             :key="item.id"

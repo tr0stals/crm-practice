@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from "vue";
 import type { FieldMeta } from "../types/FieldMeta";
 import { useToast } from "vue-toastification";
 import { createEntityAsync } from "../api/createEntityAsync";
+import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 
 export function useAddShipments(sectionName: string, onSuccess: () => void) {
   const formData = reactive<any>({
@@ -14,6 +15,14 @@ export function useAddShipments(sectionName: string, onSuccess: () => void) {
   const selectOptions = reactive<Record<string, any[]>>({});
   const toast = useToast();
 
+  const loadOrganizations = async (org: any) => {
+    try {
+      return await getDataAsync({ endpoint: `organizations/get/${org.id}` });
+    } catch (e) {
+      throw new Error(e);
+    }
+  };
+
   const fetchColumnsAndRelations = async () => {
     // сначала тянем основную таблицу Employees
     const data = await getDataAsync({
@@ -23,13 +32,32 @@ export function useAddShipments(sectionName: string, onSuccess: () => void) {
     tableColumns.value = Object.keys(data);
 
     for (const [key, value] of Object.entries(data)) {
-      selectOptions[key] = value.options;
+      if (
+        key === "clientId" ||
+        key === "transporterId" ||
+        key === "factoryId" ||
+        key === "supplierId"
+      ) {
+        const targetOptions = await Promise.all(
+          value.options.map(async (opt: any) => {
+            const response = await loadOrganizations(opt);
+            return response.data;
+          })
+        );
+        value.options = targetOptions.filter(
+          (opt: any) => opt.organizationTypes?.title === fieldDictionary[key]
+        );
+      } else {
+        selectOptions[key] = value.options;
+      }
+
       formFields.value.push({
         name: key,
         type: value.options ? "select" : "input",
         options: value.options ?? [],
         section: sectionName,
       });
+      console.debug(formFields.value);
     }
 
     const standsData = await getDataAsync({

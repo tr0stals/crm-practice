@@ -22,7 +22,6 @@ const formData = ref<any>({});
 const dateModel = reactive<Record<string, any>>({});
 const relatedOptions = reactive<Record<string, any[]>>({});
 const loading = ref<boolean>(false);
-const pcbs = ref();
 const components = ref();
 const componentsCount = ref();
 
@@ -85,7 +84,7 @@ onMounted(async () => {
   model = new EditModalWindowModel(props.onApplyCallback);
 
   const { data, loading, error, refetch } = useFetch<any>(
-    `${defaultEndpoint}/pcbs/get/${entityId.value}`
+    `${defaultEndpoint}/components/get/${entityId.value}`
   );
 
   watch(
@@ -104,8 +103,7 @@ onMounted(async () => {
       resultData.value = newData;
       formData.value = { ...newData };
       const currentParentId = formData.value.parentId;
-      pcbs.value = (await loadItems("pcbs")).data;
-      const pcbsComponents = (await loadItems("pcbs_components")).data;
+      components.value = (await loadItems("components")).data;
 
       // Поиск полей с датами
       const dateFields = Object.keys(formData.value).filter(isDateField);
@@ -196,24 +194,11 @@ onUnmounted(() => {
           v-model="formData[key]"
         >
           <option :value="null">Без категории</option>
-          <option v-for="pcb in pcbs" :value="pcb.id">
-            {{ pcb.title }}
+          <option v-for="component in components" :value="component.id">
+            {{ component.title }}
           </option>
         </select>
-        <!-- <select
-          v-else-if="key === 'component'"
-          class="editModalWindow__content__field__input"
-          :id="key"
-          :name="key"
-          v-model="formData[key].id"
-        >
-          <option :value="null">Без категории</option>
-          <option v-for="component in components" :value="component.id">
-            {{
-              component.title ? component.title : "Нет названия у компонента"
-            }}
-          </option>
-        </select> -->
+
         <!-- Select for object (relation) -->
         <select
           v-else-if="isRelatedField(key, value)"
