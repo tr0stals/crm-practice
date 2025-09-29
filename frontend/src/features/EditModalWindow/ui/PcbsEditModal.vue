@@ -200,20 +200,7 @@ onUnmounted(() => {
             {{ pcb.title }}
           </option>
         </select>
-        <!-- <select
-          v-else-if="key === 'component'"
-          class="editModalWindow__content__field__input"
-          :id="key"
-          :name="key"
-          v-model="formData[key].id"
-        >
-          <option :value="null">Без категории</option>
-          <option v-for="component in components" :value="component.id">
-            {{
-              component.title ? component.title : "Нет названия у компонента"
-            }}
-          </option>
-        </select> -->
+
         <!-- Select for object (relation) -->
         <select
           v-else-if="isRelatedField(key, value)"

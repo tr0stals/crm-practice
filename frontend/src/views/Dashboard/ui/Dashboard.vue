@@ -2,57 +2,38 @@
 import { useAuthStore } from "@/shared/store/auth.store";
 import { useRouter } from "vue-router";
 import Button from "@/shared/ui/Button/ui/Button.vue";
-import PlusIcon from "@/shared/ui/PlusIcon/ui/PlusIcon.vue";
-import EditIcon from "@/shared/ui/EditIcon/ui/EditIcon.vue";
-import DeleteIcon from "@/shared/ui/DeleteIcon/ui/DeleteIcon.vue";
 import RefreshIcon from "@/shared/ui/RefreshIcon/ui/RefreshIcon.vue";
-import { ModalManager } from "@/shared/plugins/modalManager";
-import EditModalWindow from "@/features/EditModalWindow/ui/EditModalWindow.vue";
-import type { IEdittingProps } from "@/shared/config/IEdittingProps";
 import { getUserInfoAsync } from "../api/getUserInfoAsync";
 import CustomTreeview from "@/shared/ui/CustomTreeview/ui/CustomTreeview.vue";
 import { ref, onMounted, onUnmounted, watch, computed, nextTick } from "vue";
 import "../style.scss";
 import type { IData } from "../interface/IData";
-import { getUsers } from "@/shared/api/userApi";
-import { deleteDataAsync } from "../api/deleteDataAsync";
 import AvatarIcon from "@/shared/ui/AvatarIcon/ui/AvatarIcon.vue";
-import AddEntity from "@/features/AddEntity/ui/AddEntityModal.vue";
 import type { TreeNode } from "primevue/treenode";
-import * as XLSX from "xlsx";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import type { IAuthorizedUser } from "../interface/IAuthorizedUser";
 import { roleTables } from "@/shared/config/rolesTables";
-import { MoreDetailsCollapseModel } from "@/widgets/MoreDetailsCollapse/model/MoreDetailsCollapseModel";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { treeviewTables } from "@/shared/config/treeviewTables";
 import WelcomeBanner from "@/widgets/WelcomeBanner/ui/WelcomeBanner.vue";
-import AddCurrentTask from "@/features/AddCurrentTask/ui/AddCurrentTask.vue";
+import GetCurrentTaskButton from "@/features/GetCurrentTaskButton/ui/GetCurrentTaskButton.vue";
 import SetCurrentTaskCompleted from "@/features/SetCurrentTaskCompleted/ui/SetCurrentTaskCompleted.vue";
 import ExportTableButton from "@/features/ExportTableButton/ui/ExportTableButton.vue";
 import ImportTableButton from "@/features/ImportTableButton/ui/ImportTableButton.vue";
 import CustomDropdown from "@/shared/ui/CustomDropdown/ui/CustomDropdown.vue";
 import ExportDatabase from "@/features/ExportDatabase/ui/ExportDatabase.vue";
 import ImportDatabase from "@/features/ImportDatabase/ui/ImportDatabase.vue";
-import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
 import NavigationSidebar from "@/features/NavigationSidebar/ui/NavigationSidebar.vue";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import TreeviewMenu from "@/features/TreeviewMenu/ui/TreeviewMenu.vue";
 import NotificationButton from "@/features/Notifications/ui/NotificationButton.vue";
-import AddEmployees from "@/features/AddEntity/ui/AddEmployees.vue";
-import EmployeesEditModal from "@/features/EditModalWindow/ui/EmployeesEditModal.vue";
-import AddLicenses from "@/features/AddEntity/ui/AddLicenses.vue";
-import AddShipments from "@/features/AddEntity/ui/AddShipments.vue";
-import ShipmentsEditModal from "@/features/EditModalWindow/ui/ShipmentsEditModal.vue";
-import AddStands from "@/features/AddEntity/ui/AddStands.vue";
-import StandsEditModal from "@/features/EditModalWindow/ui/StandsEditModal.vue";
-import AddStandTasks from "@/features/AddEntity/ui/AddStandTasks.vue";
-import StandTasksEditModal from "@/features/EditModalWindow/ui/StandTasksEditModal.vue";
-import OrganizationsEditModal from "@/features/EditModalWindow/ui/OrganizationsEditModal.vue";
-import OrderRequestsEditModal from "@/features/EditModalWindow/ui/OrderRequestsEditModal.vue";
-import PcbsEditModal from "@/features/EditModalWindow/ui/PcbsEditModal.vue";
-import ComponentsEditModal from "@/features/EditModalWindow/ui/ComponentsEditModal.vue";
+import { professionEnum } from "@/shared/config/professionEnum";
+import { TableData } from "@/widgets/TableData";
+import { HandleEditButton } from "@/features/HandleEditButton";
+import { handleSelectRow } from "../lib/handleSelectRow";
+import { HandleCreateButton } from "@/features/HandleCreateButton";
+import { HandleDeleteButton } from "@/features/HandleDeleteButton";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -66,11 +47,6 @@ const data = ref<any[]>([]);
 const isMenuOpen = ref(false);
 const authorizedUser = ref<IAuthorizedUser | null>(null);
 
-const userFirstName = ref("[First name]");
-const userLastName = ref("[Last name]");
-const userProfession = ref<string>("");
-const avatarImage = ref(""); // Переменная для изображения аватара, изначально пустая
-// const userInfo = ref<any>();
 const localizatedSections = ref<any>([]);
 
 const treeviewData = ref<TreeNode[]>([]);
@@ -101,25 +77,6 @@ const isSelectOpen = ref(false); // Добавляем реактивную пе
 
 const columnFilters = ref<Record<string, string | null>>({});
 const filterDropdownOpen = ref<Record<string, boolean>>({});
-
-function toggleFilterDropdown(col: string) {
-  // Закрыть все фильтры кроме текущего
-  Object.keys(filterDropdownOpen.value).forEach((k) => {
-    filterDropdownOpen.value[k] = false;
-  });
-  // Открыть текущий (всегда)
-  filterDropdownOpen.value[col] = true;
-}
-function closeFilterDropdown(col: string) {
-  filterDropdownOpen.value[col] = false;
-}
-function setColumnFilter(col: string, value: string | null) {
-  columnFilters.value[col] = value;
-}
-function resetColumnFilter(col: string) {
-  columnFilters.value[col] = null;
-  filterDropdownOpen.value[col] = false;
-}
 
 const filteredData = computed(() => {
   let result = data.value;
@@ -225,104 +182,10 @@ async function onUpdateCallBack() {
   treeviewRef.value?.refreshTree?.();
 }
 
-/**
- *  Эта функция должна срабатывать при клике на кнопку "Редактировать"
- *  или при двойном клике на ячейку в таблице.
- */
-function handleEditModalWindow() {
-  /*
-   *  Не удалять комментарий, чтобы не забыть логику выбора sectionName!!!
-   *
-   *  Цель: узнать, какую текущую секцию передавать в EditModalWindow.
-   *  Логика: 1. если это Treeview - тогда выбранная строка имеет объект data - следовательно, мы выбираем ..data.nodeType
-   *          2. если это табличная сущность - у нее нет объекта data, следовательно, передаем navigationStore.currentSection
-   *
-   * Желательно не трогать, иначе можно получить ошибки при открытии модалки редактирования
-   */
-  const sectionName = navigationStore.selectedRow?.data
-    ? navigationStore.selectedRow.data?.nodeType
-    : navigationStore.currentSection;
-  const entityId = navigationStore.selectedRow?.id;
-
-  const cfg: IEdittingProps = {
-    sectionName: sectionName,
-    entityId: entityId,
-  };
-  console.debug(cfg);
-
-  if (!cfg.entityId || !cfg.sectionName) {
-    alert("Выберите строку для редактирования");
-
-    return;
-  }
-
-  if (cfg.sectionName === "employees")
-    ModalManager.getInstance().open(EmployeesEditModal, {
-      config: cfg,
-      onApplyCallback: onUpdateCallBack,
-    });
-  else if (cfg.sectionName === "shipments")
-    ModalManager.getInstance().open(ShipmentsEditModal, {
-      config: cfg,
-      onApplyCallback: onUpdateCallBack,
-    });
-  else if (cfg.sectionName === "order_requests") {
-    ModalManager.getInstance().open(OrderRequestsEditModal, {
-      config: cfg,
-      onApplyCallback: onUpdateCallBack,
-    });
-  } else if (cfg.sectionName === "organizations") {
-    ModalManager.getInstance().open(OrganizationsEditModal, {
-      config: cfg,
-      onApplyCallback: onUpdateCallBack,
-    });
-  } else if (
-    cfg.sectionName === "stands" ||
-    sectionName === "stands_categories"
-  ) {
-    ModalManager.getInstance().open(StandsEditModal, {
-      config: {
-        sectionName: "stands",
-        entityId: entityId,
-      },
-      onApplyCallback: onUpdateCallBack,
-    });
-  } else if (cfg.sectionName === "stand_tasks") {
-    ModalManager.getInstance().open(StandTasksEditModal, {
-      config: cfg,
-      onApplyCallback: onUpdateCallBack,
-    });
-  } else if (
-    cfg.sectionName === "pcbs_categories" ||
-    cfg.sectionName === "pcbs"
-  ) {
-    cfg.sectionName = "pcbs";
-    ModalManager.getInstance().open(PcbsEditModal, {
-      config: cfg,
-      onApplyCallback: onUpdateCallBack,
-    });
-  } else if (
-    cfg.sectionName === "components_categories" ||
-    cfg.sectionName === "components"
-  ) {
-    cfg.sectionName = "components";
-    ModalManager.getInstance().open(ComponentsEditModal, {
-      config: cfg,
-      onApplyCallback: onUpdateCallBack,
-    });
-  } else {
-    ModalManager.getInstance().open(EditModalWindow, {
-      config: cfg,
-      onApplyCallback: onUpdateCallBack,
-    });
-  }
-}
-
 watch(
   () => navigationStore.currentSection,
   (newVal) => {
     currentSection.value = newVal;
-    console.debug(currentSection.value);
   }
 );
 
@@ -348,12 +211,10 @@ onMounted(async () => {
 
   const { user } = await getUserInfoAsync();
 
-  console.debug(user);
   authorizedUser.value = {
     user: user,
   };
 
-  console.debug();
   if (user) {
     authorizedUserStore.setUser({
       id: authorizedUser.value.user?.id,
@@ -363,8 +224,6 @@ onMounted(async () => {
     });
   }
 
-  console.debug(authorizedUser.value.user?.id);
-  console.debug(authorizedUserStore);
   updateTime();
   timer = setInterval(updateTime, 1000);
   document.addEventListener("click", handleClickOutside);
@@ -414,10 +273,6 @@ const currentTableHeaders = computed(() => {
   }
 });
 
-const columnCount = computed(() => {
-  return currentTableHeaders.value.length;
-});
-
 onUnmounted(() => {
   if (timer) {
     clearInterval(timer); // Очищаем интервал при размонтировании компонента
@@ -437,238 +292,6 @@ function handleClickOutside(event: MouseEvent) {
     });
   }
 }
-
-function handleSelectRow(item: any) {
-  navigationStore.setSelectedRow(item);
-}
-
-const handleAvatarUpload = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  if (target && target.files) {
-    const file = target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        avatarImage.value = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-};
-
-// Функция для обновления списка пользователей
-const refreshUsers = async () => {
-  if (currentSection.value === "Users") {
-    try {
-      const response = await getUsers();
-      data.value = response.data;
-      selectedRow.value = null;
-    } catch (e) {
-      console.error(e);
-    }
-  }
-};
-
-// Функция для удаления пользователя
-const handleDeleteRow = async () => {
-  if (!navigationStore.selectedRow || !navigationStore.selectedRow?.id) {
-    alert("Выберите запись для удаления");
-    return;
-  }
-  console.debug(navigationStore.selectedRow);
-  const targetId = navigationStore.selectedRow?.data
-    ? navigationStore.selectedRow?.data?.id
-    : navigationStore.selectedRow?.id;
-
-  const targetNodeType = navigationStore.selectedRow?.data
-    ? navigationStore.selectedRow?.data?.nodeType
-    : navigationStore.currentSection;
-
-  console.debug(navigationStore.selectedRow, navigationStore.selectedRow?.id);
-
-  const response = await deleteDataAsync(targetId, targetNodeType);
-  console.debug(response);
-
-  if (response?.status === 200) {
-    onUpdateCallBack();
-  }
-};
-
-const handleCreateModalWindow = () => {
-  // в конфиг добавляем название секции
-  const cfg = {
-    sectionName: currentSection.value,
-    endpoint: `${currentSection.value}/create`,
-  };
-  const section = ref<string | null>(null);
-
-  if (!cfg.sectionName) {
-    alert("Выберите таблицу для добавления!");
-    return;
-  }
-
-  switch (currentSection.value) {
-    case "employees":
-      if (!navigationStore.selectedRow) {
-        section.value = "departments";
-        ModalManager.getInstance().open(AddEntity, {
-          sectionName: section.value,
-          onClose: () => ModalManager.getInstance().closeModal(),
-          onSuccess: onUpdateCallBack,
-        });
-      }
-
-      if (navigationStore.selectedRow?.data?.nodeType === "departments") {
-        section.value = "employees";
-        ModalManager.getInstance().open(AddEmployees, {
-          sectionName: section.value,
-          onClose: () => ModalManager.getInstance().closeModal(),
-          onSuccess: onUpdateCallBack,
-        });
-      }
-
-      break;
-
-    case "stands":
-      if (!navigationStore.selectedRow) {
-        section.value = "stands_types";
-        ModalManager.getInstance().open(AddEntity, {
-          sectionName: section.value,
-          onClose: () => ModalManager.getInstance().closeModal(),
-          onSuccess: onUpdateCallBack,
-        });
-      }
-
-      if (
-        navigationStore.selectedRow?.data?.nodeType === "stands_types" ||
-        navigationStore.selectedRow?.data?.nodeType === "stands"
-      ) {
-        section.value = "stands";
-        ModalManager.getInstance().open(AddStands, {
-          sectionName: section.value,
-          onClose: () => ModalManager.getInstance().closeModal(),
-          onSuccess: onUpdateCallBack,
-        });
-      }
-      break;
-
-    case "stand_tasks":
-      if (navigationStore.selectedRow?.data?.nodeType === "stands") {
-        section.value = "stand_tasks";
-        ModalManager.getInstance().open(AddStandTasks, {
-          sectionName: section.value,
-          onClose: () => ModalManager.getInstance().closeModal(),
-          onSuccess: onUpdateCallBack,
-        });
-      }
-
-      if (navigationStore.selectedRow?.data?.nodeType === "stand_tasks") {
-        section.value = "stand_tasks_components";
-        ModalManager.getInstance().open(AddEntity, {
-          sectionName: section.value,
-          onClose: () => ModalManager.getInstance().closeModal(),
-          onSuccess: onUpdateCallBack,
-        });
-      }
-
-      break;
-
-    case "organizations":
-      if (!navigationStore.selectedRow) section.value = "organization_types";
-      if (
-        navigationStore.selectedRow?.data?.nodeType === "organization_types" ||
-        navigationStore.selectedRow?.data?.nodeType === "organizations"
-      )
-        section.value = "organizations";
-      break;
-
-    case "arrival_invoices":
-      if (!navigationStore.selectedRow) section.value = "arrival_invoices";
-      if (navigationStore.selectedRow?.data?.nodeType === "arrival_invoices")
-        section.value = "invoices_components";
-      break;
-
-    case "bills_for_pay":
-      if (!navigationStore.selectedRow) section.value = "bills_for_pay";
-      if (navigationStore.selectedRow?.data?.nodeType === "bills_for_pay")
-        section.value = "bills_components";
-      break;
-
-    case "license":
-      if (!navigationStore.selectedRow) {
-        section.value = "license_types";
-        ModalManager.getInstance().open(AddEntity, {
-          sectionName: section.value,
-          onClose: () => ModalManager.getInstance().closeModal(),
-          onSuccess: onUpdateCallBack,
-        });
-      }
-      if (navigationStore.selectedRow?.data?.nodeType === "license_types") {
-        section.value = "license";
-        ModalManager.getInstance().open(AddLicenses, {
-          sectionName: section.value,
-          onClose: () => ModalManager.getInstance().closeModal(),
-          onSuccess: onUpdateCallBack,
-        });
-      }
-      break;
-
-    case "shipments":
-      section.value = "shipments";
-      ModalManager.getInstance().open(AddShipments, {
-        sectionName: section.value,
-        onClose: () => ModalManager.getInstance().closeModal(),
-        onSuccess: onUpdateCallBack,
-      });
-
-      break;
-
-    default:
-      section.value = navigationStore.currentSection;
-      break;
-  }
-
-  if (
-    currentSection.value !== "employees" &&
-    currentSection.value !== "license" &&
-    currentSection.value !== "shipments" &&
-    currentSection.value !== "stands" &&
-    currentSection.value !== "stand_tasks"
-  )
-    ModalManager.getInstance().open(AddEntity, {
-      sectionName: section.value,
-      onClose: () => ModalManager.getInstance().closeModal(),
-      onSuccess: onUpdateCallBack,
-    });
-};
-
-const handleMoreDetails = () => {
-  if (!selectedRow.value) {
-    alert("Необходимо выбрать строку");
-    return;
-  }
-
-  if (!currentSection.value) {
-    alert("Необходимо выбрать таблицу!");
-    return;
-  }
-
-  const config = {
-    selectedRow: selectedRow.value,
-    currentSection: currentSection.value,
-  };
-
-  MoreDetailsCollapseModel.getInstance(config);
-};
-
-const filteredTreeData = computed(() => {
-  if (!searchQuery.value) return data.value;
-  const q = searchQuery.value.toLowerCase();
-
-  return data.value.filter((item) =>
-    Object.values(item).join(" ").toLowerCase().includes(q)
-  );
-});
 
 const page = ref<number>(1);
 const perPage = ref<number>(9);
@@ -753,8 +376,6 @@ const handleSelectSection = (item: any) => {
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="logo">А ПРАКТИКУМ</div>
-      <!-- <NavigationSidebar :sections-list="sectionsList" /> -->
-
       <TreeviewMenu
         v-if="
           authorizedUserStore.user?.professionTitle === 'Администратор' ||
@@ -769,7 +390,7 @@ const handleSelectSection = (item: any) => {
     <!-- Main Content Area -->
     <main class="main-content">
       <!-- Header -->
-      <header class="header">
+      <div class="header">
         <div class="user-info">
           <AvatarIcon class="avatar" />
           <div>
@@ -783,7 +404,10 @@ const handleSelectSection = (item: any) => {
             </div>
           </div>
         </div>
+
+        <!-- Кнопка уведомлений -->
         <NotificationButton />
+
         <div class="header__controls">
           <CustomDropdown
             v-if="
@@ -796,7 +420,7 @@ const handleSelectSection = (item: any) => {
           />
           <Button @click="logout">Выйти</Button>
         </div>
-      </header>
+      </div>
 
       <!-- Content -->
       <section
@@ -812,45 +436,25 @@ const handleSelectSection = (item: any) => {
           <div
             v-if="
               authorizedUserStore.user?.professionTitle.toLowerCase() ===
-                'test' ||
+                professionEnum.admin ||
               authorizedUserStore.user?.professionTitle.toLowerCase() ===
-                'администратор' ||
-              authorizedUserStore.user?.professionTitle.toLowerCase() ===
-                'директор'
+                professionEnum.director
             "
             class="action-buttons"
           >
-            <Button :onClick="handleCreateModalWindow">
-              <PlusIcon /> добавить
-            </Button>
-            <Button :onClick="handleEditModalWindow">
-              <EditIcon /> редактировать
-            </Button>
-            <Button
-              :disabled="navigationStore.selectedRow?.id < 0"
-              id="deleteButton"
-              :onClick="handleDeleteRow"
-            >
-              <DeleteIcon /> удалить
-            </Button>
+            <HandleCreateButton :onSuccessCallback="onUpdateCallBack" />
+            <HandleEditButton :onSuccessCallback="onUpdateCallBack" />
+
+            <HandleDeleteButton :onUpdateCallback="onUpdateCallBack" />
             <Button :onClick="getCurrentData">
               <RefreshIcon /> обновить
             </Button>
 
-            <Button
-              v-if="
-                currentSection === 'bills_for_pay' ||
-                currentSection === 'arrival_invoices'
-              "
-              :onclick="handleMoreDetails"
-            >
-              Подробнее
-            </Button>
             <ExportTableButton :onSuccessCallback="onUpdateCallBack" />
             <ImportTableButton />
           </div>
           <div v-else class="action-buttons">
-            <AddCurrentTask :onSuccessCallback="onUpdateCallBack" />
+            <GetCurrentTaskButton :onSuccessCallback="onUpdateCallBack" />
             <SetCurrentTaskCompleted :onSuccessCallback="onUpdateCallBack" />
           </div>
           <div class="search-filter">
@@ -864,7 +468,6 @@ const handleSelectSection = (item: any) => {
           </div>
         </div>
 
-        <!-- Table -->
         <div class="table-container" v-if="showTableContainer">
           <!-- Если текущая секция находится в массиве treeviewTables - значит отображаем Treeview -->
           <template v-if="treeviewTables.includes(currentSection)">
@@ -875,65 +478,12 @@ const handleSelectSection = (item: any) => {
             />
           </template>
 
-          <table v-else :key="currentSection + '-table'" class="data-table">
-            <thead>
-              <tr>
-                <th
-                  v-for="key in currentTableHeaders"
-                  :key="key"
-                  style="position: relative"
-                >
-                  {{ fieldDictionary[key] }}
-                  <button
-                    @click.stop="toggleFilterDropdown(key)"
-                    style="margin-left: 4px; cursor: pointer"
-                  >
-                    &#x1F50D;
-                  </button>
-                  <input
-                    v-if="filterDropdownOpen[key]"
-                    :key="key"
-                    v-model="columnFilters[key]"
-                    @input="setColumnFilter(key, columnFilters[key])"
-                    @click.stop
-                    type="text"
-                    :placeholder="'Поиск по ' + key"
-                    autofocus
-                  />
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="paginatedData.length === 0">
-                <td :colspan="columnCount">Нет данных для отображения.</td>
-              </tr>
-              <tr
-                v-else
-                v-for="(item, index) in paginatedData"
-                :data-js-section-data="JSON.stringify(item)"
-                :key="item.id || index"
-                @click="navigationStore.selectedRow = item"
-                @dblclick="handleEditModalWindow"
-                :class="{
-                  'selected-row': String(selectedRow?.id) === String(item.id),
-                }"
-              >
-                <template v-for="(value, title) in item">
-                  <td
-                    v-if="title !== 'password' && title !== 'id'"
-                    :key="title"
-                  >
-                    <template v-if="typeof value === 'boolean'">
-                      <input type="checkbox" :checked="value" disabled />
-                    </template>
-                    <template v-else>
-                      {{ value }}
-                    </template>
-                  </td>
-                </template>
-              </tr>
-            </tbody>
-          </table>
+          <TableData
+            v-else
+            :headers="currentTableHeaders"
+            :paginated-data="paginatedData"
+            @edit-click="handleSelectRow"
+          />
         </div>
 
         <!-- Pagination -->

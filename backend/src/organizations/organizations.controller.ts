@@ -52,7 +52,7 @@ export class OrganizationsController {
   @ApiOperation({ summary: 'Обновление организации' })
   @ApiResponse({ status: 200, description: 'Организация обновлена успешно' })
   @Patch('update/:id')
-  async update(@Param('id') id: number, data: OrganizationsDTO) {
+  async update(@Param('id') id: number, @Body() data: OrganizationsDTO) {
     return await this.organizationsService.update(id, data);
   }
 

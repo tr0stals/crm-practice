@@ -84,9 +84,8 @@ const handleSubmit = async () => {
             <label
               class="addModalWindow__content__field__label"
               :for="field.name"
-              >{{ [field.name] }}</label
+              >{{ fieldDictionary[field.name] }}</label
             >
-            {{ console.debug(formData[field.section][field.name]) }}
             <input
               required
               class="addModalWindow__content__field__input"

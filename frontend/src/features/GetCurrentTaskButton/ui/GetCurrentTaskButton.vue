@@ -36,5 +36,5 @@ const handleClick = async (e: any) => {
 </script>
 
 <template>
-  <Button @click="handleClick">Взять задачу себе</Button>
+  <Button @click="handleClick"> Взять задачу себе </Button>
 </template>

@@ -59,8 +59,6 @@ watch(data, (val) => {
         return acc;
       }, {} as Record<string, boolean>);
     }
-
-    console.debug(treeData.value);
   }
 });
 
@@ -100,8 +98,6 @@ function onNodeSelect(event: any) {
   navigationStore.setSelectedRow(event);
 
   emit("node-select", event);
-
-  console.debug(navigationStore.selectedRow);
 }
 
 function getExpandedKeysForSearch(nodes: any, search: any) {

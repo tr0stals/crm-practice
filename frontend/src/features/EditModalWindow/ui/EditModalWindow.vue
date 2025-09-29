@@ -6,7 +6,6 @@ import Button from "@/shared/ui/Button/ui/Button.vue";
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { EditModalWindowModel } from "../model/EditModalWindowModel";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
-import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { relationMap } from "@/shared/config/relationMap";
@@ -66,7 +65,17 @@ async function loadRelatedOptions(key: string) {
     const response = await getDataAsync({
       endpoint: `${relationMap[key] ? relationMap[key] : key}/get`,
     });
-    relatedOptions[key] = response?.data ?? [];
+
+    if (
+      key === "client" ||
+      key === "factory" ||
+      key === "suppliers" ||
+      key === "transporter"
+    ) {
+      relatedOptions[key] = response.data.filter(
+        (item: any) => item.organizationTypes?.title === fieldDictionary[key]
+      );
+    } else relatedOptions[key] = response?.data ?? [];
   } catch (error) {
     console.error(`Не удалось загрузить справочник для ${key}`, error);
     relatedOptions[key] = [];
@@ -184,7 +193,7 @@ onUnmounted(() => {
         <!-- Select for object (relation) -->
         <select
           v-else-if="isRelatedField(key, value)"
-          class="editModalWindow__content__field__input"
+          class="customSelect"
           :id="key"
           :name="key"
           :value="formData[key]?.id"
@@ -202,8 +211,9 @@ onUnmounted(() => {
             }
           "
         >
-          <option :value="null">Не выбрано</option>
+          <option class="customSelect__option" :value="null">Не выбрано</option>
           <option
+            class="customSelect__option"
             v-for="item in relatedOptions[key]"
             :key="item.id"
             :value="item.id"

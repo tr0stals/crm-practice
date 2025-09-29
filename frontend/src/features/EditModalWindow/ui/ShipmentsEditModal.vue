@@ -39,7 +39,6 @@ const emits = defineEmits(["close", "save"]);
 
 const sectionName = computed(() => props.config?.sectionName);
 const entityId = computed(() => props.config?.entityId);
-// const { licenseTypeId, ...originalData } = props.config?.data;
 
 function isDateField(key: any) {
   const lower = key.toLowerCase();
@@ -151,7 +150,6 @@ onMounted(async () => {
       if (!newData) return;
 
       resultData.value = newData;
-      console.debug(newData);
 
       const shipmentStand = await getStand(newData.id);
       shipmentStandId.value = shipmentStand.data.id;
@@ -159,7 +157,6 @@ onMounted(async () => {
       const stand = shipmentStand.data.stands;
       const { id, ...defaultStand } = stand;
 
-      console.debug({ ...newData });
       formData.value = {
         ...newData,
         stands: stand,

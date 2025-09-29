@@ -24,4 +24,6 @@ export const relatedFields = [
   "suppliers",
   "arrivalInvoices",
   "components",
+  "standTask",
+  "bill",
 ];

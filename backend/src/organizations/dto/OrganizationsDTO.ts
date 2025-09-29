@@ -1,5 +1,8 @@
+import { OrganizationTypes } from 'src/organization_types/organization_types.entity';
+import { Peoples } from 'src/peoples/peoples.entity';
+
 export class OrganizationsDTO {
-  parentId: string;
+  parentId: number;
   fullName: string;
   shortName: string;
   lawAddress: string;

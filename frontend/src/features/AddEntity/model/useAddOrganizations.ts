@@ -19,6 +19,13 @@ export function useAddOrganizations(
 
     tableColumns.value = Object.keys(data);
 
+    if (tableColumns.value.includes("parentId")) {
+      tableColumns.value = [
+        "parentId",
+        ...tableColumns.value.filter((col) => col !== "parentId"),
+      ];
+    }
+
     for (const [key, value] of Object.entries(data)) {
       console.debug(value);
       if (value.options) {
@@ -30,6 +37,7 @@ export function useAddOrganizations(
   onMounted(fetchColumnsAndRelations);
 
   const submit = async () => {
+    console.debug(formData);
     await createEntityAsync(sectionName, formData);
 
     onSuccess();

@@ -129,26 +129,51 @@ export class OrganizationsService {
   }
 
   // Метод для построения дерева организаций по типам
+  // Метод для построения дерева организаций по типам
   async getOrganizationsTree() {
     // Получаем все типы организаций с организациями
     const orgTypes = await this.organizationTypesService.get(); // relations: ['organizations']
-    const result: any = {};
-    result.name = 'Организации'; // временно жёстко, потом заменить на локализацию
-    result.children = [];
+
+    const result: any = {
+      name: 'Организации', // временно жёстко, потом заменить на локализацию
+      children: [],
+    };
+
     for (const orgType of orgTypes || []) {
       const orgTypeName = orgType.title;
       const orgs = orgType.organizations || [];
+
+      // Храним организации в Map для быстрого доступа
+      const orgMap = new Map<number, any>();
+
+      // Сначала создаём узлы для всех организаций
+      orgs.forEach((org) => {
+        orgMap.set(org.id, {
+          name: org.fullName,
+          nodeType: 'organizations',
+          children: [],
+          ...org,
+        });
+      });
+
+      // Теперь собираем дерево
+      const roots: any[] = [];
+      orgMap.forEach((orgNode) => {
+        if (orgNode.parentId && orgMap.has(orgNode.parentId)) {
+          orgMap.get(orgNode.parentId).children.push(orgNode);
+        } else {
+          roots.push(orgNode);
+        }
+      });
+
       result.children.push({
         id: orgType.id,
         name: orgTypeName,
         nodeType: 'organization_types',
-        children: orgs.map((org) => ({
-          name: org.fullName,
-          nodeType: 'organizations',
-          ...org,
-        })),
+        children: roots,
       });
     }
+
     return result;
   }
 }

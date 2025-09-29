@@ -21,46 +21,46 @@ export class Organizations {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 80})
-  parentId: string;
+  @Column({ nullable: true })
+  parentId: number;
 
-  @Column( {length: 80})
+  @Column({ length: 80 })
   fullName: string;
 
-  @Column({ length: 80})
+  @Column({ length: 80 })
   shortName: string;
 
-  @Column({ length: 100})
+  @Column({ length: 100 })
   lawAddress: string;
 
-  @Column({ length: 100})
+  @Column({ length: 100 })
   factAddress: string;
 
-  @Column({ length: 100})
+  @Column({ length: 100 })
   postAddress: string;
 
-  @Column({ length: 12})
+  @Column({ length: 12 })
   inn: string;
 
-  @Column({ length: 9})
+  @Column({ length: 9 })
   kpp: string;
 
-  @Column({ length: 13})
+  @Column({ length: 13 })
   orgn: string;
 
   @Column({ type: 'date' })
   orgnDate: Date;
 
-  @Column({ length: 12})
+  @Column({ length: 12 })
   phone: string;
 
-  @Column({ length: 80})
+  @Column({ length: 80 })
   email: string;
 
   @Column()
   digitalDocs: boolean;
 
-  @Column({ type: 'float'})
+  @Column({ type: 'float' })
   rating: number;
 
   @Column({ length: 45, nullable: true })

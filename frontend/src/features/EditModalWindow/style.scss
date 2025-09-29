@@ -123,3 +123,17 @@
     box-shadow: none;
   }
 }
+
+.customSelect {
+  display: flex;
+  width: 100%;
+  padding: 1.5rem 2rem;
+  font-size: 1.5rem;
+  border-radius: 6px;
+  border: 1px #ccc solid;
+
+  &__option {
+    border-radius: 2rem;
+    font-size: 1.45rem;
+  }
+}

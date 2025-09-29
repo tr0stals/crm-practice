@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 import { databaseParentIdStrategies } from './databaseParentIdStrategies';
 import { FIELD_HINTS_MAP } from './fieldHintsMap';
 import { CurrentTasksService } from '../current_tasks/current_tasks.service';
-import { entities } from './config/entitiesMap';
+import { entities } from './config/treeviewTableKeys';
 import {
   getTreeViewEntities,
   canRead,
@@ -133,48 +133,20 @@ export class DatabaseService {
     return tree;
   }
 
+  /**
+   * Метод компонует таблицы логически
+   * @returns
+   */
   async getTreeTablesChildren() {
     const tree: any[] = [];
 
     for (const entity of entities) {
+      console.log('entity!!!!!!', entity);
       // получаем ключ-значение объекта treeTablesChildren
       const tableRelations = Object.entries(treeTablesChildren)
         .map(([key, value]) => key === entity && value)
         .filter(Boolean)
         .flat();
-
-      if (tableRelations)
-        console.debug('!!!!!!!tableRelations!!!', tableRelations);
-
-      // Убираем дубликаты по referencedColumn
-      const uniqueRelationsMap = tableRelations.keys;
-      // for (const item of tableRelations) {
-      //   if (
-      //     item.referencedColumn &&
-      //     !uniqueRelationsMap.has(item.referencedColumn) &&
-      //     !entities.includes(item.referencedColumn) &&
-      //     ![
-      //       'invoices_components',
-      //       'bills_components',
-      //       'current_tasks_components',
-      //       'order_requests_components',
-      //       'organization_types',
-      //       'pcb_order_states',
-      //       'server_arrivals',
-      //       'employees_vacations',
-      //       'license_types',
-      //       'shipments',
-      //       'shipment_package',
-      //       'shipment_trips',
-      //       'shipments_stands',
-      //       'supplier_components',
-      //     ].includes(item.referencedColumn)
-      //   ) {
-      //     uniqueRelationsMap.set(item.referencedColumn, item);
-      //   }
-      // }
-
-      // const uniqueRelations = Array.from(uniqueRelationsMap.values());
 
       const children = tableRelations.map((item, index) => ({
         id: index + 1,
@@ -643,17 +615,22 @@ export class DatabaseService {
       const column = colInfo.Field;
       const columnType = colInfo.Type; // например, 'date', 'int', 'varchar(255)'
 
-      // Для organizations parentId — асинхронно получаем типы организаций
+      // Для organizations parentId — подтягиваем все организации
       if (tableName === 'organizations' && column === 'parentId') {
-        const orgTypes = await this.dataSource
-          .getRepository('organization_types')
+        const organizations = await this.dataSource
+          .getRepository('organizations')
           .find();
+
         formStructure[column] = {
           type: 'select',
-          options: orgTypes.map((t) => ({ id: t.id, label: t.title })),
+          options: organizations.map((org) => ({
+            id: org.id,
+            label: org.fullName || org.shortName || `Организация #${org.id}`,
+          })),
         };
         continue;
       }
+
       // Универсальная обработка parentId для всех таблиц из стратегии
       if (column === 'parentId' && databaseParentIdStrategies[tableName]) {
         const strategy = databaseParentIdStrategies[tableName];
@@ -666,6 +643,7 @@ export class DatabaseService {
         };
         continue;
       }
+
       if (column.endsWith('Id')) {
         const relatedTable = await this.inferRelatedTable(tableName, column);
 

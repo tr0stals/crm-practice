@@ -23,19 +23,12 @@ export class EditModalWindowModel {
 
   private async applyData() {
     if (this.data && this.endpoint) {
+      console.debug("this.data!!!", this.endpoint);
       return await updateAsync(this.endpoint.toLowerCase(), this.data);
     }
   }
 
-  private async employeesUpdate() {
-    const employeeData = {
-      id: this.data.id,
-      hiringDate: this.data.hiringDate,
-      dismissalDate: this.data.dismissalDate,
-    };
-  }
-
-  #onClick(e: Event) {
+  async #onClick(e: Event) {
     const target = e.target as HTMLElement;
 
     if (target === document.querySelector(this.attrs.applyBtn)) {
@@ -46,18 +39,16 @@ export class EditModalWindowModel {
       this.data = key.formData;
 
       if (this.endpoint !== "employees")
-        this.applyData()
+        await this.applyData()
           .then((res) => {
             if (res?.status === 200) {
+              console.debug("res!!", res);
               this.cb();
               ModalManager.getInstance().closeModal();
               console.debug("this.cb()", this.cb);
             }
           })
           .catch((e) => console.error("Error!", e));
-      else {
-        this.employeesUpdate();
-      }
     }
 
     if (target === document.querySelector(this.attrs.cancelBtn)) {

@@ -204,7 +204,6 @@ export class DatabaseSeederService {
       `Создано ${currentTaskStates.length} статусов текущих задач`,
     );
 
-
     // Затем сидируем типы и размещения компонентов
     const componentPlacementTypes = await this.seedComponentPlacementTypes();
     this.logger.log(
@@ -340,7 +339,7 @@ export class DatabaseSeederService {
   private async seedComponents(): Promise<Components[]> {
     // Сначала создаем категории
     const categories = await this.seedComponentCategories();
-    
+
     // Затем создаем компоненты
     const placements = await this.componentPlacementsRepository.find();
     const componentsData = Array.from({ length: 100 }, (_, i) => {
@@ -386,14 +385,14 @@ export class DatabaseSeederService {
     ];
 
     const categories: Components[] = [];
-    
+
     // Создаем основные категории
     for (let i = 0; i < categoryNames.length; i++) {
       const category = await this.componentsRepository.save(
         this.componentsRepository.create({
           title: categoryNames[i],
           parentId: undefined,
-        })
+        }),
       );
       categories.push(category);
 
@@ -403,7 +402,7 @@ export class DatabaseSeederService {
           this.componentsRepository.create({
             title: subName,
             parentId: category.id,
-          })
+          }),
         );
         categories.push(subcategory);
       }
@@ -496,7 +495,7 @@ export class DatabaseSeederService {
       const ogrnDate = faker.date.past();
       const orgType = faker.helpers.arrayElement(organizationTypes);
       return {
-        parentId: String(orgType.id),
+        parentId: orgType.id,
         fullName: faker.company.name().substring(0, 80),
         shortName: faker.company.name().substring(0, 80),
         lawAddress: faker.location.streetAddress().substring(0, 100),
@@ -607,7 +606,7 @@ export class DatabaseSeederService {
   private async seedStands(employees: Employees[]): Promise<Stands[]> {
     // Сначала создаем категории
     const categories = await this.seedStandCategories();
-    
+
     // Затем создаем стенды
     const standTypes = await this.standTypesRepository.find();
     const standsData = Array.from({ length: 20 }, () => {
@@ -648,7 +647,7 @@ export class DatabaseSeederService {
       'Тестовые стенды',
       'Сборочные стенды',
       'Контрольные стенды',
-      'Упаковочные стенды'
+      'Упаковочные стенды',
     ];
 
     const subcategoryNames = [
@@ -656,7 +655,7 @@ export class DatabaseSeederService {
       'Вспомогательные',
       'Специализированные',
       'Универсальные',
-      'Мобильные'
+      'Мобильные',
     ];
 
     const categories: Stands[] = [];
@@ -1085,7 +1084,7 @@ export class DatabaseSeederService {
   private async seedPCBS(stands: Stands[]): Promise<PCBS[]> {
     // Сначала создаем категории
     const categories = await this.seedPcbCategories();
-    
+
     // Затем создаем платы
     const components = await this.componentsRepository.find();
     const pcbsData = stands.map((stand, i) => {
@@ -1113,19 +1112,23 @@ export class DatabaseSeederService {
     const subcategoryNames = [
       ['ТСВ-02 (WT02)', 'ТСВ-03 (WT03)', 'ТСВ-04 (WT04)'],
       ['Датчики давления', 'Датчики температуры', 'Датчики уровня'],
-      ['Пожарная сигнализация', 'Охранная сигнализация', 'Система контроля доступа'],
+      [
+        'Пожарная сигнализация',
+        'Охранная сигнализация',
+        'Система контроля доступа',
+      ],
       ['Радиосвязь', 'Спутниковая связь', 'Волоконно-оптическая связь'],
     ];
 
     const categories: PCBS[] = [];
-    
+
     // Создаем основные категории
     for (let i = 0; i < categoryNames.length; i++) {
       const category = await this.pcbsRepository.save(
         this.pcbsRepository.create({
           title: categoryNames[i],
           parentId: undefined,
-        })
+        }),
       );
       categories.push(category);
 
@@ -1135,7 +1138,7 @@ export class DatabaseSeederService {
           this.pcbsRepository.create({
             title: subName,
             parentId: category.id,
-          })
+          }),
         );
         categories.push(subcategory);
       }
@@ -1749,7 +1752,6 @@ export class DatabaseSeederService {
     );
     return await this.billsForPayRepository.save(bills);
   }
-
 
   private async seedBillsComponents(): Promise<BillsComponents[]> {
     const bills = await this.billsForPayRepository.find();

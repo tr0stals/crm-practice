@@ -103,7 +103,10 @@ onMounted(async () => {
       if (!newData) return;
 
       resultData.value = newData;
-      formData.value = { ...newData };
+      formData.value = {
+        parentId: newData.parentId ?? null,
+        ...newData,
+      };
       const currentParentId = formData.value.parentId;
       organizations.value = (await loadOrganizations()).data;
 
