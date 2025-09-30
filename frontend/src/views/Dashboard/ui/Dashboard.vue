@@ -34,6 +34,8 @@ import { HandleEditButton } from "@/features/HandleEditButton";
 import { handleSelectRow } from "../lib/handleSelectRow";
 import { HandleCreateButton } from "@/features/HandleCreateButton";
 import { HandleDeleteButton } from "@/features/HandleDeleteButton";
+import { SidebarMenu } from "@/features/SidebarMenu";
+import { TableDataPreview } from "@/features/TableDataPreview";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -246,6 +248,7 @@ onMounted(async () => {
 watch(
   () => navigationStore.currentSection,
   async (oldVal: string, newSection: string) => {
+    if (!oldVal) return;
     targetData.value = null;
     treeviewData.value = [];
     currentPage.value = 1;
@@ -376,13 +379,20 @@ const handleSelectSection = (item: any) => {
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="logo">А ПРАКТИКУМ</div>
-      <TreeviewMenu
+      <!-- <TreeviewMenu
         v-if="
           authorizedUserStore.user?.professionTitle === 'Администратор' ||
           authorizedUserStore.user?.professionTitle === 'Директор' ||
           authorizedUserStore.user?.professionTitle === 'Test'
         "
         @node-select="handleSelectSection"
+      /> -->
+      <SidebarMenu
+        v-if="
+          authorizedUserStore.user?.professionTitle === 'Администратор' ||
+          authorizedUserStore.user?.professionTitle === 'Директор' ||
+          authorizedUserStore.user?.professionTitle === 'Test'
+        "
       />
       <NavigationSidebar v-else :sections-list="sectionsList" />
     </aside>
@@ -426,7 +436,7 @@ const handleSelectSection = (item: any) => {
       <section
         data-js-content-section
         class="content-section"
-        v-if="currentSection"
+        v-if="navigationStore.activeRow && navigationStore.currentSection"
       >
         <h2 class="content-section__title">
           {{ localizatedSections[currentSection] }}
@@ -477,7 +487,6 @@ const handleSelectSection = (item: any) => {
               @node-select="handleSelectRow"
             />
           </template>
-
           <TableData
             v-else
             :headers="currentTableHeaders"
@@ -550,6 +559,9 @@ const handleSelectSection = (item: any) => {
           </div>
         </div>
       </section>
+      <TableDataPreview
+        v-else-if="navigationStore.activeRow && !navigationStore.currentSection"
+      />
       <template v-else>
         <WelcomeBanner />
       </template>

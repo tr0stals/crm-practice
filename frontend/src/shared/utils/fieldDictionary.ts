@@ -174,4 +174,9 @@ export const fieldDictionary: { [key: string]: string } = {
   stands_types: "Тип стенда",
   arrivalInvoiceId: "Накладная",
   arrivalInvoices: "Накладная",
+  organizations: "Организации",
+  pcbs: "Печатные платы",
+  current_tasks: "Текущие задачи",
+  bills_for_pay: "Счета",
+  arrival_invoices: "Накладные",
 };

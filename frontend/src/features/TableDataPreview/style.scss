@@ -1,0 +1,19 @@
+.tableDataPreview {
+  display: flex;
+  flex-direction: column;
+  width: 20%;
+  gap: 2rem;
+
+  &__button {
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    padding: 4px 2rem;
+    font-size: 2rem;
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border: 2px solid rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+    }
+  }
+}

@@ -20,6 +20,7 @@ const { columnCount, currentSection, navigationStore } = useTableData(headers);
   <table :key="currentSection + '-table'" class="data-table">
     <thead>
       <tr>
+        <!-- TODO: убрать стили из тега -->
         <th v-for="key in headers" :key="key" style="position: relative">
           {{ fieldDictionary[key] }}
         </th>
