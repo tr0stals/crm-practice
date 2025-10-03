@@ -29,7 +29,7 @@ export class StandTasks {
   @Column({ length: 45 })
   title: string;
 
-  @Column({ length: 100 })
+  @Column({ length: 100, nullable: true })
   photo: string;
 
   @Column({ type: 'date' })
@@ -50,7 +50,10 @@ export class StandTasks {
   @JoinColumn({ name: 'componentId' })
   components: Components;
 
-  @OneToMany(() => StandTasksComponents, (standTaskComponent) => standTaskComponent.standTask)
+  @OneToMany(
+    () => StandTasksComponents,
+    (standTaskComponent) => standTaskComponent.standTask,
+  )
   standTasksComponents: StandTasksComponents[];
 
   @OneToMany(() => CurrentTasks, (currentTask) => currentTask.standTasks)

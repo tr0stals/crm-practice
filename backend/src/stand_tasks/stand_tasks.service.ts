@@ -49,7 +49,9 @@ export class StandTasksService {
     }
     const { componentId, professionId, standId, ...defaultData } = data;
     const component = await this.componentService.findOne(componentId);
-    const profession = await this.professionsRepo.findOne({ where: { id: data.professionId } });
+    const profession = await this.professionsRepo.findOne({
+      where: { id: data.professionId },
+    });
     const stand = await this.standService.findOne(standId);
 
     if (!component || !profession || !stand)
@@ -98,11 +100,7 @@ export class StandTasksService {
 
   async getAll() {
     return await this.repo.find({
-      relations: [
-        'stands',
-        'professions',
-        'components',
-      ],
+      relations: ['stands', 'professions', 'components'],
     });
   }
 
@@ -110,20 +108,12 @@ export class StandTasksService {
     if (parentId === null) {
       return await this.repo.find({
         where: { parentId: IsNull() },
-        relations: [
-          'stands',
-          'professions',
-          'components',
-        ],
+        relations: ['stands', 'professions', 'components'],
       });
     } else {
       return await this.repo.find({
         where: { parentId },
-        relations: [
-          'stands',
-          'professions',
-          'components',
-        ],
+        relations: ['stands', 'professions', 'components'],
       });
     }
   }
@@ -131,11 +121,7 @@ export class StandTasksService {
   async getOne(id: number) {
     return await this.repo.findOne({
       where: { id },
-      relations: [
-        'stands',
-        'professions',
-        'components',
-      ],
+      relations: ['stands', 'professions', 'components'],
     });
   }
 
@@ -255,29 +241,40 @@ export class StandTasksService {
         relations: ['standTask', 'component'],
       });
 
+      // Рекурсивный билдер задач
+      const buildTaskTree = (tasks, parentId = null) => {
+        return tasks
+          .filter((t) => (t.parentId ?? null) === parentId) // фильтруем по parentId
+          .map((task) => {
+            return {
+              id: task.id,
+              name: `Задача: ${task.title}`,
+              nodeType: 'stand_tasks',
+              children: [
+                // подзадачи
+                ...buildTaskTree(tasks, task.id),
+                // компоненты
+                ...standTasksComponents
+                  .filter((item) => item.standTask?.id === task.id)
+                  .map((item) => ({
+                    id: item.id,
+                    name: `Компонент: ${item.component?.title} | Кол-во: ${item.componentCount}`,
+                    nodeType: 'stand_tasks_components',
+                  })),
+              ],
+            };
+          });
+      };
+
+      // Корневой уровень — стенды
       const tree = stands.map((stand: Stands) => {
         return {
           id: stand.id,
           name: `Стенд: ${stand.title} | ${stand.standType?.title}`,
           nodeType: 'stands',
-          children: standTasks
-            .filter((task) => task.stands?.id === stand.id)
-            .map((task) => {
-              return {
-                id: task.id,
-                name: `Задача: ${task.title}`,
-                nodeType: 'stand_tasks',
-                children: standTasksComponents
-                  .filter((item) => item.standTask?.id === task.id)
-                  .map((item) => {
-                    return {
-                      id: item.id,
-                      name: `Компонент: ${item.component?.title} | Кол-во: ${item.componentCount}`,
-                      nodeType: 'stand_tasks_components',
-                    };
-                  }),
-              };
-            }),
+          children: buildTaskTree(
+            standTasks.filter((task) => task.stands?.id === stand.id),
+          ),
         };
       });
 
