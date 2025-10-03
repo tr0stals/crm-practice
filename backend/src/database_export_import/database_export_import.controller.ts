@@ -1,7 +1,16 @@
-import { Controller, Get, Post, Query, UploadedFile, UseInterceptors, Body, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Query,
+  UploadedFile,
+  UseInterceptors,
+  Body,
+  Res,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DatabaseExportImportService } from './database_export_import.service';
-import { File as MulterFile } from 'multer';
+import { Express } from 'express';
 import { Response } from 'express';
 
 @Controller('database_export_import')
@@ -19,8 +28,11 @@ export class DatabaseExportImportController {
   // Импорт всей БД (.sql)
   @Post('import/db')
   @UseInterceptors(FileInterceptor('file'))
-  async importDatabase(@UploadedFile() file: MulterFile) {
-    console.log(`[API][POST] /database_export_import/import/db, file:`, file?.originalname);
+  async importDatabase(@UploadedFile() file: Express.Multer.File) {
+    console.log(
+      `[API][POST] /database_export_import/import/db, file:`,
+      file?.originalname,
+    );
     try {
       // Импортирует дамп базы данных
       return await this.service.importDatabase(file);
@@ -32,8 +44,14 @@ export class DatabaseExportImportController {
 
   // Экспорт таблицы (.csv/.xlsx)
   @Get('export/table')
-  async exportTable(@Query('table') table: string, @Query('format') format: string, @Res() res: Response) {
-    console.log(`[API][GET] /database_export_import/export/table, table=${table}, format=${format}`);
+  async exportTable(
+    @Query('table') table: string,
+    @Query('format') format: string,
+    @Res() res: Response,
+  ) {
+    console.log(
+      `[API][GET] /database_export_import/export/table, table=${table}, format=${format}`,
+    );
     return this.service.exportTable(res, table, format);
   }
 
@@ -42,10 +60,12 @@ export class DatabaseExportImportController {
   @UseInterceptors(FileInterceptor('file'))
   async importTable(
     @Query('table') table: string,
-    @UploadedFile() file: MulterFile,
+    @UploadedFile() file: Express.Multer.File,
     @Body('chunkSize') chunkSize?: number,
   ) {
-    console.log(`[API][POST] /database_export_import/import/table, table=${table}, file=${file?.originalname}, chunkSize=${chunkSize}`);
+    console.log(
+      `[API][POST] /database_export_import/import/table, table=${table}, file=${file?.originalname}, chunkSize=${chunkSize}`,
+    );
     try {
       // Импортирует данные таблицы с постраничной обработкой
       return await this.service.importTable(table, file, chunkSize);
@@ -54,4 +74,4 @@ export class DatabaseExportImportController {
       throw e;
     }
   }
-} 
+}

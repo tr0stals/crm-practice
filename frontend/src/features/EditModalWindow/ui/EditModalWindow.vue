@@ -21,6 +21,7 @@ const formData = ref<any>({});
 const dateModel = reactive<Record<string, any>>({});
 const relatedOptions = reactive<Record<string, any[]>>({});
 const loading = ref<boolean>(false);
+const uploadedImage = ref();
 
 let model: EditModalWindowModel;
 
@@ -87,6 +88,14 @@ function isRelatedField(key: string, value: any): boolean {
 }
 
 onMounted(async () => {
+  watch(
+    () => uploadedImage.value,
+    (val) => {
+      formData.value.icon = val.name;
+      model.setUploadedImage(val);
+    }
+  );
+
   model = new EditModalWindowModel(props.onApplyCallback);
 
   const { data, loading, error, refetch } = useFetch<any>(
@@ -106,6 +115,7 @@ onMounted(async () => {
     async (newData) => {
       if (!newData) return;
 
+      console.debug(newData);
       resultData.value = newData;
       formData.value = { ...newData };
 
@@ -257,7 +267,28 @@ onUnmounted(() => {
           :name="key"
           placeholder="+7 (___) ___-__-__"
         />
-        <input v-else-if="key === 'photo'" type="image" :id="key" />
+        <template v-else-if="key === 'icon'">
+          <div class="imageInput">
+            <input
+              class="imageInput__input--hidden"
+              id="iconUpload"
+              type="file"
+              @change="
+              (e) => {
+                const input = e.target as HTMLInputElement;
+                
+                if (input.files && input.files[0]) {
+                  uploadedImage = input.files[0];
+                }
+              }
+            "
+            />
+
+            <label for="iconUpload" class="imageInput__uploadButton">
+              Загрузить иконку
+            </label>
+          </div>
+        </template>
 
         <!-- Generic input -->
         <input

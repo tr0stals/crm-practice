@@ -3,9 +3,14 @@ import { OrganizationTypesService } from './organization_types.service';
 import { OrganizationTypesController } from './organization_types.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrganizationTypes } from './organization_types.entity';
+import { Images } from 'src/images/images.entity';
+import { ImagesModule } from 'src/images/images.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([OrganizationTypes])],
+  imports: [
+    TypeOrmModule.forFeature([OrganizationTypes, Images]),
+    ImagesModule,
+  ],
   providers: [OrganizationTypesService],
   controllers: [OrganizationTypesController],
   exports: [OrganizationTypesService],

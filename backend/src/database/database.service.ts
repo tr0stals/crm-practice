@@ -658,6 +658,8 @@ export class DatabaseService {
               )
             : [],
         };
+      } else if (columnType.toLowerCase() === 'icon') {
+        formStructure[column] = { type: 'file' };
       } else if (columnType.startsWith('date')) {
         formStructure[column] = { type: 'date' };
       } else if (column.toLowerCase().includes('date')) {

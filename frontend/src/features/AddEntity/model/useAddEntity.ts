@@ -31,13 +31,14 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
   onMounted(fetchColumnsAndRelations);
 
   const submit = async () => {
-    // если нет выбранного parentId → делаем null (или 0)
     if (!formData.parentId) {
       formData.parentId = 0; // или 0, если у тебя в БД так заведено
     }
 
-    await createEntityAsync(sectionName, formData);
+    const res = await createEntityAsync(sectionName, formData);
+    console.debug(res);
     onSuccess();
+    return res.data;
   };
 
   return {

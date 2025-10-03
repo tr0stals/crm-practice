@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { OrganizationsDTO } from './dto/OrganizationsDTO';
 import { OrganizationTypesService } from 'src/organization_types/organization_types.service';
 import { PeoplesService } from 'src/peoples/peoples.service';
+import { Images } from 'src/images/images.entity';
 
 @Injectable()
 export class OrganizationsService {
@@ -18,6 +19,9 @@ export class OrganizationsService {
     private organizationRepository: Repository<Organizations>,
     private organizationTypesService: OrganizationTypesService,
     private peoplesService: PeoplesService,
+
+    @InjectRepository(Images)
+    private imageRepository: Repository<Images>,
   ) {}
 
   async create(data: OrganizationsDTO) {
@@ -129,13 +133,12 @@ export class OrganizationsService {
   }
 
   // Метод для построения дерева организаций по типам
-  // Метод для построения дерева организаций по типам
   async getOrganizationsTree() {
-    // Получаем все типы организаций с организациями
-    const orgTypes = await this.organizationTypesService.get(); // relations: ['organizations']
+    // Получаем все типы организаций с их организациями
+    const orgTypes = await this.organizationTypesService.get();
 
     const result: any = {
-      name: 'Организации', // временно жёстко, потом заменить на локализацию
+      name: 'Организации', // можно вынести в локализацию
       children: [],
     };
 
@@ -143,10 +146,18 @@ export class OrganizationsService {
       const orgTypeName = orgType.title;
       const orgs = orgType.organizations || [];
 
-      // Храним организации в Map для быстрого доступа
+      // ищем иконку в images через targetType/targetId
+      const image = await this.imageRepository.findOne({
+        where: {
+          targetType: 'organization_types',
+          targetId: orgType.id,
+        },
+      });
+
+      // мапа для быстрого доступа к оргам по id
       const orgMap = new Map<number, any>();
 
-      // Сначала создаём узлы для всех организаций
+      // создаём узлы для всех организаций
       orgs.forEach((org) => {
         orgMap.set(org.id, {
           name: org.fullName,
@@ -156,7 +167,7 @@ export class OrganizationsService {
         });
       });
 
-      // Теперь собираем дерево
+      // собираем иерархию по parentId
       const roots: any[] = [];
       orgMap.forEach((orgNode) => {
         if (orgNode.parentId && orgMap.has(orgNode.parentId)) {
@@ -168,6 +179,7 @@ export class OrganizationsService {
 
       result.children.push({
         id: orgType.id,
+        icon: image?.path || null,
         name: orgTypeName,
         nodeType: 'organization_types',
         children: roots,

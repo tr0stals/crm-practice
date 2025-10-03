@@ -20,6 +20,7 @@ import { BillsComponents } from 'src/bills_components/bills_components.entity';
 import { CurrentTasksComponents } from 'src/current_tasks_components/current_tasks_components.entity';
 import { PcbsComponents } from 'src/pcbs_components/pcbs_components.entity';
 import { PCBS } from 'src/pcbs/pcbs.entity';
+import { Images } from 'src/images/images.entity';
 
 @Entity()
 export class Components {
@@ -100,7 +101,9 @@ export class Components {
   pcbsComponents: PcbsComponents[];
 
   // Self-referencing для категорий/подкатегорий
-  @ManyToOne(() => Components, (component) => component.children, { nullable: true })
+  @ManyToOne(() => Components, (component) => component.children, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'parentId' })
   parent: Components;
 
@@ -134,9 +137,17 @@ export class Components {
   // Метод для определения типа записи
   isCategory(): boolean {
     // Если заполнены только parentId и title, то это категория
-    return !this.photo && !this.width && !this.height && !this.thickness && 
-           !this.weight && !this.material && !this.receiptDate && 
-           !this.drawingReference && !this.componentPlacements;
+    return (
+      !this.photo &&
+      !this.width &&
+      !this.height &&
+      !this.thickness &&
+      !this.weight &&
+      !this.material &&
+      !this.receiptDate &&
+      !this.drawingReference &&
+      !this.componentPlacements
+    );
   }
 
   isComponent(): boolean {

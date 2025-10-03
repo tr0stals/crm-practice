@@ -1,11 +1,13 @@
 import { ModalManager } from "@/shared/plugins/modalManager";
 import { getAttr } from "@/shared/utils/getAttr";
 import { updateAsync } from "../api/updateAsync";
+import { api } from "@/shared/api/axiosInstance";
 
 export class EditModalWindowModel {
   private endpoint: string;
   private data: any;
   private cb: () => void;
+  private uploadedImage: any | null;
 
   private handleClick: (e: Event) => void;
 
@@ -23,8 +25,33 @@ export class EditModalWindowModel {
 
   private async applyData() {
     if (this.data && this.endpoint) {
-      console.debug("this.data!!!", this.endpoint);
       return await updateAsync(this.endpoint.toLowerCase(), this.data);
+    }
+  }
+
+  public setUploadedImage(image: any) {
+    this.uploadedImage = image;
+  }
+
+  private async uploadOrUpdateImage(type: "organization_types" | "components") {
+    if (!this.uploadedImage) return;
+
+    const formData = new FormData();
+    formData.append("file", this.uploadedImage);
+    formData.append("targetType", type); // универсально
+    formData.append("targetId", this.data.id);
+
+    const res = await api.get(`/images/byTarget/${type}/${this.data.id}`);
+    const images = res.data;
+
+    if (!images || images.length === 0) {
+      await api.post(`/images/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    } else {
+      await api.patch(`/images/${images[0].id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
     }
   }
 
@@ -38,17 +65,24 @@ export class EditModalWindowModel {
       this.endpoint = key.sectionName;
       this.data = key.formData;
 
-      if (this.endpoint !== "employees")
+      if (this.endpoint === "organization_types") {
+        await this.uploadOrUpdateImage("organization_types");
+      }
+
+      if (this.endpoint === "components") {
+        await this.uploadOrUpdateImage("components");
+      }
+
+      if (this.endpoint !== "employees") {
         await this.applyData()
           .then((res) => {
             if (res?.status === 200) {
-              console.debug("res!!", res);
               this.cb();
               ModalManager.getInstance().closeModal();
-              console.debug("this.cb()", this.cb);
             }
           })
           .catch((e) => console.error("Error!", e));
+      }
     }
 
     if (target === document.querySelector(this.attrs.cancelBtn)) {

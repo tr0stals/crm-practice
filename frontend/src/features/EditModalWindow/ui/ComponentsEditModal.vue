@@ -15,15 +15,14 @@ import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
-import { loadItems } from "../api/loadItems";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
 const dateModel = reactive<Record<string, any>>({});
 const relatedOptions = reactive<Record<string, any[]>>({});
 const loading = ref<boolean>(false);
+const uploadedImage = ref();
 const components = ref();
-const componentsCount = ref();
 
 let model: EditModalWindowModel;
 
@@ -36,7 +35,6 @@ const emits = defineEmits(["close", "save"]);
 
 const sectionName = computed(() => props.config?.sectionName);
 const entityId = computed(() => props.config?.entityId);
-console.debug(entityId.value);
 // const { licenseTypeId, ...originalData } = props.config?.data;
 
 function isDateField(key: any) {
@@ -47,12 +45,13 @@ function isDateField(key: any) {
     lower === "start" ||
     lower === "end" ||
     lower === "manufacturetime" ||
-    lower === "timeout"
+    lower === "timeout" ||
+    lower === "deadline"
   );
 }
 
 function isObjectField(value: any) {
-  return value && typeof value === "object" && !Array.isArray(value);
+  return value && typeof value === "object";
 }
 
 const getInputType = (key: string, value: any): string => {
@@ -65,11 +64,20 @@ const getInputType = (key: string, value: any): string => {
 
 async function loadRelatedOptions(key: string) {
   try {
-    console.debug("key!!!", key);
     const response = await getDataAsync({
       endpoint: `${relationMap[key] ? relationMap[key] : key}/get`,
     });
-    relatedOptions[key] = response?.data ?? [];
+
+    if (
+      key === "client" ||
+      key === "factory" ||
+      key === "suppliers" ||
+      key === "transporter"
+    ) {
+      relatedOptions[key] = response.data.filter(
+        (item: any) => item.organizationTypes?.title === fieldDictionary[key]
+      );
+    } else relatedOptions[key] = response?.data ?? [];
   } catch (error) {
     console.error(`Не удалось загрузить справочник для ${key}`, error);
     relatedOptions[key] = [];
@@ -81,10 +89,18 @@ function isRelatedField(key: string, value: any): boolean {
 }
 
 onMounted(async () => {
+  watch(
+    () => uploadedImage.value,
+    (val) => {
+      formData.value.icon = val.name;
+      model.setUploadedImage(val);
+    }
+  );
+
   model = new EditModalWindowModel(props.onApplyCallback);
 
   const { data, loading, error, refetch } = useFetch<any>(
-    `${defaultEndpoint}/components/get/${entityId.value}`
+    `${defaultEndpoint}/${sectionName.value}/get/${entityId.value}`
   );
 
   watch(
@@ -100,10 +116,10 @@ onMounted(async () => {
     async (newData) => {
       if (!newData) return;
 
+      console.debug(newData);
       resultData.value = newData;
       formData.value = { ...newData };
-      const currentParentId = formData.value.parentId;
-      components.value = (await loadItems("components")).data;
+      components.value = (await loadComponents()).data;
 
       // Поиск полей с датами
       const dateFields = Object.keys(formData.value).filter(isDateField);
@@ -124,6 +140,7 @@ onMounted(async () => {
       const objectFields = Object.entries(formData.value).filter(
         ([key, value]) => isObjectField(value) || relatedFields.includes(key)
       );
+      console.debug(objectFields);
 
       for (const [key] of objectFields) {
         await loadRelatedOptions(key);
@@ -132,6 +149,12 @@ onMounted(async () => {
     { immediate: true }
   );
 });
+
+async function loadComponents() {
+  const components = await getDataAsync({ endpoint: "components/get" });
+
+  return components;
+}
 
 onUnmounted(() => {
   model?.destroy();
@@ -202,7 +225,7 @@ onUnmounted(() => {
         <!-- Select for object (relation) -->
         <select
           v-else-if="isRelatedField(key, value)"
-          class="editModalWindow__content__field__input"
+          class="customSelect"
           :id="key"
           :name="key"
           :value="formData[key]?.id"
@@ -220,16 +243,14 @@ onUnmounted(() => {
             }
           "
         >
-          <option value="">Не выбрано</option>
+          <option class="customSelect__option" :value="null">Не выбрано</option>
           <option
+            class="customSelect__option"
             v-for="item in relatedOptions[key]"
             :key="item.id"
             :value="item.id"
           >
-            <template v-if="item === null">
-              <option value="">Не выбрано</option>
-            </template>
-            <template v-else>
+            <template>
               {{
                 item.title ||
                 item.name ||
@@ -268,6 +289,29 @@ onUnmounted(() => {
           :name="key"
           placeholder="+7 (___) ___-__-__"
         />
+
+        <template v-else-if="key === 'photo'">
+          <div class="imageInput">
+            <input
+              class="imageInput__input--hidden"
+              id="iconUpload"
+              type="file"
+              @change="
+              (e) => {
+                const input = e.target as HTMLInputElement;
+                
+                if (input.files && input.files[0]) {
+                  uploadedImage = input.files[0];
+                }
+              }
+            "
+            />
+
+            <label for="iconUpload" class="imageInput__uploadButton">
+              Загрузить иконку
+            </label>
+          </div>
+        </template>
 
         <!-- Generic input -->
         <input

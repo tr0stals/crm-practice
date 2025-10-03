@@ -432,11 +432,15 @@ const handleSelectSection = (item: any) => {
         </div>
       </div>
 
+      <TableDataPreview
+        v-if="navigationStore.activeRow && !navigationStore.currentSection"
+      />
+
       <!-- Content -->
       <section
         data-js-content-section
         class="content-section"
-        v-if="navigationStore.activeRow && navigationStore.currentSection"
+        v-else-if="navigationStore.activeRow && navigationStore.currentSection"
       >
         <h2 class="content-section__title">
           {{ localizatedSections[currentSection] }}
@@ -559,9 +563,7 @@ const handleSelectSection = (item: any) => {
           </div>
         </div>
       </section>
-      <TableDataPreview
-        v-else-if="navigationStore.activeRow && !navigationStore.currentSection"
-      />
+
       <template v-else>
         <WelcomeBanner />
       </template>

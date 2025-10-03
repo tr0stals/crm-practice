@@ -9,6 +9,7 @@ import AddLicenses from "@/features/AddEntity/ui/AddLicenses.vue";
 import AddShipments from "@/features/AddEntity/ui/AddShipments.vue";
 import AddStands from "@/features/AddEntity/ui/AddStands.vue";
 import AddStandTasks from "@/features/AddEntity/ui/AddStandTasks.vue";
+import AddModalWithImages from "@/features/AddEntity/ui/AddModalWithImages.vue";
 
 export function useCreateButton(onUpdateCallBack: () => void) {
   const navigationStore = useNavigationStore();
@@ -104,14 +105,29 @@ export function useCreateButton(onUpdateCallBack: () => void) {
       break;
 
     case tablesEnum.organizations:
-      if (!navigationStore.selectedRow)
+      if (!navigationStore.selectedRow) {
         section.value = tablesEnum.organization_types;
+
+        ModalManager.getInstance().open(AddModalWithImages, {
+          sectionName: section.value,
+          onClose: () => ModalManager.getInstance().closeModal(),
+          onSuccess: onUpdateCallBack,
+        });
+      }
+
       if (
         navigationStore.selectedRow?.data?.nodeType ===
           tablesEnum.organization_types ||
         navigationStore.selectedRow?.data?.nodeType === tablesEnum.organizations
-      )
+      ) {
         section.value = tablesEnum.organizations;
+
+        ModalManager.getInstance().open(AddEntity, {
+          sectionName: section.value,
+          onClose: () => ModalManager.getInstance().closeModal(),
+          onSuccess: onUpdateCallBack,
+        });
+      }
       break;
 
     case tablesEnum.arrival_invoices:
@@ -164,6 +180,15 @@ export function useCreateButton(onUpdateCallBack: () => void) {
 
       break;
 
+    case tablesEnum.components:
+      section.value = tablesEnum.components;
+      ModalManager.getInstance().open(AddModalWithImages, {
+        sectionName: section.value,
+        onClose: () => ModalManager.getInstance().closeModal(),
+        onSuccess: onUpdateCallBack,
+      });
+      break;
+
     default:
       section.value = navigationStore.currentSection;
       break;
@@ -174,7 +199,9 @@ export function useCreateButton(onUpdateCallBack: () => void) {
     currentSection.value !== "license" &&
     currentSection.value !== "shipments" &&
     currentSection.value !== "stands" &&
-    currentSection.value !== "stand_tasks"
+    currentSection.value !== "stand_tasks" &&
+    currentSection.value !== "organizations" &&
+    currentSection.value !== "components"
   )
     ModalManager.getInstance().open(AddEntity, {
       sectionName: section.value,

@@ -8,12 +8,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { OrganizationTypes } from './organization_types.entity';
 import { Repository } from 'typeorm';
 import { OrganizationTypesDTO } from './dto/OrganizationTypesDTO';
+import { ImagesService } from 'src/images/images.service';
 
 @Injectable()
 export class OrganizationTypesService {
   constructor(
     @InjectRepository(OrganizationTypes)
     private organizationTypesRepository: Repository<OrganizationTypes>,
+
+    private imagesService: ImagesService,
   ) {}
 
   async create(createOrganizationType: OrganizationTypesDTO) {
@@ -106,5 +109,34 @@ export class OrganizationTypesService {
       }
       throw e;
     }
+  }
+
+  // В organization-types.service.ts добавляем:
+  async uploadIcon(id: number, file: Express.Multer.File) {
+    const orgType = await this.getById(id);
+
+    if (!orgType) {
+      throw new NotFoundException('Organization type not found');
+    }
+
+    // Создаем запись в таблице images
+    const image = await this.imagesService.createImage(file, id);
+
+    // Обновляем поле icon для обратной совместимости
+    orgType.icon = `/api/images/${image.id}`; // или `/api/images/filename/${image.filename}`
+
+    await this.organizationTypesRepository.save(orgType);
+
+    return {
+      organizationType: orgType,
+      image: image,
+    };
+  }
+
+  async getOrganizationTypeWithImages(id: number) {
+    return await this.organizationTypesRepository.findOne({
+      where: { id },
+      relations: ['images'],
+    });
   }
 }

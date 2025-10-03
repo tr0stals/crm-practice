@@ -12,6 +12,10 @@ import { useAddArrivalInvoices } from "../model/useAddArrivalInvoices";
 import { useAddLicenses } from "../model/useAddLicenses";
 import { useAddStandTasksComponents } from "../model/useAddStandTasksComponents";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
+import axios from "axios";
+import { api } from "@/shared/api/axiosInstance";
+import { useAddEntity } from "../model/useAddEntity";
+import { createEntityAsync } from "../api/createEntityAsync";
 
 const props = defineProps<{
   sectionName: string;
@@ -19,6 +23,7 @@ const props = defineProps<{
   onSuccess: () => void;
 }>();
 const navigationStore = useNavigationStore();
+console.debug(props.sectionName);
 
 const { formData, tableColumns, selectOptions, submit } =
   props.sectionName === "organizations"
@@ -41,7 +46,12 @@ const { formData, tableColumns, selectOptions, submit } =
         props.onSuccess();
         props.onClose();
       })
-    : useAddArrivalInvoices(props.sectionName, () => {
+    : props.sectionName === "arrival_invoices"
+    ? useAddArrivalInvoices(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      })
+    : useAddEntity(props.sectionName, () => {
         props.onSuccess();
         props.onClose();
       });
@@ -60,6 +70,7 @@ function isDateField(key) {
 
 const dateFields = computed(() => tableColumns.value.filter(isDateField));
 const dateModel = reactive<Record<string, any>>({});
+
 watch(
   dateFields,
   (fields) => {
@@ -78,6 +89,22 @@ watch(
   },
   { immediate: true }
 );
+
+async function uploadImage(file: File, orgTypeId: number) {
+  const data = new FormData();
+  data.append("file", file);
+  data.append("organizationTypeId", String(orgTypeId)); // ID созданной организации
+
+  try {
+    const res = await api.post("/images/upload", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    throw error;
+  }
+}
 
 const handleSubmit = async () => {
   try {

@@ -52,6 +52,7 @@ watch(data, (val) => {
   if (val) {
     const root = getTreeviewData(val);
     treeData.value = root.children || [];
+    console.debug(val);
 
     if (props.currentSection === "current_tasks") {
       expandedKeys.value = treeData.value.reduce((acc, node) => {
@@ -149,6 +150,36 @@ function toggleExpand(node: any) {
     expandedKeys.value[key] = true;
   }
 }
+
+// Функция для получения правильного URL изображения
+const getImageUrl = (iconPath: string) => {
+  if (!iconPath) return "";
+
+  console.log("Original icon path:", iconPath);
+
+  // Если путь уже содержит API URL, возвращаем как есть
+  if (iconPath.includes("/api/")) {
+    return iconPath;
+  }
+
+  // Извлекаем имя файла из пути "uploads/filename.jpg"
+  const filename = iconPath.split("/").pop();
+
+  if (!filename) return "";
+
+  // Используем твой эндпоинт /api/images/filename/:filename
+  const imageUrl = `http://localhost:3000/api/images/filename/${filename}`;
+  console.log("Generated image URL:", imageUrl);
+
+  return imageUrl;
+};
+
+// Обработчик ошибок загрузки изображения
+const handleImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement;
+  console.error("Image failed to load:", img.src);
+  img.style.display = "none";
+};
 </script>
 
 <template>
@@ -180,13 +211,22 @@ function toggleExpand(node: any) {
       :pt-options="{ mergeProps: true }"
     >
       <template #default="slotProps">
+        {{ console.debug(slotProps.node) }}
         <div
           class="treeview__data__wrapper"
           @click="toggleExpand(slotProps.node)"
         >
-          <span class="treeview__data__label">
-            {{ slotProps.node.label }}
-          </span>
+          <div class="treeview__data__label">
+            <template v-if="slotProps.node.data.icon">
+              <img
+                :src="getImageUrl(slotProps.node.data.icon)"
+                :alt="slotProps.node.label"
+                @error="handleImageError"
+                class="treeview__icon"
+              />
+            </template>
+            <span> {{ slotProps.node.label }}</span>
+          </div>
         </div>
       </template>
     </Tree>
