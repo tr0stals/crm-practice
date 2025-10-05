@@ -18,17 +18,17 @@ export class License {
   @Column({ length: 45 })
   licenseCode: string;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   start: Date;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   end: Date;
 
   @Column()
   places: number;
 
-  @Column({ type: 'date' })
-  timeout: Date;
+  @Column({ type: 'time', nullable: true })
+  timeout: string;
 
   @Column({ length: 45, nullable: true })
   comment: string;

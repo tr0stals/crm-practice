@@ -44,7 +44,6 @@ function isDateField(key: any) {
     lower === "start" ||
     lower === "end" ||
     lower === "manufacturetime" ||
-    lower === "timeout" ||
     lower === "deadline"
   );
 }
@@ -138,7 +137,6 @@ onMounted(async () => {
       const objectFields = Object.entries(formData.value).filter(
         ([key, value]) => isObjectField(value) || relatedFields.includes(key)
       );
-      console.debug(objectFields);
 
       for (const [key] of objectFields) {
         await loadRelatedOptions(key);
@@ -199,6 +197,15 @@ onUnmounted(() => {
           }"
           placeholder="Выберите дату"
         />
+        <template v-else-if="key === `timeout`">
+          <input
+            class="addModalWindow__content__field__input"
+            type="time"
+            v-model="formData[key]"
+            :id="key"
+            :name="key"
+          />
+        </template>
 
         <!-- Select for object (relation) -->
         <select
@@ -283,6 +290,10 @@ onUnmounted(() => {
               }
             "
             />
+            <div v-if="formData[key]" class="imageInput__textContent">
+              <span class="imageInput__header">Выбрано изображение:</span>
+              <span class="imageInput__imageTitle">{{ formData[key] }}</span>
+            </div>
 
             <label for="iconUpload" class="imageInput__uploadButton">
               Загрузить иконку

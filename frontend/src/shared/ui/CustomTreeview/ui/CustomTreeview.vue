@@ -7,6 +7,8 @@ import useFetch from "@/shared/lib/useFetch";
 import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import LoadingLayout from "../../LoadingLayout/ui/LoadingLayout.vue";
+import { imageTables } from "../config/imageTables";
+import type { tablesEnum } from "@/shared/config/tablesEnum";
 
 const props = defineProps<{
   currentSection: string;
@@ -25,6 +27,9 @@ const navigationStore = useNavigationStore();
 const isSelectOpen = ref(false);
 const selectedSection = ref("");
 
+// Кэш изображений, чтобы не дёргать сервер по 100 раз
+const imageUrlMap = ref<Record<number, string>>({});
+
 interface TreeNode {
   id: number;
   key: string;
@@ -32,13 +37,13 @@ interface TreeNode {
   data?: any;
   children?: TreeNode[];
   leaf?: boolean;
-  isProduct?: boolean; // Флаг для товаров
+  isProduct?: boolean;
   level: any;
 }
-console.debug(props.currentSection);
+
 const treeTablesExceptions = ["employees", "stands"];
 
-const { data, error, loading, canAbort, abort, refetch } = useFetch<TreeNode[]>(
+const { data, error, loading, refetch } = useFetch<TreeNode[]>(
   treeTablesExceptions.includes(props.currentSection)
     ? `${defaultEndpoint}/${props.currentSection}/getTree`
     : `${defaultEndpoint}/${props.currentSection}/tree`,
@@ -48,17 +53,52 @@ const { data, error, loading, canAbort, abort, refetch } = useFetch<TreeNode[]>(
   }
 );
 
-watch(data, (val) => {
-  if (val) {
-    const root = getTreeviewData(val);
-    treeData.value = root.children || [];
-    console.debug(val);
+const handleLoadImages = async (nodeType: string) => {
+  if (imageTables.includes(props.currentSection as tablesEnum)) {
+    for (const node of treeData.value) {
+      console.debug(node);
+      if (node.data?.nodeType && node.data?.id) {
+        await fetchImageForNode(node.data.nodeType, node.data.id);
+      }
 
-    if (props.currentSection === "current_tasks") {
-      expandedKeys.value = treeData.value.reduce((acc, node) => {
-        acc[node.key] = true;
-        return acc;
-      }, {} as Record<string, boolean>);
+      if (node.children) {
+        for (const child of node.children) {
+          console.debug(child);
+        }
+      }
+    }
+  }
+};
+
+watch(data, async (val) => {
+  if (!val) return;
+
+  const root = getTreeviewData(val);
+  treeData.value = root.children || [];
+
+  // Авторазворачивание веток для определённых секций
+  if (props.currentSection === "current_tasks") {
+    expandedKeys.value = treeData.value.reduce((acc, node) => {
+      acc[node.key] = true;
+      return acc;
+    }, {} as Record<string, boolean>);
+  }
+  console.debug("!!!!!");
+
+  for (const node of treeData.value) {
+    if (
+      imageTables.includes(node.data.nodeType as tablesEnum) &&
+      node.data?.nodeType &&
+      node.data?.id
+    ) {
+      await fetchImageForNode(node.data.nodeType, node.data.id);
+      console.debug(node);
+
+      if (node.children) {
+        for (const child of node.children) {
+          await fetchImageForNode(child.data.nodeType, child.data.id);
+        }
+      }
     }
   }
 });
@@ -68,7 +108,6 @@ const perPage = ref<number>(10);
 
 const paginatedTreeData = computed(() => {
   const start = (page.value - 1) * perPage.value;
-
   return treeData.value.slice(start, start + perPage.value) || [];
 });
 
@@ -77,10 +116,6 @@ function nextPage() {
     page.value++;
   }
 }
-
-watch(expandedKeys, (newVal) => {
-  console.debug(newVal);
-});
 
 function prevPage() {
   if (page.value > 1) {
@@ -94,92 +129,48 @@ defineExpose({
 
 function onNodeSelect(event: any) {
   selectedKey.value = event.key;
-
   selectedSection.value = event.data.nodeType;
   navigationStore.setSelectedRow(event);
-
   emit("node-select", event);
 }
 
-function getExpandedKeysForSearch(nodes: any, search: any) {
-  const expanded = {};
-  function walk(node: any, parentKeys = []) {
-    let match = false;
-    if (node.children) {
-      for (const child of node.children) {
-        if (walk(child, [...parentKeys, node.key])) match = true;
-      }
+// Новый метод загрузки изображения по полиморфному эндпоинту
+async function fetchImageForNode(targetType: string, targetId: number) {
+  if (imageUrlMap.value[targetId]) return; // уже загружено
+
+  try {
+    const res = await fetch(
+      `${defaultEndpoint}/images/byTarget/${targetType}/${targetId}`
+    );
+    if (!res.ok) throw new Error(`Ошибка загрузки изображения: ${res.status}`);
+    const data = await res.json();
+
+    const image = Array.isArray(data) ? data[0] : data;
+
+    if (image?.filename) {
+      imageUrlMap.value[targetId] = `${defaultEndpoint.replace(
+        "/api",
+        ""
+      )}/uploads/${image.filename}`;
     }
-    if (
-      node.label?.toLowerCase().includes(search.toLowerCase()) ||
-      node.material?.toLowerCase().includes(search.toLowerCase()) ||
-      node.drawingReference?.toLowerCase().includes(search.toLowerCase())
-    ) {
-      match = true;
-    }
-    if (match) {
-      for (const k of parentKeys) expanded[k] = true;
-    }
-    return match;
+  } catch (err) {
+    console.error("Ошибка получения изображения:", err);
   }
-  for (const node of treeData.value) walk(node);
-  return expanded;
 }
 
-watch(
-  () => props.search,
-  (val) => {
-    if (val) {
-      expandedKeys.value = getExpandedKeysForSearch(treeData.value, val);
-    } else {
-      expandedKeys.value = {};
-    }
-  },
-  { immediate: true }
-);
+function handleImageError(event: Event) {
+  const img = event.target as HTMLImageElement;
+  // img.style.display = "none";
+}
 
+// Разворачивание узлов
 function toggleExpand(node: any) {
   const key = node.key;
   const isExpanded = expandedKeys.value[key];
-
-  if (node.leaf) return; // Не раскрываем листы
-
-  if (isExpanded) {
-    delete expandedKeys.value[key];
-  } else {
-    expandedKeys.value[key] = true;
-  }
+  if (node.leaf) return;
+  if (isExpanded) delete expandedKeys.value[key];
+  else expandedKeys.value[key] = true;
 }
-
-// Функция для получения правильного URL изображения
-const getImageUrl = (iconPath: string) => {
-  if (!iconPath) return "";
-
-  console.log("Original icon path:", iconPath);
-
-  // Если путь уже содержит API URL, возвращаем как есть
-  if (iconPath.includes("/api/")) {
-    return iconPath;
-  }
-
-  // Извлекаем имя файла из пути "uploads/filename.jpg"
-  const filename = iconPath.split("/").pop();
-
-  if (!filename) return "";
-
-  // Используем твой эндпоинт /api/images/filename/:filename
-  const imageUrl = `http://localhost:3000/api/images/filename/${filename}`;
-  console.log("Generated image URL:", imageUrl);
-
-  return imageUrl;
-};
-
-// Обработчик ошибок загрузки изображения
-const handleImageError = (event: Event) => {
-  const img = event.target as HTMLImageElement;
-  console.error("Image failed to load:", img.src);
-  img.style.display = "none";
-};
 </script>
 
 <template>
@@ -188,6 +179,7 @@ const handleImageError = (event: Event) => {
     <div v-if="treeData.length === 0">
       <h1>Нет данных для отображения</h1>
     </div>
+
     <Tree
       v-else
       :value="paginatedTreeData"
@@ -211,32 +203,34 @@ const handleImageError = (event: Event) => {
       :pt-options="{ mergeProps: true }"
     >
       <template #default="slotProps">
-        {{ console.debug(slotProps.node) }}
         <div
           class="treeview__data__wrapper"
           @click="toggleExpand(slotProps.node)"
         >
           <div class="treeview__data__label">
-            <template v-if="slotProps.node.data.icon">
+            <template
+              v-if="imageTables.includes(slotProps.node.data.nodeType as tablesEnum) && imageUrlMap[slotProps.node.data.id]"
+            >
               <img
-                :src="getImageUrl(slotProps.node.data.icon)"
+                :key="imageUrlMap[slotProps.node.data.id]"
+                :src="imageUrlMap[slotProps.node.data.id]"
                 :alt="slotProps.node.label"
-                @error="handleImageError"
                 class="treeview__icon"
               />
             </template>
-            <span> {{ slotProps.node.label }}</span>
+            <span>{{ slotProps.node.label }}</span>
           </div>
         </div>
       </template>
     </Tree>
+
     <div class="pagination">
       <button class="pagination__btn" @click="prevPage" :disabled="page === 1">
         ← Назад
       </button>
-      <span class="pagination__text"
-        >Страница {{ page }} из {{ Math.ceil(treeData.length / perPage) }}</span
-      >
+      <span class="pagination__text">
+        Страница {{ page }} из {{ Math.ceil(treeData.length / perPage) }}
+      </span>
       <button
         class="pagination__btn"
         @click="nextPage"
@@ -245,42 +239,19 @@ const handleImageError = (event: Event) => {
         Вперёд →
       </button>
       <div class="pagination__itemsPerPage">
-        <label class="pagination__itemsPerPage__label" for="itemsPerPage"
-          >Элементов на странице:</label
+        <label for="itemsPerPage">Элементов на странице:</label>
+        <select
+          id="itemsPerPage"
+          v-model="perPage"
+          @change="
+            isSelectOpen = false;
+            page = 1;
+          "
         >
-        <div
-          class="pagination__itemsPerPage__selectWrapper"
-          :class="{ open: isSelectOpen }"
-        >
-          <select
-            class="pagination__itemsPerPage__selectWrapper__select"
-            id="itemsPerPage"
-            v-model="perPage"
-            @change="
-              isSelectOpen = false;
-              page = 1;
-            "
-          >
-            <option
-              class="pagination__itemsPerPage__selectWrapper__select__option"
-              :value="5"
-            >
-              5
-            </option>
-            <option
-              class="pagination__itemsPerPage__selectWrapper__select__option"
-              :value="20"
-            >
-              20
-            </option>
-            <option
-              class="pagination__itemsPerPage__selectWrapper__select__option"
-              :value="35"
-            >
-              35
-            </option>
-          </select>
-        </div>
+          <option :value="5">5</option>
+          <option :value="20">20</option>
+          <option :value="35">35</option>
+        </select>
       </div>
     </div>
   </template>

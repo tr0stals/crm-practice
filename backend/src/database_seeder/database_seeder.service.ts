@@ -586,11 +586,7 @@ export class DatabaseSeederService {
             endDate.getDate(),
           ),
           places: faker.number.int({ min: 1, max: 100 }),
-          timeout: new Date(
-            timeoutDate.getFullYear(),
-            timeoutDate.getMonth(),
-            timeoutDate.getDate(),
-          ),
+          timeout: '',
           comment: faker.lorem.sentence().substring(0, 45),
           licenseTypes: faker.helpers.arrayElement(licenseTypes),
         };

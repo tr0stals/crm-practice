@@ -59,7 +59,7 @@ export class Components {
 
   @ManyToOne(() => ComponentPlacements, (placement) => placement.components)
   @JoinColumn({ name: 'placementId' })
-  componentPlacements: ComponentPlacements;
+  componentPlacements?: ComponentPlacements;
 
   @OneToMany(
     () => SupplierComponents,

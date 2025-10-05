@@ -4,7 +4,7 @@ export class LicenseDTO {
   start: Date;
   end: Date;
   places: number;
-  timeout: Date;
+  timeout: string;
   comment: string;
   standId: number;
 }

@@ -100,7 +100,7 @@ async function loadComponents() {
   const { photo, ...defaultData } = data;
 
   const res = await createEntityAsync(props.sectionName, {
-    photo: photo.name,
+    photo: photo?.name,
     ...defaultData,
   });
   console.debug(res);
@@ -114,21 +114,17 @@ async function loadComponents() {
 }
 
 const handleSubmit = async () => {
-  try {
-    // 1. Сначала создаем тип организации (получаем его ID)
-    if (props.sectionName === "organization_types") {
-      await loadOrganizationTypes();
-    } else if (props.sectionName === "components") {
-      await loadComponents();
-    } else {
-      await submit();
-    }
-
-    props.onSuccess();
-    props.onClose();
-  } catch (e) {
-    console.error("Ошибка при добавлении", e);
+  // 1. Сначала создаем тип организации (получаем его ID)
+  if (props.sectionName === "organization_types") {
+    await loadOrganizationTypes();
+  } else if (props.sectionName === "components") {
+    await loadComponents();
+  } else {
+    await submit();
   }
+
+  props.onSuccess();
+  props.onClose();
 };
 </script>
 

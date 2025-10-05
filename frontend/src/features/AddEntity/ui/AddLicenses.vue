@@ -34,8 +34,7 @@ function isDateField(key) {
     lower === "deadline" ||
     lower === "manufacturetime" ||
     lower === "start" ||
-    lower === "end" ||
-    lower === "timeout"
+    lower === "end"
   );
 }
 
@@ -133,6 +132,15 @@ const handleSubmit = async () => {
                 :id="item"
                 :name="item"
                 placeholder="+7 (___) ___-__-__"
+              />
+            </template>
+            <template v-else-if="item === `timeout`">
+              <input
+                class="addModalWindow__content__field__input"
+                type="time"
+                v-model="formData[item]"
+                :id="item"
+                :name="item"
               />
             </template>
             <template v-else-if="item === 'isCompleted'">

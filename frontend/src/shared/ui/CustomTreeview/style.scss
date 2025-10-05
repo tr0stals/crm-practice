@@ -5,8 +5,8 @@
   overflow-y: auto;
 
   &__icon {
-    width: 5%;
-    height: 5%;
+    width: 3%;
+    height: 3%;
   }
 
   &__toggleButtonHidden {
@@ -38,8 +38,7 @@
       display: flex;
       flex-direction: row;
       align-items: center;
-      justify-content: space-between;
-      gap: 2rem;
+      gap: 1rem;
       font-size: 1.75rem;
     }
 

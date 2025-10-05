@@ -92,7 +92,7 @@ onMounted(async () => {
   watch(
     () => uploadedImage.value,
     (val) => {
-      formData.value.icon = val.name;
+      formData.value.photo = val.name;
       model.setUploadedImage(val);
     }
   );
