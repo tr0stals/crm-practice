@@ -9,7 +9,7 @@ export class StandsDTO {
   weightBrutto: number;
   link: string;
   vendorCode: string;
-  manufactureTime: Date;
+  manufactureTime: number;
   comment: string;
   standTypeId: number;
   employeeId: number;

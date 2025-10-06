@@ -85,7 +85,7 @@ export const fieldDictionary: { [key: string]: string } = {
   weightNetto: "Вес нетто",
   weightBrutto: "Вес брутто",
   vendorCode: "Артикул",
-  manufactureTime: "Время изготовления",
+  manufactureTime: "Время изготовления (дн.)",
   licenseId: "Лицензия",
   licenses: "Лицензия",
   license: "Лицензия",

@@ -51,8 +51,8 @@ export class Stands {
   @Column({ nullable: true })
   vendorCode: string;
 
-  @Column({ type: 'date', nullable: true })
-  manufactureTime: Date;
+  @Column({ type: 'int', nullable: true })
+  manufactureTime: number;
 
   @Column({ length: 45, nullable: true })
   comment: string;
@@ -97,10 +97,20 @@ export class Stands {
   // Метод для определения типа записи
   isCategory(): boolean {
     // Если заполнены только parentId и title, то это категория
-    return !this.image && !this.width && !this.height && !this.thickness &&
-           !this.weightNetto && !this.weightBrutto && !this.link &&
-           !this.vendorCode && !this.manufactureTime && !this.comment &&
-           !this.standType && !this.employees;
+    return (
+      !this.image &&
+      !this.width &&
+      !this.height &&
+      !this.thickness &&
+      !this.weightNetto &&
+      !this.weightBrutto &&
+      !this.link &&
+      !this.vendorCode &&
+      !this.manufactureTime &&
+      !this.comment &&
+      !this.standType &&
+      !this.employees
+    );
   }
 
   isStand(): boolean {

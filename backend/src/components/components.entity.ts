@@ -30,7 +30,7 @@ export class Components {
   @Column({ nullable: true })
   parentId: number;
 
-  @Column({ length: 45 })
+  @Column({ length: 120 })
   title: string;
 
   @Column({ length: 45, nullable: true })

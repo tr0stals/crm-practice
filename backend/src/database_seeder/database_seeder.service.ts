@@ -626,7 +626,7 @@ export class DatabaseSeederService {
         }),
         link: faker.internet.url().substring(0, 100),
         vendorCode: faker.string.alphanumeric(10).toUpperCase(),
-        manufactureTime: faker.date.future(),
+        manufactureTime: faker.number.int({ min: 10, max: 120 }),
         comment: faker.lorem.sentence().substring(0, 45),
         standType: faker.helpers.arrayElement(standTypes),
         employees: faker.helpers.arrayElement(employees),

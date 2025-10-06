@@ -15,6 +15,7 @@ import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
+import { isDateField } from "@/shared/utils/isDateField";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
@@ -35,18 +36,6 @@ const emits = defineEmits(["close", "save"]);
 const sectionName = computed(() => props.config?.sectionName);
 const entityId = computed(() => props.config?.entityId);
 // const { licenseTypeId, ...originalData } = props.config?.data;
-
-function isDateField(key: any) {
-  const lower = key.toLowerCase();
-
-  return (
-    lower.includes("date") ||
-    lower === "start" ||
-    lower === "end" ||
-    lower === "manufacturetime" ||
-    lower === "deadline"
-  );
-}
 
 function isObjectField(value: any) {
   return value && typeof value === "object";

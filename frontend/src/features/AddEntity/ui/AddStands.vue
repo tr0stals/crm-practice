@@ -9,6 +9,7 @@ import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import { useAddStands } from "../model/useAddStands";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
+import { isDateField } from "@/shared/utils/isDateField";
 
 const props = defineProps<{
   sectionName: string;
@@ -24,17 +25,6 @@ const { formData, tableColumns, selectOptions, submit } = useAddStands(
     props.onClose();
   }
 );
-function isDateField(key) {
-  const lower = key.toLowerCase();
-  return (
-    lower.includes("date") ||
-    lower === "deadline" ||
-    lower === "manufacturetime" ||
-    lower === "start" ||
-    lower === "end" ||
-    lower === "timeout"
-  );
-}
 
 const dateFields = computed(() => tableColumns.value.filter(isDateField));
 const dateModel = reactive<Record<string, any>>({});

@@ -120,6 +120,12 @@ onMounted(async () => {
       resultData.value = newData;
       formData.value = { ...newData };
       components.value = (await loadComponents()).data;
+      const reordered = {
+        parentId: newData.parentId,
+        title: newData.title,
+        ...newData,
+      };
+      formData.value = reordered;
 
       // Поиск полей с датами
       const dateFields = Object.keys(formData.value).filter(isDateField);

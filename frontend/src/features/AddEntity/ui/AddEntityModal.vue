@@ -16,6 +16,7 @@ import axios from "axios";
 import { api } from "@/shared/api/axiosInstance";
 import { useAddEntity } from "../model/useAddEntity";
 import { createEntityAsync } from "../api/createEntityAsync";
+import { isDateField } from "@/shared/utils/isDateField";
 
 const props = defineProps<{
   sectionName: string;
@@ -55,18 +56,6 @@ const { formData, tableColumns, selectOptions, submit } =
         props.onSuccess();
         props.onClose();
       });
-
-function isDateField(key) {
-  const lower = key.toLowerCase();
-  return (
-    lower.includes("date") ||
-    lower === "deadline" ||
-    lower === "manufacturetime" ||
-    lower === "start" ||
-    lower === "end" ||
-    lower === "timeout"
-  );
-}
 
 const dateFields = computed(() => tableColumns.value.filter(isDateField));
 const dateModel = reactive<Record<string, any>>({});
