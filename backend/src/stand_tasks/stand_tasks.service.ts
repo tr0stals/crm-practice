@@ -241,54 +241,69 @@ export class StandTasksService {
         relations: ['standTask', 'component'],
       });
 
-      // Рекурсивный билдер задач
+      // 🔁 Рекурсивный билдер задач
       const buildTaskTree = (tasks, parentId = null) => {
         return tasks
-          .filter((t) => (t.parentId ?? null) === parentId) // фильтруем по parentId
+          .filter((t) => (t.parentId ?? null) === parentId)
           .map((task) => {
+            // Получаем компоненты, связанные с задачей
+            const taskComponents = standTasksComponents.filter(
+              (item) => item.standTask?.id === task.id,
+            );
+
+            // ✅ Группируем одинаковые компоненты по component.id,
+            // но сохраняем id записей stand_tasks_components
+            const groupedComponents = Object.values(
+              taskComponents.reduce((acc, item) => {
+                const compId = item.component?.id;
+                if (!compId) return acc;
+
+                if (!acc[compId]) {
+                  acc[compId] = {
+                    standTasksComponentsIds: [item.id], // <-- ID из таблицы stand_tasks_components
+                    componentTitle: item.component?.title,
+                    totalCount: item.componentCount ?? 0,
+                  };
+                } else {
+                  acc[compId].standTasksComponentsIds.push(item.id);
+                  acc[compId].totalCount += item.componentCount ?? 0;
+                }
+
+                return acc;
+              }, {}),
+            );
+
+            // Формируем дерево
             return {
               id: task.id,
               name: `Задача: ${task.title}`,
               nodeType: 'stand_tasks',
               children: [
-                // подзадачи
+                // Подзадачи
                 ...buildTaskTree(tasks, task.id),
-                // компоненты
-                ...(() => {
-                  const grouped = new Map<number, { title: string; total: number }>();
-                  standTasksComponents
-                    .filter((item) => item.standTask?.id === task.id)
-                    .forEach((item) => {
-                      const compId = item.component?.id;
-                      if (!compId) return;
-                      const prev = grouped.get(compId);
-                      const count = Number(item.componentCount ?? 0);
-                      if (prev) grouped.set(compId, { title: prev.title, total: prev.total + count });
-                      else grouped.set(compId, { title: item.component?.title ?? '—', total: count });
-                    });
 
-                  return Array.from(grouped.entries()).map(([compId, info]) => ({
-                    id: `${task.id}`,
-                    name: `Компонент: ${info.title} | Кол-во: ${info.total}`,
-                    nodeType: 'stand_tasks_components',
-                  }));
-                })(),
+                // Компоненты
+                ...groupedComponents.map((comp: any) => ({
+                  // ✅ id теперь берём из stand_tasks_components (первый элемент группы)
+                  id: comp.standTasksComponentsIds[0],
+                  standTasksComponentsIds: comp.standTasksComponentsIds, // для отладки или логики
+                  name: `Компонент: ${comp.componentTitle} | Кол-во: ${comp.totalCount}`,
+                  nodeType: 'stand_tasks_components',
+                })),
               ],
             };
           });
       };
 
-      // Корневой уровень — стенды
-      const tree = stands.map((stand: Stands) => {
-        return {
-          id: stand.id,
-          name: `Стенд: ${stand.title} | ${stand.standType?.title}`,
-          nodeType: 'stands',
-          children: buildTaskTree(
-            standTasks.filter((task) => task.stands?.id === stand.id),
-          ),
-        };
-      });
+      // 🌳 Корневой уровень — стенды
+      const tree = stands.map((stand: Stands) => ({
+        id: stand.id,
+        name: `Стенд: ${stand.title} | ${stand.standType?.title}`,
+        nodeType: 'stands',
+        children: buildTaskTree(
+          standTasks.filter((task) => task.stands?.id === stand.id),
+        ),
+      }));
 
       return { name: 'Задачи стенда', children: tree };
     } catch (e) {

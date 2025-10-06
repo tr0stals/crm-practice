@@ -16,6 +16,7 @@ export async function useHandleDelete(onUpdateCallBack: () => void) {
     ? navigationStore.selectedRow?.data?.nodeType
     : navigationStore.currentSection;
 
+  console.debug(targetId, targetNodeType);
   const response = await deleteDataAsync(targetId, targetNodeType);
 
   if (response?.status === 200) {
