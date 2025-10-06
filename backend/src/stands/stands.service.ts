@@ -13,7 +13,6 @@ import { StandTypesService } from 'src/stand_types/stand_types.service';
 import { WsGateway } from '../websocket/ws.gateway';
 import { User } from 'src/user/user.entity';
 import { StandsTypes } from 'src/stand_types/stand_types.entity';
-import { ImagesService } from 'src/images/images.service';
 
 @Injectable()
 export class StandsService {
@@ -25,8 +24,6 @@ export class StandsService {
     private employeeService: EmployeesService,
     private standTypeService: StandTypesService,
     private wsGateway: WsGateway,
-
-    private imagesService: ImagesService,
   ) {}
 
   async create(data: StandsDTO, userId?: number) {
