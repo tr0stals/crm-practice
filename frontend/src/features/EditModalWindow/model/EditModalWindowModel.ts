@@ -33,7 +33,9 @@ export class EditModalWindowModel {
     this.uploadedImage = image;
   }
 
-  private async uploadOrUpdateImage(type: "organization_types" | "components") {
+  private async uploadOrUpdateImage(
+    type: "organization_types" | "components" | "stands"
+  ) {
     if (!this.uploadedImage) return;
 
     const formData = new FormData();
@@ -71,6 +73,10 @@ export class EditModalWindowModel {
 
       if (this.endpoint === "components") {
         await this.uploadOrUpdateImage("components");
+      }
+
+      if (this.endpoint === "stands") {
+        await this.uploadOrUpdateImage("stands");
       }
 
       if (this.endpoint !== "employees") {

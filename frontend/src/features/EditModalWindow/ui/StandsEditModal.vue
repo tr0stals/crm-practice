@@ -80,6 +80,15 @@ function isRelatedField(key: string, value: any): boolean {
 }
 
 onMounted(async () => {
+  watch(
+    () => uploadedImage.value,
+    (val) => {
+      console.debug(val);
+      formData.value.image = val.name;
+      model.setUploadedImage(val);
+    }
+  );
+
   model = new EditModalWindowModel(props.onApplyCallback);
 
   const { data, loading, error, refetch } = useFetch<any>(
