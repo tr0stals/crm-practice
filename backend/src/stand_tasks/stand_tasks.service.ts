@@ -254,13 +254,25 @@ export class StandTasksService {
                 // подзадачи
                 ...buildTaskTree(tasks, task.id),
                 // компоненты
-                ...standTasksComponents
-                  .filter((item) => item.standTask?.id === task.id)
-                  .map((item) => ({
-                    id: item.id,
-                    name: `Компонент: ${item.component?.title} | Кол-во: ${item.componentCount}`,
+                ...(() => {
+                  const grouped = new Map<number, { title: string; total: number }>();
+                  standTasksComponents
+                    .filter((item) => item.standTask?.id === task.id)
+                    .forEach((item) => {
+                      const compId = item.component?.id;
+                      if (!compId) return;
+                      const prev = grouped.get(compId);
+                      const count = Number(item.componentCount ?? 0);
+                      if (prev) grouped.set(compId, { title: prev.title, total: prev.total + count });
+                      else grouped.set(compId, { title: item.component?.title ?? '—', total: count });
+                    });
+
+                  return Array.from(grouped.entries()).map(([compId, info]) => ({
+                    id: `${task.id}-${compId}`,
+                    name: `Компонент: ${info.title} | Кол-во: ${info.total}`,
                     nodeType: 'stand_tasks_components',
-                  })),
+                  }));
+                })(),
               ],
             };
           });
