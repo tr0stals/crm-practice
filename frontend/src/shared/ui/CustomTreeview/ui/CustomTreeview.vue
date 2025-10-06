@@ -8,7 +8,7 @@ import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import LoadingLayout from "../../LoadingLayout/ui/LoadingLayout.vue";
 import { imageTables } from "../config/imageTables";
-import type { tablesEnum } from "@/shared/config/tablesEnum";
+import { tablesEnum } from "@/shared/config/tablesEnum";
 
 const props = defineProps<{
   currentSection: string;
@@ -85,21 +85,28 @@ watch(data, async (val) => {
   }
   console.debug("!!!!!");
 
-  for (const node of treeData.value) {
+  async function processNode(node: any) {
+    const promises = [];
+
     if (
       imageTables.includes(node.data.nodeType as tablesEnum) &&
       node.data?.nodeType &&
       node.data?.id
     ) {
-      await fetchImageForNode(node.data.nodeType, node.data.id);
-      console.debug(node);
+      promises.push(fetchImageForNode(node.data.nodeType, node.data.id));
+    }
 
-      if (node.children) {
-        for (const child of node.children) {
-          await fetchImageForNode(child.data.nodeType, child.data.id);
-        }
+    if (node.children && node.children.length > 0) {
+      for (const child of node.children) {
+        promises.push(processNode(child));
       }
     }
+
+    await Promise.all(promises);
+  }
+
+  for (const node of treeData.value) {
+    await processNode(node);
   }
 });
 
@@ -137,6 +144,9 @@ function onNodeSelect(event: any) {
 // Новый метод загрузки изображения по полиморфному эндпоинту
 async function fetchImageForNode(targetType: string, targetId: number) {
   if (imageUrlMap.value[targetId]) return; // уже загружено
+  console.debug(targetType, targetId);
+  if (targetType === tablesEnum.components_categories)
+    targetType = tablesEnum.components;
 
   try {
     const res = await fetch(

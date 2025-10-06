@@ -32,8 +32,8 @@ export class StandTasks {
   @Column({ length: 100, nullable: true })
   photo: string;
 
-  @Column({ type: 'date' })
-  manufactureTime: Date;
+  @Column({ type: 'int' })
+  manufactureTime: number;
 
   @Column({ default: false })
   isCompleted: boolean;

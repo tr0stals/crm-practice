@@ -1603,7 +1603,7 @@ export class DatabaseSeederService {
       componentOutCount: faker.number.int({ min: 1, max: 50 }),
       title: faker.commerce.productName().substring(0, 45),
       photo: faker.image.url().substring(0, 100),
-      manufactureTime: faker.date.future(),
+      manufactureTime: faker.number.int(),
       stands: stand,
       professions: faker.helpers.arrayElement(professions),
       components: faker.helpers.arrayElement(components),

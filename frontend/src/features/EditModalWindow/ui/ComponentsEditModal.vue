@@ -11,10 +11,11 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import { relationMap } from "@/shared/config/relationMap";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import useFetch from "@/shared/lib/useFetch";
-import { defaultEndpoint } from "@/shared/api/axiosInstance";
+import { api, defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
+import { isDateField } from "@/shared/utils/isDateField";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
@@ -36,19 +37,6 @@ const emits = defineEmits(["close", "save"]);
 const sectionName = computed(() => props.config?.sectionName);
 const entityId = computed(() => props.config?.entityId);
 // const { licenseTypeId, ...originalData } = props.config?.data;
-
-function isDateField(key: any) {
-  const lower = key.toLowerCase();
-
-  return (
-    lower.includes("date") ||
-    lower === "start" ||
-    lower === "end" ||
-    lower === "manufacturetime" ||
-    lower === "timeout" ||
-    lower === "deadline"
-  );
-}
 
 function isObjectField(value: any) {
   return value && typeof value === "object";
@@ -116,10 +104,10 @@ onMounted(async () => {
     async (newData) => {
       if (!newData) return;
 
-      console.debug(newData);
       resultData.value = newData;
       formData.value = { ...newData };
       components.value = (await loadComponents()).data;
+
       const reordered = {
         parentId: newData.parentId,
         title: newData.title,
@@ -146,7 +134,6 @@ onMounted(async () => {
       const objectFields = Object.entries(formData.value).filter(
         ([key, value]) => isObjectField(value) || relatedFields.includes(key)
       );
-      console.debug(objectFields);
 
       for (const [key] of objectFields) {
         await loadRelatedOptions(key);
@@ -156,11 +143,44 @@ onMounted(async () => {
   );
 });
 
+// Доступные категории для parentId
+const availableParentOptions = computed(() => {
+  if (!components.value?.length || !entityId.value) return [];
+
+  // Проверяем, используется ли текущий компонент как parentId у других
+  const isUsedAsParent = components.value.some(
+    (comp: any) => comp.parentId === entityId.value
+  );
+
+  // Опция "Без категории", добавляем только если текущий компонент не используется как parent
+  const rootOption = !isUsedAsParent
+    ? [{ id: null, title: "Без категории" }]
+    : [];
+
+  // Остальные компоненты, исключая сам текущий
+  const otherOptions = components.value
+    .filter((comp: any) => comp.id !== entityId.value)
+    .map((comp: any) => ({
+      id: comp.id,
+      title: comp.title,
+    }));
+
+  // Конкатенируем: rootOption всегда первой
+  return [...rootOption, ...otherOptions];
+});
+
 async function loadComponents() {
   const components = await getDataAsync({ endpoint: "components/get" });
 
   return components;
 }
+
+const handleDeleteImage = async (item: any) => {
+  console.debug(item);
+  item.photo = null;
+
+  await api.delete(`images/byTarget/components/${item?.id}`);
+};
 
 onUnmounted(() => {
   model?.destroy();
@@ -222,9 +242,12 @@ onUnmounted(() => {
           :name="key"
           v-model="formData[key]"
         >
-          <option :value="null">Без категории</option>
-          <option v-for="component in components" :value="component.id">
-            {{ component.title }}
+          <option
+            v-for="option in availableParentOptions"
+            :key="option.id ?? 'null'"
+            :value="option.id"
+          >
+            {{ option.title }}
           </option>
         </select>
 
@@ -312,9 +335,15 @@ onUnmounted(() => {
               }
             "
             />
-
+            <div v-if="formData[key]" class="imageInput__textContent">
+              <span class="imageInput__header">Выбрано изображение:</span>
+              <span class="imageInput__imageTitle">{{ formData[key] }}</span>
+            </div>
             <label for="iconUpload" class="imageInput__uploadButton">
               Загрузить иконку
+            </label>
+            <label v-if="formData[key]" @click="handleDeleteImage(formData)">
+              X
             </label>
           </div>
         </template>

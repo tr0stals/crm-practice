@@ -4,7 +4,7 @@ export class StandTasksDTO {
   componentOutCount: number;
   title: string;
   photo: string;
-  manufactureTime: Date;
+  manufactureTime: number;
   isCompleted: boolean;
   standId: number;
   professionId: number;

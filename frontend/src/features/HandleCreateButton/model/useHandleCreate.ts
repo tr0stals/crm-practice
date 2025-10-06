@@ -73,7 +73,7 @@ export function useCreateButton(onUpdateCallBack: () => void) {
         navigationStore.selectedRow?.data?.nodeType === tablesEnum.stands
       ) {
         section.value = tablesEnum.stands;
-        ModalManager.getInstance().open(AddStands, {
+        ModalManager.getInstance().open(AddModalWithImages, {
           sectionName: section.value,
           onClose: () => ModalManager.getInstance().closeModal(),
           onSuccess: onUpdateCallBack,

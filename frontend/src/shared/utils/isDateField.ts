@@ -5,6 +5,7 @@ export const isDateField = (key: any) => {
     lower.includes("date") ||
     lower === "start" ||
     lower === "end" ||
-    lower === "deadline"
+    lower === "deadline" ||
+    lower === "manufacturedate"
   );
 };

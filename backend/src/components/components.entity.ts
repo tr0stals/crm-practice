@@ -138,7 +138,6 @@ export class Components {
   isCategory(): boolean {
     // Если заполнены только parentId и title, то это категория
     return (
-      !this.photo &&
       !this.width &&
       !this.height &&
       !this.thickness &&

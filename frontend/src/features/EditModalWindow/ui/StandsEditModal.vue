@@ -11,7 +11,7 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import { relationMap } from "@/shared/config/relationMap";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import useFetch from "@/shared/lib/useFetch";
-import { defaultEndpoint } from "@/shared/api/axiosInstance";
+import { api, defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
@@ -24,6 +24,7 @@ const relatedOptions = reactive<Record<string, any[]>>({});
 const loading = ref<boolean>(false);
 const stands = ref();
 const standTypeId = ref();
+const uploadedImage = ref();
 
 let model: EditModalWindowModel;
 
@@ -131,6 +132,13 @@ onMounted(async () => {
     { immediate: true }
   );
 });
+
+const handleDeleteImage = async (item: any) => {
+  console.debug(item);
+  item.image = null;
+
+  await api.delete(`images/byTarget/stands/${item?.id}`);
+};
 
 onUnmounted(() => {
   model?.destroy();
@@ -266,6 +274,34 @@ onUnmounted(() => {
           :name="key"
           placeholder="+7 (___) ___-__-__"
         />
+        <template v-else-if="key === 'image'">
+          <div class="imageInput">
+            <input
+              class="imageInput__input--hidden"
+              id="iconUpload"
+              type="file"
+              @change="
+              (e) => {
+                const input = e.target as HTMLInputElement;
+                
+                if (input.files && input.files[0]) {
+                  uploadedImage = input.files[0];
+                }
+              }
+            "
+            />
+            <div v-if="formData[key]" class="imageInput__textContent">
+              <span class="imageInput__header">Выбрано изображение:</span>
+              <span class="imageInput__imageTitle">{{ formData[key] }}</span>
+            </div>
+            <label for="iconUpload" class="imageInput__uploadButton">
+              Загрузить иконку
+            </label>
+            <label v-if="formData[key]" @click="handleDeleteImage(formData)">
+              X
+            </label>
+          </div>
+        </template>
 
         <!-- Generic input -->
         <input

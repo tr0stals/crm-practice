@@ -26,17 +26,20 @@ export class ComponentsService {
   async create(data: ComponentsDTO, userId?: number) {
     try {
       const { placementId, ...defaultData } = data;
-      
+
       // Валидация: если это компонент (заполнены дополнительные поля), то все обязательные поля должны быть заполнены
       const isComponent = this.isComponentData(defaultData);
       if (isComponent) {
-        const missingFields = this.validateComponentFields(defaultData, placementId);
+        const missingFields = this.validateComponentFields(
+          defaultData,
+          placementId,
+        );
         if (missingFields.length > 0) {
           const errorMessage = `Для создания компонента необходимо заполнить все обязательные поля: ${missingFields.join(', ')}`;
-          
+
           // Отправляем уведомление об ошибке валидации
           let targetUserId = userId ? userId.toString() : '1';
-          
+
           // Если userId не передан, пытаемся найти пользователя напрямую
           if (!userId) {
             const directUser = await this.userRepository.findOne({
@@ -44,13 +47,21 @@ export class ComponentsService {
             });
             if (directUser) {
               targetUserId = directUser.id.toString();
-              console.log(`[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${errorMessage}`);
+              console.log(
+                `[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${errorMessage}`,
+              );
             }
           }
-          
-          console.log(`[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${errorMessage}`);
-          this.wsGateway.sendNotification(targetUserId, errorMessage, 'validation_error');
-          
+
+          console.log(
+            `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${errorMessage}`,
+          );
+          this.wsGateway.sendNotification(
+            targetUserId,
+            errorMessage,
+            'validation_error',
+          );
+
           throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
         }
       }
@@ -67,12 +78,12 @@ export class ComponentsService {
       } as DeepPartial<Components>);
 
       const savedEntity = await this.repository.save(entity);
-      
+
       // Отправляем уведомление об успешном создании
       const recordType = isComponent ? 'компонент' : 'категорию компонентов';
       const message = `Успешно создан ${recordType}: "${savedEntity.title}"`;
       let targetUserId = userId ? userId.toString() : '1';
-      
+
       // Если userId не передан, пытаемся найти пользователя напрямую
       if (!userId) {
         const directUser = await this.userRepository.findOne({
@@ -80,13 +91,17 @@ export class ComponentsService {
         });
         if (directUser) {
           targetUserId = directUser.id.toString();
-          console.log(`[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${message}`);
+          console.log(
+            `[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${message}`,
+          );
         }
       }
-      
-      console.log(`[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${message}`);
+
+      console.log(
+        `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${message}`,
+      );
       this.wsGateway.sendNotification(targetUserId, message, 'success');
-      
+
       return savedEntity;
     } catch (e) {
       throw new Error(e);
@@ -95,14 +110,22 @@ export class ComponentsService {
 
   // Метод для определения, является ли данные компонентом (а не категорией)
   private isComponentData(data: any): boolean {
-    return !!(data.photo || data.width || data.height || data.thickness || 
-              data.weight || data.material || data.receiptDate || data.drawingReference);
+    return !!(
+      data.photo ||
+      data.width ||
+      data.height ||
+      data.thickness ||
+      data.weight ||
+      data.material ||
+      data.receiptDate ||
+      data.drawingReference
+    );
   }
 
   // Валидация обязательных полей для компонента
   private validateComponentFields(data: any, placementId?: number): string[] {
     const missingFields: string[] = [];
-    
+
     // Обязательные поля для компонента
     const requiredFields = [
       { field: 'photo', name: 'Фото' },
@@ -132,7 +155,12 @@ export class ComponentsService {
 
   async findAll(): Promise<Components[]> {
     return await this.repository.find({
-      relations: ['componentPlacements', 'componentPlacements.placementType', 'parent', 'children'],
+      relations: [
+        'componentPlacements',
+        'componentPlacements.placementType',
+        'parent',
+        'children',
+      ],
     });
   }
 
@@ -141,15 +169,19 @@ export class ComponentsService {
     const allItems = await this.repository.find({
       relations: ['parent', 'children', 'componentPlacements'],
     });
-    return allItems.filter(item => item.isCategory());
+    return allItems.filter((item) => item.isCategory());
   }
 
   // Получить только компоненты (без категорий)
   async findComponents(): Promise<Components[]> {
     const allItems = await this.repository.find({
-      relations: ['componentPlacements', 'componentPlacements.placementType', 'parent'],
+      relations: [
+        'componentPlacements',
+        'componentPlacements.placementType',
+        'parent',
+      ],
     });
-    return allItems.filter(item => item.isComponent());
+    return allItems.filter((item) => item.isComponent());
   }
 
   async findOne(id: number): Promise<Components> {
@@ -174,8 +206,6 @@ export class ComponentsService {
       components.map((item) => {
         const { componentPlacements, ...defaultData } = item;
         const placementType = componentPlacements?.placementType;
-        if (!placementType)
-          throw new NotFoundException('Тип размещения не найден');
 
         const componentPlacementData = componentPlacements
           ? `${placementType?.title}, Здание ${componentPlacements?.building}, комната ${componentPlacements?.room}`
@@ -221,18 +251,23 @@ export class ComponentsService {
 
   async getComponentsTree() {
     const allItems = await this.repository.find({
-      relations: ['componentPlacements', 'componentPlacements.placementType', 'parent', 'children'],
+      relations: [
+        'componentPlacements',
+        'componentPlacements.placementType',
+        'parent',
+        'children',
+      ],
     });
 
     // Разделяем на категории и компоненты
-    const categories = allItems.filter(item => item.isCategory());
-    const components = allItems.filter(item => item.isComponent());
+    const categories = allItems.filter((item) => item.isCategory());
+    const components = allItems.filter((item) => item.isComponent());
 
     // Строим дерево категорий
     const buildCategoryTree = (parentId: number | null = null): any[] => {
       return categories
-        .filter(cat => cat.parentId === parentId)
-        .map(cat => ({
+        .filter((cat) => cat.parentId === parentId)
+        .map((cat) => ({
           id: cat.id,
           name: cat.title,
           nodeType: 'components_categories',
@@ -242,8 +277,8 @@ export class ComponentsService {
             ...buildCategoryTree(cat.id),
             // Добавляем компоненты этой категории
             ...components
-              .filter(comp => comp.parentId === cat.id)
-              .map(comp => {
+              .filter((comp) => comp.parentId === cat.id)
+              .map((comp) => {
                 const placement = comp.componentPlacements;
                 const placementInfo = placement
                   ? `${placement.placementType?.title || ''}, Здание ${placement.building}, комната ${placement.room}`
@@ -255,7 +290,7 @@ export class ComponentsService {
                   ...comp,
                   children: [],
                 };
-              })
+              }),
           ],
         }));
     };
@@ -264,8 +299,8 @@ export class ComponentsService {
 
     // Добавляем компоненты без категории (parentId = null) на корневой уровень
     const rootComponents = components
-      .filter(comp => comp.parentId === null || comp.parentId === undefined)
-      .map(comp => {
+      .filter((comp) => comp.parentId === null || comp.parentId === undefined)
+      .map((comp) => {
         const placement = comp.componentPlacements;
         const placementInfo = placement
           ? `${placement.placementType?.title || ''}, Здание ${placement.building}, комната ${placement.room}`

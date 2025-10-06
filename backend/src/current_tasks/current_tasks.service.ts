@@ -71,11 +71,7 @@ export class CurrentTasksService {
 
     const standTask = await this.standTasksRepository.findOne({
       where: { id: data.standTaskId },
-      relations: [
-        'stands',
-        'professions',
-        'components',
-      ],
+      relations: ['stands', 'professions', 'components'],
     });
 
     if (!employee || !currentTaskState || !stands || !standTask) {
@@ -363,11 +359,7 @@ export class CurrentTasksService {
       ],
     });
     const allStandTasks = await this.standTasksRepository.find({
-      relations: [
-        'components',
-        'stands',
-        'professions',
-      ],
+      relations: ['components', 'stands', 'professions'],
     });
     const standTasksByParent = new Map<string, StandTasks[]>();
     for (const st of allStandTasks) {
@@ -428,7 +420,7 @@ export class CurrentTasksService {
                   `Стенд: ${st.stands?.title || ''}`,
                   `Компонент: ${st.components?.title || ''}`,
                   `Кол-во: ${st.componentOutCount}`,
-                  `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
+                  `Время изготовления: ${st.manufactureTime}`,
                 ]
                   .filter(Boolean)
                   .join(' | '),
@@ -436,11 +428,7 @@ export class CurrentTasksService {
                 isCompleted: st.isCompleted,
                 standTask: st.title || '',
                 component: st.components?.title || '',
-                manufactureTime: st.manufactureTime
-                  ? typeof st.manufactureTime === 'string'
-                    ? st.manufactureTime
-                    : (st.manufactureTime as Date).toISOString().split('T')[0]
-                  : '',
+                manufactureTime: st.manufactureTime,
                 children: [],
               })),
             })),
@@ -592,7 +580,7 @@ export class CurrentTasksService {
                                 `Стенд: ${st.stands?.title || ''}`,
                                 `Компонент: ${st.components?.title || ''}`,
                                 `Кол-во: ${st.componentOutCount}`,
-                                `Время изготовления: ${st.manufactureTime ? (typeof st.manufactureTime === 'string' ? st.manufactureTime : (st.manufactureTime as Date).toISOString().split('T')[0]) : ''}`,
+                                `Время изготовления: ${st.manufactureTime}`,
                               ]
                                 .filter(Boolean)
                                 .join(' | '),
@@ -620,13 +608,7 @@ export class CurrentTasksService {
                               })(),
                               standTask: st.title || '',
                               component: st.components?.title || '',
-                              manufactureTime: st.manufactureTime
-                                ? typeof st.manufactureTime === 'string'
-                                  ? st.manufactureTime
-                                  : (st.manufactureTime as Date)
-                                      .toISOString()
-                                      .split('T')[0]
-                                : '',
+                              manufactureTime: st.manufactureTime,
                               _parent: {
                                 id: task.id,
                                 currentTaskStateId: task.currentTaskStates?.id,

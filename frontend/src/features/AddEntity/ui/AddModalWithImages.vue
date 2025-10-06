@@ -102,18 +102,46 @@ async function loadComponents() {
   }
 }
 
+async function loadStands() {
+  const data = { ...formData };
+  const { image, ...defaultData } = data;
+  console.debug(image);
+
+  const res = await createEntityAsync(props.sectionName, {
+    image: image?.name,
+    ...defaultData,
+  });
+
+  const createdId = res.data.id; // ID созданного типа организации
+
+  // 2. Если есть иконка, загружаем ее и привязываем к созданной организации
+  if (formData.image instanceof File) {
+    await uploadImage(formData.image, createdId);
+  }
+}
+
 const handleSubmit = async () => {
   // 1. Сначала создаем тип организации (получаем его ID)
   if (props.sectionName === "organization_types") {
     await loadOrganizationTypes();
   } else if (props.sectionName === "components") {
     await loadComponents();
+  } else if (props.sectionName === "stands") {
+    await loadStands();
   } else {
     await submit();
   }
 
   props.onSuccess();
   props.onClose();
+};
+
+const handleDeleteImage = async (item: any) => {
+  console.debug(item);
+  if (item.photo) item.photo = null;
+  if (item.icon) item.icon = null;
+
+  await api.delete(`images/byTarget/${props.sectionName}/${item?.id}`);
 };
 </script>
 
@@ -198,7 +226,11 @@ const handleSubmit = async () => {
                 </Button>
               </div>
             </template>
-            <template v-else-if="item === 'icon' || item === 'photo'">
+            <template
+              v-else-if="
+                item === 'icon' || item === 'photo' || item === 'image'
+              "
+            >
               <div class="imageInput">
                 <input
                   type="file"
@@ -221,6 +253,12 @@ const handleSubmit = async () => {
                 </div>
                 <label for="iconUpload" class="imageInput__uploadButton">
                   Загрузить
+                </label>
+                <label
+                  v-if="formData[item]"
+                  @click="handleDeleteImage(formData)"
+                >
+                  X
                 </label>
               </div>
             </template>

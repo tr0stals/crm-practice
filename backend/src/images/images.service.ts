@@ -48,6 +48,14 @@ export class ImagesService {
     });
   }
 
+  async deleteImagesByTarget(targetType: string, targetId: number) {
+    const targetImage = await this.getImagesByTarget(targetType, targetId);
+
+    if (!targetImage) return;
+
+    targetImage.map(async (item) => await this.deleteImage(item?.id));
+  }
+
   async deleteImage(id: number): Promise<void> {
     const image = await this.getImageById(id);
 

@@ -75,6 +75,14 @@ export class ImagesController {
     return await this.imagesService.getImagesByTarget(targetType, +id);
   }
 
+  @Delete('byTarget/:targetType/:id')
+  async deleteImagesByTarget(
+    @Param('targetType') targetType: string,
+    @Param('id') id: string,
+  ) {
+    return await this.imagesService.deleteImagesByTarget(targetType, +id);
+  }
+
   @Get(':id')
   async getImage(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
     const image = await this.imagesService.getImageById(id);
