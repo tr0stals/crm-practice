@@ -268,7 +268,7 @@ export class StandTasksService {
                     });
 
                   return Array.from(grouped.entries()).map(([compId, info]) => ({
-                    id: `${task.id}-${compId}`,
+                    id: `${task.id}`,
                     name: `Компонент: ${info.title} | Кол-во: ${info.total}`,
                     nodeType: 'stand_tasks_components',
                   }));
