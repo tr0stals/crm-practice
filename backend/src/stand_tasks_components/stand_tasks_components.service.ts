@@ -31,6 +31,19 @@ export class StandTasksComponentsService {
     });
   }
 
+  async getByStandTask(id: number) {
+    try {
+      return await this.repo.find({
+        where: {
+          standTask: { id: id },
+        },
+        relations: ['standTask', 'component'],
+      });
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async generateData() {
     try {
       const standTasksComponents = await this.findAll();

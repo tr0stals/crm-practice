@@ -17,6 +17,7 @@ import { api } from "@/shared/api/axiosInstance";
 import { useAddEntity } from "../model/useAddEntity";
 import { createEntityAsync } from "../api/createEntityAsync";
 import { isDateField } from "@/shared/utils/isDateField";
+import { useAddStandTasks } from "../model/useAddStandTasks";
 
 const props = defineProps<{
   sectionName: string;
@@ -27,13 +28,16 @@ const navigationStore = useNavigationStore();
 console.debug(props.sectionName);
 
 // TODO: Пока здесь рассчитано на org_types
-const { formData, tableColumns, selectOptions, submit } = useAddEntity(
-  props.sectionName,
-  () => {
-    props.onSuccess();
-    props.onClose();
-  }
-);
+const { formData, tableColumns, selectOptions, submit } =
+  props.sectionName === "stand_tasks"
+    ? useAddStandTasks(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      })
+    : useAddEntity(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      });
 
 const dateFields = computed(() => tableColumns.value.filter(isDateField));
 const dateModel = reactive<Record<string, any>>({});
@@ -120,6 +124,24 @@ async function loadStands() {
   }
 }
 
+async function loadStandTasks() {
+  const data = { ...formData };
+  const { photo, ...defaultData } = data;
+  console.debug(photo);
+
+  const res = await createEntityAsync(props.sectionName, {
+    photo: photo?.name,
+    ...defaultData,
+  });
+
+  const createdId = res.data.id; // ID созданного типа организации
+
+  // 2. Если есть иконка, загружаем ее и привязываем к созданной организации
+  if (formData.photo instanceof File) {
+    await uploadImage(formData.photo, createdId);
+  }
+}
+
 const handleSubmit = async () => {
   // 1. Сначала создаем тип организации (получаем его ID)
   if (props.sectionName === "organization_types") {
@@ -128,7 +150,11 @@ const handleSubmit = async () => {
     await loadComponents();
   } else if (props.sectionName === "stands") {
     await loadStands();
+  } else if (props.sectionName === "stand_tasks") {
+    console.debug("вызов происходит отсбла");
+    await submit();
   } else {
+    console.debug("нет, отсюда!");
     await submit();
   }
 

@@ -39,6 +39,11 @@ export class StandTasksComponentsController {
     return await this.service.findOne(+id);
   }
 
+  @Get('byStandTask/get/:id')
+  async getByStandTask(@Param('id') id: string) {
+    return await this.service.getByStandTask(+id);
+  }
+
   @Get('generateData')
   async generateData() {
     return await this.service.generateData();

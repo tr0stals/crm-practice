@@ -2,6 +2,7 @@ import { ref, reactive, onMounted } from "vue";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { createEntityAsync } from "../api/createEntityAsync";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import { updateAsync } from "@/features/EditModalWindow/api/updateAsync";
 
 /**
  * Добавление записей в сущности-таблицы (не тривью)
@@ -38,17 +39,39 @@ export function useAddStandTasksComponents(
 
   onMounted(fetchColumnsAndRelations);
 
+  const findStandTask = async (standTaskId: number) => {
+    const standTask = await getDataAsync({
+      endpoint: `stand_tasks_components/byStandTask/get/${standTaskId}`,
+    });
+
+    return standTask.data;
+  };
+
   const submit = async () => {
     const standTaskId = navigationStore.selectedRow?.data?.id;
-    console.debug(standTaskId);
-    // если нет выбранного parentId → делаем null (или 0)
-    if (!formData.parentId) {
-      formData.parentId = 0; // или 0, если у тебя в БД так заведено
-    }
+
+    const standTaskComponents = await findStandTask(standTaskId);
 
     formData.standTaskId = standTaskId;
 
-    await createEntityAsync(sectionName, formData);
+    if (standTaskComponents.length > 0) {
+      standTaskComponents.forEach(async (item: any) => {
+        // Если в задаче стенда есть компоненты задач и новый компонент совпадает с имеющимся
+        if (item.component?.id === formData.componentId) {
+          item.componentCount += Number(formData.componentCount);
+          await updateAsync("stand_tasks_components", item);
+        }
+        // Если в задаче стенда есть компоненты задач и новый компонент не совпадает с имеющимся
+        else {
+          await createEntityAsync(sectionName, formData);
+        }
+      });
+    }
+    // Если в задаче нет компонентов - тогда добавляем новый без суммирования
+    else {
+      await createEntityAsync(sectionName, formData);
+    }
+
     onSuccess();
   };
 

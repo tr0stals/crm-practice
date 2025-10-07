@@ -34,7 +34,7 @@ export class EditModalWindowModel {
   }
 
   private async uploadOrUpdateImage(
-    type: "organization_types" | "components" | "stands"
+    type: "organization_types" | "components" | "stands" | "stand_tasks"
   ) {
     if (!this.uploadedImage) return;
 
@@ -77,6 +77,10 @@ export class EditModalWindowModel {
 
       if (this.endpoint === "stands") {
         await this.uploadOrUpdateImage("stands");
+      }
+
+      if (this.endpoint === "stand_tasks") {
+        await this.uploadOrUpdateImage("stand_tasks");
       }
 
       if (this.endpoint !== "employees") {

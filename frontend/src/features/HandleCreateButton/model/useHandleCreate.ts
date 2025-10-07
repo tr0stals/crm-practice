@@ -84,7 +84,7 @@ export function useCreateButton(onUpdateCallBack: () => void) {
     case tablesEnum.stand_tasks:
       if (navigationStore.selectedRow?.data?.nodeType === tablesEnum.stands) {
         section.value = tablesEnum.stand_tasks;
-        ModalManager.getInstance().open(AddStandTasks, {
+        ModalManager.getInstance().open(AddModalWithImages, {
           sectionName: section.value,
           onClose: () => ModalManager.getInstance().closeModal(),
           onSuccess: onUpdateCallBack,

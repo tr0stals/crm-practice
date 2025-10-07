@@ -2,6 +2,7 @@ import { ref, reactive, onMounted } from "vue";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { createEntityAsync } from "../api/createEntityAsync";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import { api } from "@/shared/api/axiosInstance";
 
 /**
  * Добавление записей в сущности-таблицы (не тривью)
@@ -43,6 +44,35 @@ export function useAddStandTasks(sectionName: string, onSuccess: () => void) {
     }
   };
 
+  async function uploadImage(file: File, relatedItemId: number) {
+    const data = new FormData();
+    data.append("file", file);
+    data.append("targetType", sectionName); // "organization_types" или "components"
+    data.append("targetId", String(relatedItemId));
+
+    return await api.post("/images/upload", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  }
+
+  async function loadStandTasks() {
+    const data = { ...formData };
+    const { photo, ...defaultData } = data;
+    console.debug(photo);
+
+    const res = await createEntityAsync(sectionName, {
+      photo: photo?.name,
+      ...defaultData,
+    });
+
+    const createdId = res.data.id; // ID созданного типа организации
+
+    // 2. Если есть иконка, загружаем ее и привязываем к созданной организации
+    if (formData.photo instanceof File) {
+      await uploadImage(formData.photo, createdId);
+    }
+  }
+
   onMounted(fetchColumnsAndRelations);
 
   const submit = async () => {
@@ -50,21 +80,29 @@ export function useAddStandTasks(sectionName: string, onSuccess: () => void) {
     if (!formData.parentId) {
       formData.parentId = null;
     }
+    const data = { ...formData };
+    const { photo, ...defaultData } = data;
 
     const standId = navigationStore.selectedRow?.data?.id;
 
     formData.standId = standId;
 
-    const standTasksResponse = await createEntityAsync(sectionName, formData);
+    console.debug(sectionName, formData);
+    const standTasksResponse = await createEntityAsync(sectionName, {
+      photo: photo?.name,
+      ...defaultData,
+    });
     const standTasksComponentsResponse = await createEntityAsync(
       "stand_tasks_components",
       {
         componentCount: formData.componentOutCount,
         standTaskId: standTasksResponse.data?.id,
-        componentId: formData?.id,
+        componentId: formData.componentId,
       }
     );
-    console.debug(standTasksComponentsResponse.data);
+    console.debug("uploadImage: ", formData.photo, standTasksResponse.data?.id);
+    await uploadImage(formData.photo, standTasksResponse.data?.id);
+
     onSuccess();
   };
 

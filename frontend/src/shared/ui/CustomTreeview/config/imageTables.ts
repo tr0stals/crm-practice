@@ -6,4 +6,5 @@ export const imageTables = [
   tablesEnum.components_categories,
   tablesEnum.stands,
   tablesEnum.stands_categories,
+  tablesEnum.stand_tasks,
 ];

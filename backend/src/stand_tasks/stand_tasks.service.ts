@@ -262,25 +262,26 @@ export class StandTasksService {
                   standTasksComponents
                     .filter((item) => item.standTask?.id === task.id)
                     .forEach((item) => {
-                      const compId = item.component?.id;
-                      if (!compId) return;
-                      const prev = grouped.get(compId);
+                      const compTaskId = item.id;
+                      if (!compTaskId) return;
+
+                      const prev = grouped.get(compTaskId);
                       const count = Number(item.componentCount ?? 0);
                       if (prev)
-                        grouped.set(compId, {
+                        grouped.set(compTaskId, {
                           title: prev.title,
                           total: prev.total + count,
                         });
                       else
-                        grouped.set(compId, {
+                        grouped.set(compTaskId, {
                           title: item.component?.title ?? '—',
                           total: count,
                         });
                     });
 
                   return Array.from(grouped.entries()).map(
-                    ([compId, info]) => ({
-                      id: compId,
+                    ([compTaskId, info]) => ({
+                      id: compTaskId,
                       name: `Компонент: ${info.title} | Кол-во: ${info.total}`,
                       nodeType: 'stand_tasks_components',
                     }),
