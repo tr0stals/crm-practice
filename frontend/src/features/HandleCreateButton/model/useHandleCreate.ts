@@ -81,6 +81,31 @@ export function useCreateButton(onUpdateCallBack: () => void) {
       }
       break;
 
+    case tablesEnum.component_placements:
+      if (!navigationStore.selectedRow) {
+        section.value = tablesEnum.component_placement_types;
+        ModalManager.getInstance().open(AddEntity, {
+          sectionName: section.value,
+          onClose: () => ModalManager.getInstance().closeModal(),
+          onSuccess: onUpdateCallBack,
+        });
+      }
+
+      if (
+        navigationStore.selectedRow?.data?.nodeType ===
+          tablesEnum.component_placement_types ||
+        navigationStore.selectedRow?.data?.nodeType ===
+          tablesEnum.component_placements
+      ) {
+        section.value = tablesEnum.component_placements;
+        ModalManager.getInstance().open(AddEntity, {
+          sectionName: section.value,
+          onClose: () => ModalManager.getInstance().closeModal(),
+          onSuccess: onUpdateCallBack,
+        });
+      }
+      break;
+
     case tablesEnum.stand_tasks:
       if (navigationStore.selectedRow?.data?.nodeType === tablesEnum.stands) {
         section.value = tablesEnum.stand_tasks;
@@ -201,7 +226,8 @@ export function useCreateButton(onUpdateCallBack: () => void) {
     currentSection.value !== "stands" &&
     currentSection.value !== "stand_tasks" &&
     currentSection.value !== "organizations" &&
-    currentSection.value !== "components"
+    currentSection.value !== "components" &&
+    currentSection.value !== "component_placements"
   )
     ModalManager.getInstance().open(AddEntity, {
       sectionName: section.value,

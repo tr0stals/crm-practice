@@ -3,6 +3,7 @@
  */
 export const treeviewTables = [
   "warehouse_components",
+  "component_placements",
   "employees",
   "organizations",
   "current_tasks",

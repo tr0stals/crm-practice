@@ -84,14 +84,14 @@ export function useAddStandTasks(sectionName: string, onSuccess: () => void) {
     const { photo, ...defaultData } = data;
 
     const standId = navigationStore.selectedRow?.data?.id;
-
     formData.standId = standId;
 
-    console.debug(sectionName, formData);
     const standTasksResponse = await createEntityAsync(sectionName, {
       photo: photo?.name,
+      standId: standId,
       ...defaultData,
     });
+
     const standTasksComponentsResponse = await createEntityAsync(
       "stand_tasks_components",
       {
@@ -100,7 +100,6 @@ export function useAddStandTasks(sectionName: string, onSuccess: () => void) {
         componentId: formData.componentId,
       }
     );
-    console.debug("uploadImage: ", formData.photo, standTasksResponse.data?.id);
     await uploadImage(formData.photo, standTasksResponse.data?.id);
 
     onSuccess();

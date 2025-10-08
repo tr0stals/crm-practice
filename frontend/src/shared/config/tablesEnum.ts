@@ -20,4 +20,6 @@ export enum tablesEnum {
   bills_components = "bills_components",
   license = "license",
   license_types = "license_types",
+  component_placements = "component_placements",
+  component_placement_types = "component_placement_types",
 }

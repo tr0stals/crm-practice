@@ -10,4 +10,4 @@ import { ComponentPlacementTypeController } from './component_placement_type.con
   providers: [ComponentPlacementTypeService],
   exports: [TypeOrmModule],
 })
-export class ComponentPlacementTypeModule {} 
+export class ComponentPlacementTypeModule {}

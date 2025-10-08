@@ -87,6 +87,13 @@
         "title": "Название"
       }
     },
+    "component_placement_types": {
+      "displayName": "Типы размещения компонентов",
+      "fields": {
+        "id": "ID",
+        "title": "Название"
+      }
+    },
     "component_placements": {
       "displayName": "Размещения компонентов",
       "fields": {

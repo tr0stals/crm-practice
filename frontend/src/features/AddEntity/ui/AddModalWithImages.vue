@@ -25,7 +25,6 @@ const props = defineProps<{
   onSuccess: () => void;
 }>();
 const navigationStore = useNavigationStore();
-console.debug(props.sectionName);
 
 // TODO: Пока здесь рассчитано на org_types
 const { formData, tableColumns, selectOptions, submit } =

@@ -54,6 +54,53 @@ export class ComponentPlacementsService {
     }
   }
 
+  async generateTree() {
+    try {
+      // Получаем все типы размещений
+      const types = await this.componentPlacementTypesRepository.find({
+        order: { id: 'ASC' },
+      });
+
+      // Получаем все размещения с привязкой к типам
+      const placements = await this.repo.find({
+        relations: ['placementType'],
+        order: { id: 'ASC' },
+      });
+
+      if (!types || !placements) {
+        throw new NotFoundException(
+          'Не удалось получить данные для дерева размещений компонентов',
+        );
+      }
+
+      // Формируем дерево
+      const tree = types.map((type) => {
+        const children = placements
+          .filter((p) => p.placementType?.id === type.id)
+          .map((p) => ({
+            id: p.id,
+            name: `${p.placementType.title} / Здание: ${p.building} / Комната: ${p.room}`,
+            nodeType: 'component_placements',
+          }));
+
+        return {
+          id: type.id,
+          name: type.title,
+          nodeType: 'component_placement_types',
+          children,
+        };
+      });
+
+      return tree;
+    } catch (error) {
+      console.error('Ошибка при генерации дерева размещений:', error);
+      throw new HttpException(
+        'Ошибка при построении дерева размещений компонентов',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async create(data: ComponentPlacementsDTO) {
     try {
       const { placementTypeId, ...defaultData } = data;

@@ -73,8 +73,17 @@ const handleLoadImages = async (nodeType: string) => {
 watch(data, async (val) => {
   if (!val) return;
 
+  console.debug(data.value);
   const root = getTreeviewData(val);
+  console.debug(root);
   treeData.value = root.children || [];
+
+  if (Array.isArray(val)) {
+    treeData.value = val.map((node: any) => getTreeviewData(node));
+  } else {
+    const root = getTreeviewData(val);
+    treeData.value = root.children || [];
+  }
 
   // Авторазворачивание веток для определённых секций
   if (props.currentSection === "current_tasks") {
@@ -83,7 +92,7 @@ watch(data, async (val) => {
       return acc;
     }, {} as Record<string, boolean>);
   }
-  console.debug("!!!!!");
+  console.debug("!!!!!", data);
 
   async function processNode(node: any) {
     const promises = [];

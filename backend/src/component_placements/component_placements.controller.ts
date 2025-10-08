@@ -31,6 +31,11 @@ export class ComponentPlacementsController {
     return await this.service.findAll();
   }
 
+  @Get('tree')
+  async getTree() {
+    return await this.service.generateTree();
+  }
+
   @ApiOperation({ summary: 'Получить размещение по ID' })
   @ApiResponse({ status: 200, description: 'Размещение найдено' })
   @ApiResponse({ status: 404, description: 'Размещение не найдено' })

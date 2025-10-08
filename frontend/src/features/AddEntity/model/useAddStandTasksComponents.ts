@@ -49,26 +49,19 @@ export function useAddStandTasksComponents(
 
   const submit = async () => {
     const standTaskId = navigationStore.selectedRow?.data?.id;
-
     const standTaskComponents = await findStandTask(standTaskId);
 
     formData.standTaskId = standTaskId;
 
-    if (standTaskComponents.length > 0) {
-      standTaskComponents.forEach(async (item: any) => {
-        // Если в задаче стенда есть компоненты задач и новый компонент совпадает с имеющимся
-        if (item.component?.id === formData.componentId) {
-          item.componentCount += Number(formData.componentCount);
-          await updateAsync("stand_tasks_components", item);
-        }
-        // Если в задаче стенда есть компоненты задач и новый компонент не совпадает с имеющимся
-        else {
-          await createEntityAsync(sectionName, formData);
-        }
-      });
-    }
-    // Если в задаче нет компонентов - тогда добавляем новый без суммирования
-    else {
+    // Найдём существующий компонент (если есть)
+    const existingComponent = standTaskComponents.find(
+      (item: any) => item.component?.id === formData.componentId
+    );
+
+    if (existingComponent) {
+      existingComponent.componentCount += Number(formData.componentCount);
+      await updateAsync("stand_tasks_components", existingComponent);
+    } else {
       await createEntityAsync(sectionName, formData);
     }
 

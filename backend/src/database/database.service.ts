@@ -604,6 +604,9 @@ export class DatabaseService {
   }
 
   async getFormMetadata(tableName: string, currentId?: number) {
+    if (tableName === 'component_placement_types')
+      tableName = 'component_placement_type';
+
     // Получаем подробную информацию о колонках
     const columnsInfo = await this.dataSource.query(
       `SHOW COLUMNS FROM \`${tableName}\``,
