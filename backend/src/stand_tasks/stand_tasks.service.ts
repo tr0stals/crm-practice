@@ -174,10 +174,10 @@ export class StandTasksService {
       });
 
       if (
-        currentTask?.employees?.users &&
-        currentTask.employees.users.length > 0
+        currentTask?.shipmentStands.stands.employees?.users &&
+        currentTask.shipmentStands.stands.employees.users.length > 0
       ) {
-        const user = currentTask.employees.users[0];
+        const user = currentTask.shipmentStands.stands.employees.users[0];
         const message = `Подзадача "${standTask.title}" на стенде "${standTask.stands?.title}" завершена`;
 
         console.log(

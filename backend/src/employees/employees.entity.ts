@@ -39,9 +39,6 @@ export class Employees {
   )
   employeeDepartments: EmployeeDepartments[];
 
-  @OneToMany(() => CurrentTasks, (currentTask) => currentTask.employees)
-  currentTasks: CurrentTasks[];
-
   @OneToMany(() => Stands, (stand) => stand.employees)
   stands: Stands[];
 

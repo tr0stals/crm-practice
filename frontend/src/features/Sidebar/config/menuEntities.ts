@@ -124,7 +124,18 @@ export const menuEntities: IMenuEntity[] = [
       {
         icon: "",
         title: "Компоненты склада",
-        tableName: "components",
+        children: [
+          {
+            icon: "",
+            title: "Компоненты",
+            tableName: "components",
+          },
+          {
+            icon: "",
+            title: "Размещение компонентов",
+            tableName: "component_placements",
+          },
+        ],
       },
       {
         icon: "",

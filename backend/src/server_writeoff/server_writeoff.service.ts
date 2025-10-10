@@ -47,7 +47,7 @@ export class ServerWriteoffService {
         const { components, factory, currentTasks, ...defaultData } = item;
         const componentTitle = components?.title;
         const factoryName = factory?.shortName;
-        const currentTaskTitle = currentTasks?.title;
+        const currentTaskTitle = currentTasks?.standTasks.title;
 
         data.push({
           ...defaultData,

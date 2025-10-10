@@ -98,7 +98,7 @@ export class CurrentTaskStatesLogService {
 
         const { currentTask, currentTaskState, ...defaultData } = item;
 
-        const taskTitle = currentTask?.title || 'Неизвестная задача';
+        const taskTitle = currentTask?.standTasks.title || 'Неизвестная задача';
         const stateTitle = currentTaskState?.title || 'Неизвестное состояние';
 
         // Форматируем дату без миллисекунд

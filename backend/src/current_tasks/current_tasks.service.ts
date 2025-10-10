@@ -39,34 +39,20 @@ export class CurrentTasksService {
   ) {}
 
   async create(data: CurrentTasksDTO): Promise<CurrentTasks> {
-    // Проверим всех пользователей в базе
-    // const allUsers = await this.userRepository.find({
-    //   relations: ['employees', 'employees.peoples']
-    // });
-    // console.log(`[DEBUG] Всего пользователей в базе: ${allUsers.length}`);
-    // allUsers.forEach(user => {
-    //   console.log(`[DEBUG] Пользователь ID: ${user.id}, userName: ${user.userName}, employeeId: ${user.employees?.id}`);
-    // });
-
-    const employee = await this.employeeRepository.findOne({
-      where: { id: data.employeeId },
-      relations: ['peoples', 'users'],
+    const shipmentStand = await this.shipmentStandsRepository.findOne({
+      where: {
+        id: data.shipmentStandId,
+      },
+      relations: [
+        'shipments',
+        'stands',
+        'stands.employees',
+        'stands.employees.users',
+      ],
     });
-
-    // console.log(`[DEBUG] Найден сотрудник:`, employee ? {
-    //   id: employee.id,
-    //   hasPeoples: !!employee.peoples,
-    //   hasUsers: !!employee.users,
-    //   usersCount: employee.users?.length || 0
-    // } : 'null');
 
     const currentTaskState = await this.currentTaskStatesRepository.findOne({
       where: { id: data.currentTaskStateId },
-    });
-
-    const stands = await this.standRepository.findOne({
-      where: { id: data.standId },
-      relations: ['standType', 'employees', 'employees.peoples'],
     });
 
     const standTask = await this.standTasksRepository.findOne({
@@ -74,38 +60,21 @@ export class CurrentTasksService {
       relations: ['stands', 'professions', 'components'],
     });
 
-    if (!employee || !currentTaskState || !stands || !standTask) {
+    if (!shipmentStand || !currentTaskState || !standTask) {
       throw new Error('Related entities not found');
     }
 
-    // Попробуем альтернативный способ получения сотрудника с пользователями -- запасной вариант
-    // if (!employee?.users || employee.users.length === 0) {
-    //   console.log(`[DEBUG] Пробуем альтернативный способ получения сотрудника с пользователями`);
-    //   const employeeWithUsers = await this.employeeRepository
-    //     .createQueryBuilder('employee')
-    //     .leftJoinAndSelect('employee.users', 'users')
-    //     .leftJoinAndSelect('employee.peoples', 'peoples')
-    //     .where('employee.id = :id', { id: data.employeeId })
-    //     .getOne();
-
-    //   if (employeeWithUsers?.users && employeeWithUsers.users.length > 0) {
-    //     console.log(`[DEBUG] Найден сотрудник с пользователями через QueryBuilder: ${employeeWithUsers.users.length} пользователей`);
-    //     const user = employeeWithUsers.users[0];
-    //     const message = `Вам назначена новая задача: "${data.title}" на стенде "${stands.title}". Дедлайн: ${data.deadline}`;
-
-    //     console.log(`[NOTIFICATION] Отправляем уведомление пользователю ${user.id}: ${message}`);
-    //     this.wsGateway.sendNotification(user.id.toString(), message, 'task_assigned');
-    //   } else {
-    //     console.log(`[DEBUG] Сотрудник не найден через QueryBuilder или у него нет пользователей`);
-    //   }
-    // }
+    console.log(shipmentStand);
 
     // Отправляем уведомление до создания entity
-    if (employee.users && employee.users.length > 0) {
-      const user = employee.users[0]; // Берем первого пользователя
+    if (
+      shipmentStand?.stands?.employees?.users &&
+      shipmentStand?.stands?.employees?.users?.length > 0
+    ) {
+      const user = shipmentStand?.stands?.employees?.users?.[0]; // Берем первого пользователя
       const employeeName =
-        `${employee.peoples?.lastName || ''} ${employee.peoples?.firstName || ''} ${employee.peoples?.middleName || ''}`.trim();
-      const message = `Вам назначена новая задача: "${data.title}" на стенде "${stands.title}". Дедлайн: ${data.deadline}`;
+        `${shipmentStand?.stands?.employees?.peoples?.lastName || ''} ${shipmentStand.stands.employees.peoples?.firstName || ''} ${shipmentStand.stands.employees.peoples?.middleName || ''}`.trim();
+      const message = `Вам назначена новая задача: на стенде "${shipmentStand.stands.title}". Дата отправки: ${shipmentStand.shipments.arrivalDate}`;
 
       console.log(
         `[NOTIFICATION] Отправляем уведомление пользователю ${user.id}: ${message}`,
@@ -117,19 +86,22 @@ export class CurrentTasksService {
       );
     } else {
       console.log(
-        `[NOTIFICATION] У сотрудника ${employee.id} нет пользователей для уведомлений`,
+        `[NOTIFICATION] У сотрудника ${shipmentStand.stands.employees.id} нет пользователей для уведомлений`,
       );
-      console.log(`[DEBUG] employee.users:`, employee.users);
+      console.log(
+        `[DEBUG] employee.users:`,
+        shipmentStand.stands.employees.users,
+      );
 
       // Попробуем найти пользователя напрямую
       const directUser = await this.userRepository.findOne({
-        where: { employees: { id: employee.id } },
+        where: { employees: { id: shipmentStand.stands.employees.id } },
       });
 
       if (directUser) {
         const employeeName =
-          `${employee.peoples?.lastName || ''} ${employee.peoples?.firstName || ''} ${employee.peoples?.middleName || ''}`.trim();
-        const message = `Вам назначена новая задача: "${data.title}" на стенде "${stands.title}". Дедлайн: ${data.deadline}`;
+          `${shipmentStand.stands.employees.peoples?.lastName || ''} ${shipmentStand.stands.employees.peoples?.firstName || ''} ${shipmentStand.stands.employees.peoples?.middleName || ''}`.trim();
+        const message = `Вам назначена новая задача: на стенде "${shipmentStand.stands.title}". Дедлайн: ${shipmentStand.shipments.arrivalDate}`;
         console.log(
           `[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление`,
         );
@@ -140,19 +112,16 @@ export class CurrentTasksService {
         );
       } else {
         console.log(
-          `[DEBUG] Пользователь не найден даже напрямую для сотрудника ${employee.id}`,
+          `[DEBUG] Пользователь не найден даже напрямую для сотрудника ${shipmentStand.stands.employees.id}`,
         );
       }
     }
 
     const entity: DeepPartial<CurrentTasks> =
       this.currentTasksRepository.create({
-        deadline: data.deadline, // вот здесь подчеркивается ошибка
         currentTaskStates: currentTaskState,
-        employees: employee,
-        stands: stands,
         standTasks: standTask,
-        title: data.title,
+        shipmentStands: shipmentStand,
       });
 
     const savedTask = await this.currentTasksRepository.save(entity);
@@ -169,11 +138,12 @@ export class CurrentTasksService {
   async findAll(): Promise<CurrentTasks[]> {
     return await this.currentTasksRepository.find({
       relations: [
-        'employees',
-        'employees.peoples',
         'currentTaskStates',
-        'stands',
         'standTasks',
+        'shipmentStands',
+        'shipmentStands.stands',
+        'shipmentStands.stands.employees',
+        'shipmentStands.stands.employees.peoples',
       ],
     });
   }
@@ -186,16 +156,14 @@ export class CurrentTasksService {
       throw new NotFoundException('Ошибка поиска текущих задач');
 
     currentTasks.map((item) => {
-      const {
-        standTasks,
-        employees,
-        stands,
-        currentTaskStates,
-        ...defaultData
-      } = item;
+      const { standTasks, shipmentStands, currentTaskStates, ...defaultData } =
+        item;
+
+      const { stands } = shipmentStands;
+      console.log('stands!!!!!!!!!!', shipmentStands);
 
       const standTaskTitle = standTasks?.title;
-      const employeesName = `${employees.peoples?.firstName} ${employees.peoples?.middleName} ${employees.peoples?.lastName}`;
+      const employeesName = `${stands.employees.peoples?.firstName} ${stands.employees.peoples?.middleName} ${stands.employees.peoples?.lastName}`;
       const standTitle = stands?.title;
       const currentTaskStateTitle = currentTaskStates?.title;
 
@@ -208,13 +176,15 @@ export class CurrentTasksService {
       });
     });
 
+    console.log('CURRENTDATA!!!!!', data);
+
     return data;
   }
 
   async findOne(id: number): Promise<CurrentTasks> {
     const entity = await this.currentTasksRepository.findOne({
       where: { id },
-      relations: ['employees', 'currentTaskStates', 'stands', 'standTasks'],
+      relations: ['currentTaskStates', 'standTasks', 'shipmentStands'],
     });
     if (!entity) {
       throw new NotFoundException(`Текущая задача с ID ${id} не найдена`);
@@ -263,22 +233,19 @@ export class CurrentTasksService {
   async startTask(taskId: number, employeeId: number) {
     const task = await this.currentTasksRepository.findOne({
       where: { id: taskId },
-      relations: [
-        'currentTaskStates',
-        'employees',
-        'employees.users',
-        'employees.peoples',
-        'stands',
-      ],
+      relations: ['currentTaskStates', 'standTasks', 'shipmentStands'],
     });
     if (!task) throw new Error('Задача не найдена');
 
     // Отправляем уведомление о начале задачи
-    if (task.employees?.users && task.employees.users.length > 0) {
-      const user = task.employees.users[0];
+    if (
+      task.shipmentStands.stands.employees?.users &&
+      task.shipmentStands.stands.employees.users.length > 0
+    ) {
+      const user = task.shipmentStands.stands.employees.users[0];
       const employeeName =
-        `${task.employees.peoples?.lastName || ''} ${task.employees.peoples?.firstName || ''} ${task.employees.peoples?.middleName || ''}`.trim();
-      const message = `Задача "${task.title}" на стенде "${task.stands?.title}" начата`;
+        `${task.shipmentStands.stands.employees.peoples?.lastName || ''} ${task.shipmentStands.stands.employees.peoples.firstName || ''} ${task.shipmentStands.stands.employees.peoples?.middleName || ''}`.trim();
+      const message = `Задача "${task.standTasks.title}" на стенде "${task.shipmentStands.stands?.title}" начата`;
 
       this.wsGateway.sendNotification(
         user.id.toString(),
@@ -305,20 +272,17 @@ export class CurrentTasksService {
   async completeTask(taskId: number) {
     const task = await this.currentTasksRepository.findOne({
       where: { id: taskId },
-      relations: [
-        'currentTaskStates',
-        'employees',
-        'employees.users',
-        'employees.peoples',
-        'stands',
-      ],
+      relations: ['currentTaskStates', 'standTasks', 'shipmentStands'],
     });
     if (!task) throw new Error('Задача не найдена');
 
     // Отправляем уведомление о завершении задачи
-    if (task.employees?.users && task.employees.users.length > 0) {
-      const user = task.employees.users[0];
-      const message = `Задача "${task.title}" на стенде "${task.stands?.title}" завершена`;
+    if (
+      task.shipmentStands.stands.employees?.users &&
+      task.shipmentStands.stands.employees.users.length > 0
+    ) {
+      const user = task.shipmentStands.stands.employees.users[0];
+      const message = `Задача "${task.standTasks.title}" на стенде "${task.shipmentStands.stands?.title}" завершена`;
 
       this.wsGateway.sendNotification(
         user.id.toString(),
@@ -344,18 +308,20 @@ export class CurrentTasksService {
 
   async getAllTaskTitles(): Promise<{ id: number; title: string }[]> {
     const tasks = await this.findAll();
-    return tasks.map((task) => ({ id: task.id, title: task.title }));
+    return tasks.map((task) => ({ id: task.id, title: task.standTasks.title }));
   }
 
   // Новый метод: дерево для всех (директор/админ)
   async getCurrentTasksTreeForAll(): Promise<any> {
     const tasks = await this.currentTasksRepository.find({
       relations: [
-        'employees',
-        'employees.peoples',
         'currentTaskStates',
-        'stands',
         'standTasks',
+        'shipmentStands',
+        'shipmentStands.shipments',
+        'shipmentStands.stands',
+        'shipmentStands.stands.employees',
+        'shipmentStands.stands.employees.peoples',
       ],
     });
     const allStandTasks = await this.standTasksRepository.find({
@@ -373,12 +339,14 @@ export class CurrentTasksService {
       Map<string, Map<number, CurrentTasks>>
     >();
     for (const task of tasks) {
-      const deadline = task.deadline
-        ? typeof task.deadline === 'string'
-          ? task.deadline
-          : (task.deadline as Date).toISOString().split('T')[0]
+      const deadline = task.shipmentStands.shipments.arrivalDate
+        ? typeof task.shipmentStands.shipments.arrivalDate === 'string'
+          ? task.shipmentStands.shipments.arrivalDate
+          : (task.shipmentStands.shipments.arrivalDate as Date)
+              .toISOString()
+              .split('T')[0]
         : 'Без даты';
-      const stand = task.stands?.title || 'Без стенда';
+      const stand = task.shipmentStands.stands?.title || 'Без стенда';
       if (!deadlineMap.has(deadline)) deadlineMap.set(deadline, new Map());
       const standMap = deadlineMap.get(deadline)!;
       if (!standMap.has(stand)) standMap.set(stand, new Map());
@@ -392,24 +360,24 @@ export class CurrentTasksService {
         children: Array.from(standMap.entries()).map(([stand, taskMap]) => {
           const firstTask = Array.from(taskMap.values())[0];
           return {
-            id: firstTask?.stands?.id,
+            id: firstTask?.shipmentStands.stands?.id,
             name: `Стенд: ${stand}`,
             nodeType: 'stands',
             stand: stand,
             children: Array.from(taskMap.entries()).map(([taskId, task]) => ({
               id: task.id,
               name: [
-                `${task.employees?.peoples?.lastName || ''} ${task.employees?.peoples?.firstName || ''} ${task.employees?.peoples?.middleName || ''}`.trim() ||
+                `${task.shipmentStands.stands.employees?.peoples?.lastName || ''} ${task.shipmentStands.stands.employees?.peoples?.firstName || ''} ${task.shipmentStands.stands.employees?.peoples?.middleName || ''}`.trim() ||
                   'Без сотрудника',
-                `Задача: ${task.title}`,
+                `Задача: ${task.standTasks.title}`,
                 `Состояние задачи: ${task.currentTaskStates?.title || ''}`,
               ]
                 .filter(Boolean)
                 .join(' | '),
               nodeType: 'current_tasks',
               employees:
-                `${task.employees?.peoples?.lastName || ''} ${task.employees?.peoples?.firstName || ''} ${task.employees?.peoples?.middleName || ''}`.trim(),
-              taskTitle: task.title || '',
+                `${task.shipmentStands.stands.employees?.peoples?.lastName || ''} ${task.shipmentStands.stands.employees?.peoples?.firstName || ''} ${task.shipmentStands.stands.employees?.peoples?.middleName || ''}`.trim(),
+              taskTitle: task.standTasks.title || '',
               currentTaskState: task.currentTaskStates?.title || '',
               children: (
                 standTasksByParent.get(String(task.standTasks?.id)) || []
@@ -443,18 +411,21 @@ export class CurrentTasksService {
   async getCurrentTasksTreeForEmployee(employeeId: number): Promise<any> {
     const tasks = await this.currentTasksRepository.find({
       where: {
-        employees: { id: employeeId },
+        shipmentStands: {
+          stands: {
+            employees: { id: employeeId },
+          },
+        },
         currentTaskStates: { id: Not(3) }, // Исключаем задачи со статусом "Завершена"
       },
       relations: [
-        'employees',
-        'employees.peoples',
+        'shipmentStands',
+        'shipmentStands.stands',
+        'shipmentStands.stands.employees',
+        'shipmentStands.stands.employees.peoples',
+        'shipmentStands.stands.orderRequests',
+        'shipmentStands.stands.orderRequests.factory',
         'currentTaskStates',
-        'stands',
-        'stands.employees',
-        'stands.employees.peoples',
-        'stands.orderRequests',
-        'stands.orderRequests.factory',
         'standTasks',
         'standTasks.standTasksComponents',
         'standTasks.standTasksComponents.component',
@@ -484,12 +455,14 @@ export class CurrentTasksService {
     >();
     for (const task of tasks) {
       const state = task.currentTaskStates?.title || 'Без состояния';
-      const deadline = task.deadline
-        ? typeof task.deadline === 'string'
-          ? task.deadline
-          : (task.deadline as Date).toISOString().split('T')[0]
+      const deadline = task.shipmentStands.shipments.arrivalDate
+        ? typeof task.shipmentStands.shipments.arrivalDate === 'string'
+          ? task.shipmentStands.shipments.arrivalDate
+          : (task.shipmentStands.shipments.arrivalDate as Date)
+              .toISOString()
+              .split('T')[0]
         : 'Без даты';
-      const stand = task.stands?.title || 'Без стенда';
+      const stand = task.shipmentStands.stands?.title || 'Без стенда';
       if (!stateMap.has(state)) stateMap.set(state, new Map());
       const deadlineMap = stateMap.get(state)!;
       if (!deadlineMap.has(deadline)) deadlineMap.set(deadline, new Map());
@@ -507,8 +480,10 @@ export class CurrentTasksService {
             const firstTaskMap = firstTaskValues[0];
             const firstTask = Array.from(firstTaskMap.values())[0];
             const customerName =
-              firstTask?.stands?.orderRequests?.[0]?.factory?.shortName ||
-              firstTask?.stands?.orderRequests?.[0]?.factory?.fullName ||
+              firstTask?.shipmentStands.stands?.orderRequests?.[0]?.factory
+                ?.shortName ||
+              firstTask?.shipmentStands.stands?.orderRequests?.[0]?.factory
+                ?.fullName ||
               'Не указан';
 
             return {
@@ -521,9 +496,9 @@ export class CurrentTasksService {
                 ([stand, taskMap]) => {
                   // Получаем ответственного за стенд из первой задачи
                   const firstTaskInStand = Array.from(taskMap.values())[0];
-                  const standResponsible = firstTaskInStand?.stands?.employees
-                    ?.peoples
-                    ? `${firstTaskInStand.stands.employees.peoples.lastName || ''} ${firstTaskInStand.stands.employees.peoples.firstName || ''} ${firstTaskInStand.stands.employees.peoples.middleName || ''}`.trim()
+                  const standResponsible = firstTaskInStand?.shipmentStands
+                    .stands?.employees?.peoples
+                    ? `${firstTaskInStand.shipmentStands.stands.employees.peoples.lastName || ''} ${firstTaskInStand.shipmentStands.stands.employees.peoples.firstName || ''} ${firstTaskInStand.shipmentStands.stands.employees.peoples.middleName || ''}`.trim()
                     : 'Не распределен';
 
                   return {
@@ -538,29 +513,34 @@ export class CurrentTasksService {
                     children: Array.from(taskMap.entries()).map(
                       ([taskId, task]) => {
                         // Получаем ответственного за задачу
-                        const taskResponsible = task.employees?.peoples
-                          ? `${task.employees.peoples.lastName || ''} ${task.employees.peoples.firstName || ''} ${task.employees.peoples.middleName || ''}`.trim()
+                        const taskResponsible = task.shipmentStands.stands
+                          .employees.peoples
+                          ? `${task.shipmentStands.stands.employees.peoples.lastName || ''} ${task.shipmentStands.stands.employees.peoples.firstName || ''} ${task.shipmentStands.stands.employees.peoples.middleName || ''}`.trim()
                           : 'Не распределена';
 
                         return {
                           id: task.id,
                           name: [
-                            `Задача: ${task.title}`,
+                            `Задача: ${task.standTasks.title}`,
                             `Ответственный: ${taskResponsible}`,
                             `Состояние: ${task.currentTaskStates?.title || ''}`,
-                            `Крайний срок: ${task.deadline ? (typeof task.deadline === 'string' ? task.deadline : (task.deadline as Date).toISOString().split('T')[0]) : 'Без срока'}`,
+                            `Крайний срок: ${task.shipmentStands.shipments.arrivalDate ? (typeof task.shipmentStands.shipments.arrivalDate === 'string' ? task.shipmentStands.shipments.arrivalDate : (task.shipmentStands.shipments.arrivalDate as Date).toISOString().split('T')[0]) : 'Без срока'}`,
                           ]
                             .filter(Boolean)
                             .join(' | '),
                           nodeType: 'current_tasks',
-                          taskTitle: task.title || '',
+                          taskTitle: task.standTasks.title || '',
                           taskResponsible: taskResponsible,
                           currentTaskStateId: task.currentTaskStates?.id,
                           currentTaskState: task.currentTaskStates?.title || '',
-                          deadline: task.deadline
-                            ? typeof task.deadline === 'string'
-                              ? task.deadline
-                              : (task.deadline as Date)
+                          deadline: task.shipmentStands.shipments.arrivalDate
+                            ? typeof task.shipmentStands.shipments
+                                .arrivalDate === 'string'
+                              ? task.shipmentStands.shipments.arrivalDate
+                              : (
+                                  task.shipmentStands.shipments
+                                    .arrivalDate as Date
+                                )
                                   .toISOString()
                                   .split('T')[0]
                             : '',

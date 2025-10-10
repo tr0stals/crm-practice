@@ -89,6 +89,7 @@ export const fieldDictionary: { [key: string]: string } = {
   licenseId: "Лицензия",
   licenses: "Лицензия",
   license: "Лицензия",
+  shipmentStands: "Отгрузка",
   transporterId: "Перевозчик",
   clientId: "Клиент",
   shipmentId: "Отгрузка",

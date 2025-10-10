@@ -110,24 +110,24 @@ export class CurrentTaskStatesService {
           stateWithTasks.currentTasks.length > 0
         ) {
           for (const task of stateWithTasks.currentTasks) {
-            const employeeName = task.employees?.peoples
-              ? `${task.employees.peoples.lastName || ''} ${task.employees.peoples.firstName || ''} ${task.employees.peoples.middleName || ''}`.trim()
+            const employeeName = task.shipmentStands.stands.employees?.peoples
+              ? `${task.shipmentStands.stands.employees.peoples.lastName || ''} ${task.shipmentStands.stands.employees.peoples.firstName || ''} ${task.shipmentStands.stands.employees.peoples.middleName || ''}`.trim()
               : 'Не назначен';
 
             const taskNode: any = {
               id: task.id,
               name: [
-                `Срок выполнения: ${task.deadline ? (typeof task.deadline === 'string' ? task.deadline : (task.deadline as Date).toISOString().split('T')[0]) : ''}`,
-                `Задача стенда: ${task.title}`,
-                `Стенд: ${task.stands?.title || ''}`,
+                `Срок выполнения: ${task.shipmentStands.shipments.arrivalDate ? (typeof task.shipmentStands.shipments.arrivalDate === 'string' ? task.shipmentStands.shipments.arrivalDate : (task.shipmentStands.shipments.arrivalDate as Date).toISOString().split('T')[0]) : ''}`,
+                `Задача стенда: ${task.standTasks.title}`,
+                `Стенд: ${task.shipmentStands.stands?.title || ''}`,
                 `Сотрудник: ${employeeName}`,
               ]
                 .filter(Boolean)
                 .join(' | '),
               nodeType: 'current_tasks',
-              deadline: task.deadline,
+              deadline: task.shipmentStands.shipments.arrivalDate,
               employee: employeeName,
-              stand: task.stands?.title || 'Не указан',
+              stand: task.shipmentStands.stands?.title || 'Не указан',
               status: state.title,
             };
 

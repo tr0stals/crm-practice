@@ -42,7 +42,7 @@ export class CurrentTasksComponentsService {
       currentTaskComponents.map((item) => {
         const { component, currentTask, ...defaultData } = item;
         const componentTitle = component?.title;
-        const currentTaskTitle = currentTask?.title;
+        const currentTaskTitle = currentTask?.standTasks.title;
 
         data.push({
           ...defaultData,

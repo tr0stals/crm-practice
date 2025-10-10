@@ -83,9 +83,6 @@ export class Stands {
   @OneToMany(() => StandTasks, (standTask) => standTask.stands)
   standTasks: StandTasks[];
 
-  @OneToMany(() => CurrentTasks, (currentTask) => currentTask.stands)
-  currentTasks: CurrentTasks[];
-
   // Self-referencing для категорий/подкатегорий
   @ManyToOne(() => Stands, (stand) => stand.children, { nullable: true })
   @JoinColumn({ name: 'parentId' })

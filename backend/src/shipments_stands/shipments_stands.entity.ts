@@ -21,4 +21,7 @@ export class ShipmentsStands {
   @ManyToOne(() => Stands, (stand) => stand.shipmentsStands)
   @JoinColumn({ name: 'standId' })
   stands: Stands;
+
+  @OneToMany(() => CurrentTasks, (currentTask) => currentTask.shipmentStands)
+  currentTasks: CurrentTasks[];
 }

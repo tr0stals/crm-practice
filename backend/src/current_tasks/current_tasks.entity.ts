@@ -27,16 +27,6 @@ export class CurrentTasks {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'date' })
-  deadline: Date;
-
-  @Column({ length: 45 })
-  title: string;
-
-  @ManyToOne(() => Employees, (employee) => employee.currentTasks)
-  @JoinColumn({ name: 'employeeId' })
-  employees: Employees;
-
   @ManyToOne(
     () => CurrentTaskStates,
     (currentTaskState) => currentTaskState.currentTasks,
@@ -44,13 +34,16 @@ export class CurrentTasks {
   @JoinColumn({ name: 'currentTaskStateId' })
   currentTaskStates: CurrentTaskStates;
 
-  @ManyToOne(() => Stands, (stand) => stand.currentTasks)
-  @JoinColumn({ name: 'standId' })
-  stands: Stands;
-
   @ManyToOne(() => StandTasks, (standTask) => standTask.currentTasks)
   @JoinColumn({ name: 'standTaskId' })
   standTasks: StandTasks;
+
+  @ManyToOne(
+    () => ShipmentsStands,
+    (shipmentStand) => shipmentStand.currentTasks,
+  )
+  @JoinColumn({ name: 'shipmentStandId' })
+  shipmentStands: ShipmentsStands;
 
   @OneToMany(
     () => ServerWriteoff,

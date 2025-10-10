@@ -1,9 +1,10 @@
 export class CurrentTasksDTO {
-  deadline: Date;
-  title: string;
+  // deadline: Date;
+  // title: string;
+  // standId: number;
+  // employeeId: number;
 
-  employeeId: number;
+  shipmentStandId: number;
   currentTaskStateId: number;
-  standId: number;
   standTaskId: number;
 }

@@ -59,7 +59,10 @@ export class CurrentTasksController {
     if (!employeeId) {
       return { name: 'Текущие задачи', children: [] };
     }
-    const empProf = await this.employeesProfessionsService.findEmployeeProfessionByEmployeeId(employeeId);
+    const empProf =
+      await this.employeesProfessionsService.findEmployeeProfessionByEmployeeId(
+        employeeId,
+      );
     console.log('!!!!!', empProf);
     const role = empProf?.professions?.title?.toLowerCase() || '';
     const allowedRoles = ['директор', 'администратор', 'test'];
@@ -101,13 +104,13 @@ export class CurrentTasksController {
   @Get('title/:id')
   async getTaskTitle(@Param('id') id: string) {
     const task = await this.service.findOne(+id);
-    return { id: task.id, title: task.title };
+    return { id: task.id, title: task.standTasks.title };
   }
 
   @Get('titles')
   async getAllTaskTitles() {
     const tasks = await this.service.findAll();
-    return tasks.map((task) => ({ id: task.id, title: task.title }));
+    return tasks.map((task) => ({ id: task.id, title: task.standTasks.title }));
   }
 
   @Get('rootStandTasks')

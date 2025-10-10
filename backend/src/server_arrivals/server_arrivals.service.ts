@@ -48,7 +48,7 @@ export class ServerArrivalsService {
 
         const componentTitle = components?.title;
         const factoryName = factory?.shortName;
-        const currentTasksTitle = currentTasks?.title;
+        const currentTasksTitle = currentTasks?.standTasks.title;
 
         data.push({
           ...defaultData,
