@@ -224,7 +224,10 @@ onUnmounted(() => {
             :key="item.id"
             :value="item.id"
           >
-            <template>
+            <template v-if="item === null">
+              <option value="">Не выбрано</option>
+            </template>
+            <template v-else>
               {{
                 item.title ||
                 item.name ||

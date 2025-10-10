@@ -41,7 +41,7 @@ interface TreeNode {
   level: any;
 }
 
-const treeTablesExceptions = ["employees", "stands"];
+const treeTablesExceptions = ["employees", "stands", "pcbs"];
 
 const { data, error, loading, refetch } = useFetch<TreeNode[]>(
   treeTablesExceptions.includes(props.currentSection)

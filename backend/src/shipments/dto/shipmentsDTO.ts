@@ -3,7 +3,7 @@ export class ShipmentsDTO {
   addedDate: Date;
   shipmentDate: Date;
   arrivalDate: Date;
-  specificationImage: string;
+  specificationImage: string[];
   comment: string;
   licenseId: number;
   factoryId: number;

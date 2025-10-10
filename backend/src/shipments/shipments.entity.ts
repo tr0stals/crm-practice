@@ -30,8 +30,8 @@ export class Shipments {
   @Column({ type: 'date' })
   arrivalDate: Date;
 
-  @Column({ nullable: true, length: 200 })
-  specificationImage: string;
+  @Column({ type: 'json', nullable: true })
+  specificationImage: string[];
 
   @Column({ nullable: true, length: 200 })
   comment: string;

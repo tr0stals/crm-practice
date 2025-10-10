@@ -55,4 +55,9 @@ export class PcbsController {
   async getPcbsTree() {
     return this.service.getPcbsTree();
   }
+
+  @Get('getTree')
+  async getTree() {
+    return await this.service.getTree();
+  }
 }

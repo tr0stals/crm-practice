@@ -318,4 +318,68 @@ export class PcbsService {
 
     return { name: 'Платы', children: [...rootPcbs, ...tree] };
   }
+
+  async getTree() {
+    const allItems = await this.repository.find({
+      relations: [
+        'stands',
+        'component',
+        'parent',
+        'children',
+        'pcbsComponents',
+        'pcbsComponents.component',
+      ],
+    });
+
+    const categories = allItems.filter((item) => item.isCategory());
+    const pcbs = allItems.filter((item) => item.isPcb());
+
+    const buildTree = (parentId: number | null = null): any[] => {
+      const categoryNodes = categories
+        .filter((cat) => cat.parentId === parentId)
+        .map((cat) => ({
+          id: cat.id,
+          name: cat.title,
+          nodeType: 'pcbs_categories',
+          isCategory: true,
+          children: buildTree(cat.id), // рекурсия вниз
+        }));
+
+      const pcbNodes = pcbs
+        .filter((pcb) => pcb.parentId === parentId)
+        .map((pcb) => ({
+          id: pcb.id,
+          name: pcb.title || `Плата #${pcb.id}`,
+          pcbName: pcb.title,
+          nodeType: 'pcbs',
+          isPcb: true,
+          children: [
+            // Сначала дочерние платы
+            ...buildTree(pcb.id),
+            // Потом компоненты платы
+            ...(Array.isArray(pcb.pcbsComponents)
+              ? pcb.pcbsComponents.map((comp) => ({
+                  id: comp.id,
+                  name: `${comp.component?.title || `Компонент #${comp.id}`} (${comp.componentCount} шт)`,
+                  nodeType: 'pcbs_components',
+                  componentTitle: comp.component?.title,
+                  material: comp.component?.material,
+                  receiptDate: comp.component?.receiptDate,
+                  componentCount: comp.componentCount,
+                  component: comp.component,
+                }))
+              : []),
+          ],
+        }));
+
+      return [...categoryNodes, ...pcbNodes];
+    };
+
+    const tree = buildTree();
+
+    return {
+      name: 'Платы',
+      children: tree,
+    };
+  }
 }

@@ -1,5 +1,5 @@
 export class PCBSDTO {
-  parentId: number;
+  parentId?: number;
   title: string;
   componentId: number;
   standId: number;

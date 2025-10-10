@@ -41,7 +41,6 @@ watch(
   dateFields,
   (fields) => {
     fields.forEach((key) => {
-      console.debug(key.name);
       if (!(key.name in dateModel)) {
         dateModel[key.name] = formData[key.name]
           ? formData[key.name].slice(0, 10)
@@ -57,6 +56,41 @@ watch(
   },
   { immediate: true }
 );
+
+// --- Новые функции для работы с изображениями ---
+function handleFilesChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const files = Array.from(input.files || []);
+
+  if (!formData["specificationImage"]) {
+    formData["specificationImage"] = [];
+  }
+
+  // Добавляем новые файлы к существующим
+  formData["specificationImage"] = [
+    ...formData["specificationImage"],
+    ...files,
+  ];
+
+  console.debug(formData);
+}
+
+function removeFile(index: number) {
+  if (formData["specificationImage"]) {
+    formData["specificationImage"].splice(index, 1);
+  }
+}
+
+async function uploadImage(file: File, relatedItemId: number) {
+  const data = new FormData();
+  data.append("file", file);
+  data.append("targetType", props.sectionName); // "organization_types" или "components"
+  data.append("targetId", String(relatedItemId));
+
+  return await api.post("/images/upload", data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+}
 
 const handleSubmit = async () => {
   try {
@@ -104,6 +138,43 @@ const handleSubmit = async () => {
                 }"
                 placeholder="Выберите дату"
               />
+            </template>
+            <template v-else-if="field.name === 'specificationImage'">
+              <div class="imageInput">
+                <!-- Инпут для загрузки файлов -->
+                <input
+                  type="file"
+                  id="iconUpload"
+                  class="imageInput__input--hidden"
+                  multiple
+                  @change="handleFilesChange"
+                />
+
+                <!-- Список выбранных изображений -->
+                <div
+                  v-if="formData[field.name] && formData[field.name].length"
+                  class="imageInput__textContent"
+                >
+                  <span class="imageInput__header">Выбраны изображения:</span>
+                  <ul>
+                    <li
+                      v-for="(file, index) in formData[field.name]"
+                      :key="index"
+                      class="imageInput__imageItem"
+                    >
+                      {{ file.name }}
+                      <button type="button" @click="removeFile(index)">
+                        X
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- Кнопка загрузки -->
+                <label for="iconUpload" class="imageInput__uploadButton">
+                  Загрузить
+                </label>
+              </div>
             </template>
             <select
               class="addModalWindow__content__field__option"
