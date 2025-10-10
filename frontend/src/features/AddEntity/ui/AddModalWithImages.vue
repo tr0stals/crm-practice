@@ -7,12 +7,7 @@ import { reactive, watch, computed } from "vue";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
-import { useAddOrganizations } from "../model/useAddOrganizations";
-import { useAddArrivalInvoices } from "../model/useAddArrivalInvoices";
-import { useAddLicenses } from "../model/useAddLicenses";
-import { useAddStandTasksComponents } from "../model/useAddStandTasksComponents";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
-import axios from "axios";
 import { api } from "@/shared/api/axiosInstance";
 import { useAddEntity } from "../model/useAddEntity";
 import { createEntityAsync } from "../api/createEntityAsync";
@@ -26,7 +21,6 @@ const props = defineProps<{
 }>();
 const navigationStore = useNavigationStore();
 
-// TODO: Пока здесь рассчитано на org_types
 const { formData, tableColumns, selectOptions, submit } =
   props.sectionName === "stand_tasks"
     ? useAddStandTasks(props.sectionName, () => {
@@ -150,7 +144,6 @@ const handleSubmit = async () => {
   } else if (props.sectionName === "stands") {
     await loadStands();
   } else if (props.sectionName === "stand_tasks") {
-    console.debug("вызов происходит отсбла");
     await submit();
   } else {
     console.debug("нет, отсюда!");

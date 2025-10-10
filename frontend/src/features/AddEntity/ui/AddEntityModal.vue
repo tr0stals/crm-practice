@@ -17,6 +17,8 @@ import { api } from "@/shared/api/axiosInstance";
 import { useAddEntity } from "../model/useAddEntity";
 import { createEntityAsync } from "../api/createEntityAsync";
 import { isDateField } from "@/shared/utils/isDateField";
+import { useAddPcbs } from "../model/useAddPcbs";
+import { useAddPcbsComponents } from "../model/useAddPcbsComponents";
 
 const props = defineProps<{
   sectionName: string;
@@ -49,6 +51,16 @@ const { formData, tableColumns, selectOptions, submit } =
       })
     : props.sectionName === "arrival_invoices"
     ? useAddArrivalInvoices(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      })
+    : props.sectionName === "pcbs"
+    ? useAddPcbs(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      })
+    : props.sectionName === "pcbs_components"
+    ? useAddPcbsComponents(props.sectionName, () => {
         props.onSuccess();
         props.onClose();
       })
@@ -117,10 +129,30 @@ const handleSubmit = async () => {
           class="addModalWindow__content__field"
         >
           <template v-if="item !== 'id' && item !== 'passwordSalt'">
-            <label class="addModalWindow__content__field__label" :for="item">{{
-              fieldDictionary[item] || item
-            }}</label>
-            <template v-if="item.endsWith('Id')">
+            <label class="addModalWindow__content__field__label" :for="item">
+              {{ fieldDictionary[item] || item }}
+            </label>
+
+            <!-- parentId -->
+            <template v-if="item === 'parentId'">
+              <select
+                v-model="formData[item]"
+                :id="item"
+                :name="item"
+                class="addModalWindow__content__field__option"
+              >
+                <option :value="null">Без категории</option>
+                <template
+                  v-for="option in selectOptions[item]"
+                  :key="option.id"
+                >
+                  <option :value="option.id">{{ option.label }}</option>
+                </template>
+              </select>
+            </template>
+
+            <!-- поля с окончанием Id -->
+            <template v-else-if="item.endsWith('Id')">
               <select
                 v-model="formData[item]"
                 :id="item"
@@ -129,15 +161,15 @@ const handleSubmit = async () => {
               >
                 <option value="" disabled>Выберите значение</option>
                 <template
-                  :key="option.id"
                   v-for="option in selectOptions[item]"
+                  :key="option.id"
                 >
-                  <option :value="option.id">
-                    {{ option.label }}
-                  </option>
+                  <option :value="option.id">{{ option.label }}</option>
                 </template>
               </select>
             </template>
+
+            <!-- дата -->
             <DatePicker
               v-else-if="isDateField(item)"
               v-model="dateModel[item]"
@@ -150,15 +182,18 @@ const handleSubmit = async () => {
               }"
               placeholder="Выберите дату"
             />
-            <template v-else-if="item === 'phone'">
-              <input
-                type="text"
-                v-model="formData[item]"
-                :id="item"
-                :name="item"
-                class="addModalWindow__content__field__input"
-              />
-            </template>
+
+            <!-- телефон -->
+            <input
+              v-else-if="item === 'phone'"
+              type="text"
+              v-model="formData[item]"
+              :id="item"
+              :name="item"
+              class="addModalWindow__content__field__input"
+            />
+
+            <!-- чекбокс -->
             <input
               v-else-if="item === 'isCompleted'"
               class="addModalWindow__content__field__input"
@@ -167,6 +202,8 @@ const handleSubmit = async () => {
               :id="item"
               :name="item"
             />
+
+            <!-- vat -->
             <template v-else-if="item === 'vat'">
               <div class="addModalWindow__content__field__inputControls">
                 <Button
@@ -186,15 +223,15 @@ const handleSubmit = async () => {
               </div>
             </template>
 
-            <template v-else>
-              <input
-                type="text"
-                class="addModalWindow__content__field__input"
-                v-model="formData[item]"
-                :id="item"
-                :name="item"
-              />
-            </template>
+            <!-- остальное -->
+            <input
+              v-else
+              type="text"
+              class="addModalWindow__content__field__input"
+              v-model="formData[item]"
+              :id="item"
+              :name="item"
+            />
           </template>
         </div>
       </div>

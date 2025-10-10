@@ -661,7 +661,10 @@ export class DatabaseService {
               )
             : [],
         };
-      } else if (columnType.toLowerCase() === 'icon') {
+      } else if (
+        columnType.toLowerCase() === 'icon' ||
+        columnType.toLowerCase() === 'specificationImage'
+      ) {
         formStructure[column] = { type: 'file' };
       } else if (columnType.startsWith('date')) {
         formStructure[column] = { type: 'date' };

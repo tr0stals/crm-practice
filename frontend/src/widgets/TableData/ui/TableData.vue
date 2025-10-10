@@ -14,6 +14,7 @@ const emit = defineEmits<{
 }>();
 
 const { columnCount, currentSection, navigationStore } = useTableData(headers);
+console.debug("!!!");
 </script>
 
 <template>

@@ -17,7 +17,13 @@ export function useAddOrganizations(
       endpoint: `database/getFormMetaData/${sectionName}`,
     }).then((res) => res.data);
 
-    tableColumns.value = Object.keys(data);
+    /**
+     * Убрал поле тип организации из модального окна.
+     * Тип организации определяется по клику на организацию
+     */
+    const { organizationTypeId, ...defaultData } = data;
+
+    tableColumns.value = Object.keys(defaultData);
 
     if (tableColumns.value.includes("parentId")) {
       tableColumns.value = [
@@ -37,8 +43,35 @@ export function useAddOrganizations(
   onMounted(fetchColumnsAndRelations);
 
   const submit = async () => {
-    console.debug(formData);
-    await createEntityAsync(sectionName, formData);
+    const nodeType = navigationStore.selectedRow?.data?.nodeType;
+    let orgTypeId: number | null = null;
+
+    /**
+     * Определяем тип организации
+     */
+    switch (nodeType) {
+      case "organization_types":
+        orgTypeId = navigationStore.selectedRow?.data?.id;
+        console.debug(formData);
+
+        formData.organizationTypeId = orgTypeId;
+
+        await createEntityAsync(sectionName, formData);
+        break;
+
+      case "organizations":
+        const parentOrganizationId = navigationStore.selectedRow?.data?.id;
+        const parentOrganization = await getDataAsync({
+          endpoint: `organizations/get/${parentOrganizationId}`,
+        });
+
+        orgTypeId = parentOrganization.data.organizationTypes?.id;
+
+        formData.organizationTypeId = orgTypeId;
+
+        await createEntityAsync(sectionName, formData);
+        break;
+    }
 
     onSuccess();
   };

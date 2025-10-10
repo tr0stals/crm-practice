@@ -31,6 +31,19 @@ export class PcbsComponentsService {
     });
   }
 
+  async getByPcbs(id: number) {
+    try {
+      return await this.repo.find({
+        where: {
+          pcb: { id: id },
+        },
+        relations: ['pcb', 'component'],
+      });
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async generateData() {
     try {
       const pcbsComponents = await this.findAll();

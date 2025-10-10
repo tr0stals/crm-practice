@@ -57,6 +57,27 @@ export function useCreateButton(onUpdateCallBack: () => void) {
 
       break;
 
+    // case tablesEnum.pcbs:
+    //   if (!navigationStore.selectedRow) {
+    //     section.value = tablesEnum.pcbs;
+    //     ModalManager.getInstance().open(AddEntity, {
+    //       sectionName: section.value,
+    //       onClose: () => ModalManager.getInstance().closeModal(),
+    //       onSuccess: onUpdateCallBack,
+    //     });
+    //   }
+
+    //   if (navigationStore.selectedRow?.data?.nodeType === tablesEnum.pcbs) {
+    //     section.value = tablesEnum.pcbs_components;
+    //     ModalManager.getInstance().open(AddEntity, {
+    //       sectionName: section.value,
+    //       onClose: () => ModalManager.getInstance().closeModal(),
+    //       onSuccess: onUpdateCallBack,
+    //     });
+    //   }
+
+    //   break;
+
     case tablesEnum.stands:
       if (!navigationStore.selectedRow) {
         section.value = tablesEnum.stands_types;

@@ -31,6 +31,11 @@ export class PcbsComponentsController {
     return await this.service.findAll();
   }
 
+  @Get('byPcbs/get/:id')
+  async getByPcbs(@Param('id') id: string) {
+    return await this.service.getByPcbs(+id);
+  }
+
   @ApiOperation({ summary: 'Получить запись по ID' })
   @ApiResponse({ status: 200, description: 'Запись найдена' })
   @ApiResponse({ status: 404, description: 'Запись не найдена' })

@@ -8,8 +8,11 @@
   }
 
   &__item {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
     border: 2px solid rgba(0, 0, 0, 0.2);
-    padding: 4px 2rem;
+    padding: 4px 1rem;
     font-size: 2rem;
     border-radius: 1rem;
     transition: all 0.3s ease;

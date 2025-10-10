@@ -36,11 +36,14 @@ import { HandleCreateButton } from "@/features/HandleCreateButton";
 import { HandleDeleteButton } from "@/features/HandleDeleteButton";
 import { SidebarMenu } from "@/features/SidebarMenu";
 import { TableDataPreview } from "@/features/TableDataPreview";
+import { Sidebar } from "@/features/Sidebar";
+import { useMenuStore } from "@/entities/MenuEntity/model/menuStore";
 
 const authStore = useAuthStore();
 const router = useRouter();
 const authorizedUserStore = useAuthorizedUserStore();
 const navigationStore = useNavigationStore();
+const menuStore = useMenuStore();
 
 /**
  * Данные, которые отображаются в таблице
@@ -247,8 +250,9 @@ onMounted(async () => {
 
 watch(
   () => navigationStore.currentSection,
-  async (oldVal: string, newSection: string) => {
-    if (!oldVal) return;
+  async (newSection: string, oldVal: string) => {
+    console.debug(newSection);
+    if (!newSection) return;
     targetData.value = null;
     treeviewData.value = [];
     currentPage.value = 1;
@@ -387,7 +391,7 @@ const handleSelectSection = (item: any) => {
         "
         @node-select="handleSelectSection"
       /> -->
-      <SidebarMenu
+      <Sidebar
         v-if="
           authorizedUserStore.user?.professionTitle === 'Администратор' ||
           authorizedUserStore.user?.professionTitle === 'Директор' ||
@@ -433,7 +437,7 @@ const handleSelectSection = (item: any) => {
       </div>
 
       <TableDataPreview
-        v-if="navigationStore.activeRow && !navigationStore.currentSection"
+        v-if="menuStore.activeEntity && !navigationStore.currentSection"
       />
 
       <!-- Content -->

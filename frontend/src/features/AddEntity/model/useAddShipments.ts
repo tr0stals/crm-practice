@@ -4,6 +4,7 @@ import type { FieldMeta } from "../types/FieldMeta";
 import { useToast } from "vue-toastification";
 import { createEntityAsync } from "../api/createEntityAsync";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
+import { api } from "@/shared/api/axiosInstance";
 
 export function useAddShipments(sectionName: string, onSuccess: () => void) {
   const formData = reactive<any>({
@@ -51,13 +52,21 @@ export function useAddShipments(sectionName: string, onSuccess: () => void) {
         selectOptions[key] = value.options;
       }
 
-      formFields.value.push({
-        name: key,
-        type: value.options ? "select" : "input",
-        options: value.options ?? [],
-        section: sectionName,
-      });
-      console.debug(formFields.value);
+      if (key === "specificationImage") {
+        formFields.value.push({
+          name: key,
+          type: "file",
+          options: value.options ?? [],
+          section: sectionName,
+        });
+      } else {
+        formFields.value.push({
+          name: key,
+          type: value.options ? "select" : "input",
+          options: value.options ?? [],
+          section: sectionName,
+        });
+      }
     }
 
     const standsData = await getDataAsync({
@@ -83,13 +92,28 @@ export function useAddShipments(sectionName: string, onSuccess: () => void) {
     try {
       const { stands, addedDate, arrivalDate, shipmentDate, ...defaultData } =
         formData;
-      console.debug("shipmentData", defaultData);
+
+      const fileNames = defaultData.specificationImage.map(
+        (file: any) => file.name
+      );
 
       const shipmentResponse = await createEntityAsync("shipments", {
         addedDate,
         arrivalDate,
         shipmentDate,
+        specificationImage: fileNames,
         ...defaultData.shipments,
+      });
+
+      defaultData.specificationImage.map(async (file) => {
+        const data = new FormData();
+        data.append("file", file);
+        data.append("targetType", sectionName); // "organization_types" или "components"
+        data.append("targetId", String(shipmentResponse.data?.id));
+
+        return await api.post("/images/upload", data, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       });
 
       const shipmentStandsResponse = await createEntityAsync(
@@ -99,8 +123,6 @@ export function useAddShipments(sectionName: string, onSuccess: () => void) {
           standId: stands?.standId,
         }
       );
-
-      console.debug(shipmentStandsResponse.data);
 
       onSuccess();
     } catch (e) {

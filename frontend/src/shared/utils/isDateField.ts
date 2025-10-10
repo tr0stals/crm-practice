@@ -1,4 +1,4 @@
-export const isDateField = (key: any) => {
+export const isDateField = (key: string) => {
   const lower = key.toLowerCase();
 
   return (
