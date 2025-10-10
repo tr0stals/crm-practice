@@ -3,6 +3,8 @@ import {
   HttpStatus,
   Injectable,
   NotFoundException,
+  OnModuleInit,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrganizationTypes } from './organization_types.entity';
@@ -11,13 +13,35 @@ import { OrganizationTypesDTO } from './dto/OrganizationTypesDTO';
 import { ImagesService } from 'src/images/images.service';
 
 @Injectable()
-export class OrganizationTypesService {
+export class OrganizationTypesService implements OnModuleInit {
   constructor(
     @InjectRepository(OrganizationTypes)
     private organizationTypesRepository: Repository<OrganizationTypes>,
 
     private imagesService: ImagesService,
   ) {}
+
+  async onModuleInit() {
+    await this.ensureSystemTypes();
+  }
+
+  private async ensureSystemTypes() {
+    const systemTitles = ['Фабрика', 'Перевозчик', 'Производитель', 'Клиент'];
+    const existing = await this.organizationTypesRepository.find({
+      where: systemTitles.map((title) => ({ title })),
+      select: ['id', 'title'],
+    });
+
+    const existingSet = new Set(existing.map((e) => e.title));
+
+    const toCreate = systemTitles
+      .filter((t) => !existingSet.has(t))
+      .map((title) => this.organizationTypesRepository.create({ title }));
+
+    if (toCreate.length > 0) {
+      await this.organizationTypesRepository.save(toCreate);
+    }
+  }
 
   async create(createOrganizationType: OrganizationTypesDTO) {
     try {
@@ -86,6 +110,15 @@ export class OrganizationTypesService {
 
   async update(id: number, data: OrganizationTypesDTO) {
     try {
+      const systemTitles = new Set(['Фабрика', 'Перевозчик', 'Производитель', 'Клиент']);
+      const existing = await this.organizationTypesRepository.findOne({ where: { id } });
+      if (!existing) throw new NotFoundException('Тип организации не найден');
+      if (systemTitles.has(existing.title)) {
+        throw new ForbiddenException(
+          'Системный тип нельзя изменять',
+        );
+      }
+
       return await this.organizationTypesRepository.update(id, data);
     } catch (e) {
       console.error('Ошибка при изменении типа организаций!', e);
@@ -94,6 +127,15 @@ export class OrganizationTypesService {
 
   async remove(id: number) {
     try {
+      const systemTitles = new Set(['Фабрика', 'Перевозчик', 'Производитель', 'Клиент']);
+      const existing = await this.organizationTypesRepository.findOne({ where: { id } });
+      if (!existing) throw new NotFoundException('Тип организации не найден');
+      if (systemTitles.has(existing.title)) {
+        throw new ForbiddenException(
+          'Системный тип нельзя удалять',
+        );
+      }
+
       await this.organizationTypesRepository.delete(id);
     } catch (e: any) {
       if (e.code === 'ER_ROW_IS_REFERENCED_2') {

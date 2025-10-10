@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   Body,
   Patch,
+  Put,
 } from '@nestjs/common';
 import { ImagesService } from './images.service';
 import { Response } from 'express';

@@ -10,7 +10,7 @@ export class OrganizationTypes {
   @Column({ length: 100, nullable: true })
   icon: string;
 
-  @Column({ length: 45 })
+  @Column({ length: 45, unique: true })
   title: string;
 
   @OneToMany(

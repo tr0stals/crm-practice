@@ -72,20 +72,25 @@ export class ImagesService {
   async updateImage(id: number, file: any, body: any): Promise<Images> {
     const image = await this.getImageById(id);
 
-    try {
-      const oldPath = join(process.cwd(), image.path);
-      if (existsSync(oldPath)) unlinkSync(oldPath);
-    } catch (e) {
-      console.error('Не удалось удалить старый файл', e);
+    // если файл пришёл — заменяем физический файл и метаданные
+    if (file) {
+      try {
+        const oldPath = join(process.cwd(), image.path);
+        if (existsSync(oldPath)) unlinkSync(oldPath);
+      } catch (e) {
+        console.error('Не удалось удалить старый файл', e);
+      }
+
+      image.filename = file.filename;
+      image.originalName = file.originalname;
+      image.mimetype = file.mimetype;
+      image.size = file.size;
+      image.path = `uploads/${file.filename}`;
     }
 
-    image.filename = file.filename;
-    image.originalName = file.originalname;
-    image.mimetype = file.mimetype;
-    image.size = file.size;
-    image.path = `uploads/${file.filename}`;
+    // эти поля можно менять даже без файла
     image.targetType = body.targetType || image.targetType;
-    image.targetId = body.targetId || image.targetId;
+    image.targetId = body.targetId ?? image.targetId;
 
     return await this.imagesRepository.save(image);
   }

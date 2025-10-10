@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { databaseParentIdStrategies } from './databaseParentIdStrategies';
 import { FIELD_HINTS_MAP } from './fieldHintsMap';
@@ -30,6 +30,26 @@ export class DatabaseService {
     private readonly wsGateway: WsGateway,
     private readonly databaseLocalizationService: DatabaseLocalizationService,
   ) {}
+
+  private readonly SYSTEM_ORG_TITLES = new Set([
+    'Фабрика',
+    'Перевозчик',
+    'Производитель',
+    'Клиент',
+  ]);
+
+  private async isSystemOrganizationType(id: string): Promise<boolean> {
+    try {
+      const rows = await this.dataSource.query(
+        'SELECT title FROM `organization_types` WHERE id = ? LIMIT 1',
+        [id],
+      );
+      const title = rows?.[0]?.title as string | undefined;
+      return !!title && this.SYSTEM_ORG_TITLES.has(title);
+    } catch (_) {
+      return false;
+    }
+  }
 
   async getAllTablesData() {
     const tables = await this.dataSource.query('SHOW TABLES');
@@ -317,6 +337,16 @@ export class DatabaseService {
       );
     }
     try {
+      if (tableName === 'organization_types') {
+        const isSystem = await this.isSystemOrganizationType(id);
+        if (isSystem) {
+          const msg = 'Системный тип нельзя удалять';
+          if (userId) {
+            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+          }
+          throw new ForbiddenException(msg);
+        }
+      }
       // удаляет запись, если нет связанных записей
       const blocks = await this.getBlockingReferences(tableName, id);
       if (blocks.length > 0) {
@@ -369,6 +399,16 @@ export class DatabaseService {
       );
     }
     try {
+      if (tableName === 'organization_types') {
+        const isSystem = await this.isSystemOrganizationType(id);
+        if (isSystem) {
+          const msg = 'Системный тип нельзя удалять';
+          if (userId) {
+            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+          }
+          throw new ForbiddenException(msg);
+        }
+      }
       console.log(
         'DELETE WITH CLEANUP START',
         tableName,
@@ -504,6 +544,14 @@ export class DatabaseService {
       throw new Error(
         `Access denied: ${profession} cannot write to ${tableName}`,
       );
+    }
+
+    if (tableName === 'organization_types') {
+      const isSystem = await this.isSystemOrganizationType(id);
+      if (isSystem) {
+        // Нет userId параметра у updateTableRecord — уведомление через WS отправить некому
+        throw new ForbiddenException('Системный тип нельзя изменять');
+      }
     }
 
     if (tableName === 'employees') {
