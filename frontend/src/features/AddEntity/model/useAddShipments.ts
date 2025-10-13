@@ -93,6 +93,8 @@ export function useAddShipments(sectionName: string, onSuccess: () => void) {
       const { stands, addedDate, arrivalDate, shipmentDate, ...defaultData } =
         formData;
 
+      console.debug(formData);
+
       const fileNames = defaultData.specificationImage.map(
         (file: any) => file.name
       );
@@ -102,6 +104,7 @@ export function useAddShipments(sectionName: string, onSuccess: () => void) {
         arrivalDate,
         shipmentDate,
         specificationImage: fileNames,
+        standId: stands.standId,
         ...defaultData.shipments,
       });
 
@@ -115,14 +118,6 @@ export function useAddShipments(sectionName: string, onSuccess: () => void) {
           headers: { "Content-Type": "multipart/form-data" },
         });
       });
-
-      const shipmentStandsResponse = await createEntityAsync(
-        "shipments_stands",
-        {
-          shipmentId: shipmentResponse.data?.id,
-          standId: stands?.standId,
-        }
-      );
 
       onSuccess();
     } catch (e) {

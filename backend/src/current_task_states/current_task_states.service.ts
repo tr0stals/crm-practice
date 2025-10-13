@@ -24,6 +24,23 @@ export class CurrentTaskStatesService {
     return await this.repo.find();
   }
 
+  async getByTitle(title: string) {
+    try {
+      const currentTaskState = await this.repo.findOne({
+        where: {
+          title: title,
+        },
+      });
+
+      if (!currentTaskState)
+        throw new NotFoundException(`Не найден статус ${title}`);
+
+      return currentTaskState;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async generateData() {
     try {
       const states = await this.getAll();
@@ -118,7 +135,6 @@ export class CurrentTaskStatesService {
               id: task.id,
               name: [
                 `Срок выполнения: ${task.shipmentStands.shipments.arrivalDate ? (typeof task.shipmentStands.shipments.arrivalDate === 'string' ? task.shipmentStands.shipments.arrivalDate : (task.shipmentStands.shipments.arrivalDate as Date).toISOString().split('T')[0]) : ''}`,
-                `Задача стенда: ${task.standTasks.title}`,
                 `Стенд: ${task.shipmentStands.stands?.title || ''}`,
                 `Сотрудник: ${employeeName}`,
               ]

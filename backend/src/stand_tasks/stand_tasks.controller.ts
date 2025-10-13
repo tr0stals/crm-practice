@@ -28,6 +28,11 @@ export class StandTasksController {
     return await this.service.getAll();
   }
 
+  @Get('getByStand/:id')
+  async getByStand(@Param('id') id: string) {
+    return await this.service.getAllByStand(+id);
+  }
+
   @Get('get/:id')
   async getOne(@Param('id') id: string) {
     return await this.service.getOne(+id);

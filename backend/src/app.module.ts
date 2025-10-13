@@ -54,6 +54,7 @@ import { DatabaseExportImportModule } from './database_export_import/database_ex
 import { WebsocketModule } from './websocket/websocket.module';
 import { CurrentTaskStatesLogModule } from './current_task_states_log/current_task_states_log.module';
 import { ImagesModule } from './images/images.module';
+import { CurrentTasksBusinessModule } from './features/current-tasks-business/current-tasks-business.module';
 
 @Module({
   imports: [
@@ -125,6 +126,7 @@ import { ImagesModule } from './images/images.module';
     WebsocketModule,
     CurrentTaskStatesLogModule,
     ImagesModule,
+    CurrentTasksBusinessModule,
   ],
   controllers: [AppController, StandsController],
   providers: [AppService],

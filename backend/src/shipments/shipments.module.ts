@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ShipmentsController } from './shipments.controller';
 import { ShipmentsService } from './shipments.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -8,6 +8,7 @@ import { LicenseModule } from 'src/license/license.module';
 import { Stands } from 'src/stands/stands.entity';
 import { ShipmentPackage } from 'src/shipment_package/shipment_package.entity';
 import { ShipmentsStands } from 'src/shipments_stands/shipments_stands.entity';
+import { CurrentTasksBusinessModule } from 'src/features/current-tasks-business/current-tasks-business.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ShipmentsStands } from 'src/shipments_stands/shipments_stands.entity';
     ]),
     OrganizationsModule,
     LicenseModule,
+    forwardRef(() => CurrentTasksBusinessModule),
   ],
   controllers: [ShipmentsController],
   providers: [ShipmentsService],

@@ -6,18 +6,27 @@ import {
   Param,
   Delete,
   Get,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
 import { ShipmentsService } from './shipments.service';
 import { ShipmentsDTO } from './dto/shipmentsDTO';
 import { Shipments } from './shipments.entity';
+import { ShipmentCurrentTasksDTO } from './dto/ShipmentCurrentTasksDTO';
+import { CurrentTasksBusinessService } from 'src/features/current-tasks-business/current-tasks-business.service';
 
 @Controller('shipments')
 export class ShipmentsController {
-  constructor(private readonly service: ShipmentsService) {}
+  constructor(
+    private readonly service: ShipmentsService,
+
+    @Inject(forwardRef(() => CurrentTasksBusinessService))
+    private readonly currentTaskBusiness: CurrentTasksBusinessService,
+  ) {}
 
   @Post('create')
-  async create(@Body() data: ShipmentsDTO) {
-    return await this.service.create(data);
+  async create(@Body() data: ShipmentCurrentTasksDTO) {
+    return await this.currentTaskBusiness.init(data);
   }
 
   @Patch('update/:id')

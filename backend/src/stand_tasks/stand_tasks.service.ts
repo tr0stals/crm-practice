@@ -104,6 +104,23 @@ export class StandTasksService {
     });
   }
 
+  async getAllByStand(standId: number) {
+    try {
+      const res = await this.repo.find({
+        where: {
+          stands: {
+            id: standId,
+          },
+        },
+        relations: ['stands', 'professions', 'components'],
+      });
+
+      return res;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async getAllByParent(parentId: number | null) {
     if (parentId === null) {
       return await this.repo.find({

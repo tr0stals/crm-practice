@@ -152,7 +152,7 @@ export class ShipmentsService {
         .filter((item) => item.shipments?.id === shipment.id)
         .map((item) => ({
           id: item.stands?.id,
-          name: `Стенд: ${item.stands?.title ? item.stands?.title : 'Неизвестный стенд'} | ${item.stands?.standType?.title ? item.stands?.standType?.title : 'Неизвестный тип стенда'} ` ,
+          name: `Стенд: ${item.stands?.title ? item.stands?.title : 'Неизвестный стенд'} | ${item.stands?.standType?.title ? item.stands?.standType?.title : 'Неизвестный тип стенда'} `,
           nodeType: 'stands',
         })),
       ...shipmentPackages
@@ -168,23 +168,23 @@ export class ShipmentsService {
   }
 
   async getTree() {
-      const shipments = await this.findAll();
+    const shipments = await this.findAll();
 
-      if (!shipments) throw new NotFoundException('Ошибка при поиске отгрузок');
+    if (!shipments) throw new NotFoundException('Ошибка при поиске отгрузок');
 
-      const tree = await Promise.all(
-        shipments.map(async (shipment: Shipments) => {
-          const children = await this.#childrenGenerator(shipment);
+    const tree = await Promise.all(
+      shipments.map(async (shipment: Shipments) => {
+        const children = await this.#childrenGenerator(shipment);
 
-          return {
-            id: shipment.id,
-            name: `${shipment.client?.shortName} | Прибытие: ${shipment.arrivalDate}`,
-            nodeType: 'shipments',
-            children,
-          };
-        }),
-      );
+        return {
+          id: shipment.id,
+          name: `${shipment.client?.shortName} | Дата отгрузки: ${shipment.arrivalDate ? shipment.arrivalDate : 'Дата отгрузки не указана'}`,
+          nodeType: 'shipments',
+          children,
+        };
+      }),
+    );
 
-      return { name: 'Отгрузки', children: tree };
+    return { name: 'Отгрузки', children: tree };
   }
 }
