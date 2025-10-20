@@ -205,7 +205,7 @@ export class CurrentTasksService {
     ) {
       // Получаем новый статус
       const newStatus = await this.currentTaskStatesRepository.findOne({
-        where: { id: data.currentTaskStates.id }
+        where: { id: data.currentTaskStates.id },
       });
 
       if (newStatus?.title === 'COMPLETED') {
@@ -259,13 +259,13 @@ export class CurrentTasksService {
 
     // Отправляем уведомление о начале задачи
     if (
-      task.shipmentStands.stands.employees?.users &&
-      task.shipmentStands.stands.employees.users.length > 0
+      task.shipmentStands?.stands?.employees?.users &&
+      task.shipmentStands?.stands?.employees?.users.length > 0
     ) {
-      const user = task.shipmentStands.stands.employees.users[0];
+      const user = task.shipmentStands?.stands?.employees?.users[0];
       const employeeName =
-        `${task.shipmentStands.stands.employees.peoples?.lastName || ''} ${task.shipmentStands.stands.employees.peoples.firstName || ''} ${task.shipmentStands.stands.employees.peoples?.middleName || ''}`.trim();
-      const message = `Задача "${task.standTasks.title}" на стенде "${task.shipmentStands.stands?.title}" начата`;
+        `${task.shipmentStands?.stands?.employees?.peoples?.lastName || ''} ${task.shipmentStands?.stands?.employees?.peoples.firstName || ''} ${task.shipmentStands?.stands?.employees?.peoples?.middleName || ''}`.trim();
+      const message = `Задача "${task.standTasks?.title}" на стенде "${task.shipmentStands?.stands?.title}" начата`;
 
       this.wsGateway.sendNotification(
         user.id.toString(),
@@ -292,43 +292,61 @@ export class CurrentTasksService {
   async completeTask(taskId: number) {
     const task = await this.currentTasksRepository.findOne({
       where: { id: taskId },
-      relations: ['currentTaskStates', 'standTasks', 'shipmentStands'],
+      relations: [
+        'currentTaskStates',
+        'standTasks',
+        'shipmentStands',
+        'shipmentStands.stands',
+        'shipmentStands.stands.employees',
+        'shipmentStands.stands.employees.users',
+        'shipmentStands.stands.employees.peoples',
+      ],
     });
-    if (!task) throw new Error('Задача не найдена');
 
-    // Отправляем уведомление о завершении задачи
-    if (
-      task.shipmentStands.stands.employees?.users &&
-      task.shipmentStands.stands.employees.users.length > 0
-    ) {
-      const user = task.shipmentStands.stands.employees.users[0];
-      const message = `Задача "${task.standTasks.title}" на стенде "${task.shipmentStands.stands?.title}" завершена`;
+    if (!task) throw new NotFoundException('Задача не найдена');
 
+    // Если уже завершена — ничего не делаем
+    if (task.isCompleted) {
+      return { success: true, message: 'Задача уже завершена' };
+    }
+
+    // 1️⃣ Помечаем задачу как завершённую
+    task.isCompleted = true;
+
+    // 2️⃣ Меняем статус на "Завершена"
+    const completedState = await this.currentTaskStatesRepository.findOne({
+      where: [{ title: 'Завершена' }, { title: 'COMPLETED' }],
+    });
+
+    if (!completedState)
+      throw new Error('Не найден статус "Завершена" в current_task_states');
+
+    task.currentTaskStates = completedState;
+
+    // 3️⃣ Сохраняем изменения
+    await this.currentTasksRepository.save(task);
+
+    // 4️⃣ Логируем изменение статуса
+    await this.currentTaskStatesLogService.logStateChange(
+      taskId,
+      completedState.id,
+    );
+
+    // 5️⃣ Отправляем уведомление сотруднику
+    const employeeUser = task.shipmentStands.stands.employees?.users?.[0];
+    if (employeeUser) {
+      const message = `Задача "${task.standTasks.title}" на стенде "${task.shipmentStands.stands.title}" завершена`;
       this.wsGateway.sendNotification(
-        user.id.toString(),
+        employeeUser.id.toString(),
         message,
         'task_completed',
       );
     }
 
-    // Меняем статус на "Завершена"
-    const completedState = await this.currentTaskStatesRepository.findOne({
-      where: [{ title: 'Завершена' }, { title: 'Завершена' }],
-    });
-    if (completedState) {
-      // Логируем изменение статуса
-      await this.currentTaskStatesLogService.logStateChange(
-        taskId,
-        completedState.id,
-      );
-      task.currentTaskStates = completedState;
-    }
-    const result = await this.currentTasksRepository.save(task);
-
-    // Автоматически пересчитываем компоненты для завершенной задачи
+    // 6️⃣ Пересчитываем компоненты
     await this.componentQuantityWatcher.onCurrentTaskStatusChange(taskId);
 
-    return result;
+    return { success: true, message: 'Задача успешно завершена' };
   }
 
   async getAllTaskTitles(): Promise<{ id: number; title: string }[]> {
@@ -418,7 +436,7 @@ export class CurrentTasksService {
                   .filter(Boolean)
                   .join(' | '),
                 nodeType: 'stand_tasks',
-                isCompleted: st.isCompleted,
+                isCompleted: task.isCompleted,
                 standTask: st.title || '',
                 component: st.components?.title || '',
                 manufactureTime: st.manufactureTime,
@@ -480,10 +498,10 @@ export class CurrentTasksService {
     >();
     for (const task of tasks) {
       const state = task.currentTaskStates?.title || 'Без состояния';
-      const deadline = task.shipmentStands.shipments.arrivalDate
-        ? typeof task.shipmentStands.shipments.arrivalDate === 'string'
-          ? task.shipmentStands.shipments.arrivalDate
-          : (task.shipmentStands.shipments.arrivalDate as Date)
+      const deadline = task.shipmentStands?.shipments?.arrivalDate
+        ? typeof task.shipmentStands?.shipments?.arrivalDate === 'string'
+          ? task.shipmentStands?.shipments?.arrivalDate
+          : (task.shipmentStands?.shipments?.arrivalDate as Date)
               .toISOString()
               .split('T')[0]
         : 'Без даты';
@@ -549,22 +567,22 @@ export class CurrentTasksService {
                             `Задача: ${task.standTasks.title}`,
                             `Ответственный: ${taskResponsible}`,
                             `Состояние: ${task.currentTaskStates?.title || ''}`,
-                            `Крайний срок: ${task.shipmentStands.shipments.arrivalDate ? (typeof task.shipmentStands.shipments.arrivalDate === 'string' ? task.shipmentStands.shipments.arrivalDate : (task.shipmentStands.shipments.arrivalDate as Date).toISOString().split('T')[0]) : 'Без срока'}`,
+                            `Крайний срок: ${task.shipmentStands.shipments?.arrivalDate ? (typeof task.shipmentStands?.shipments?.arrivalDate === 'string' ? task.shipmentStands?.shipments?.arrivalDate : (task.shipmentStands?.shipments?.arrivalDate as Date).toISOString().split('T')[0]) : 'Без срока'}`,
                           ]
                             .filter(Boolean)
                             .join(' | '),
                           nodeType: 'current_tasks',
-                          taskTitle: task.standTasks.title || '',
+                          taskTitle: task.standTasks?.title || '',
                           taskResponsible: taskResponsible,
                           currentTaskStateId: task.currentTaskStates?.id,
                           currentTaskState: task.currentTaskStates?.title || '',
-                          deadline: task.shipmentStands.shipments.arrivalDate
-                            ? typeof task.shipmentStands.shipments
-                                .arrivalDate === 'string'
-                              ? task.shipmentStands.shipments.arrivalDate
+                          deadline: task.shipmentStands?.shipments?.arrivalDate
+                            ? typeof task.shipmentStands?.shipments
+                                ?.arrivalDate === 'string'
+                              ? task.shipmentStands?.shipments?.arrivalDate
                               : (
-                                  task.shipmentStands.shipments
-                                    .arrivalDate as Date
+                                  task.shipmentStands?.shipments
+                                    ?.arrivalDate as Date
                                 )
                                   .toISOString()
                                   .split('T')[0]
@@ -576,7 +594,7 @@ export class CurrentTasksService {
                           )
                             .filter(
                               (st) =>
-                                state !== 'Выполняется' || !st.isCompleted,
+                                state !== 'Выполняется' || !task.isCompleted,
                             )
                             .map((st) => ({
                               id: st.id,
@@ -590,7 +608,7 @@ export class CurrentTasksService {
                                 .filter(Boolean)
                                 .join(' | '),
                               nodeType: 'stand_tasks',
-                              isCompleted: st.isCompleted,
+                              isCompleted: task.isCompleted,
                               hasEnoughComponents: (() => {
                                 // Если задача не требует компонентов
                                 if (st.componentOutCount === 0) return true;

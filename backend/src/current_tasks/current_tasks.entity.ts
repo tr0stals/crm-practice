@@ -27,6 +27,9 @@ export class CurrentTasks {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ default: false })
+  isCompleted: boolean;
+
   @ManyToOne(
     () => CurrentTaskStates,
     (currentTaskState) => currentTaskState.currentTasks,

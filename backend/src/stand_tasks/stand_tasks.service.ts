@@ -166,89 +166,88 @@ export class StandTasksService {
     }
   }
 
-  async completeStandTask(id: number) {
-    const standTask = await this.repo.findOne({
-      where: { id },
-      relations: ['stands', 'components'],
-    });
-    if (!standTask) throw new NotFoundException('Подзадача не найдена');
+  // async completeStandTask(id: number) {
+  //   const standTask = await this.repo.findOne({
+  //     where: { id },
+  //     relations: ['stands', 'components'],
+  //   });
+  //   if (!standTask) throw new NotFoundException('Подзадача не найдена');
 
-    standTask.isCompleted = true;
-    await this.repo.save(standTask);
+  //   await this.repo.save(standTask);
 
-    // Отправляем уведомление о завершении подзадачи
-    if (standTask.parentId !== null) {
-      // Находим текущую задачу через parentId
-      const currentTask = await this.currentTasksRepo.findOne({
-        where: { standTasks: { id: standTask.parentId } },
-        relations: [
-          'employees',
-          'employees.users',
-          'employees.peoples',
-          'stands',
-          'standTasks',
-        ],
-      });
+  //   // Отправляем уведомление о завершении подзадачи
+  //   if (standTask.parentId !== null) {
+  //     // Находим текущую задачу через parentId
+  //     const currentTask = await this.currentTasksRepo.findOne({
+  //       where: { standTasks: { id: standTask.parentId } },
+  //       relations: [
+  //         'employees',
+  //         'employees.users',
+  //         'employees.peoples',
+  //         'stands',
+  //         'standTasks',
+  //       ],
+  //     });
 
-      if (
-        currentTask?.shipmentStands.stands.employees?.users &&
-        currentTask.shipmentStands.stands.employees.users.length > 0
-      ) {
-        const user = currentTask.shipmentStands.stands.employees.users[0];
-        const message = `Подзадача "${standTask.title}" на стенде "${standTask.stands?.title}" завершена`;
+  //     if (
+  //       currentTask?.shipmentStands.stands.employees?.users &&
+  //       currentTask.shipmentStands.stands.employees.users.length > 0
+  //     ) {
+  //       const user = currentTask.shipmentStands.stands.employees.users[0];
+  //       const message = `Подзадача "${standTask.title}" на стенде "${standTask.stands?.title}" завершена`;
 
-        console.log(
-          `[NOTIFICATION] Отправляем уведомление о подзадаче пользователю ${user.id}: ${message}`,
-        );
-        this.wsGateway.sendNotification(
-          user.id.toString(),
-          message,
-          'subtask_completed',
-        );
-      } else {
-        console.log(
-          `[NOTIFICATION] Не найден пользователь для уведомления о подзадаче`,
-        );
-      }
-    }
+  //       console.log(
+  //         `[NOTIFICATION] Отправляем уведомление о подзадаче пользователю ${user.id}: ${message}`,
+  //       );
+  //       this.wsGateway.sendNotification(
+  //         user.id.toString(),
+  //         message,
+  //         'subtask_completed',
+  //       );
+  //     } else {
+  //       console.log(
+  //         `[NOTIFICATION] Не найден пользователь для уведомления о подзадаче`,
+  //       );
+  //     }
+  //   }
 
-    // Проверяем, все ли подзадачи завершены
-    if (standTask.parentId !== null) {
-      const allSubtasks = await this.repo.find({
-        where: { parentId: standTask.parentId },
-      });
-      const allCompleted = allSubtasks.every((st) => st.isCompleted);
-      if (allCompleted) {
-        // 1. Пометить главную задачу isCompleted = true
-        const parentTask = await this.repo.findOne({
-          where: { id: standTask.parentId },
-        });
-        if (parentTask) {
-          parentTask.isCompleted = true;
-          await this.repo.save(parentTask);
-        }
-        // 2. Найти current_task, где standTaskId = parentId, и поменять статус на 3 (Завершена)
-        if (this.currentTasksRepo) {
-          const currentTask = await this.currentTasksRepo.findOne({
-            where: { standTasks: { id: standTask.parentId } },
-            relations: [
-              'currentTaskStates',
-              'standTasks',
-              'employees',
-              'employees.users',
-              'employees.peoples',
-              'stands',
-            ],
-          });
-          if (currentTask) {
-            // Вызываем метод completeTask для корректного завершения задачи
-            await this.currentTasksService.completeTask(currentTask.id);
-          }
-        }
-      }
-    }
-    return { success: true };
-  }
+  //   // Проверяем, все ли подзадачи завершены
+  //   if (standTask.parentId !== null) {
+  //     const allSubtasks = await this.repo.find({
+  //       where: { parentId: standTask.parentId },
+  //     });
+  //     const allCompleted = allSubtasks.every((st) => st.isCompleted);
+  //     if (allCompleted) {
+  //       // 1. Пометить главную задачу isCompleted = true
+  //       const parentTask = await this.repo.findOne({
+  //         where: { id: standTask.parentId },
+  //       });
+  //       if (parentTask) {
+  //         parentTask.isCompleted = true;
+  //         await this.repo.save(parentTask);
+  //       }
+  //       // 2. Найти current_task, где standTaskId = parentId, и поменять статус на 3 (Завершена)
+  //       if (this.currentTasksRepo) {
+  //         const currentTask = await this.currentTasksRepo.findOne({
+  //           where: { standTasks: { id: standTask.parentId } },
+  //           relations: [
+  //             'currentTaskStates',
+  //             'standTasks',
+  //             'employees',
+  //             'employees.users',
+  //             'employees.peoples',
+  //             'stands',
+  //           ],
+  //         });
+  //         if (currentTask) {
+  //           // Вызываем метод completeTask для корректного завершения задачи
+  //           await this.currentTasksService.completeTask(currentTask.id);
+  //         }
+  //       }
+  //     }
+  //   }
+  //   return { success: true };
+  // }
 
   async getTree() {
     try {

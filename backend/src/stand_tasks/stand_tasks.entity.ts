@@ -35,9 +35,6 @@ export class StandTasks {
   @Column({ type: 'int' })
   manufactureTime: number;
 
-  @Column({ default: false })
-  isCompleted: boolean;
-
   @ManyToOne(() => Stands, (stand) => stand.standTasks)
   @JoinColumn({ name: 'standId' })
   stands: Stands;

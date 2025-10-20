@@ -60,11 +60,10 @@ export class InventarizationBusinessService {
   async calculateComponentCount(
     componentId: number,
     factoryId: number,
-    calculationDate: Date = new Date()
+    calculationDate: Date = new Date(),
   ): Promise<ComponentCalculationResult> {
-
     const component = await this.componentsRepository.findOne({
-      where: { id: componentId }
+      where: { id: componentId },
     });
 
     if (!component) {
@@ -72,20 +71,40 @@ export class InventarizationBusinessService {
     }
 
     // 1. Находим последнюю инвентаризацию для этого компонента на фабрике
-    const lastInventarization = await this.getLastInventarization(componentId, factoryId, calculationDate);
+    const lastInventarization = await this.getLastInventarization(
+      componentId,
+      factoryId,
+      calculationDate,
+    );
 
     // 2. Рассчитываем приход по накладным после последней инвентаризации
-    const arrivalCount = await this.calculateArrivalCount(componentId, factoryId, lastInventarization?.inventarizationDate, calculationDate);
+    const arrivalCount = await this.calculateArrivalCount(
+      componentId,
+      factoryId,
+      lastInventarization?.inventarizationDate,
+      calculationDate,
+    );
 
     // 3. Рассчитываем расход по выполненным задачам после последней инвентаризации
-    const completedTaskCount = await this.calculateCompletedTaskCount(componentId, factoryId, lastInventarization?.inventarizationDate, calculationDate);
+    const completedTaskCount = await this.calculateCompletedTaskCount(
+      componentId,
+      factoryId,
+      lastInventarization?.inventarizationDate,
+      calculationDate,
+    );
 
     // 4. Рассчитываем ручные списания после последней инвентаризации
-    const writeoffCount = await this.calculateWriteoffCount(componentId, factoryId, lastInventarization?.inventarizationDate, calculationDate);
+    const writeoffCount = await this.calculateWriteoffCount(
+      componentId,
+      factoryId,
+      lastInventarization?.inventarizationDate,
+      calculationDate,
+    );
 
     // 5. Вычисляем итоговое количество
     const baseCount = lastInventarization?.componentCount || 0;
-    const calculatedCount = baseCount + arrivalCount - completedTaskCount - writeoffCount;
+    const calculatedCount =
+      baseCount + arrivalCount - completedTaskCount - writeoffCount;
 
     return {
       componentId,
@@ -103,7 +122,7 @@ export class InventarizationBusinessService {
    * Массовый расчет количества компонентов
    */
   async calculateMultipleComponents(
-    request: InventarizationCalculationRequest
+    request: InventarizationCalculationRequest,
   ): Promise<ComponentCalculationResult[]> {
     const { componentIds, factoryId, calculationDate = new Date() } = request;
 
@@ -123,11 +142,13 @@ export class InventarizationBusinessService {
         const result = await this.calculateComponentCount(
           component.id,
           factoryId,
-          calculationDate
+          calculationDate,
         );
         results.push(result);
       } catch (error) {
-        console.error(`Ошибка при расчете компонента ${component.id}: ${error.message}`);
+        console.error(
+          `Ошибка при расчете компонента ${component.id}: ${error.message}`,
+        );
       }
     }
 
@@ -138,7 +159,10 @@ export class InventarizationBusinessService {
    * Создает записи инвентаризации на основе расчета
    */
   async createInventarizationFromCalculation(
-    request: InventarizationCalculationRequest & { factoryId: number; quality?: number }
+    request: InventarizationCalculationRequest & {
+      factoryId: number;
+      quality?: number;
+    },
   ): Promise<Inventarization[]> {
     const { factoryId, quality = 100, calculationDate = new Date() } = request;
 
@@ -166,22 +190,22 @@ export class InventarizationBusinessService {
   async updateComponentQuantity(
     componentId: number,
     factoryId: number,
-    calculationDate: Date = new Date()
+    calculationDate: Date = new Date(),
   ): Promise<Components> {
     const calculationResult = await this.calculateComponentCount(
       componentId,
       factoryId,
-      calculationDate
+      calculationDate,
     );
 
     // Обновляем количество в сущности компонента
     await this.componentsRepository.update(componentId, {
-      quantity: calculationResult.calculatedCount
+      quantity: calculationResult.calculatedCount,
     });
 
     // Возвращаем обновленный компонент
     const updatedComponent = await this.componentsRepository.findOne({
-      where: { id: componentId }
+      where: { id: componentId },
     });
 
     return updatedComponent!;
@@ -191,18 +215,18 @@ export class InventarizationBusinessService {
    * Массово обновляет количество компонентов на основе расчета
    */
   async updateMultipleComponentsQuantity(
-    request: InventarizationCalculationRequest
+    request: InventarizationCalculationRequest,
   ): Promise<Components[]> {
     const calculationResults = await this.calculateMultipleComponents(request);
     const updatedComponents: Components[] = [];
 
     for (const result of calculationResults) {
       await this.componentsRepository.update(result.componentId, {
-        quantity: result.calculatedCount
+        quantity: result.calculatedCount,
       });
 
       const updatedComponent = await this.componentsRepository.findOne({
-        where: { id: result.componentId }
+        where: { id: result.componentId },
       });
 
       if (updatedComponent) {
@@ -218,11 +242,11 @@ export class InventarizationBusinessService {
    */
   async recalculateAllComponentsForFactory(
     factoryId: number,
-    calculationDate: Date = new Date()
+    calculationDate: Date = new Date(),
   ): Promise<Components[]> {
     return await this.updateMultipleComponentsQuantity({
       factoryId,
-      calculationDate
+      calculationDate,
     });
   }
 
@@ -232,7 +256,7 @@ export class InventarizationBusinessService {
   private async getLastInventarization(
     componentId: number,
     factoryId: number,
-    beforeDate: Date
+    beforeDate: Date,
   ): Promise<Inventarization | null> {
     return await this.inventarizationRepository
       .createQueryBuilder('inv')
@@ -252,7 +276,7 @@ export class InventarizationBusinessService {
     componentId: number,
     factoryId: number,
     fromDate: Date | undefined,
-    toDate: Date
+    toDate: Date,
   ): Promise<number> {
     const query = this.invoicesComponentsRepository
       .createQueryBuilder('ic')
@@ -281,7 +305,7 @@ export class InventarizationBusinessService {
     componentId: number,
     factoryId: number,
     fromDate: Date | undefined,
-    toDate: Date
+    toDate: Date,
   ): Promise<number> {
     const query = this.currentTasksComponentsRepository
       .createQueryBuilder('ctc')
@@ -292,7 +316,9 @@ export class InventarizationBusinessService {
       .leftJoin('shipmentStand.shipments', 'shipments')
       .leftJoin('shipments.factory', 'factory')
       .where('component.id = :componentId', { componentId })
-      .andWhere('state.title = :completedState', { completedState: 'COMPLETED' })
+      .andWhere('state.title = :completedState', {
+        completedState: 'COMPLETED',
+      })
       .andWhere('factory.id = :factoryId', { factoryId })
       .andWhere('shipments.arrivalDate <= :toDate', { toDate });
 
@@ -314,7 +340,7 @@ export class InventarizationBusinessService {
     componentId: number,
     factoryId: number,
     fromDate: Date | undefined,
-    toDate: Date
+    toDate: Date,
   ): Promise<number> {
     const query = this.writeoffRepository
       .createQueryBuilder('writeoff')

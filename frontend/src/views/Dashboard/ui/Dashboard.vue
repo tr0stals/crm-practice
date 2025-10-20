@@ -214,10 +214,6 @@ onMounted(async () => {
   // new DashboardModel();
   getSectionList();
 
-  document.addEventListener("click", (e: PointerEvent) => {
-    console.debug(e.target);
-  });
-
   const { user } = await getUserInfoAsync();
 
   authorizedUser.value = {
@@ -448,7 +444,7 @@ const handleSelectSection = (item: any) => {
       <section
         data-js-content-section
         class="content-section"
-        v-else-if="navigationStore.activeRow && navigationStore.currentSection"
+        v-else-if="navigationStore.activeRow || navigationStore.currentSection"
       >
         <h2 class="content-section__title">
           {{ localizatedSections[currentSection] }}

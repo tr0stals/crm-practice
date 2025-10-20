@@ -53,10 +53,10 @@ export class StandTasksController {
     return await this.service.delete(+id);
   }
 
-  @Post('complete/:id')
-  async completeStandTask(@Param('id') id: string) {
-    return await this.service.completeStandTask(+id);
-  }
+  // @Post('complete/:id')
+  // async completeStandTask(@Param('id') id: string) {
+  //   return await this.service.completeStandTask(+id);
+  // }
 
   @Get('byParent/:parentId')
   async getByParent(@Param('parentId') parentId: string) {
