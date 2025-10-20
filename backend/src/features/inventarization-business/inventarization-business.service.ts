@@ -10,6 +10,7 @@ import { CurrentTasks } from 'src/current_tasks/current_tasks.entity';
 import { CurrentTaskStates } from 'src/current_task_states/current_task_states.entity';
 import { Writeoff } from 'src/writeoff/writeoff.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
+import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_components.entity';
 
 export interface ComponentCalculationResult {
   componentId: number;
@@ -78,26 +79,38 @@ export class InventarizationBusinessService {
     );
 
     // 2. Рассчитываем приход по накладным после последней инвентаризации
+    const arrivalFromDate = lastInventarization?.inventarizationDate
+      ? new Date(lastInventarization.inventarizationDate)
+      : undefined;
+
     const arrivalCount = await this.calculateArrivalCount(
       componentId,
       factoryId,
-      lastInventarization?.inventarizationDate,
+      arrivalFromDate,
       calculationDate,
     );
 
     // 3. Рассчитываем расход по выполненным задачам после последней инвентаризации
+    const fromDate = lastInventarization?.inventarizationDate
+      ? new Date(lastInventarization.inventarizationDate)
+      : undefined;
+
     const completedTaskCount = await this.calculateCompletedTaskCount(
       componentId,
       factoryId,
-      lastInventarization?.inventarizationDate,
+      fromDate,
       calculationDate,
     );
 
     // 4. Рассчитываем ручные списания после последней инвентаризации
+    const writeoffFromDate = lastInventarization?.inventarizationDate
+      ? new Date(lastInventarization.inventarizationDate)
+      : undefined;
+
     const writeoffCount = await this.calculateWriteoffCount(
       componentId,
       factoryId,
-      lastInventarization?.inventarizationDate,
+      writeoffFromDate,
       calculationDate,
     );
 
@@ -192,16 +205,72 @@ export class InventarizationBusinessService {
     factoryId: number,
     calculationDate: Date = new Date(),
   ): Promise<Components> {
+    console.log(`[InventarizationBusiness] Начинаем расчет компонента ${componentId} для фабрики ${factoryId}`);
+
     const calculationResult = await this.calculateComponentCount(
       componentId,
       factoryId,
       calculationDate,
     );
 
+    console.log(`[InventarizationBusiness] Результат расчета для компонента ${componentId}:`);
+    console.log(`  - Базовое количество (последняя инвентаризация): ${calculationResult.lastInventarizationCount || 0}`);
+    console.log(`  - Приход: ${calculationResult.arrivalCount}`);
+    console.log(`  - Выполненные задачи: ${calculationResult.completedTaskCount}`);
+    console.log(`  - Списания: ${calculationResult.writeoffCount}`);
+    console.log(`  - Итоговое количество: ${calculationResult.calculatedCount}`);
+
+    // Если инвентаризации нет, создаем первичную
+    if (!calculationResult.lastInventarizationCount) {
+      console.log(`[InventarizationBusiness] Создаем первичную инвентаризацию для компонента ${componentId}`);
+
+      const component = await this.componentsRepository.findOne({
+        where: { id: componentId }
+      });
+
+      if (component) {
+        // Если у компонента уже есть количество, используем его, иначе 0
+        const initialCount = component.quantity || 0;
+
+        const inventarization = this.inventarizationRepository.create({
+          componentCount: initialCount,
+          inventarizationQuality: 100,
+          inventarizationDate: new Date(),
+          component: component,
+          factory: { id: factoryId } as Organizations,
+        });
+
+        await this.inventarizationRepository.save(inventarization);
+        console.log(`[InventarizationBusiness] Создана первичная инвентаризация с количеством ${initialCount}`);
+
+        // Пересчитываем заново с учетом созданной инвентаризации
+        const newCalculationResult = await this.calculateComponentCount(
+          componentId,
+          factoryId,
+          calculationDate,
+        );
+
+        console.log(`[InventarizationBusiness] Пересчет после создания инвентаризации:`);
+        console.log(`  - Базовое количество (последняя инвентаризация): ${newCalculationResult.lastInventarizationCount || 0}`);
+        console.log(`  - Приход: ${newCalculationResult.arrivalCount}`);
+        console.log(`  - Выполненные задачи: ${newCalculationResult.completedTaskCount}`);
+        console.log(`  - Списания: ${newCalculationResult.writeoffCount}`);
+        console.log(`  - Итоговое количество: ${newCalculationResult.calculatedCount}`);
+
+        calculationResult.calculatedCount = newCalculationResult.calculatedCount;
+        calculationResult.lastInventarizationCount = newCalculationResult.lastInventarizationCount;
+        calculationResult.arrivalCount = newCalculationResult.arrivalCount;
+        calculationResult.completedTaskCount = newCalculationResult.completedTaskCount;
+        calculationResult.writeoffCount = newCalculationResult.writeoffCount;
+      }
+    }
+
     // Обновляем количество в сущности компонента
     await this.componentsRepository.update(componentId, {
       quantity: calculationResult.calculatedCount,
     });
+
+    console.log(`[InventarizationBusiness] Обновлено количество компонента ${componentId} на ${calculationResult.calculatedCount}`);
 
     // Возвращаем обновленный компонент
     const updatedComponent = await this.componentsRepository.findOne({
@@ -278,24 +347,115 @@ export class InventarizationBusinessService {
     fromDate: Date | undefined,
     toDate: Date,
   ): Promise<number> {
+    console.log(`[InventarizationBusiness] Расчет прихода для компонента ${componentId}, фабрика ${factoryId}`);
+    console.log(`[InventarizationBusiness] Период прихода: с ${fromDate ? fromDate.toISOString() : 'начала'} по ${toDate.toISOString()}`);
+
     const query = this.invoicesComponentsRepository
       .createQueryBuilder('ic')
-      .leftJoin('ic.arrivalInvoices', 'invoice')
-      .leftJoin('invoice.factory', 'factory')
-      .where('ic.components.id = :componentId', { componentId })
+      .leftJoinAndSelect('ic.arrivalInvoices', 'invoice')
+      .leftJoinAndSelect('invoice.factory', 'factory')
+      .leftJoinAndSelect('ic.components', 'component')
+      .where('component.id = :componentId', { componentId })
       .andWhere('factory.id = :factoryId', { factoryId })
       .andWhere('invoice.date <= :toDate', { toDate });
 
     if (fromDate) {
-      query.andWhere('invoice.date > :fromDate', { fromDate });
+      query.andWhere('invoice.date >= :fromDate', { fromDate });
     }
 
-    const results = await query.getRawMany();
+    // console.log(`[InventarizationBusiness] SQL запрос: ${query.getQuery()}`);
+    console.log(`[InventarizationBusiness] Параметры: ${JSON.stringify(query.getParameters())}`);
 
-    return results.reduce((sum, item) => {
+    const results = await query.getRawMany();
+    // console.log(`[InventarizationBusiness] Результаты запроса: ${JSON.stringify(results)}`);
+    console.log(`[InventarizationBusiness] Найдено записей прихода: ${results.length}`);
+
+    let totalCount = 0;
+    for (const item of results) {
       const count = parseInt(item.ic_componentCount) || 0;
-      return sum + count;
-    }, 0);
+      totalCount += count;
+      console.log(`  - Приход: кол-во ${count}, дата ${item.invoice_date}, ID ${item.invoice_id}`);
+    }
+
+    // Если приход не найден, попробуем найти все arrival_invoices для компонента
+    if (results.length === 0) {
+      console.log(`[InventarizationBusiness] Приход не найден. Ищем все arrival_invoices для компонента ${componentId}...`);
+
+      // Ищем все arrival_invoices без фильтра по дате
+      const allInvoicesQuery = this.arrivalInvoicesRepository
+        .createQueryBuilder('ai')
+        .leftJoin('ai.factory', 'factory')
+        .leftJoin('ai.invoicesComponents', 'ic')
+        .leftJoin('ic.components', 'component')
+        .where('component.id = :componentId', { componentId })
+        .andWhere('factory.id = :factoryId', { factoryId });
+
+      const allInvoices = await allInvoicesQuery.getRawMany();
+      console.log(`[InventarizationBusiness] Всего arrival_invoices для компонента: ${allInvoices.length}`);
+
+      for (const invoice of allInvoices) {
+        const invoiceDate = new Date(invoice.ai_date);
+        const fromDateMs = fromDate ? fromDate.getTime() : 0;
+        const toDateMs = toDate.getTime();
+        const invoiceDateMs = invoiceDate.getTime();
+
+        const componentCount = invoice.ic_componentCount || invoice.ic_component_count || 0;
+
+        console.log(`  - Invoice: ID ${invoice.ai_id}, кол-во ${componentCount}, дата ${invoice.ai_date}, в периоде: ${fromDateMs <= invoiceDateMs && invoiceDateMs <= toDateMs}`);
+        console.log(`    - Полная запись: ${JSON.stringify({
+          invoiceId: invoice.ai_id,
+          componentCount: componentCount,
+          componentId: invoice.ic_components_id || invoice.ic_componentsId || invoice.ic_component_id,
+          arrivalInvoicesId: invoice.ic_arrivalInvoices_id || invoice.ic_arrivalInvoicesId || invoice.ic_arrival_invoice_id,
+          allFields: Object.keys(invoice)
+        })}`);
+
+        if (fromDateMs <= invoiceDateMs && invoiceDateMs <= toDateMs) {
+          totalCount += componentCount;
+        }
+      }
+
+      // Проверяем, есть ли invoices_components вообще
+      console.log(`[InventarizationBusiness] Arrival_invoices найдены, проверяем invoices_components...`);
+
+      const allComponentsQuery = this.invoicesComponentsRepository
+        .createQueryBuilder('ic')
+        .leftJoin('ic.components', 'component')
+        .leftJoin('ic.arrivalInvoices', 'invoice')
+        .leftJoin('invoice.factory', 'factory')
+        .where('component.id = :componentId', { componentId })
+        .andWhere('factory.id = :factoryId', { factoryId });
+
+      const allComponents = await allComponentsQuery.getRawMany();
+      console.log(`[InventarizationBusiness] Всего invoices_components для компонента: ${allComponents.length}`);
+
+      for (const item of allComponents) {
+        console.log(`  - InvoiceComponent: кол-во ${item.ic_componentCount || item.ic_component_count || 0}, invoice ID ${item.ic_arrivalInvoices_id || item.ic_arrival_invoices_id}, дата ${item.invoice_date || 'null'}`);
+        console.log(`    - Все поля: ${JSON.stringify(Object.keys(item))}`);
+        console.log(`    - Полная запись: ${JSON.stringify(item)}`);
+      }
+
+      // Если invoices_components пустые, ищем все invoices_components для arrival_invoices
+      if (allComponents.length === 0) {
+        console.log(`[InventarizationBusiness] invoices_components для компонента не найдены. Ищем все invoices_components для arrival_invoices...`);
+
+        const invoiceComponentsForArrivalQuery = this.invoicesComponentsRepository
+          .createQueryBuilder('ic')
+          .leftJoin('ic.arrivalInvoices', 'invoice')
+          .leftJoin('invoice.factory', 'factory')
+          .where('factory.id = :factoryId', { factoryId });
+
+        const invoiceComponentsForArrival = await invoiceComponentsForArrivalQuery.getRawMany();
+        console.log(`[InventarizationBusiness] Всего invoices_components для фабрики: ${invoiceComponentsForArrival.length}`);
+
+        for (const item of invoiceComponentsForArrival) {
+          console.log(`  - InvoiceComponent: кол-во ${item.ic_componentCount || item.ic_component_count || 0}, component ID ${item.ic_components_id || item.ic_component_id}, invoice ID ${item.ic_arrivalInvoices_id || item.ic_arrival_invoices_id}`);
+        }
+      }
+    }
+
+    console.log(`[InventarizationBusiness] Общее количество прихода: ${totalCount}`);
+    return totalCount;
   }
 
   /**
@@ -307,7 +467,13 @@ export class InventarizationBusinessService {
     fromDate: Date | undefined,
     toDate: Date,
   ): Promise<number> {
-    const query = this.currentTasksComponentsRepository
+    console.log(`[InventarizationBusiness] Расчет выполненных задач для компонента ${componentId}, фабрика ${factoryId}`);
+    console.log(`[InventarizationBusiness] Период: с ${fromDate ? fromDate.toISOString() : 'начала'} по ${toDate.toISOString()}`);
+
+    let totalCount = 0;
+
+    // 1. Ищем задачи через CurrentTasksComponents (учитываем задачи без shipments)
+    const ctcQuery = this.currentTasksComponentsRepository
       .createQueryBuilder('ctc')
       .leftJoin('ctc.component', 'component')
       .leftJoin('ctc.currentTask', 'currentTask')
@@ -316,21 +482,86 @@ export class InventarizationBusinessService {
       .leftJoin('shipmentStand.shipments', 'shipments')
       .leftJoin('shipments.factory', 'factory')
       .where('component.id = :componentId', { componentId })
-      .andWhere('state.title = :completedState', {
-        completedState: 'COMPLETED',
+      .andWhere('(state.title = :completedState1 OR state.title = :completedState2 OR state.id = :completedStateId)', {
+        completedState1: 'COMPLETED',
+        completedState2: 'Завершена',
+        completedStateId: 3,
+      })
+      .andWhere('(factory.id = :factoryId OR factory.id IS NULL)', { factoryId })
+      .andWhere('(shipments.arrivalDate <= :toDate OR shipments.arrivalDate IS NULL)', { toDate });
+
+    if (fromDate) {
+      console.log(`[InventarizationBusiness] fromDate: ${fromDate}, тип: ${typeof fromDate}`);
+      ctcQuery.andWhere('(shipments.arrivalDate >= :fromDate OR shipments.arrivalDate IS NULL)', { fromDate });
+    }
+
+    const ctcResults = await ctcQuery.getRawMany();
+    console.log(`[InventarizationBusiness] Найдено задач через CurrentTasksComponents: ${ctcResults.length}`);
+
+    for (const item of ctcResults) {
+      const count = item.ctc_componentCount || 0;
+      totalCount += count;
+      console.log(`  - CTC задача: кол-во ${count}, статус ${item.state_title}, ID ${item.currentTask_id}`);
+    }
+
+    // 2. Ищем задачи через StandTasksComponents (основной и дополнительные компоненты)
+    // Сначала получаем все StandTasks для компонента
+    const standTasksQuery = this.currentTasksRepository
+      .createQueryBuilder('ct')
+      .leftJoin('ct.standTasks', 'st')
+      .leftJoin('st.components', 'mainComponent')
+      .leftJoin('ct.currentTaskStates', 'state')
+      .leftJoin('ct.shipmentStands', 'shipmentStand')
+      .leftJoin('shipmentStand.shipments', 'shipments')
+      .leftJoin('shipments.factory', 'factory')
+      .where('mainComponent.id = :componentId', { componentId })
+      .andWhere('(state.title = :completedState1 OR state.title = :completedState2 OR state.id = :completedStateId)', {
+        completedState1: 'COMPLETED',
+        completedState2: 'Завершена',
+        completedStateId: 3,
       })
       .andWhere('factory.id = :factoryId', { factoryId })
       .andWhere('shipments.arrivalDate <= :toDate', { toDate });
 
     if (fromDate) {
-      query.andWhere('shipments.arrivalDate > :fromDate', { fromDate });
+      standTasksQuery.andWhere('shipments.arrivalDate >= :fromDate', { fromDate });
     }
 
-    const results = await query.getRawMany();
+    const standTasksResults = await standTasksQuery.getRawMany();
+    console.log(`[InventarizationBusiness] Найдено задач через StandTasks (основные компоненты): ${standTasksResults.length}`);
 
-    return results.reduce((sum, item) => {
-      return sum + (item.ctc_componentCount || 0);
-    }, 0);
+    for (const item of standTasksResults) {
+      const count = item.st_componentOutCount || 1; // Берем componentOutCount из StandTasks
+      totalCount += count;
+      console.log(`  - StandTasks задача: кол-во ${count}, статус ${item.state_title}, ID ${item.ct_id}`);
+    }
+
+    // 3. Ищем задачи через StandTasksComponents (дополнительные компоненты)
+    // Для задач без shipments будем использовать другую логику
+    const stcWithoutShipmentsQuery = this.currentTasksRepository
+      .createQueryBuilder('ct')
+      .leftJoin('ct.standTasks', 'st')
+      .leftJoin('st.standTasksComponents', 'stc')
+      .leftJoin('stc.component', 'component')
+      .leftJoin('ct.currentTaskStates', 'state')
+      .where('component.id = :componentId', { componentId })
+      .andWhere('(state.title = :completedState1 OR state.title = :completedState2 OR state.id = :completedStateId)', {
+        completedState1: 'COMPLETED',
+        completedState2: 'Завершена',
+        completedStateId: 3,
+      });
+
+    const stcWithoutShipmentsResults = await stcWithoutShipmentsQuery.getRawMany();
+    console.log(`[InventarizationBusiness] Найдено задач через StandTasksComponents (все): ${stcWithoutShipmentsResults.length}`);
+
+    for (const item of stcWithoutShipmentsResults) {
+      const count = item.stc_componentCount || 1;
+      totalCount += count;
+      console.log(`  - STC задача: кол-во ${count}, статус ${item.state_title || 'undefined'}, ID ${item.ct_id}`);
+    }
+
+    console.log(`[InventarizationBusiness] Общее количество выполненных задач: ${totalCount}`);
+    return totalCount;
   }
 
   /**
@@ -342,7 +573,11 @@ export class InventarizationBusinessService {
     fromDate: Date | undefined,
     toDate: Date,
   ): Promise<number> {
-    const query = this.writeoffRepository
+    console.log(`[InventarizationBusiness] Расчет списаний для компонента ${componentId}, фабрика ${factoryId}`);
+    console.log(`[InventarizationBusiness] Период списаний: с ${fromDate ? fromDate.toISOString() : 'начала'} по ${toDate.toISOString()}`);
+
+    // Ищем все writeoff для компонента на фабрике
+    const writeoffQuery = this.writeoffRepository
       .createQueryBuilder('writeoff')
       .leftJoin('writeoff.components', 'component')
       .leftJoin('writeoff.factory', 'factory')
@@ -351,13 +586,48 @@ export class InventarizationBusinessService {
       .andWhere('writeoff.dateTime <= :toDate', { toDate });
 
     if (fromDate) {
-      query.andWhere('writeoff.dateTime > :fromDate', { fromDate });
+      writeoffQuery.andWhere('writeoff.dateTime >= :fromDate', { fromDate });
     }
 
-    const results = await query.getRawMany();
+    const results = await writeoffQuery.getRawMany();
+    console.log(`[InventarizationBusiness] Найдено записей writeoff: ${results.length}`);
 
-    return results.reduce((sum, item) => {
-      return sum + (item.writeoff_count || 0);
-    }, 0);
+    let totalCount = 0;
+    for (const item of results) {
+      const count = item.writeoff_count || 0;
+      totalCount += count;
+      console.log(`  - Writeoff: кол-во ${count}, дата ${item.writeoff_dateTime}, ID ${item.writeoff_id}`);
+    }
+
+    // Если записей не найдено, попробуем найти все writeoff для компонента без фильтра по дате
+    if (results.length === 0) {
+      console.log(`[InventarizationBusiness] Writeoff не найдены в указанном периоде. Ищем все writeoff для компонента...`);
+
+      const allWriteoffQuery = this.writeoffRepository
+        .createQueryBuilder('writeoff')
+        .leftJoin('writeoff.components', 'component')
+        .leftJoin('writeoff.factory', 'factory')
+        .where('component.id = :componentId', { componentId })
+        .andWhere('factory.id = :factoryId', { factoryId });
+
+      const allResults = await allWriteoffQuery.getRawMany();
+      console.log(`[InventarizationBusiness] Всего writeoff для компонента: ${allResults.length}`);
+
+      for (const item of allResults) {
+        const writeoffDate = new Date(item.writeoff_dateTime);
+        const fromDateMs = fromDate ? fromDate.getTime() : 0;
+        const toDateMs = toDate.getTime();
+        const writeoffDateMs = writeoffDate.getTime();
+
+        console.log(`  - Writeoff: кол-во ${item.writeoff_count || 0}, дата ${item.writeoff_dateTime}, в периоде: ${fromDateMs <= writeoffDateMs && writeoffDateMs <= toDateMs}`);
+
+        if (fromDateMs <= writeoffDateMs && writeoffDateMs <= toDateMs) {
+          totalCount += (item.writeoff_count || 0);
+        }
+      }
+    }
+
+    console.log(`[InventarizationBusiness] Общее количество списаний: ${totalCount}`);
+    return totalCount;
   }
 }

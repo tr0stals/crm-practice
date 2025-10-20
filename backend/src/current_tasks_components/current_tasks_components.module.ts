@@ -5,12 +5,14 @@ import { CurrentTasksComponentsService } from './current_tasks_components.servic
 import { CurrentTasksComponentsController } from './current_tasks_components.controller';
 import { ComponentsModule } from 'src/components/components.module';
 import { CurrentTasksModule } from 'src/current_tasks/current_tasks.module';
+import { ComponentQuantityWatcherModule } from 'src/features/component-quantity-watcher/component-quantity-watcher.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([CurrentTasksComponents]),
     ComponentsModule,
     CurrentTasksModule,
+    ComponentQuantityWatcherModule,
   ],
   controllers: [CurrentTasksComponentsController],
   providers: [CurrentTasksComponentsService],

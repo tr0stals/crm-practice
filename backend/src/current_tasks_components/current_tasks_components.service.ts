@@ -10,6 +10,7 @@ import { CurrentTasksComponents } from './current_tasks_components.entity';
 import { CurrentTasksComponentsDTO } from './dto/CurrentTasksComponentsDTO';
 import { ComponentsService } from 'src/components/components.service';
 import { CurrentTasksService } from 'src/current_tasks/current_tasks.service';
+import { ComponentQuantityWatcherService } from 'src/features/component-quantity-watcher/component-quantity-watcher.service';
 
 @Injectable()
 export class CurrentTasksComponentsService {
@@ -18,6 +19,7 @@ export class CurrentTasksComponentsService {
     private readonly repo: Repository<CurrentTasksComponents>,
     private componentService: ComponentsService,
     private currentTaskService: CurrentTasksService,
+    private readonly componentQuantityWatcher: ComponentQuantityWatcherService,
   ) {}
 
   async findAll() {
@@ -73,20 +75,55 @@ export class CurrentTasksComponentsService {
         currentTask: currentTask,
       } as DeepPartial<CurrentTasksComponents>);
 
-      return await this.repo.save(entity);
+      const result = await this.repo.save(entity);
+
+      // Проверяем, нужно ли пересчитать компонент (если задача уже завершена)
+      await this.componentQuantityWatcher.onCurrentTaskComponentChange(componentId, currentTaskId);
+
+      return result;
     } catch (e) {
       throw new Error(e);
     }
   }
 
   async update(id: number, data: Partial<CurrentTasksComponents>) {
+    // Получаем текущую запись для доступа к componentId и currentTaskId
+    const existingRecord = await this.repo.findOne({
+      where: { id },
+      relations: ['component', 'currentTask']
+    });
+
     await this.repo.update(id, data);
-    return await this.repo.findOne({ where: { id } });
+    const result = await this.repo.findOne({ where: { id } });
+
+    // Пересчитываем компонент, если задача завершена
+    if (existingRecord?.component?.id && existingRecord?.currentTask?.id) {
+      await this.componentQuantityWatcher.onCurrentTaskComponentChange(
+        existingRecord.component.id,
+        existingRecord.currentTask.id
+      );
+    }
+
+    return result;
   }
 
   async remove(id: number) {
     try {
+      // Получаем запись перед удалением для пересчета
+      const existingRecord = await this.repo.findOne({
+        where: { id },
+        relations: ['component', 'currentTask']
+      });
+
       await this.repo.delete(id);
+
+      // Пересчитываем компонент после удаления, если задача была завершена
+      if (existingRecord?.component?.id && existingRecord?.currentTask?.id) {
+        await this.componentQuantityWatcher.onCurrentTaskComponentChange(
+          existingRecord.component.id,
+          existingRecord.currentTask.id
+        );
+      }
     } catch (e: any) {
       if (e.code === 'ER_ROW_IS_REFERENCED_2') {
         const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);

@@ -197,8 +197,10 @@ export class CurrentTasksService {
   async update(id: number, data: Partial<CurrentTasks>): Promise<CurrentTasks> {
     const existingTask = await this.findOne(id); // Проверяем существование и получаем текущее состояние
 
-    // Проверяем, изменился ли статус на COMPLETED
-    let statusChangedToCompleted = false;
+    // Проверяем, изменился ли статус на завершенный (ID = 3) или isCompleted = true
+    let shouldRecalculateComponents = false;
+
+    // Проверяем изменение статуса
     if (
       data.currentTaskStates &&
       data.currentTaskStates.id !== existingTask.currentTaskStates?.id
@@ -208,8 +210,9 @@ export class CurrentTasksService {
         where: { id: data.currentTaskStates.id },
       });
 
-      if (newStatus?.title === 'COMPLETED') {
-        statusChangedToCompleted = true;
+      // Проверяем, что новый статус - завершенный (ID = 3)
+      if (newStatus?.id === 3) {
+        shouldRecalculateComponents = true;
       }
 
       // Логируем изменение статуса
@@ -219,11 +222,16 @@ export class CurrentTasksService {
       );
     }
 
+    // Проверяем изменение флага isCompleted
+    if (data.isCompleted !== undefined && data.isCompleted === true) {
+      shouldRecalculateComponents = true;
+    }
+
     await this.currentTasksRepository.update(id, data);
     const updatedTask = await this.findOne(id);
 
-    // Если статус изменился на COMPLETED, пересчитываем компоненты
-    if (statusChangedToCompleted) {
+    // Если нужно пересчитать компоненты, вызываем пересчет
+    if (shouldRecalculateComponents) {
       await this.componentQuantityWatcher.onCurrentTaskStatusChange(id);
     }
 
