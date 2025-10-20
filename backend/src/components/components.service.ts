@@ -267,32 +267,38 @@ export class ComponentsService {
     const buildCategoryTree = (parentId: number | null = null): any[] => {
       return categories
         .filter((cat) => cat.parentId === parentId)
-        .map((cat) => ({
-          id: cat.id,
-          name: cat.title,
-          nodeType: 'components_categories',
-          isCategory: true,
-          children: [
-            // Рекурсивно добавляем подкатегории
-            ...buildCategoryTree(cat.id),
-            // Добавляем компоненты этой категории
-            ...components
-              .filter((comp) => comp.parentId === cat.id)
-              .map((comp) => {
+        .map((cat) => {
+          // Находим все компоненты для этой категории
+          const categoryComponents = components.filter((comp) => comp.parentId === cat.id);
+          // Находим все подкатегории
+          const subcategories = categories.filter((subCat) => subCat.parentId === cat.id);
+
+          return {
+            id: cat.id,
+            name: `${cat.title} (${categoryComponents.length})`, // Добавляем количество компонентов
+            nodeType: 'components_categories',
+            isCategory: true,
+            componentCount: categoryComponents.length,
+            children: [
+              // Рекурсивно добавляем подкатегории
+              ...buildCategoryTree(cat.id),
+              // Добавляем компоненты этой категории
+              ...categoryComponents.map((comp) => {
                 const placement = comp.componentPlacements;
                 const placementInfo = placement
                   ? `${placement.placementType?.title || ''}, Здание ${placement.building}, комната ${placement.room}`
                   : '';
                 return {
-                  name: comp.title + ' | ' + placementInfo,
+                  name: `${comp.title} (${comp.quantity || 0}) | ${placementInfo}`, // Добавляем количество
                   nodeType: 'components',
                   placementInfo,
                   ...comp,
                   children: [],
                 };
               }),
-          ],
-        }));
+            ],
+          };
+        });
     };
 
     const tree = buildCategoryTree();
@@ -306,7 +312,7 @@ export class ComponentsService {
           ? `${placement.placementType?.title || ''}, Здание ${placement.building}, комната ${placement.room}`
           : '';
         return {
-          name: comp.title + ' | ' + placementInfo,
+          name: `${comp.title} (${comp.quantity || 0}) | ${placementInfo}`, // Добавляем количество
           nodeType: 'components',
           placementInfo,
           ...comp,

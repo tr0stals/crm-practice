@@ -9,6 +9,7 @@ import { Components } from 'src/components/components.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
 import { WriteoffReasons } from 'src/writeoff_reasons/writeoff_reasons.entity';
 import { WriteoffReasonsService } from 'src/writeoff_reasons/writeoff_reasons.service';
+import { ComponentQuantityWatcherService } from 'src/features/component-quantity-watcher/component-quantity-watcher.service';
 
 @Injectable()
 export class WriteoffService {
@@ -24,6 +25,7 @@ export class WriteoffService {
     private componentService: ComponentsService,
     private organizationService: OrganizationsService,
     private writeoffReason: WriteoffReasonsService,
+    private readonly componentQuantityWatcher: ComponentQuantityWatcherService,
   ) {}
 
   async getAll() {
@@ -86,17 +88,46 @@ export class WriteoffService {
       writeoffReasons: writeoffReason,
     } as Partial<Writeoff>);
 
-    return await this.repo.save(entity);
+    const result = await this.repo.save(entity);
+
+    // Автоматически пересчитываем количество компонента
+    await this.componentQuantityWatcher.onWriteoffChange(componentId);
+
+    return result;
   }
 
   async update(id: number, data: Partial<Writeoff>) {
+    // Получаем componentId до обновления для последующего пересчета
+    const existingRecord = await this.repo.findOne({
+      where: { id },
+      relations: ['components']
+    });
+
     await this.repo.update(id, data);
-    return this.getOne(id);
+    const result = await this.getOne(id);
+
+    // Автоматически пересчитываем количество компонента, если он изменился
+    if (existingRecord?.components?.id) {
+      await this.componentQuantityWatcher.onWriteoffChange(existingRecord.components.id);
+    }
+
+    return result;
   }
 
   async delete(id: number) {
     try {
+      // Получаем componentId до удаления для последующего пересчета
+      const existingRecord = await this.repo.findOne({
+        where: { id },
+        relations: ['components']
+      });
+
       await this.repo.delete(id);
+
+      // Автоматически пересчитываем количество компонента после удаления
+      if (existingRecord?.components?.id) {
+        await this.componentQuantityWatcher.onWriteoffChange(existingRecord.components.id);
+      }
     } catch (e: any) {
       if (e.code === 'ER_ROW_IS_REFERENCED_2') {
         const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);

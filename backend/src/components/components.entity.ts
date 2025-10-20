@@ -57,6 +57,9 @@ export class Components {
   @Column({ nullable: true })
   drawingReference: string;
 
+  @Column({ type: 'int', default: 0 })
+  quantity: number;
+
   @ManyToOne(() => ComponentPlacements, (placement) => placement.components)
   @JoinColumn({ name: 'placementId' })
   componentPlacements?: ComponentPlacements;

@@ -10,6 +10,7 @@ import { DeepPartial, Repository } from 'typeorm';
 import { InvoicesComponentsDTO } from './dto/InvoiceComponentsDTO';
 import { ArrivalInvoices } from 'src/arrival_invoices/arrival_invoices.entity';
 import { Components } from 'src/components/components.entity';
+import { ComponentQuantityWatcherService } from 'src/features/component-quantity-watcher/component-quantity-watcher.service';
 
 @Injectable()
 export class InvoicesComponentsService {
@@ -22,6 +23,8 @@ export class InvoicesComponentsService {
 
     @InjectRepository(Components)
     private readonly componentsRepo: Repository<Components>,
+
+    private readonly componentQuantityWatcher: ComponentQuantityWatcherService,
   ) {}
 
   async getAll() {
@@ -128,20 +131,49 @@ export class InvoicesComponentsService {
         components: component,
       });
 
-      return await this.repo.save(entity);
+      const result = await this.repo.save(entity);
+
+      // Автоматически пересчитываем количество компонента
+      await this.componentQuantityWatcher.onInvoicesComponentChange(componentId);
+
+      return result;
     } catch (e) {
       throw new Error(e);
     }
   }
 
   async update(id: number, data: Partial<InvoicesComponents>) {
+    // Получаем componentId до обновления для последующего пересчета
+    const existingRecord = await this.repo.findOne({
+      where: { id },
+      relations: ['components']
+    });
+
     await this.repo.update(id, data);
-    return this.repo.findOne({ where: { id } });
+    const result = await this.repo.findOne({ where: { id } });
+
+    // Автоматически пересчитываем количество компонента, если он изменился
+    if (existingRecord?.components?.id) {
+      await this.componentQuantityWatcher.onInvoicesComponentChange(existingRecord.components.id);
+    }
+
+    return result;
   }
 
   async remove(id: number) {
     try {
+      // Получаем componentId до удаления для последующего пересчета
+      const existingRecord = await this.repo.findOne({
+        where: { id },
+        relations: ['components']
+      });
+
       await this.repo.delete(id);
+
+      // Автоматически пересчитываем количество компонента после удаления
+      if (existingRecord?.components?.id) {
+        await this.componentQuantityWatcher.onInvoicesComponentChange(existingRecord.components.id);
+      }
     } catch (e: any) {
       if (e.code === 'ER_ROW_IS_REFERENCED_2') {
         const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);

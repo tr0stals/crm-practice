@@ -13,6 +13,7 @@ import { EmployeesProfessionsModule } from 'src/employees_professions/employees_
 import { WebsocketModule } from 'src/websocket/websocket.module';
 import { User } from 'src/user/user.entity';
 import { CurrentTaskStatesLogModule } from 'src/current_task_states_log/current_task_states_log.module';
+import { ComponentQuantityWatcherModule } from 'src/features/component-quantity-watcher/component-quantity-watcher.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CurrentTaskStatesLogModule } from 'src/current_task_states_log/current_
     EmployeesProfessionsModule,
     WebsocketModule,
     CurrentTaskStatesLogModule,
+    ComponentQuantityWatcherModule,
   ],
   providers: [CurrentTasksService],
   controllers: [CurrentTasksController],

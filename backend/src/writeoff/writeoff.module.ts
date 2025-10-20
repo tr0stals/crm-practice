@@ -9,6 +9,7 @@ import { Components } from 'src/components/components.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
 import { WriteoffReasonsModule } from 'src/writeoff_reasons/writeoff_reasons.module';
 import { WriteoffReasons } from 'src/writeoff_reasons/writeoff_reasons.entity';
+import { ComponentQuantityWatcherModule } from 'src/features/component-quantity-watcher/component-quantity-watcher.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { WriteoffReasons } from 'src/writeoff_reasons/writeoff_reasons.entity';
     ComponentsModule,
     OrganizationsModule,
     WriteoffReasonsModule,
+    ComponentQuantityWatcherModule,
   ],
   providers: [WriteoffService],
   controllers: [WriteoffController],

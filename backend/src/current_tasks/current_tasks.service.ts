@@ -16,6 +16,7 @@ import { Stands } from 'src/stands/stands.entity';
 import { WsGateway } from 'src/websocket/ws.gateway';
 import { User } from 'src/user/user.entity';
 import { CurrentTaskStatesLogService } from 'src/current_task_states_log/current_task_states_log.service';
+import { ComponentQuantityWatcherService } from 'src/features/component-quantity-watcher/component-quantity-watcher.service';
 
 @Injectable()
 export class CurrentTasksService {
@@ -36,6 +37,7 @@ export class CurrentTasksService {
     private userRepository: Repository<User>,
     private wsGateway: WsGateway,
     private currentTaskStatesLogService: CurrentTaskStatesLogService,
+    private readonly componentQuantityWatcher: ComponentQuantityWatcherService,
   ) {}
 
   async create(data: CurrentTasksDTO): Promise<CurrentTasks> {
@@ -195,11 +197,22 @@ export class CurrentTasksService {
   async update(id: number, data: Partial<CurrentTasks>): Promise<CurrentTasks> {
     const existingTask = await this.findOne(id); // Проверяем существование и получаем текущее состояние
 
-    // Логируем изменение статуса, если оно произошло
+    // Проверяем, изменился ли статус на COMPLETED
+    let statusChangedToCompleted = false;
     if (
       data.currentTaskStates &&
       data.currentTaskStates.id !== existingTask.currentTaskStates?.id
     ) {
+      // Получаем новый статус
+      const newStatus = await this.currentTaskStatesRepository.findOne({
+        where: { id: data.currentTaskStates.id }
+      });
+
+      if (newStatus?.title === 'COMPLETED') {
+        statusChangedToCompleted = true;
+      }
+
+      // Логируем изменение статуса
       await this.currentTaskStatesLogService.logStateChange(
         id,
         data.currentTaskStates.id,
@@ -207,7 +220,14 @@ export class CurrentTasksService {
     }
 
     await this.currentTasksRepository.update(id, data);
-    return await this.findOne(id);
+    const updatedTask = await this.findOne(id);
+
+    // Если статус изменился на COMPLETED, пересчитываем компоненты
+    if (statusChangedToCompleted) {
+      await this.componentQuantityWatcher.onCurrentTaskStatusChange(id);
+    }
+
+    return updatedTask;
   }
 
   async remove(id: number): Promise<void> {
@@ -303,7 +323,12 @@ export class CurrentTasksService {
       );
       task.currentTaskStates = completedState;
     }
-    return await this.currentTasksRepository.save(task);
+    const result = await this.currentTasksRepository.save(task);
+
+    // Автоматически пересчитываем компоненты для завершенной задачи
+    await this.componentQuantityWatcher.onCurrentTaskStatusChange(taskId);
+
+    return result;
   }
 
   async getAllTaskTitles(): Promise<{ id: number; title: string }[]> {
