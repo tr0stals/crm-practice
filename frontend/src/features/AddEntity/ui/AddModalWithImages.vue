@@ -15,6 +15,7 @@ import { isDateField } from "@/shared/utils/isDateField";
 import { useAddStandTasks } from "../model/useAddStandTasks";
 import { useAddStands } from "../model/useAddStands";
 import { getDataAsync } from "@/shared/api/getDataAsync";
+import { useAddArrivalInvoices } from "../model/useAddArrivalInvoices";
 
 const props = defineProps<{
   sectionName: string;
@@ -31,6 +32,11 @@ const { formData, tableColumns, selectOptions, submit } =
       })
     : props.sectionName === "stands"
     ? useAddStands(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      })
+    : props.sectionName === "arrival_invoices"
+    ? useAddArrivalInvoices(props.sectionName, () => {
         props.onSuccess();
         props.onClose();
       })

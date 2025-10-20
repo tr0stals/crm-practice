@@ -24,10 +24,10 @@ const handleClick = async (e: any) => {
     return;
   }
 
-  if (currentTask.data.currentTaskState !== "Не распределено") {
-    alert("Невозможно взять себе эту задачу");
-    return;
-  }
+  // if (currentTask.data.currentTaskState !== "Не распределено") {
+  //   alert("Невозможно взять себе эту задачу");
+  //   return;
+  // }
 
   const response = await startCurrentTask(currentTask.data.id);
 
