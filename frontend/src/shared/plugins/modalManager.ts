@@ -17,7 +17,7 @@ export class ModalManager {
       /* Закрытие модального окна при клике на крестик */
       const parent = e.target.closest("#closeIcon");
 
-      if (parent || e.target === document.getElementById("modalInstance")) {
+      if (parent) {
         this.closeModal();
       }
     });

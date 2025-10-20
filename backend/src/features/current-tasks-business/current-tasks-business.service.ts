@@ -51,7 +51,7 @@ export class CurrentTasksBusinessService {
         return current;
       });
 
-      await this.currentTasksRepo.save(currentTasks);
+      return await this.currentTasksRepo.save(currentTasks);
     } catch (e) {
       throw new Error(e);
     }

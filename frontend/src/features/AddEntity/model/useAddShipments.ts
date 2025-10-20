@@ -109,10 +109,11 @@ export function useAddShipments(sectionName: string, onSuccess: () => void) {
       });
 
       defaultData.specificationImage.map(async (file) => {
+        console.debug(shipmentResponse);
         const data = new FormData();
         data.append("file", file);
         data.append("targetType", sectionName); // "organization_types" или "components"
-        data.append("targetId", String(shipmentResponse.data?.id));
+        data.append("targetId", String(shipmentResponse.data[0]?.id));
 
         return await api.post("/images/upload", data, {
           headers: { "Content-Type": "multipart/form-data" },

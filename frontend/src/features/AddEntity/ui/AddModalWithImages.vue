@@ -3,7 +3,7 @@ import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import Button from "@/shared/ui/Button/ui/Button.vue";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import "../style.scss";
-import { reactive, watch, computed } from "vue";
+import { reactive, watch, computed, ref } from "vue";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
@@ -13,6 +13,8 @@ import { useAddEntity } from "../model/useAddEntity";
 import { createEntityAsync } from "../api/createEntityAsync";
 import { isDateField } from "@/shared/utils/isDateField";
 import { useAddStandTasks } from "../model/useAddStandTasks";
+import { useAddStands } from "../model/useAddStands";
+import { getDataAsync } from "@/shared/api/getDataAsync";
 
 const props = defineProps<{
   sectionName: string;
@@ -24,6 +26,11 @@ const navigationStore = useNavigationStore();
 const { formData, tableColumns, selectOptions, submit } =
   props.sectionName === "stand_tasks"
     ? useAddStandTasks(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      })
+    : props.sectionName === "stands"
+    ? useAddStands(props.sectionName, () => {
         props.onSuccess();
         props.onClose();
       })
@@ -99,17 +106,48 @@ async function loadComponents() {
   }
 }
 
+const getStandTypeId = async () => {
+  const standType = navigationStore.selectedRow?.data;
+  console.debug("debug!!!", standType);
+  const standTypeId = ref<number>();
+
+  switch (standType?.nodeType) {
+    case "stands_types":
+      standTypeId.value = standType.id;
+      break;
+
+    case "stands":
+      const stand = await getDataAsync({
+        endpoint: `stands/get/${standType.id}`,
+      })
+        .then((res) => res.data)
+        .catch((e) => console.error(e));
+
+      if (!stand) {
+        throw new Error("Ошибка при поиске стенда => getStandTypeId()");
+      }
+
+      standTypeId.value = stand.standType?.id;
+      break;
+  }
+
+  return standTypeId.value;
+};
+
 async function loadStands() {
   const data = { ...formData };
   const { image, ...defaultData } = data;
   console.debug(image);
 
+  const standTypeId = await getStandTypeId();
+
   const res = await createEntityAsync(props.sectionName, {
     image: image?.name,
+    standTypeId: standTypeId,
     ...defaultData,
   });
 
-  const createdId = res.data.id; // ID созданного типа организации
+  const createdId = res.data.id;
 
   // 2. Если есть иконка, загружаем ее и привязываем к созданной организации
   if (formData.image instanceof File) {

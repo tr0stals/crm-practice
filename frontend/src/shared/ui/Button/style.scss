@@ -8,8 +8,10 @@
   padding: 0.5rem 1rem;
   background-color: rgba(222, 222, 222, 0.3);
   color: #000;
+  border-radius: 1rem;
   font-size: 1.75rem;
   text-transform: capitalize;
+  transition: all 0.1s ease;
   cursor: pointer;
 
   &:hover {
@@ -43,5 +45,10 @@
     &:hover {
       background-color: #e0e0e0;
     }
+  }
+
+  &--disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 }

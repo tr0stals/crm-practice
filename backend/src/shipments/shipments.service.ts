@@ -151,9 +151,9 @@ export class ShipmentsService {
       ...shipmentStands
         .filter((item) => item.shipments?.id === shipment.id)
         .map((item) => ({
-          id: item.stands?.id,
+          id: item?.id,
           name: `Стенд: ${item.stands?.title ? item.stands?.title : 'Неизвестный стенд'} | ${item.stands?.standType?.title ? item.stands?.standType?.title : 'Неизвестный тип стенда'} `,
-          nodeType: 'stands',
+          nodeType: 'shipments_stands',
         })),
       ...shipmentPackages
         .filter((item) => item.shipments?.id === shipment.id)
@@ -178,7 +178,7 @@ export class ShipmentsService {
 
         return {
           id: shipment.id,
-          name: `${shipment.client?.shortName} | Дата отгрузки: ${shipment.arrivalDate ? shipment.arrivalDate : 'Дата отгрузки не указана'}`,
+          name: `${shipment.client?.shortName} | Дата отгрузки: ${shipment.shipmentDate ? shipment.shipmentDate : 'Дата отгрузки не указана'}`,
           nodeType: 'shipments',
           children,
         };

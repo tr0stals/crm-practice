@@ -364,10 +364,10 @@ export class CurrentTasksService {
       Map<string, Map<number, CurrentTasks>>
     >();
     for (const task of tasks) {
-      const deadline = task.shipmentStands.shipments.arrivalDate
-        ? typeof task.shipmentStands.shipments.arrivalDate === 'string'
-          ? task.shipmentStands.shipments.arrivalDate
-          : (task.shipmentStands.shipments.arrivalDate as Date)
+      const deadline = task.shipmentStands.shipments?.arrivalDate
+        ? typeof task.shipmentStands.shipments?.arrivalDate === 'string'
+          ? task.shipmentStands.shipments?.arrivalDate
+          : (task.shipmentStands.shipments?.arrivalDate as Date)
               .toISOString()
               .split('T')[0]
         : 'Без даты';
@@ -392,7 +392,7 @@ export class CurrentTasksService {
             children: Array.from(taskMap.entries()).map(([taskId, task]) => ({
               id: task.id,
               name: [
-                `${task.shipmentStands.stands.employees?.peoples?.lastName || ''} ${task.shipmentStands.stands.employees?.peoples?.firstName || ''} ${task.shipmentStands.stands.employees?.peoples?.middleName || ''}`.trim() ||
+                `${task.shipmentStands.stands?.employees?.peoples?.lastName || ''} ${task.shipmentStands.stands?.employees?.peoples?.firstName || ''} ${task.shipmentStands.stands?.employees?.peoples?.middleName || ''}`.trim() ||
                   'Без сотрудника',
                 `Задача: ${task.standTasks.title}`,
                 `Состояние задачи: ${task.currentTaskStates?.title || ''}`,
@@ -401,7 +401,7 @@ export class CurrentTasksService {
                 .join(' | '),
               nodeType: 'current_tasks',
               employees:
-                `${task.shipmentStands.stands.employees?.peoples?.lastName || ''} ${task.shipmentStands.stands.employees?.peoples?.firstName || ''} ${task.shipmentStands.stands.employees?.peoples?.middleName || ''}`.trim(),
+                `${task.shipmentStands.stands?.employees?.peoples?.lastName || ''} ${task.shipmentStands.stands?.employees?.peoples?.firstName || ''} ${task.shipmentStands.stands?.employees?.peoples?.middleName || ''}`.trim(),
               taskTitle: task.standTasks.title || '',
               currentTaskState: task.currentTaskStates?.title || '',
               children: (

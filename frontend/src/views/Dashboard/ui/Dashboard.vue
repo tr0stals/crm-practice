@@ -214,6 +214,10 @@ onMounted(async () => {
   // new DashboardModel();
   getSectionList();
 
+  document.addEventListener("click", (e: PointerEvent) => {
+    console.debug(e.target);
+  });
+
   const { user } = await getUserInfoAsync();
 
   authorizedUser.value = {

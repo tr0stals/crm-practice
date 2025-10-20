@@ -12,7 +12,7 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import { relationMap } from "@/shared/config/relationMap";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import useFetch from "@/shared/lib/useFetch";
-import { defaultEndpoint } from "@/shared/api/axiosInstance";
+import { api, defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { updateAsync } from "../api/updateAsync";
 import { relatedFields } from "../config/relatedTables";
@@ -98,13 +98,17 @@ const getStand = async (id: number) => {
 
 async function handleSubmit() {
   console.debug(formData.value);
+
+  const fileNames = formData.value.specificationImage.map(
+    (file: any) => file.name
+  );
   const shipmentData = {
     id: formData.value.id,
     addedDate: formData.value.addedDate,
     arrivalDate: formData.value.arrivalDate,
     shipmentDate: formData.value.shipmentDate,
     price: formData.value.price,
-    specificationImage: formData.value.specificationImage,
+    specificationImage: fileNames,
     comment: formData.value.comment,
     licenses: formData.value.licenses,
     factory: formData.value.factory,
@@ -118,8 +122,19 @@ async function handleSubmit() {
     stands: formData.value.stands,
   };
 
-  await updateAsync("shipments", shipmentData);
+  const shipmentResponse = await updateAsync("shipments", shipmentData);
   await updateAsync("shipments_stands", shipmentsStandsData);
+
+  formData.value.specificationImage.map(async (file) => {
+    const data = new FormData();
+    data.append("file", file);
+    data.append("targetType", String(sectionName.value));
+    data.append("targetId", String(shipmentResponse.data?.id));
+
+    return await api.post("/images/upload", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  });
 
   model.destroy();
   props.onApplyCallback();
@@ -127,6 +142,29 @@ async function handleSubmit() {
 
 function isRelatedField(key: string, value: any): boolean {
   return isObjectField(value) || relatedFields.includes(key);
+}
+
+function handleFilesChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const files = Array.from(input.files || []);
+
+  if (!formData.value["specificationImage"]) {
+    formData.value["specificationImage"] = [];
+  }
+
+  // Добавляем новые файлы к существующим
+  formData.value["specificationImage"] = [
+    ...formData.value["specificationImage"],
+    ...files,
+  ];
+
+  console.debug(formData.value);
+}
+
+function removeFile(index: number) {
+  if (formData.value["specificationImage"]) {
+    formData.value["specificationImage"].splice(index, 1);
+  }
 }
 
 onMounted(async () => {
@@ -241,6 +279,42 @@ onUnmounted(() => {
           }"
           placeholder="Выберите дату"
         />
+
+        <template v-else-if="key === 'specificationImage'">
+          <div class="imageInput">
+            <!-- Инпут для загрузки нескольких файлов -->
+            <input
+              type="file"
+              id="iconUpload"
+              class="imageInput__input--hidden"
+              multiple
+              @change="handleFilesChange"
+            />
+
+            <!-- Список выбранных изображений -->
+            <div
+              v-if="formData[key] && formData[key].length"
+              class="imageInput__textContent"
+            >
+              <span class="imageInput__header">Выбраны изображения:</span>
+              <ul>
+                <li
+                  v-for="(file, index) in formData[key]"
+                  :key="index"
+                  class="imageInput__imageItem"
+                >
+                  {{ file.name ? file.name : file }}
+                  <button type="button" @click="removeFile(index)">X</button>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Кнопка выбора файлов -->
+            <label for="iconUpload" class="imageInput__uploadButton">
+              Загрузить
+            </label>
+          </div>
+        </template>
 
         <!-- Select for object (relation) -->
         <select

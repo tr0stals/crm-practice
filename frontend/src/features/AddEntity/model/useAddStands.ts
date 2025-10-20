@@ -22,6 +22,9 @@ export function useAddStands(sectionName: string, onSuccess: () => void) {
     const data = await getDataAsync({
       endpoint: `database/getFormMetaData/${sectionName}`,
     }).then((res) => res.data);
+    console.debug("!!!");
+
+    const { standTypeId, ...defaultData } = data;
 
     const parentsStands = await getDataAsync({ endpoint: "stands/get" });
 
@@ -32,9 +35,9 @@ export function useAddStands(sectionName: string, onSuccess: () => void) {
         label: item.title,
       }));
 
-    tableColumns.value = Object.keys(data);
+    tableColumns.value = Object.keys(defaultData);
 
-    for (let [key, value] of Object.entries(data)) {
+    for (let [key, value] of Object.entries(defaultData)) {
       if (value.options) {
         selectOptions[key] = value.options;
       }
@@ -48,7 +51,7 @@ export function useAddStands(sectionName: string, onSuccess: () => void) {
   const getStandTypeId = async () => {
     const standType = navigationStore.selectedRow?.data;
     console.debug("debug!!!", standType);
-    const standTypeId = ref();
+    const standTypeId = ref<number>();
 
     switch (standType?.nodeType) {
       case "stands_types":

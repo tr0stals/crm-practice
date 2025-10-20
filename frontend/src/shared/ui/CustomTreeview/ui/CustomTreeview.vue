@@ -190,6 +190,10 @@ function toggleExpand(node: any) {
   if (isExpanded) delete expandedKeys.value[key];
   else expandedKeys.value[key] = true;
 }
+
+function clearSection() {
+  navigationStore.selectedRow = null;
+}
 </script>
 
 <template>
@@ -204,6 +208,7 @@ function toggleExpand(node: any) {
       :value="paginatedTreeData"
       selectionMode="single"
       class="treeview"
+      v-click-outside="clearSection"
       v-model:selectionKey="selectedKey"
       v-model:expandedKeys="expandedKeys"
       @node-select="onNodeSelect"
