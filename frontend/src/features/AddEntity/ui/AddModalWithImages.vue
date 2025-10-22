@@ -80,7 +80,6 @@ async function uploadImage(file: File, relatedItemId: number) {
 
 async function loadOrganizationTypes() {
   const orgTypeSubmitData = { ...formData };
-  console.debug(orgTypeSubmitData);
 
   const res = await createEntityAsync(props.sectionName, {
     icon: orgTypeSubmitData.icon?.name,
@@ -91,6 +90,38 @@ async function loadOrganizationTypes() {
   // 2. Если есть иконка, загружаем ее и привязываем к созданной организации
   if (formData.icon instanceof File) {
     await uploadImage(formData.icon, createdId);
+  }
+}
+
+async function loadArrivalInvoices() {
+  console.debug(formData);
+  const { scanPhoto, ...defaultData } = formData;
+
+  const res = await createEntityAsync(props.sectionName, {
+    scanPhoto: scanPhoto?.name,
+    ...defaultData,
+  });
+
+  const createdId = res.data?.id;
+
+  if (formData.scanPhoto instanceof File) {
+    await uploadImage(formData.scanPhoto, createdId);
+  }
+}
+
+async function loadBillsForPay() {
+  console.debug(formData);
+  const { scanPhoto, ...defaultData } = formData;
+
+  const res = await createEntityAsync(props.sectionName, {
+    scanPhoto: scanPhoto?.name,
+    ...defaultData,
+  });
+
+  const createdId = res.data?.id;
+
+  if (formData.scanPhoto instanceof File) {
+    await uploadImage(formData.scanPhoto, createdId);
   }
 }
 
@@ -189,6 +220,10 @@ const handleSubmit = async () => {
     await loadStands();
   } else if (props.sectionName === "stand_tasks") {
     await submit();
+  } else if (props.sectionName === "arrival_invoices") {
+    await loadArrivalInvoices();
+  } else if (props.sectionName === "bills_for_pay") {
+    await loadBillsForPay();
   } else {
     console.debug("нет, отсюда!");
     await submit();
@@ -290,7 +325,11 @@ const handleDeleteImage = async (item: any) => {
             </template>
             <template
               v-else-if="
-                item === 'icon' || item === 'photo' || item === 'image'
+                item === 'icon' ||
+                item === 'photo' ||
+                item === 'image' ||
+                item === 'scan' ||
+                item === 'scanPhoto'
               "
             >
               <div class="imageInput">

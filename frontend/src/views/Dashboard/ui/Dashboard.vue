@@ -38,6 +38,7 @@ import { SidebarMenu } from "@/features/SidebarMenu";
 import { TableDataPreview } from "@/features/TableDataPreview";
 import { Sidebar } from "@/features/Sidebar";
 import { useMenuStore } from "@/entities/MenuEntity/model/menuStore";
+import AddPcbsButton from "@/features/AddPcbsButton";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -460,7 +461,11 @@ const handleSelectSection = (item: any) => {
             "
             class="action-buttons"
           >
-            <HandleCreateButton :onSuccessCallback="onUpdateCallBack" />
+            <HandleCreateButton
+              v-if="navigationStore.currentSection !== `pcbs`"
+              :onSuccessCallback="onUpdateCallBack"
+            />
+            <AddPcbsButton v-else :onSuccessCallback="onUpdateCallBack" />
             <HandleEditButton :onSuccessCallback="onUpdateCallBack" />
 
             <HandleDeleteButton :onUpdateCallback="onUpdateCallBack" />

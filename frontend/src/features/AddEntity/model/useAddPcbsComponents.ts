@@ -24,11 +24,13 @@ export function useAddPcbsComponents(
       endpoint: `database/getFormMetaData/${sectionName}`,
     }).then((res) => res.data);
 
-    tableColumns.value = Object.keys(data).filter(
+    const { pcbId, ...defaultData } = data;
+
+    tableColumns.value = Object.keys(defaultData).filter(
       (key) => key !== "standTaskId"
     );
 
-    for (const [key, value] of Object.entries(data)) {
+    for (const [key, value] of Object.entries(defaultData)) {
       if (key === "standTaskId") continue;
       console.debug(value);
       if (value.options) {
@@ -48,7 +50,9 @@ export function useAddPcbsComponents(
   };
 
   const submit = async () => {
+    console.debug("!!!!", navigationStore.selectedRow);
     const pcbId = navigationStore.selectedRow?.data?.id;
+    console.debug(pcbId);
 
     const pcbsComponents = await findPcbComponents(
       pcbId ? pcbId : formData.pcbId
@@ -63,7 +67,10 @@ export function useAddPcbsComponents(
       existingComponent.componentCount += Number(formData.componentCount);
       await updateAsync("pcbs_components", existingComponent);
     } else {
-      await createEntityAsync(sectionName, formData);
+      await createEntityAsync(sectionName, {
+        pcbId: pcbId,
+        ...formData,
+      });
     }
 
     onSuccess();

@@ -4,7 +4,9 @@ import Button from "@/shared/ui/Button/ui/Button.vue";
 import { exportTable } from "../api/exportTable";
 import CustomDropdown from "@/shared/ui/CustomDropdown/ui/CustomDropdown.vue";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import { useToast } from "vue-toastification";
 
+const toast = useToast();
 const props = defineProps<{
   onSuccessCallback: () => void;
 }>();
@@ -12,7 +14,11 @@ const props = defineProps<{
 const navigationStore = useNavigationStore();
 
 async function handleClick(format: string) {
-  const response = await exportTable(navigationStore.currentSection, format);
+  try {
+    const response = await exportTable(navigationStore.currentSection, format);
+  } catch (e) {
+    toast.error("Не удалось экспортировать БД", { timeout: 5000 });
+  }
 }
 
 /*

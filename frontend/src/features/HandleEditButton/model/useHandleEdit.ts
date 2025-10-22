@@ -12,6 +12,8 @@ import OrderRequestsEditModal from "@/features/EditModalWindow/ui/OrderRequestsE
 import PcbsEditModal from "@/features/EditModalWindow/ui/PcbsEditModal.vue";
 import ComponentsEditModal from "@/features/EditModalWindow/ui/ComponentsEditModal.vue";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import ArrivalInvoicesEditModal from "@/features/EditModalWindow/ui/ArrivalInvoicesEditModal.vue";
+import BillsForPayEditModal from "@/features/EditModalWindow/ui/BillsForPayEditModal.vue";
 
 /**
  *    Функция срабатывает при клике клике на кнопку "Редактировать"
@@ -61,6 +63,16 @@ export function useHandleEdit(onUpdateCallBack: () => void) {
     });
   } else if (cfg.sectionName === tablesEnum.organizations) {
     ModalManager.getInstance().open(OrganizationsEditModal, {
+      config: cfg,
+      onApplyCallback: onUpdateCallBack,
+    });
+  } else if (cfg.sectionName === tablesEnum.arrival_invoices) {
+    ModalManager.getInstance().open(ArrivalInvoicesEditModal, {
+      config: cfg,
+      onApplyCallback: onUpdateCallBack,
+    });
+  } else if (cfg.sectionName === tablesEnum.bills_for_pay) {
+    ModalManager.getInstance().open(BillsForPayEditModal, {
       config: cfg,
       onApplyCallback: onUpdateCallBack,
     });

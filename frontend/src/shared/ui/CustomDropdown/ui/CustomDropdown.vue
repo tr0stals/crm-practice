@@ -14,7 +14,7 @@ const props = defineProps<{
     <Button
       data-bs-toggle="dropdown"
       aria-expanded="false"
-      class="btn dropdown-toggle customDropdown__button"
+      class="dropdown-toggle button"
     >
       {{ props.dropdownTitle }}
     </Button>

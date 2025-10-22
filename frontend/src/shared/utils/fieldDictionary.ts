@@ -10,7 +10,7 @@ export const fieldDictionary: { [key: string]: string } = {
   componentCount: "Количество",
   link: "Ссылка",
   billId: "Счёт",
-  componentId: "Компонента",
+  componentId: "Компонент",
   expectedSupplyDate: "Ожидаемая дата поставки",
   totalAmount: "Сумма",
   parentId: "Категория",

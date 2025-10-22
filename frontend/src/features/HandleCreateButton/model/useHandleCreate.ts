@@ -57,27 +57,6 @@ export function useCreateButton(onUpdateCallBack: () => void) {
 
       break;
 
-    // case tablesEnum.pcbs:
-    //   if (!navigationStore.selectedRow) {
-    //     section.value = tablesEnum.pcbs;
-    //     ModalManager.getInstance().open(AddEntity, {
-    //       sectionName: section.value,
-    //       onClose: () => ModalManager.getInstance().closeModal(),
-    //       onSuccess: onUpdateCallBack,
-    //     });
-    //   }
-
-    //   if (navigationStore.selectedRow?.data?.nodeType === tablesEnum.pcbs) {
-    //     section.value = tablesEnum.pcbs_components;
-    //     ModalManager.getInstance().open(AddEntity, {
-    //       sectionName: section.value,
-    //       onClose: () => ModalManager.getInstance().closeModal(),
-    //       onSuccess: onUpdateCallBack,
-    //     });
-    //   }
-
-    //   break;
-
     case tablesEnum.stands:
       if (!navigationStore.selectedRow) {
         section.value = tablesEnum.stands_types;
@@ -177,13 +156,20 @@ export function useCreateButton(onUpdateCallBack: () => void) {
       break;
 
     case tablesEnum.arrival_invoices:
-      if (!navigationStore.selectedRow)
+      if (!navigationStore.selectedRow) {
         section.value = tablesEnum.arrival_invoices;
+      }
       if (
         navigationStore.selectedRow?.data?.nodeType ===
         tablesEnum.arrival_invoices
-      )
+      ) {
         section.value = tablesEnum.invoices_components;
+      }
+      ModalManager.getInstance().open(AddModalWithImages, {
+        sectionName: section.value,
+        onClose: () => ModalManager.getInstance().closeModal(),
+        onSuccess: onUpdateCallBack,
+      });
       break;
 
     case tablesEnum.bills_for_pay:
@@ -193,6 +179,12 @@ export function useCreateButton(onUpdateCallBack: () => void) {
         navigationStore.selectedRow?.data?.nodeType === tablesEnum.bills_for_pay
       )
         section.value = tablesEnum.bills_components;
+
+      ModalManager.getInstance().open(AddModalWithImages, {
+        sectionName: section.value,
+        onClose: () => ModalManager.getInstance().closeModal(),
+        onSuccess: onUpdateCallBack,
+      });
       break;
 
     case tablesEnum.license:
@@ -248,7 +240,9 @@ export function useCreateButton(onUpdateCallBack: () => void) {
     currentSection.value !== "stand_tasks" &&
     currentSection.value !== "organizations" &&
     currentSection.value !== "components" &&
-    currentSection.value !== "component_placements"
+    currentSection.value !== "component_placements" &&
+    currentSection.value !== "arrival_invoices" &&
+    currentSection.value !== "bills_for_pay"
   )
     ModalManager.getInstance().open(AddEntity, {
       sectionName: section.value,

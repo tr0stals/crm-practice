@@ -14,11 +14,11 @@ export function useNotifications(userId: string) {
     // 1. Показываем уведомление в зависимости от типа уведомления
     switch (type) {
       case "error":
-        toast.error(message, { timeout: 3000 });
+        toast.error(message, { timeout: 5000 });
         break;
 
       case "success":
-        toast.success(message, { timeout: 3000 });
+        toast.success(message, { timeout: 5000 });
         break;
     }
 

@@ -269,9 +269,13 @@ export class ComponentsService {
         .filter((cat) => cat.parentId === parentId)
         .map((cat) => {
           // Находим все компоненты для этой категории
-          const categoryComponents = components.filter((comp) => comp.parentId === cat.id);
+          const categoryComponents = components.filter(
+            (comp) => comp.parentId === cat.id,
+          );
           // Находим все подкатегории
-          const subcategories = categories.filter((subCat) => subCat.parentId === cat.id);
+          const subcategories = categories.filter(
+            (subCat) => subCat.parentId === cat.id,
+          );
 
           return {
             id: cat.id,
@@ -289,7 +293,7 @@ export class ComponentsService {
                   ? `${placement.placementType?.title || ''}, Здание ${placement.building}, комната ${placement.room}`
                   : '';
                 return {
-                  name: `${comp.title} (${comp.quantity || 0}) | ${placementInfo}`, // Добавляем количество
+                  name: `${comp.title} | ${placementInfo} | Кол-во на складе: ${comp.quantity || 0}`, // Добавляем количество
                   nodeType: 'components',
                   placementInfo,
                   ...comp,

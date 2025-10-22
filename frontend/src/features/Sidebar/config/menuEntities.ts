@@ -140,7 +140,7 @@ export const menuEntities: IMenuEntity[] = [
       {
         icon: "",
         title: "Приход / расход",
-        tableName: "",
+        tableName: "writeoff",
       },
       {
         icon: "",

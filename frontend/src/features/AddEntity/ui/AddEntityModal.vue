@@ -109,6 +109,7 @@ async function uploadImage(file: File, orgTypeId: number) {
 
 const handleSubmit = async () => {
   try {
+    console.debug("1!!!s");
     await submit();
   } catch (e) {
     console.error("Ошибка при добавлении", e);
