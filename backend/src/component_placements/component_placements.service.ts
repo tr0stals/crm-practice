@@ -91,7 +91,11 @@ export class ComponentPlacementsService {
         };
       });
 
-      return tree;
+      // Возвращаем корневой узел с дочерними элементами
+      return {
+        name: 'Размещения компонентов',
+        children: tree
+      };
     } catch (error) {
       console.error('Ошибка при генерации дерева размещений:', error);
       throw new HttpException(
