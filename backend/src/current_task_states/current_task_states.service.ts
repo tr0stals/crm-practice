@@ -90,9 +90,18 @@ export class CurrentTaskStatesService {
 
   async getTasksTreeByStatus() {
     try {
-      // Получаем все статусы задач
+      // Получаем все статусы задач с соответствующими связями
       const states = await this.repo.find({
         order: { id: 'ASC' },
+        relations: [
+          'currentTasks',
+          'currentTasks.standTasks',
+          'currentTasks.standTasks.stands',
+          'currentTasks.shipmentStands',
+          'currentTasks.shipmentStands.shipments',
+          'currentTasks.shipmentStands.stands.employees',
+          'currentTasks.shipmentStands.stands.employees.peoples',
+        ],
       });
 
       if (!states || states.length === 0) {
@@ -102,17 +111,6 @@ export class CurrentTaskStatesService {
       const treeData: any[] = [];
 
       for (const state of states) {
-        // Получаем задачи для каждого статуса с relations
-        const stateWithTasks = await this.repo.findOne({
-          where: { id: state.id },
-          relations: [
-            'currentTasks',
-            'currentTasks.employees',
-            'currentTasks.employees.peoples',
-            'currentTasks.stands',
-          ],
-        });
-
         const stateNode: any = {
           id: state.id,
           name: state.title,
@@ -121,29 +119,30 @@ export class CurrentTaskStatesService {
         };
 
         // Добавляем задачи как дочерние элементы
-        if (
-          stateWithTasks &&
-          stateWithTasks.currentTasks &&
-          stateWithTasks.currentTasks.length > 0
-        ) {
-          for (const task of stateWithTasks.currentTasks) {
-            const employeeName = task.shipmentStands.stands.employees?.peoples
-              ? `${task.shipmentStands.stands.employees.peoples.lastName || ''} ${task.shipmentStands.stands.employees.peoples.firstName || ''} ${task.shipmentStands.stands.employees.peoples.middleName || ''}`.trim()
+        if (state.currentTasks && state.currentTasks.length > 0) {
+          for (const task of state.currentTasks) {
+            const employee = task.shipmentStands?.stands?.employees;
+            const employeeName = employee?.peoples
+              ? `${employee.peoples.lastName || ''} ${employee.peoples.firstName || ''} ${employee.peoples.middleName || ''}`.trim()
               : 'Не назначен';
+
+            const shipment = task.shipmentStands?.shipments;
+            const stand = task.shipmentStands?.stands;
+            const arrivalDate = shipment?.arrivalDate;
 
             const taskNode: any = {
               id: task.id,
               name: [
-                `Срок выполнения: ${task.shipmentStands.shipments.arrivalDate ? (typeof task.shipmentStands.shipments.arrivalDate === 'string' ? task.shipmentStands.shipments.arrivalDate : (task.shipmentStands.shipments.arrivalDate as Date).toISOString().split('T')[0]) : ''}`,
-                `Стенд: ${task.shipmentStands.stands?.title || ''}`,
+                arrivalDate ? `Срок выполнения: ${typeof arrivalDate === 'string' ? arrivalDate : new Date(arrivalDate).toISOString().split('T')[0]}` : '',
+                stand?.title ? `Стенд: ${stand.title}` : '',
                 `Сотрудник: ${employeeName}`,
               ]
                 .filter(Boolean)
                 .join(' | '),
               nodeType: 'current_tasks',
-              deadline: task.shipmentStands.shipments.arrivalDate,
+              deadline: arrivalDate,
               employee: employeeName,
-              stand: task.shipmentStands.stands?.title || 'Не указан',
+              stand: stand?.title || 'Не указан',
               status: state.title,
             };
 
@@ -156,6 +155,7 @@ export class CurrentTaskStatesService {
 
       return { name: 'Состояния текущих задач', children: treeData };
     } catch (error: any) {
+      console.error('Error in getTasksTreeByStatus:', error);
       return { name: 'Состояния текущих задач', children: [] };
     }
   }
