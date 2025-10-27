@@ -15,6 +15,7 @@ export function useAddLicenses(sectionName: string, onSuccess: () => void) {
     }).then((res) => res.data);
 
     tableColumns.value = Object.keys(data);
+    console.debug("!!!!", tableColumns.value);
 
     for (const [key, value] of Object.entries(data)) {
       console.debug(value);

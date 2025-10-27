@@ -14,7 +14,7 @@ export class InvoicesComponents {
   id: number;
 
   @Column()
-  componentCount: string;
+  componentCount: number;
 
   @ManyToOne(
     () => ArrivalInvoices,

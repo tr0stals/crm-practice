@@ -16,6 +16,8 @@ import { useAddStandTasks } from "../model/useAddStandTasks";
 import { useAddStands } from "../model/useAddStands";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { useAddArrivalInvoices } from "../model/useAddArrivalInvoices";
+import { useToast } from "vue-toastification";
+import { useFormValidation } from "@/shared/plugins/validation";
 
 const props = defineProps<{
   sectionName: string;
@@ -23,6 +25,7 @@ const props = defineProps<{
   onSuccess: () => void;
 }>();
 const navigationStore = useNavigationStore();
+const toast = useToast();
 
 const { formData, tableColumns, selectOptions, submit } =
   props.sectionName === "stand_tasks"
@@ -45,6 +48,7 @@ const { formData, tableColumns, selectOptions, submit } =
         props.onClose();
       });
 
+const { errors, handleInput, validateForm } = useFormValidation(formData);
 const dateFields = computed(() => tableColumns.value.filter(isDateField));
 const dateModel = reactive<Record<string, any>>({});
 
@@ -66,6 +70,22 @@ watch(
   },
   { immediate: true }
 );
+
+function handleFilesChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const files = Array.from(input.files || []);
+
+  if (!formData["specificationImage"]) {
+    formData["specificationImage"] = [];
+  }
+
+  // Добавляем новые файлы к существующим
+  formData["specificationImage"] = [
+    ...formData["specificationImage"],
+    ...files,
+  ];
+  handleInput("specificationImage");
+}
 
 async function uploadImage(file: File, relatedItemId: number) {
   const data = new FormData();
@@ -176,6 +196,12 @@ async function loadStands() {
   const { image, ...defaultData } = data;
   console.debug(image);
 
+  if (!formData) {
+    console.debug("!!!");
+    toast.error("Необходимо заполнить поля", { timeout: 5000 });
+    return;
+  }
+
   const standTypeId = await getStandTypeId();
 
   const res = await createEntityAsync(props.sectionName, {
@@ -212,26 +238,42 @@ async function loadStandTasks() {
 
 const handleSubmit = async () => {
   // 1. Сначала создаем тип организации (получаем его ID)
-  if (props.sectionName === "organization_types") {
-    await loadOrganizationTypes();
-  } else if (props.sectionName === "components") {
-    await loadComponents();
-  } else if (props.sectionName === "stands") {
-    await loadStands();
-  } else if (props.sectionName === "stand_tasks") {
-    await submit();
-  } else if (props.sectionName === "arrival_invoices") {
-    await loadArrivalInvoices();
-  } else if (props.sectionName === "bills_for_pay") {
-    await loadBillsForPay();
-  } else {
-    console.debug("нет, отсюда!");
-    await submit();
-  }
+  try {
+    if (!validateForm(tableColumns.value)) {
+      toast.error("Исправьте ошибки перед отправкой");
+      return;
+    }
 
-  props.onSuccess();
-  props.onClose();
+    if (props.sectionName === "organization_types") {
+      await loadOrganizationTypes();
+    } else if (props.sectionName === "components") {
+      await loadComponents();
+    } else if (props.sectionName === "stands") {
+      await loadStands();
+    } else if (props.sectionName === "stand_tasks") {
+      await submit();
+    } else if (props.sectionName === "arrival_invoices") {
+      await loadArrivalInvoices();
+    } else if (props.sectionName === "bills_for_pay") {
+      await loadBillsForPay();
+    } else {
+      console.debug("нет, отсюда!");
+      await submit();
+    }
+
+    props.onSuccess();
+    props.onClose();
+  } catch (e: any) {
+    console.debug(e);
+    toast.error(`${e.response?.data?.message}`, { timeout: 5000 });
+  }
 };
+
+function removeFile(item: string, index: number) {
+  if (formData[item]) {
+    formData[item].splice(index, 1);
+  }
+}
 
 const handleDeleteImage = async (item: any) => {
   console.debug(item);
@@ -254,7 +296,10 @@ const handleDeleteImage = async (item: any) => {
           :key="item"
           class="addModalWindow__content__field"
         >
-          <template v-if="item !== 'id' && item !== 'passwordSalt'">
+          <div
+            v-if="item !== 'id' && item !== 'passwordSalt'"
+            class="addModalWindow__contentBlock"
+          >
             <label class="addModalWindow__content__field__label" :for="item">{{
               fieldDictionary[item] || item
             }}</label>
@@ -264,6 +309,7 @@ const handleDeleteImage = async (item: any) => {
                 :id="item"
                 :name="item"
                 class="addModalWindow__content__field__option"
+                @change="handleInput(item)"
               >
                 <option value="" disabled>Выберите значение</option>
                 <template
@@ -287,6 +333,7 @@ const handleDeleteImage = async (item: any) => {
                 hideInputIcon: true,
               }"
               placeholder="Выберите дату"
+              @update:model-value="handleInput(item)"
             />
             <template v-else-if="item === 'phone'">
               <input
@@ -295,6 +342,7 @@ const handleDeleteImage = async (item: any) => {
                 :id="item"
                 :name="item"
                 class="addModalWindow__content__field__input"
+                @change="handleInput(item)"
               />
             </template>
             <input
@@ -304,20 +352,31 @@ const handleDeleteImage = async (item: any) => {
               v-model="formData[item]"
               :id="item"
               :name="item"
+              @change="handleInput(item)"
             />
             <template v-else-if="item === 'vat'">
               <div class="addModalWindow__content__field__inputControls">
                 <Button
                   class="addModalWindow__content__field__inputControls__btn"
                   :class="{ active: formData.vat === true }"
-                  @click="formData.vat = true"
+                  @click="
+                    () => {
+                      formData.vat = true;
+                      handleInput('vat');
+                    }
+                  "
                 >
                   Да
                 </Button>
                 <Button
                   class="addModalWindow__content__field__inputControls__btn"
                   :class="{ active: formData.vat === false }"
-                  @click="formData.vat = false"
+                  @click="
+                    () => {
+                      formData.vat = false;
+                      handleInput('vat');
+                    }
+                  "
                 >
                   Нет
                 </Button>
@@ -342,6 +401,7 @@ const handleDeleteImage = async (item: any) => {
                       const file = e.target.files?.[0];
                       if (file) {
                         formData[item] = file;
+                        handleInput(item);
                       }
                     }
                   "
@@ -371,9 +431,13 @@ const handleDeleteImage = async (item: any) => {
                 v-model="formData[item]"
                 :id="item"
                 :name="item"
+                @input="handleInput(item)"
               />
             </template>
-          </template>
+          </div>
+          <p v-if="errors[item]" class="error-text">
+            {{ errors[item] }}
+          </p>
         </div>
       </div>
       <div class="addModalWindow__controls">

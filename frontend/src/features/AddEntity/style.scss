@@ -2,6 +2,14 @@
   width: 90%;
   height: 90%;
 
+  &__contentBlock {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 3rem;
+  }
+
   &__closeIcon {
     position: absolute;
     right: 15px;
@@ -19,15 +27,15 @@
     justify-content: space-between;
     align-items: normal;
     width: 100%;
-    gap: 15px;
+    gap: 2rem;
 
     &__field {
       position: relative;
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       justify-content: space-between;
       align-items: center;
-      gap: 15px;
+      gap: 1rem;
 
       &__option {
         width: 60%;
@@ -135,4 +143,32 @@
   &:focus {
     box-shadow: none;
   }
+}
+
+.error-text {
+  position: relative;
+  left: 10%;
+  // bottom: -50%;
+  color: red;
+  font-size: 1.5rem;
+}
+
+@keyframes borderBlinking {
+  0% {
+    border: 2px solid #ccc;
+  }
+
+  50% {
+    border: 2px solid red;
+  }
+
+  100% {
+    border: 2px solid #ccc;
+  }
+}
+
+.error-layout {
+  animation: borderBlinking 2s forwards;
+  border: 1px red solid;
+  border-radius: 1rem;
 }

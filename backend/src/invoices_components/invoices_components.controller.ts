@@ -25,6 +25,11 @@ export class InvoicesComponentsController {
     return await this.service.generateDataById(+id);
   }
 
+  @Get('byInvoice/get/:id')
+  async getByPcbs(@Param('id') id: string) {
+    return await this.service.getByInvoice(+id);
+  }
+
   @Get('get/:id')
   async getById(@Param('id') id: number) {
     return await this.service.getById(id);

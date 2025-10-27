@@ -9,6 +9,7 @@ import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import LoadingLayout from "../../LoadingLayout/ui/LoadingLayout.vue";
 import { imageTables } from "../config/imageTables";
 import { tablesEnum } from "@/shared/config/tablesEnum";
+import { useToast } from "vue-toastification";
 
 const props = defineProps<{
   currentSection: string;
@@ -26,6 +27,7 @@ const expandedKeys = ref<any>({});
 const navigationStore = useNavigationStore();
 const isSelectOpen = ref(false);
 const selectedSection = ref("");
+const toast = useToast();
 
 // Кэш изображений, чтобы не дёргать сервер по 100 раз
 const imageUrlMap = ref<Record<number, string>>({});
@@ -41,6 +43,9 @@ interface TreeNode {
   level: any;
 }
 
+/**
+ * Массив исключений. Есть несколько таблиц, для которых дерево запрашивается по /getTree
+ * */
 const treeTablesExceptions = ["employees", "stands", "pcbs"];
 
 const { data, error, loading, refetch } = useFetch<TreeNode[]>(
@@ -73,9 +78,7 @@ const handleLoadImages = async (nodeType: string) => {
 watch(data, async (val) => {
   if (!val) return;
 
-  console.debug(data.value);
   const root = getTreeviewData(val);
-  console.debug(root);
   treeData.value = root.children || [];
 
   if (Array.isArray(val)) {
@@ -92,7 +95,6 @@ watch(data, async (val) => {
       return acc;
     }, {} as Record<string, boolean>);
   }
-  console.debug("!!!!!", data);
 
   async function processNode(node: any) {
     const promises = [];
@@ -173,7 +175,7 @@ async function fetchImageForNode(targetType: string, targetId: number) {
       )}/uploads/${image.filename}`;
     }
   } catch (err) {
-    console.error("Ошибка получения изображения:", err);
+    toast.error(`Ошибка получения изображения: ${err}`, { timeout: 5000 });
   }
 }
 
@@ -190,10 +192,6 @@ function toggleExpand(node: any) {
   if (isExpanded) delete expandedKeys.value[key];
   else expandedKeys.value[key] = true;
 }
-
-function clearSection() {
-  navigationStore.selectedRow = null;
-}
 </script>
 
 <template>
@@ -208,7 +206,6 @@ function clearSection() {
       :value="paginatedTreeData"
       selectionMode="single"
       class="treeview"
-      v-click-outside="clearSection"
       v-model:selectionKey="selectedKey"
       v-model:expandedKeys="expandedKeys"
       @node-select="onNodeSelect"

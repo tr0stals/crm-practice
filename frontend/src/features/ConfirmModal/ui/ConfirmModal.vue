@@ -14,13 +14,15 @@ const props = defineProps<{
       <Button
         :extra-classes="['confirmModal__button']"
         @click="props.onSuccessCallback"
-        >Да</Button
       >
+        Да
+      </Button>
       <Button
         :extra-classes="['confirmModal__button']"
         @click="props.onDeclineCallback"
-        >Нет</Button
       >
+        Нет
+      </Button>
     </div>
   </div>
 </template>

@@ -1,37 +1,39 @@
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { onMounted, reactive, ref } from "vue";
-import type { FieldMeta } from "../types/FieldMeta";
 import { useToast } from "vue-toastification";
 import { createEntityAsync } from "../api/createEntityAsync";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import { api } from "@/shared/api/axiosInstance";
 
 export function useAddShipments(sectionName: string, onSuccess: () => void) {
-  const formData = reactive<any>({
-    shipments: {},
-    stands: {},
-  });
-  const formFields = ref<FieldMeta[]>([]);
+  const formData = reactive<any>({});
+
   const tableColumns = ref<string[]>([]);
   const selectOptions = reactive<Record<string, any[]>>({});
   const toast = useToast();
 
+  /**
+   * Подгрузка данных организации по id
+   */
   const loadOrganizations = async (org: any) => {
     try {
       return await getDataAsync({ endpoint: `organizations/get/${org.id}` });
-    } catch (e) {
+    } catch (e: any) {
       throw new Error(e);
     }
   };
 
+  /**
+   * Получаем метаданные формы и связи (select options)
+   */
   const fetchColumnsAndRelations = async () => {
-    // сначала тянем основную таблицу Employees
     const data = await getDataAsync({
       endpoint: `database/getFormMetaData/${sectionName}`,
     }).then((res) => res.data);
 
     tableColumns.value = Object.keys(data);
 
+    // обрабатываем поля с опциями (селекты)
     for (const [key, value] of Object.entries(data)) {
       if (
         key === "clientId" ||
@@ -45,90 +47,100 @@ export function useAddShipments(sectionName: string, onSuccess: () => void) {
             return response.data;
           })
         );
-        value.options = targetOptions.filter(
+
+        // фильтруем только нужный тип организации
+        selectOptions[key] = targetOptions.filter(
           (opt: any) => opt.organizationTypes?.title === fieldDictionary[key]
         );
-      } else {
+      } else if (value.options) {
         selectOptions[key] = value.options;
-      }
-
-      if (key === "specificationImage") {
-        formFields.value.push({
-          name: key,
-          type: "file",
-          options: value.options ?? [],
-          section: sectionName,
-        });
-      } else {
-        formFields.value.push({
-          name: key,
-          type: value.options ? "select" : "input",
-          options: value.options ?? [],
-          section: sectionName,
-        });
       }
     }
 
+    // Добавляем список стендов (standId)
     const standsData = await getDataAsync({
       endpoint: `stands/get`,
     }).then((res) => res.data);
+
     console.debug(standsData);
 
-    // Stands (селект)
-    formFields.value.push({
-      name: "standId",
-      type: "select",
-      options: standsData.map((item: any) => ({
-        id: item.id,
-        label: item.title,
-      })),
-      section: "stands",
-    });
+    selectOptions["standId"] = standsData.map((item: any) => ({
+      id: item.id,
+      label: item.title,
+    }));
+
+    if (!tableColumns.value.includes("standId")) {
+      tableColumns.value.push("standId");
+    }
   };
 
   onMounted(fetchColumnsAndRelations);
 
+  /**
+   * Создание поставки + загрузка файлов
+   */
   const submit = async () => {
     try {
-      const { stands, addedDate, arrivalDate, shipmentDate, ...defaultData } =
-        formData;
-
       console.debug(formData);
+      const {
+        standId,
+        addedDate,
+        arrivalDate,
+        shipmentDate,
+        specificationImage,
+        ...defaultData
+      } = formData;
 
-      const fileNames = defaultData.specificationImage.map(
-        (file: any) => file.name
-      );
+      const fileNames =
+        specificationImage?.map((file: File) => file.name) ?? [];
 
+      console.debug(fileNames);
+
+      // создаём отгрузку
       const shipmentResponse = await createEntityAsync("shipments", {
         addedDate,
         arrivalDate,
         shipmentDate,
         specificationImage: fileNames,
-        standId: stands.standId,
-        ...defaultData.shipments,
+        standId: standId,
+        ...defaultData,
       });
 
-      defaultData.specificationImage.map(async (file) => {
-        console.debug(shipmentResponse);
-        const data = new FormData();
-        data.append("file", file);
-        data.append("targetType", sectionName); // "organization_types" или "components"
-        data.append("targetId", String(shipmentResponse.data[0]?.id));
+      const shipmentId = shipmentResponse.data?.shipments?.id;
 
-        return await api.post("/images/upload", data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-      });
+      // загружаем изображения, если есть
+      if (specificationImage?.length && shipmentId) {
+        for (const file of specificationImage) {
+          const data = new FormData();
+          data.append("file", file);
+          data.append("targetType", sectionName);
+          data.append("targetId", String(shipmentId));
 
+          await api.post("/images/upload", data, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+        }
+      }
+
+      toast.success("Отгрузка успешно добавлена!");
       onSuccess();
-    } catch (e) {
-      toast.error("Ошибка при добавлении сотрудника", { timeout: 3000 });
+    } catch (e: any) {
+      console.error("Ошибка при создании:", e);
+
+      if (e.response?.data) {
+        const { message } = e.response.data;
+        if (Array.isArray(message))
+          message.forEach((m: string) => toast.error(m));
+        else toast.error(message || "Произошла ошибка при создании записи");
+      } else {
+        toast.error("Сервер недоступен или произошла неизвестная ошибка");
+      }
     }
   };
 
   return {
     formData,
-    formFields,
+    tableColumns,
     selectOptions,
     submit,
   };

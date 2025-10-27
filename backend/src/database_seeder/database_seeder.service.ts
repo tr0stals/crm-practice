@@ -1781,7 +1781,7 @@ export class DatabaseSeederService {
       return Array(componentCount)
         .fill(null)
         .map(() => ({
-          componentCount: faker.number.int({ min: 1, max: 100 }).toString(),
+          componentCount: faker.number.int({ min: 1, max: 100 }),
           arrivalInvoices: invoice,
           components: faker.helpers.arrayElement(components),
         }));

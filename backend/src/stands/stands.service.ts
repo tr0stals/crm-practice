@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -27,97 +28,95 @@ export class StandsService {
   ) {}
 
   async create(data: StandsDTO, userId?: number) {
-    try {
-      const { employeeId, standTypeId, ...defaultData } = data;
+    const { employeeId, standTypeId, ...defaultData } = data;
 
-      // Валидация: если это стенд (заполнены дополнительные поля), то все обязательные поля должны быть заполнены
-      const isStand = this.isStandData(defaultData);
-      if (isStand) {
-        const missingFields = this.validateStandFields(
-          defaultData,
-          employeeId,
-          standTypeId,
-        );
-        if (missingFields.length > 0) {
-          const errorMessage = `Для создания стенда необходимо заполнить все обязательные поля: ${missingFields.join(', ')}`;
-
-          // Отправляем уведомление об ошибке валидации
-          let targetUserId = userId ? userId.toString() : '1';
-
-          // Если userId не передан, пытаемся найти пользователя напрямую
-          if (!userId) {
-            const directUser = await this.userRepository.findOne({
-              where: {}, // Берем первого доступного пользователя
-            });
-            if (directUser) {
-              targetUserId = directUser.id.toString();
-              console.log(
-                `[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${errorMessage}`,
-              );
-            }
-          }
-
-          console.log(
-            `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${errorMessage}`,
-          );
-          this.wsGateway.sendNotification(
-            targetUserId,
-            errorMessage,
-            'validation_error',
-          );
-
-          throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
-        }
-      }
-
-      let employee: any = undefined;
-      let standType: any = undefined;
-
-      if (employeeId) {
-        employee = await this.employeeService.findById(employeeId);
-        if (!employee) throw new NotFoundException('Сотрудник не найден');
-      }
-
-      if (standTypeId) {
-        standType = await this.standTypeService.findOne(standTypeId);
-        if (!standType) throw new NotFoundException('Тип стенда не найден');
-      }
-
-      const entity = this.repo.create({
-        ...defaultData,
-        employees: employee,
-        standType: standType,
-      } as DeepPartial<Stands>);
-
-      const savedEntity = await this.repo.save(entity);
-
-      // Отправляем уведомление об успешном создании
-      const recordType = isStand ? 'стенд' : 'категорию стендов';
-      const message = `Успешно создан ${recordType}: "${savedEntity.title}"`;
-      let targetUserId = userId ? userId.toString() : '1';
-
-      // Если userId не передан, пытаемся найти пользователя напрямую
-      if (!userId) {
-        const directUser = await this.userRepository.findOne({
-          where: {}, // Берем первого доступного пользователя
-        });
-        if (directUser) {
-          targetUserId = directUser.id.toString();
-          console.log(
-            `[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${message}`,
-          );
-        }
-      }
-
-      console.log(
-        `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${message}`,
+    // Валидация: если это стенд (заполнены дополнительные поля), то все обязательные поля должны быть заполнены
+    const isStand = this.isStandData(defaultData);
+    if (isStand) {
+      const missingFields = this.validateStandFields(
+        defaultData,
+        employeeId,
+        standTypeId,
       );
-      this.wsGateway.sendNotification(targetUserId, message, 'success');
+      if (missingFields.length > 0) {
+        const errorMessage = `Для создания стенда необходимо заполнить все обязательные поля: ${missingFields.join(', ')}`;
 
-      return savedEntity;
-    } catch (e) {
-      throw new Error(e);
+        // Отправляем уведомление об ошибке валидации
+        let targetUserId = userId ? userId.toString() : '1';
+
+        // Если userId не передан, пытаемся найти пользователя напрямую
+        if (!userId) {
+          const directUser = await this.userRepository.findOne({
+            where: {}, // Берем первого доступного пользователя
+          });
+          if (directUser) {
+            targetUserId = directUser.id.toString();
+            console.log(
+              `[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${errorMessage}`,
+            );
+          }
+        }
+
+        console.log(
+          `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${errorMessage}`,
+        );
+        this.wsGateway.sendNotification(
+          targetUserId,
+          errorMessage,
+          'validation_error',
+        );
+
+        throw new BadRequestException({
+          message: errorMessage,
+        });
+      }
     }
+
+    let employee: any = undefined;
+    let standType: any = undefined;
+
+    if (employeeId) {
+      employee = await this.employeeService.findById(employeeId);
+      if (!employee) throw new NotFoundException('Сотрудник не найден');
+    }
+
+    if (standTypeId) {
+      standType = await this.standTypeService.findOne(standTypeId);
+      if (!standType) throw new NotFoundException('Тип стенда не найден');
+    }
+
+    const entity = this.repo.create({
+      ...defaultData,
+      employees: employee,
+      standType: standType,
+    } as DeepPartial<Stands>);
+
+    const savedEntity = await this.repo.save(entity);
+
+    // Отправляем уведомление об успешном создании
+    const recordType = isStand ? 'стенд' : 'категорию стендов';
+    const message = `Успешно создан ${recordType}: "${savedEntity.title}"`;
+    let targetUserId = userId ? userId.toString() : '1';
+
+    // Если userId не передан, пытаемся найти пользователя напрямую
+    if (!userId) {
+      const directUser = await this.userRepository.findOne({
+        where: {}, // Берем первого доступного пользователя
+      });
+      if (directUser) {
+        targetUserId = directUser.id.toString();
+        console.log(
+          `[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${message}`,
+        );
+      }
+    }
+
+    console.log(
+      `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${message}`,
+    );
+    this.wsGateway.sendNotification(targetUserId, message, 'success');
+
+    return savedEntity;
   }
 
   private isStandData(data: any): boolean {

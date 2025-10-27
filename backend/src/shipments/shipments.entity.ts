@@ -1,3 +1,4 @@
+import { IsInt, IsNotEmpty } from 'class-validator';
 import { License } from 'src/license/license.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
 import { ShipmentPackage } from 'src/shipment_package/shipment_package.entity';

@@ -8,6 +8,7 @@ import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { useAddEmployees } from "../model/useAddEmployees";
 import { computed, reactive, watch } from "vue";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
+import { useFormValidation } from "@/shared/plugins/validation";
 
 const props = defineProps<{
   sectionName: string;
@@ -22,6 +23,8 @@ const { formData, formFields, selectOptions, submit } = useAddEmployees(
     props.onClose();
   }
 );
+
+const { errors, handleInput, validateForm } = useFormValidation(formData);
 
 function isDateField(key) {
   const lower = key.name.toLowerCase();
@@ -60,6 +63,11 @@ watch(
 
 const handleSubmit = async () => {
   try {
+    if (!validateForm(tableColumns.value)) {
+      toast.error("Исправьте ошибки перед отправкой");
+      return;
+    }
+
     console.debug(formData);
     await submit();
   } catch (e) {

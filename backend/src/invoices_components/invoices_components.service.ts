@@ -37,6 +37,21 @@ export class InvoicesComponentsService {
     }
   }
 
+  async getByInvoice(invoiceId: number) {
+    try {
+      return await this.repo.find({
+        where: {
+          arrivalInvoices: {
+            id: invoiceId,
+          },
+        },
+        relations: ['arrivalInvoices', 'components'],
+      });
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
   async generateDataById(incomingId: number) {
     try {
       const invoicesComponents = await this.getAll();
@@ -126,7 +141,7 @@ export class InvoicesComponentsService {
         throw new NotFoundException('Ошибка при поиске components');
 
       const entity = this.repo.create({
-        componentCount: String(data?.componentCount),
+        componentCount: data?.componentCount,
         arrivalInvoices: arrivalInvoice,
         components: component,
       });
@@ -134,7 +149,9 @@ export class InvoicesComponentsService {
       const result = await this.repo.save(entity);
 
       // Автоматически пересчитываем количество компонента
-      await this.componentQuantityWatcher.onInvoicesComponentChange(componentId);
+      await this.componentQuantityWatcher.onInvoicesComponentChange(
+        componentId,
+      );
 
       return result;
     } catch (e) {
@@ -146,7 +163,7 @@ export class InvoicesComponentsService {
     // Получаем componentId до обновления для последующего пересчета
     const existingRecord = await this.repo.findOne({
       where: { id },
-      relations: ['components']
+      relations: ['components'],
     });
 
     await this.repo.update(id, data);
@@ -154,7 +171,9 @@ export class InvoicesComponentsService {
 
     // Автоматически пересчитываем количество компонента, если он изменился
     if (existingRecord?.components?.id) {
-      await this.componentQuantityWatcher.onInvoicesComponentChange(existingRecord.components.id);
+      await this.componentQuantityWatcher.onInvoicesComponentChange(
+        existingRecord.components.id,
+      );
     }
 
     return result;
@@ -165,14 +184,16 @@ export class InvoicesComponentsService {
       // Получаем componentId до удаления для последующего пересчета
       const existingRecord = await this.repo.findOne({
         where: { id },
-        relations: ['components']
+        relations: ['components'],
       });
 
       await this.repo.delete(id);
 
       // Автоматически пересчитываем количество компонента после удаления
       if (existingRecord?.components?.id) {
-        await this.componentQuantityWatcher.onInvoicesComponentChange(existingRecord.components.id);
+        await this.componentQuantityWatcher.onInvoicesComponentChange(
+          existingRecord.components.id,
+        );
       }
     } catch (e: any) {
       if (e.code === 'ER_ROW_IS_REFERENCED_2') {

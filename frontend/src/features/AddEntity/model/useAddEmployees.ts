@@ -16,9 +16,6 @@ export function useAddEmployees(sectionName: string, onSuccess: () => void) {
   const selectOptions = reactive<Record<string, any[]>>({});
   const navigationStore = useNavigationStore();
   const toast = useToast();
-  const relationTables = ["peoples", "employees_professions"];
-  const relationColumns = reactive<Record<string, string[]>>({});
-  const relationOptions = reactive<Record<string, any[]>>({});
 
   const fetchColumnsAndRelations = async () => {
     // сначала тянем основную таблицу Employees
@@ -82,9 +79,7 @@ export function useAddEmployees(sectionName: string, onSuccess: () => void) {
       };
       const peopleResponse = await createEntityAsync("peoples", peopleData);
 
-      console.debug(peopleResponse.data);
       const peopleId = peopleResponse.data?.id;
-      console.debug(peopleId);
 
       if (!peopleId) throw new Error("Не удалось найти человека");
       const employeeData = {
@@ -97,7 +92,6 @@ export function useAddEmployees(sectionName: string, onSuccess: () => void) {
         "employees",
         employeeData
       );
-      console.debug(employeeResponse);
 
       const employeeId = employeeResponse.data?.id;
       const departmentId = navigationStore.selectedRow?.data?.id;

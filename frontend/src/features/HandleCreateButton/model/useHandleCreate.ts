@@ -10,6 +10,7 @@ import AddShipments from "@/features/AddEntity/ui/AddShipments.vue";
 import AddStands from "@/features/AddEntity/ui/AddStands.vue";
 import AddStandTasks from "@/features/AddEntity/ui/AddStandTasks.vue";
 import AddModalWithImages from "@/features/AddEntity/ui/AddModalWithImages.vue";
+import AddEntityModal from "@/features/AddEntity/ui/AddEntityModal.vue";
 
 export function useCreateButton(onUpdateCallBack: () => void) {
   const navigationStore = useNavigationStore();
@@ -158,18 +159,26 @@ export function useCreateButton(onUpdateCallBack: () => void) {
     case tablesEnum.arrival_invoices:
       if (!navigationStore.selectedRow) {
         section.value = tablesEnum.arrival_invoices;
+
+        ModalManager.getInstance().open(AddModalWithImages, {
+          sectionName: section.value,
+          onClose: () => ModalManager.getInstance().closeModal(),
+          onSuccess: onUpdateCallBack,
+        });
       }
       if (
         navigationStore.selectedRow?.data?.nodeType ===
         tablesEnum.arrival_invoices
       ) {
         section.value = tablesEnum.invoices_components;
+
+        ModalManager.getInstance().open(AddEntityModal, {
+          sectionName: section.value,
+          onClose: () => ModalManager.getInstance().closeModal(),
+          onSuccess: onUpdateCallBack,
+        });
       }
-      ModalManager.getInstance().open(AddModalWithImages, {
-        sectionName: section.value,
-        onClose: () => ModalManager.getInstance().closeModal(),
-        onSuccess: onUpdateCallBack,
-      });
+
       break;
 
     case tablesEnum.bills_for_pay:

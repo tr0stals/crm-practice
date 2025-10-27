@@ -26,35 +26,37 @@ export class CurrentTasksBusinessService {
   ) {}
 
   async init(data: ShipmentCurrentTasksDTO) {
+    console.debug(data);
     const { standId, ...shipmentData } = data;
 
-    try {
-      const shipmentResponse = await this.createShipment(shipmentData);
-      const shipmentStandResponse = await this.createShipmentStand(
-        shipmentResponse.id,
-        standId,
-      );
+    const shipmentResponse = await this.createShipment(shipmentData);
+    const shipmentStandResponse = await this.createShipmentStand(
+      shipmentResponse.id,
+      standId,
+    );
 
-      // Состояние задачи - "Новая"
-      const currentTaskState =
-        await this.currentTaskStatesService.getByTitle('Новая');
+    // Состояние задачи - "Новая"
+    const currentTaskState =
+      await this.currentTaskStatesService.getByTitle('Новая');
 
-      const standsTasks = await this.standTasksService.getAllByStand(standId);
+    const standsTasks = await this.standTasksService.getAllByStand(standId);
 
-      const currentTasks = standsTasks.map((task) => {
-        const current = new CurrentTasks();
+    const currentTasks = standsTasks.map((task) => {
+      const current = new CurrentTasks();
 
-        current.shipmentStands = shipmentStandResponse;
-        current.standTasks = task;
-        current.currentTaskStates = currentTaskState;
+      current.shipmentStands = shipmentStandResponse;
+      current.standTasks = task;
+      current.currentTaskStates = currentTaskState;
 
-        return current;
-      });
+      return current;
+    });
 
-      return await this.currentTasksRepo.save(currentTasks);
-    } catch (e) {
-      throw new Error(e);
-    }
+    const currentTasksResponse = await this.currentTasksRepo.save(currentTasks);
+
+    return {
+      shipments: shipmentResponse,
+      currentTasks: currentTasksResponse,
+    };
   }
 
   private async createShipment(data: ShipmentsDTO) {

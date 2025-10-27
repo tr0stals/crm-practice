@@ -2,12 +2,14 @@ import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import { deleteDataAsync } from "../api/deleteDataAsync";
 import { ModalManager } from "@/shared/plugins/modalManager";
 import ConfirmModal from "@/features/ConfirmModal";
+import { useToast } from "vue-toastification";
 
 export async function useHandleDelete(onUpdateCallBack: () => void) {
   const navigationStore = useNavigationStore();
+  const toast = useToast();
 
   if (!navigationStore.selectedRow || !navigationStore.selectedRow?.id) {
-    alert("Выберите запись для удаления");
+    toast.info("Выберите запись для удаления", { timeout: 5000 });
     return;
   }
   const targetId = navigationStore.selectedRow?.data

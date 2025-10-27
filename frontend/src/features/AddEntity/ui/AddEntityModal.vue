@@ -19,12 +19,16 @@ import { createEntityAsync } from "../api/createEntityAsync";
 import { isDateField } from "@/shared/utils/isDateField";
 import { useAddPcbs } from "../model/useAddPcbs";
 import { useAddPcbsComponents } from "../model/useAddPcbsComponents";
+import { useToast } from "vue-toastification";
+import { useAddInvoiceComponents } from "../model/useAddInvoiceComponents";
+import { useFormValidation } from "@/shared/plugins/validation";
 
 const props = defineProps<{
   sectionName: string;
   onClose: () => void;
   onSuccess: () => void;
 }>();
+const toast = useToast();
 const navigationStore = useNavigationStore();
 console.debug(props.sectionName);
 
@@ -54,6 +58,11 @@ const { formData, tableColumns, selectOptions, submit } =
         props.onSuccess();
         props.onClose();
       })
+    : props.sectionName === "invoices_components"
+    ? useAddInvoiceComponents(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      })
     : props.sectionName === "pcbs"
     ? useAddPcbs(props.sectionName, () => {
         props.onSuccess();
@@ -69,6 +78,7 @@ const { formData, tableColumns, selectOptions, submit } =
         props.onClose();
       });
 
+const { errors, handleInput, validateForm } = useFormValidation(formData);
 const dateFields = computed(() => tableColumns.value.filter(isDateField));
 const dateModel = reactive<Record<string, any>>({});
 
@@ -109,10 +119,15 @@ async function uploadImage(file: File, orgTypeId: number) {
 
 const handleSubmit = async () => {
   try {
-    console.debug("1!!!s");
+    if (!validateForm(tableColumns.value)) {
+      toast.error("Исправьте ошибки перед отправкой");
+      return;
+    }
+
     await submit();
   } catch (e) {
-    console.error("Ошибка при добавлении", e);
+    console.debug(e);
+    toast.error(`Ошибка при добавлении ${e}`, { timeout: 5000 });
   }
 };
 </script>
@@ -129,7 +144,10 @@ const handleSubmit = async () => {
           :key="item"
           class="addModalWindow__content__field"
         >
-          <template v-if="item !== 'id' && item !== 'passwordSalt'">
+          <div
+            v-if="item !== 'id' && item !== 'passwordSalt'"
+            class="addModalWindow__contentBlock"
+          >
             <label class="addModalWindow__content__field__label" :for="item">
               {{ fieldDictionary[item] || item }}
             </label>
@@ -141,6 +159,7 @@ const handleSubmit = async () => {
                 :id="item"
                 :name="item"
                 class="addModalWindow__content__field__option"
+                @change="handleInput(item)"
               >
                 <option :value="null">Без категории</option>
                 <template
@@ -176,6 +195,7 @@ const handleSubmit = async () => {
               v-model="dateModel[item]"
               :id="item"
               :name="item"
+              @update:model-value="handleInput(item)"
               :config="{
                 disabled: item === 'id',
                 format: 'yyyy-MM-dd',
@@ -233,7 +253,10 @@ const handleSubmit = async () => {
               :id="item"
               :name="item"
             />
-          </template>
+          </div>
+          <p v-if="errors[item]" class="error-text">
+            {{ errors[item] }}
+          </p>
         </div>
       </div>
       <div class="addModalWindow__controls">

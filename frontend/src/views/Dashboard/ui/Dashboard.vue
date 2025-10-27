@@ -158,7 +158,6 @@ async function getCurrentData() {
 
   try {
     const response = await getDataAsync(config);
-    console.debug("Response", response);
 
     if (Array.isArray(response.data)) {
       data.value.splice(0, data.value.length, ...response.data);
@@ -469,7 +468,7 @@ const handleSelectSection = (item: any) => {
             <HandleEditButton :onSuccessCallback="onUpdateCallBack" />
 
             <HandleDeleteButton :onUpdateCallback="onUpdateCallBack" />
-            <Button :onClick="getCurrentData">
+            <Button :onClick="onUpdateCallBack">
               <RefreshIcon /> обновить
             </Button>
 

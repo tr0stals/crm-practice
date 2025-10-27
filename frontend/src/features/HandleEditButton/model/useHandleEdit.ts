@@ -14,6 +14,7 @@ import ComponentsEditModal from "@/features/EditModalWindow/ui/ComponentsEditMod
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import ArrivalInvoicesEditModal from "@/features/EditModalWindow/ui/ArrivalInvoicesEditModal.vue";
 import BillsForPayEditModal from "@/features/EditModalWindow/ui/BillsForPayEditModal.vue";
+import { useToast } from "vue-toastification";
 
 /**
  *    Функция срабатывает при клике клике на кнопку "Редактировать"
@@ -35,6 +36,7 @@ export function useHandleEdit(onUpdateCallBack: () => void) {
     ? navigationStore.selectedRow.data?.nodeType
     : navigationStore.currentSection;
   const entityId = navigationStore.selectedRow?.id;
+  const toast = useToast();
 
   const cfg: IEdittingProps = {
     sectionName: sectionName,
@@ -42,7 +44,7 @@ export function useHandleEdit(onUpdateCallBack: () => void) {
   };
 
   if (!cfg.entityId || !cfg.sectionName) {
-    alert("Выберите строку для редактирования");
+    toast.info("Выберите запись для редактирования", { timeout: 5000 });
     return;
   }
 
