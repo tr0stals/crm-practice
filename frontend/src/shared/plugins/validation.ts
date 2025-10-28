@@ -24,7 +24,6 @@ export function useFormValidation(formData: any) {
   }
 
   /** Проверка конкретного поля */
-  /** Проверка конкретного поля */
   function validateField(fieldName: string, section?: string): boolean {
     const value = getFieldValue(fieldName, section);
     errors[fieldName] = "";
@@ -36,10 +35,51 @@ export function useFormValidation(formData: any) {
       case "standId":
       case "licenseTypeId":
       case "totalAmount":
+      case "width":
+      case "height":
+      case "thickness":
+      case "weightNetto":
+      case "weightBrutto":
+      case "weight":
+      case "manufactureTime":
+      case "standTypeId":
+      case "employeeId":
+      case "order":
+      case "componentOutCount":
+      case "professionId":
+      case "componentId":
+      case "placementTypeId":
+      case "placementId":
+      case "componentCount":
+      case "billId":
+      case "supplierId":
+      case "factoryId":
+      case "inventarizationQuality":
+      case "rating":
+      case "organizationTypeId":
+      case "contactPeopleId":
+      case "orderRequestId":
+      case "employeeCreatorId":
+      // Добавленные поля из DTO
+      case "count":
+      case "pcbId":
+      case "pcbManufacturerId":
+      case "pcbOrderStatusId":
+      case "writeoffReasonId":
+      case "componentCount": // StandTasksComponentsDTO
+      case "standTaskId":
+      case "shipmentId":
+      case "employeeId": // уже был, но оставляем
+      // Новые поля из добавленных DTO
+      case "stateId":
+      case "currentTaskId":
+      case "componentId": // уже был, но оставляем
         if (value === undefined || value === null || value === "") {
           errors[fieldName] = "Заполните поле";
         } else if (isNaN(Number(value))) {
           errors[fieldName] = "Введите числовое значение";
+        } else if (Number(value) < 0) {
+          errors[fieldName] = "Значение не может быть отрицательным";
         }
         break;
 
@@ -47,20 +87,58 @@ export function useFormValidation(formData: any) {
       case "licenseCode":
       case "timeout":
       case "numberBill":
+      case "numberInvoice":
+      case "title":
+      case "vendorCode":
+      case "building":
+      case "room":
+      case "material":
+      case "drawingReference":
+      case "fullName":
+      case "shortName":
+      case "lawAddress":
+      case "factAddress":
+      case "postAddress":
+      case "inn":
+      case "kpp":
+      case "orgn":
+      case "phone":
+      case "email":
+      // Добавленные поля из DTO
+      case "billNumber":
+      case "article":
+      case "userName":
+      case "password":
+      case "firstName":
+      case "lastName":
+      // Новые поля из добавленных DTO
+      case "title": // ShipmentPackageStatesDTO и PCBSDTO (уже был, но оставляем)
         if (!value || String(value).trim() === "") {
           errors[fieldName] = "Заполните поле";
         }
         break;
 
-      case "comment":
-        if (!value) {
-          errors[fieldName] = "Заполните поле";
-        } else if (String(value).length > 256) {
-          errors[fieldName] =
-            "Длина комментария не может превышать 256 символов";
+      /** --- Фото и файлы --- */
+      case "photo":
+      case "specificationImage":
+      case "scanPhoto":
+      case "image":
+        if (!value || (Array.isArray(value) && value.length === 0)) {
+          errors[fieldName] = "Добавьте хотя бы один файл";
         }
         break;
 
+      /** --- Комментарий --- */
+      // case "comment":
+      //   if (!value) {
+      //     errors[fieldName] = "Заполните поле";
+      //   } else if (String(value).length > 256) {
+      //     errors[fieldName] =
+      //       "Длина комментария не может превышать 256 символов";
+      //   }
+      //   break;
+
+      /** --- Ссылки --- */
       case "link":
         if (value && !/^https?:\/\/.+/i.test(value)) {
           errors[fieldName] = "Введите корректную ссылку (http или https)";
@@ -75,6 +153,20 @@ export function useFormValidation(formData: any) {
       case "arrivalDate":
       case "date":
       case "expectedSupplyDate":
+      case "receiptDate":
+      case "dateTimeToWarehouse":
+      case "inventarizationDate":
+      case "orgnDate":
+      case "requestDatetime":
+      case "executionDatetime":
+      // Добавленные поля из DTO
+      case "orderDate":
+      case "datetime":
+      case "birthDate":
+      case "tripStartDate":
+      case "tripEndDate":
+      // Новые поля из добавленных DTO
+      case "dateTime": // ServerWriteoffDTO и ServerArrivalsDTO
         if (!value) {
           errors[fieldName] = "Заполните дату";
         } else if (isNaN(Date.parse(value))) {
@@ -82,16 +174,10 @@ export function useFormValidation(formData: any) {
         }
         break;
 
-      /** --- Файлы --- */
-      case "specificationImage":
-      case "scanPhoto":
-        if (!value || (Array.isArray(value) && value.length === 0)) {
-          errors[fieldName] = "Добавьте хотя бы один файл";
-        }
-        break;
-
       /** --- Булевы поля --- */
       case "vat":
+      case "isCompleted":
+      case "digitalDocs":
         if (typeof value !== "boolean") {
           errors[fieldName] = "Выберите значение (Да / Нет)";
         }
@@ -102,10 +188,55 @@ export function useFormValidation(formData: any) {
       case "factoryId":
       case "transporterId":
       case "clientId":
-      case "standId":
       case "supplierId":
+      case "placementId":
+      case "componentId":
+      case "organizationTypeId":
+      case "contactPeopleId":
+      case "orderRequestId":
+      case "standId":
+      // Добавленные поля из DTO
+      case "pcbId":
+      case "pcbManufacturerId":
+      case "pcbOrderStatusId":
+      case "writeoffReasonId":
+      case "standTaskId":
+      case "shipmentId":
+      case "employeeId": // уже был, но оставляем
+      // Новые поля из добавленных DTO
+      case "stateId":
+      case "currentTaskId":
+      case "componentId": // уже был, но оставляем
+      case "standId": // уже был, но оставляем
+      case "factoryId": // уже был, но оставляем
         if (!value) {
           errors[fieldName] = "Выберите значение";
+        }
+        break;
+
+      /** --- Особые случаи --- */
+      // Для ShipmentPackageDTO - числовые поля, но хранятся как string в DTO
+      case "width":
+      case "height":
+      case "thickness":
+      case "weight":
+        if (value === undefined || value === null || value === "") {
+          errors[fieldName] = "Заполните поле";
+        } else if (isNaN(Number(value))) {
+          errors[fieldName] = "Введите числовое значение";
+        } else if (Number(value) < 0) {
+          errors[fieldName] = "Значение не может быть отрицательным";
+        }
+        break;
+
+      // Для ServerWriteoffDTO - componentCount как string
+      case "componentCount":
+        if (value === undefined || value === null || value === "") {
+          errors[fieldName] = "Заполните поле";
+        } else if (isNaN(Number(value))) {
+          errors[fieldName] = "Введите числовое значение";
+        } else if (Number(value) < 0) {
+          errors[fieldName] = "Значение не может быть отрицательным";
         }
         break;
     }
@@ -140,7 +271,6 @@ export function useFormValidation(formData: any) {
       }
     }
 
-    // 🔥 Дополнительно: для дат и файлов — автоочистка ошибки при появлении значения
     const value = getFieldValue(fieldName, section);
     if (
       ["addedDate", "shipmentDate", "arrivalDate"].includes(fieldName) &&

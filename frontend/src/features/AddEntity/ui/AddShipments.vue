@@ -271,6 +271,7 @@ const handleSubmit = async () => {
                 :id="item"
                 :name="item"
                 class="addModalWindow__content__field__option"
+                :class="{ 'error-layout': errors[item] }"
                 @change="handleInput(item)"
               >
                 <option value="" disabled>Выберите значение</option>
@@ -290,6 +291,7 @@ const handleSubmit = async () => {
               v-else-if="isDateField(item)"
               v-model="dateModel[item]"
               :id="item"
+              :class="{ 'error-layout': errors[item] }"
               :name="item"
               :config="{
                 disabled: item === 'id',

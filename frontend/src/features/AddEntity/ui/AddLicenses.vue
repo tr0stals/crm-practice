@@ -110,6 +110,7 @@ const handleSubmit = async () => {
                 :name="item"
                 class="addModalWindow__content__field__option"
                 @change="handleInput(item)"
+                :class="{ 'error-layout': errors[item] }"
               >
                 <option :value="null">Без категории</option>
                 <template
@@ -128,6 +129,7 @@ const handleSubmit = async () => {
                 v-model="formData[item]"
                 :id="item"
                 :name="item"
+                :class="{ 'error-layout': errors[item] }"
                 @change="handleInput(item)"
               />
             </template>
@@ -140,6 +142,7 @@ const handleSubmit = async () => {
                 :name="item"
                 class="addModalWindow__content__field__option"
                 @change="handleInput(item)"
+                :class="{ 'error-layout': errors[item] }"
               >
                 <option value="" disabled>Выберите значение</option>
                 <template
@@ -158,6 +161,7 @@ const handleSubmit = async () => {
               :id="item"
               :name="item"
               @update:model-value="handleInput(item)"
+              :class="{ 'error-layout': errors[item] }"
               :config="{
                 disabled: item === 'id',
                 format: 'yyyy-MM-dd',
@@ -219,6 +223,7 @@ const handleSubmit = async () => {
               :id="item"
               :name="item"
               @change="handleInput(item)"
+              :class="{ 'error-layout': errors[item] }"
             />
           </div>
           <p v-if="errors[item]" class="error-text">

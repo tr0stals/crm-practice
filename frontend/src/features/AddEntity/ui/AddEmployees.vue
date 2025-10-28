@@ -9,6 +9,7 @@ import { useAddEmployees } from "../model/useAddEmployees";
 import { computed, reactive, watch } from "vue";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 import { useFormValidation } from "@/shared/plugins/validation";
+import { useToast } from "vue-toastification";
 
 const props = defineProps<{
   sectionName: string;
@@ -23,6 +24,7 @@ const { formData, formFields, selectOptions, submit } = useAddEmployees(
     props.onClose();
   }
 );
+const toast = useToast();
 
 const { errors, handleInput, validateForm } = useFormValidation(formData);
 
@@ -88,7 +90,7 @@ const handleSubmit = async () => {
           v-for="field in formFields"
           :key="field.name"
         >
-          <template v-if="field.name !== 'id'">
+          <div v-if="field.name !== 'id'" class="addModalWindow__contentBlock">
             <label
               class="addModalWindow__content__field__label"
               :for="field.name"
@@ -99,6 +101,7 @@ const handleSubmit = async () => {
               class="addModalWindow__content__field__input"
               v-if="field.type === 'input' && !field.name.includes('Date')"
               v-model="formData[field.section][field.name]"
+              @input="handleInput(item)"
             />
             <template v-else-if="field.name.includes('Date')">
               <DatePicker
@@ -127,7 +130,10 @@ const handleSubmit = async () => {
                 {{ opt.label }}
               </option>
             </select>
-          </template>
+          </div>
+          <p v-if="errors[field.name]" class="error-text">
+            {{ errors[field.name] }}
+          </p>
         </div>
       </div>
       <div class="addModalWindow__controls">
