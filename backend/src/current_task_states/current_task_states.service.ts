@@ -1,19 +1,44 @@
 import {
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentTaskStates } from './current_task_states.entity';
 
 @Injectable()
-export class CurrentTaskStatesService {
+export class CurrentTaskStatesService implements OnModuleInit {
   constructor(
     @InjectRepository(CurrentTaskStates)
     private repo: Repository<CurrentTaskStates>,
   ) {}
+
+  async onModuleInit() {
+    await this.ensureSystemStates();
+  }
+
+  private readonly SYSTEM_STATES = ['Новая', 'Выполняется', 'Завершена', 'Отменена'];
+
+  private async ensureSystemStates() {
+    const existing = await this.repo.find({
+      where: this.SYSTEM_STATES.map((title) => ({ title })),
+      select: ['id', 'title'],
+    });
+
+    const existingSet = new Set(existing.map((e) => e.title));
+
+    const toCreate = this.SYSTEM_STATES
+      .filter((title) => !existingSet.has(title))
+      .map((title) => this.repo.create({ title }));
+
+    if (toCreate.length > 0) {
+      await this.repo.save(toCreate);
+    }
+  }
 
   async create(data: Partial<CurrentTaskStates>) {
     const entity = this.repo.create(data);
@@ -65,12 +90,30 @@ export class CurrentTaskStatesService {
   }
 
   async update(id: number, data: Partial<CurrentTaskStates>) {
-    await this.repo.update(id, data);
-    return this.getOne(id);
+    try {
+      const existing = await this.repo.findOne({ where: { id } });
+      if (!existing) throw new NotFoundException('Статус задачи не найден');
+
+      if (this.SYSTEM_STATES.includes(existing.title)) {
+        throw new ForbiddenException('Системный статус нельзя изменять');
+      }
+
+      return await this.repo.update(id, data);
+    } catch (e) {
+      console.error('Ошибка при изменении статуса задачи!', e);
+      throw e;
+    }
   }
 
   async delete(id: number) {
     try {
+      const existing = await this.repo.findOne({ where: { id } });
+      if (!existing) throw new NotFoundException('Статус задачи не найден');
+
+      if (this.SYSTEM_STATES.includes(existing.title)) {
+        throw new ForbiddenException('Системный статус нельзя удалять');
+      }
+
       await this.repo.delete(id);
     } catch (e: any) {
       if (e.code === 'ER_ROW_IS_REFERENCED_2') {
@@ -84,6 +127,7 @@ export class CurrentTaskStatesService {
           HttpStatus.BAD_REQUEST,
         );
       }
+      console.error('Ошибка при удалении статуса задачи!', e);
       throw e;
     }
   }

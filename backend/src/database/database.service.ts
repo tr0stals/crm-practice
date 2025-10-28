@@ -38,6 +38,20 @@ export class DatabaseService {
     'Клиент',
   ]);
 
+  private readonly SYSTEM_TASK_STATES = new Set([
+    'Новая',
+    'Выполняется',
+    'Завершена',
+    'Отменена',
+  ]);
+
+  private readonly SYSTEM_PCB_ORDER_STATES = new Set([
+    'Новый',
+    'Не оплачен',
+    'Оплачен',
+    'Отменен',
+  ]);
+
   private async isSystemOrganizationType(id: string): Promise<boolean> {
     try {
       const rows = await this.dataSource.query(
@@ -46,6 +60,32 @@ export class DatabaseService {
       );
       const title = rows?.[0]?.title as string | undefined;
       return !!title && this.SYSTEM_ORG_TITLES.has(title);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  private async isSystemTaskState(id: string): Promise<boolean> {
+    try {
+      const rows = await this.dataSource.query(
+        'SELECT title FROM `current_task_states` WHERE id = ? LIMIT 1',
+        [id],
+      );
+      const title = rows?.[0]?.title as string | undefined;
+      return !!title && this.SYSTEM_TASK_STATES.has(title);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  private async isSystemPcbOrderState(id: string): Promise<boolean> {
+    try {
+      const rows = await this.dataSource.query(
+        'SELECT state FROM `pcb_order_states` WHERE id = ? LIMIT 1',
+        [id],
+      );
+      const state = rows?.[0]?.state as string | undefined;
+      return !!state && this.SYSTEM_PCB_ORDER_STATES.has(state);
     } catch (_) {
       return false;
     }
@@ -347,6 +387,28 @@ export class DatabaseService {
           throw new ForbiddenException(msg);
         }
       }
+
+      if (tableName === 'current_task_states') {
+        const isSystem = await this.isSystemTaskState(id);
+        if (isSystem) {
+          const msg = 'Системный статус задачи нельзя удалять';
+          if (userId) {
+            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+          }
+          throw new ForbiddenException(msg);
+        }
+      }
+
+      if (tableName === 'pcb_order_states') {
+        const isSystem = await this.isSystemPcbOrderState(id);
+        if (isSystem) {
+          const msg = 'Системный статус заказа ПП нельзя удалять';
+          if (userId) {
+            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+          }
+          throw new ForbiddenException(msg);
+        }
+      }
       // удаляет запись, если нет связанных записей
       const blocks = await this.getBlockingReferences(tableName, id);
       if (blocks.length > 0) {
@@ -403,6 +465,28 @@ export class DatabaseService {
         const isSystem = await this.isSystemOrganizationType(id);
         if (isSystem) {
           const msg = 'Системный тип нельзя удалять';
+          if (userId) {
+            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+          }
+          throw new ForbiddenException(msg);
+        }
+      }
+
+      if (tableName === 'current_task_states') {
+        const isSystem = await this.isSystemTaskState(id);
+        if (isSystem) {
+          const msg = 'Системный статус задачи нельзя удалять';
+          if (userId) {
+            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+          }
+          throw new ForbiddenException(msg);
+        }
+      }
+
+      if (tableName === 'pcb_order_states') {
+        const isSystem = await this.isSystemPcbOrderState(id);
+        if (isSystem) {
+          const msg = 'Системный статус заказа ПП нельзя удалять';
           if (userId) {
             this.wsGateway.sendNotification(userId.toString(), msg, 'error');
           }
@@ -551,6 +635,22 @@ export class DatabaseService {
       if (isSystem) {
         // Нет userId параметра у updateTableRecord — уведомление через WS отправить некому
         throw new ForbiddenException('Системный тип нельзя изменять');
+      }
+    }
+
+    if (tableName === 'current_task_states') {
+      const isSystem = await this.isSystemTaskState(id);
+      if (isSystem) {
+        // Нет userId параметра у updateTableRecord — уведомление через WS отправить некому
+        throw new ForbiddenException('Системный статус задачи нельзя изменять');
+      }
+    }
+
+    if (tableName === 'pcb_order_states') {
+      const isSystem = await this.isSystemPcbOrderState(id);
+      if (isSystem) {
+        // Нет userId параметра у updateTableRecord — уведомление через WS отправить некому
+        throw new ForbiddenException('Системный статус заказа ПП нельзя изменять');
       }
     }
 

@@ -6,7 +6,7 @@ export class PcbOrderStates {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 45})
+  @Column({ length: 45, unique: true })
   state: string;
 
   @OneToMany(() => PcbOrders, (pcbOrder) => pcbOrder.pcbOrderState)

@@ -1,19 +1,44 @@
 import {
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PcbOrderStates } from './pcb_order_states.entity';
 
 @Injectable()
-export class PcbOrderStatesService {
+export class PcbOrderStatesService implements OnModuleInit {
   constructor(
     @InjectRepository(PcbOrderStates)
     private repository: Repository<PcbOrderStates>,
   ) {}
+
+  async onModuleInit() {
+    await this.ensureSystemStates();
+  }
+
+  private readonly SYSTEM_STATES = ['Новый', 'Не оплачен', 'Оплачен', 'Отменен'];
+
+  private async ensureSystemStates() {
+    const existing = await this.repository.find({
+      where: this.SYSTEM_STATES.map((state) => ({ state })),
+      select: ['id', 'state'],
+    });
+
+    const existingSet = new Set(existing.map((e) => e.state));
+
+    const toCreate = this.SYSTEM_STATES
+      .filter((state) => !existingSet.has(state))
+      .map((state) => this.repository.create({ state }));
+
+    if (toCreate.length > 0) {
+      await this.repository.save(toCreate);
+    }
+  }
 
   async create(data: Partial<PcbOrderStates>): Promise<PcbOrderStates> {
     const entity = this.repository.create(data);
@@ -58,14 +83,29 @@ export class PcbOrderStatesService {
     id: number,
     data: Partial<PcbOrderStates>,
   ): Promise<PcbOrderStates> {
-    await this.findOne(id); // Проверяем существование
-    await this.repository.update(id, data);
-    return await this.findOne(id);
+    try {
+      const existing = await this.findOne(id);
+
+      if (this.SYSTEM_STATES.includes(existing.state)) {
+        throw new ForbiddenException('Системный статус заказа ПП нельзя изменять');
+      }
+
+      await this.repository.update(id, data);
+      return await this.findOne(id);
+    } catch (e) {
+      console.error('Ошибка при изменении статуса заказа ПП!', e);
+      throw e;
+    }
   }
 
   async remove(id: number): Promise<void> {
     try {
-      await this.findOne(id); // Проверяем существование
+      const existing = await this.findOne(id);
+
+      if (this.SYSTEM_STATES.includes(existing.state)) {
+        throw new ForbiddenException('Системный статус заказа ПП нельзя удалять');
+      }
+
       await this.repository.delete(id);
     } catch (e: any) {
       if (e.code === 'ER_ROW_IS_REFERENCED_2') {
@@ -79,6 +119,7 @@ export class PcbOrderStatesService {
           HttpStatus.BAD_REQUEST,
         );
       }
+      console.error('Ошибка при удалении статуса заказа ПП!', e);
       throw e;
     }
   }

@@ -7,7 +7,7 @@ export class CurrentTaskStates {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 45})
+  @Column({ length: 45, unique: true })
   title: string;
 
   @OneToMany(() => CurrentTasks, (currentTask) => currentTask.currentTaskStates)
