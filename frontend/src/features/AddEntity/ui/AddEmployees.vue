@@ -17,7 +17,7 @@ const props = defineProps<{
   onSuccess: () => void;
 }>();
 
-const { formData, formFields, selectOptions, submit } = useAddEmployees(
+const { formData, tableColumns, selectOptions, submit } = useAddEmployees(
   props.sectionName,
   () => {
     props.onSuccess();
@@ -29,7 +29,7 @@ const toast = useToast();
 const { errors, handleInput, validateForm } = useFormValidation(formData);
 
 function isDateField(key) {
-  const lower = key.name.toLowerCase();
+  const lower = key.toLowerCase();
   return (
     lower.includes("date") ||
     lower === "deadline" ||
@@ -40,21 +40,41 @@ function isDateField(key) {
   );
 }
 
-const dateFields = computed(() => formFields.value.filter(isDateField));
+function handleFilesChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const files = Array.from(input.files || []);
+
+  if (!formData["specificationImage"]) {
+    formData["specificationImage"] = [];
+  }
+
+  // Добавляем новые файлы к существующим
+  formData["specificationImage"] = [
+    ...formData["specificationImage"],
+    ...files,
+  ];
+  handleInput("specificationImage");
+}
+
+function removeFile(index: number) {
+  if (formData["specificationImage"]) {
+    formData["specificationImage"].splice(index, 1);
+  }
+}
+
+const dateFields = computed(() => tableColumns.value.filter(isDateField));
 const dateModel = reactive<Record<string, any>>({});
 watch(
   dateFields,
   (fields) => {
     fields.forEach((key) => {
-      console.debug(key.name);
-      if (!(key.name in dateModel)) {
-        dateModel[key.name] = formData[key.name]
-          ? formData[key.name].slice(0, 10)
-          : null;
+      console.debug(key);
+      if (!(key in dateModel)) {
+        dateModel[key] = formData[key] ? formData[key].slice(0, 10) : null;
         watch(
-          () => dateModel[key.name],
+          () => dateModel[key],
           (val) => {
-            formData[key.name] = val ? val : null;
+            formData[key] = val ? val : null;
           }
         );
       }
@@ -87,52 +107,169 @@ const handleSubmit = async () => {
       <div class="addModalWindow__content">
         <div
           class="addModalWindow__content__field"
-          v-for="field in formFields"
-          :key="field.name"
+          v-for="item in tableColumns"
+          :key="item"
         >
-          <div v-if="field.name !== 'id'" class="addModalWindow__contentBlock">
-            <label
-              class="addModalWindow__content__field__label"
-              :for="field.name"
-              >{{ fieldDictionary[field.name] }}</label
-            >
+          <div
+            v-if="item !== 'id' && item !== 'passwordSalt'"
+            class="addModalWindow__contentBlock"
+          >
+            <label class="addModalWindow__content__field__label" :for="item">
+              {{ fieldDictionary[item] || item }}
+            </label>
+
+            <!-- parentId -->
+            <template v-if="item === 'parentId'">
+              <select
+                v-model="formData[item]"
+                :id="item"
+                :name="item"
+                class="addModalWindow__content__field__option"
+              >
+                <option :value="null">Без категории</option>
+                <template
+                  v-for="option in selectOptions[item]"
+                  :key="option.id"
+                >
+                  {{ console.debug(option) }}
+                  <option :value="option.id">{{ option.label }}</option>
+                </template>
+              </select>
+            </template>
+
+            <template v-else-if="item === 'specificationImage'">
+              <div class="imageInput">
+                <input
+                  type="file"
+                  id="iconUpload"
+                  class="imageInput__input--hidden"
+                  multiple
+                  @change="handleFilesChange"
+                />
+
+                <div
+                  v-if="formData[item] && formData[item].length"
+                  class="imageInput__textContent"
+                >
+                  <span class="imageInput__header">Выбраны изображения:</span>
+                  <ul>
+                    <li
+                      v-for="(file, index) in formData[item]"
+                      :key="index"
+                      class="imageInput__imageItem"
+                    >
+                      {{ file.name }}
+                      <button type="button" @click="removeFile(index)">
+                        X
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+
+                <label for="iconUpload" class="imageInput__uploadButton">
+                  Загрузить
+                </label>
+              </div>
+            </template>
+
+            <!-- поля с окончанием Id -->
+            <template v-else-if="item.endsWith('Id')">
+              <select
+                v-model="formData[item]"
+                :id="item"
+                :name="item"
+                class="addModalWindow__content__field__option"
+                :class="{ 'error-layout': errors[item] }"
+                @change="handleInput(item)"
+              >
+                <option value="" disabled>Выберите значение</option>
+                <template
+                  v-for="option in selectOptions[item]"
+                  :key="option.id"
+                >
+                  <option :value="option.id">
+                    {{ option.label || option.shortName }}
+                  </option>
+                </template>
+              </select>
+            </template>
+
+            <!-- дата -->
+            <DatePicker
+              v-else-if="isDateField(item)"
+              v-model="dateModel[item]"
+              :id="item"
+              :class="{ 'error-layout': errors[item] }"
+              :name="item"
+              :config="{
+                disabled: item === 'id',
+                format: 'yyyy-MM-dd',
+                hideInputIcon: true,
+              }"
+              placeholder="Выберите дату"
+              @update:model-value="handleInput(item)"
+            />
+
+            <!-- телефон -->
+            <input
+              v-else-if="item === 'phone'"
+              type="text"
+              v-model="formData[item]"
+              :id="item"
+              :name="item"
+              class="addModalWindow__content__field__input"
+            />
+
+            <!-- чекбокс -->
+            <input
+              v-else-if="item === 'isCompleted'"
+              class="addModalWindow__content__field__input"
+              type="checkbox"
+              v-model="formData[item]"
+              :id="item"
+              :name="item"
+            />
+
+            <!-- vat -->
+            <template v-else-if="item === 'vat'">
+              <div class="addModalWindow__content__field__inputControls">
+                <Button
+                  class="addModalWindow__content__field__inputControls__btn"
+                  :class="{ active: formData.vat === true }"
+                  @click="formData.vat = true"
+                >
+                  Да
+                </Button>
+                <Button
+                  class="addModalWindow__content__field__inputControls__btn"
+                  :class="{ active: formData.vat === false }"
+                  @click="formData.vat = false"
+                >
+                  Нет
+                </Button>
+              </div>
+            </template>
+
+            <!-- остальное -->
             <input
               required
               class="addModalWindow__content__field__input"
-              v-if="field.type === 'input' && !field.name.includes('Date')"
-              v-model="formData[field.section][field.name]"
-              @input="handleInput(item)"
-            />
-            <template v-else-if="field.name.includes('Date')">
-              <DatePicker
-                v-model="dateModel[field.name]"
-                :id="field.name"
-                :name="field.name"
-                :config="{
-                  disabled: field === 'id',
-                  format: 'yyyy-MM-dd',
-                  hideInputIcon: true,
-                }"
-                placeholder="Выберите дату"
-              />
-            </template>
-            <select
-              class="addModalWindow__content__field__option"
+              :id="item"
+              :name="item"
+              :value="formData[item]"
+              @input="
+                (e) => {
+                  const val = e.target.value;
+                  formData[item] = val;
+                  handleInput(item);
+                }
+              "
+              :class="{ 'error-layout': errors[item] }"
               v-else
-              v-model="formData[field.section][field.name]"
-            >
-              <option
-                v-for="opt in field.options"
-                :key="opt.id"
-                :value="opt.id"
-                required
-              >
-                {{ opt.label }}
-              </option>
-            </select>
+            />
           </div>
-          <p v-if="errors[field.name]" class="error-text">
-            {{ errors[field.name] }}
+          <p v-if="errors[item]" class="error-text">
+            {{ errors[item] }}
           </p>
         </div>
       </div>

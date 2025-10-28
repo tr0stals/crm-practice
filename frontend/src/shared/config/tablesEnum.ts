@@ -11,6 +11,7 @@ export enum tablesEnum {
   components_categories = "components_categories",
   components = "components",
   departments = "departments",
+  current_tasks = "current_tasks",
   stands_types = "stands_types",
   stand_tasks_components = "stand_tasks_components",
   organization_types = "organization_types",

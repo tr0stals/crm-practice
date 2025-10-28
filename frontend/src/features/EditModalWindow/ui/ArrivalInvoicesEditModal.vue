@@ -272,6 +272,26 @@ onUnmounted(() => {
           :name="key"
           placeholder="+7 (___) ___-__-__"
         />
+
+        <template v-else-if="getInputType(key, value) === 'checkbox'">
+          <div class="addModalWindow__content__field__inputControls">
+            <Button
+              class="addModalWindow__content__field__inputControls__btn"
+              :class="{ active: formData.vat === true }"
+              @click="formData.vat = true"
+            >
+              Да
+            </Button>
+            <Button
+              class="addModalWindow__content__field__inputControls__btn"
+              :class="{ active: formData.vat === false }"
+              @click="formData.vat = false"
+            >
+              Нет
+            </Button>
+          </div>
+        </template>
+
         <template v-else-if="key === 'scanPhoto'">
           <div class="imageInput">
             <input

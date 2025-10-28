@@ -273,6 +273,25 @@ onUnmounted(() => {
           placeholder="+7 (___) ___-__-__"
         />
 
+        <template v-else-if="getInputType(key, value) === 'checkbox'">
+          <div class="addModalWindow__content__field__inputControls">
+            <Button
+              class="addModalWindow__content__field__inputControls__btn"
+              :class="{ active: formData.digitalDocs === true }"
+              @click="formData.digitalDocs = true"
+            >
+              Да
+            </Button>
+            <Button
+              class="addModalWindow__content__field__inputControls__btn"
+              :class="{ active: formData.digitalDocs === false }"
+              @click="formData.digitalDocs = false"
+            >
+              Нет
+            </Button>
+          </div>
+        </template>
+
         <!-- Generic input -->
         <input
           v-else-if="key !== 'id'"

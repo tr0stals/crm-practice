@@ -202,6 +202,25 @@ onUnmounted(() => {
           />
         </template>
 
+        <template v-else-if="getInputType(key, value) === 'checkbox'">
+          <div class="addModalWindow__content__field__inputControls">
+            <Button
+              class="addModalWindow__content__field__inputControls__btn"
+              :class="{ active: formData.vat === true }"
+              @click="formData.vat = true"
+            >
+              Да
+            </Button>
+            <Button
+              class="addModalWindow__content__field__inputControls__btn"
+              :class="{ active: formData.vat === false }"
+              @click="formData.vat = false"
+            >
+              Нет
+            </Button>
+          </div>
+        </template>
+
         <!-- Select for object (relation) -->
         <select
           v-else-if="isRelatedField(key, value)"

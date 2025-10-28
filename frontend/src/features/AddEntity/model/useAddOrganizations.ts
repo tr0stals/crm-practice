@@ -44,6 +44,8 @@ export function useAddOrganizations(
 
   const submit = async () => {
     const nodeType = navigationStore.selectedRow?.data?.nodeType;
+    console.debug(formData);
+
     let orgTypeId: number | null = null;
 
     /**

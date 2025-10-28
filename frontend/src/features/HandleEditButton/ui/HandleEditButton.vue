@@ -14,7 +14,11 @@ const disabled = ref<boolean>(false);
 watch(
   () => navigationStore.selectedRow?.data?.nodeType,
   (val) => {
-    if (val === tablesEnum.organization_types) disabled.value = true;
+    if (
+      val === tablesEnum.organization_types ||
+      val === tablesEnum.current_tasks
+    )
+      disabled.value = true;
     else disabled.value = false;
   }
 );

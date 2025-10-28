@@ -2,23 +2,18 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import { createEntityAsync } from "../api/createEntityAsync";
 import { onMounted, reactive, ref } from "vue";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
-import type { FieldMeta } from "../types/FieldMeta";
 import { useToast } from "vue-toastification";
 
 export function useAddEmployees(sectionName: string, onSuccess: () => void) {
-  const formData = reactive<any>({
-    employees: {},
-    peoples: {},
-    professions: {},
-  });
-  const formFields = ref<FieldMeta[]>([]);
+  const formData = reactive<any>({});
+
   const tableColumns = ref<string[]>([]);
   const selectOptions = reactive<Record<string, any[]>>({});
   const navigationStore = useNavigationStore();
   const toast = useToast();
 
   const fetchColumnsAndRelations = async () => {
-    // сначала тянем основную таблицу Employees
+    // Получаем основную таблицу Employees
     const data = await getDataAsync({
       endpoint: `database/getFormMetaData/${sectionName}`,
     }).then((res) => res.data);
@@ -27,42 +22,37 @@ export function useAddEmployees(sectionName: string, onSuccess: () => void) {
       (item) => item !== "peopleId"
     );
 
+    // Добавляем опции для полей
     for (const [key, value] of Object.entries(data)) {
-      if (key !== "peopleId") {
+      if (key !== "peopleId" && value.options) {
         selectOptions[key] = value.options;
-        formFields.value.push({
-          name: key,
-          type: value.options ? "select" : "input",
-          options: value.options ?? [],
-          section: sectionName,
-        });
       }
     }
 
-    // теперь пробегаем по relationTables
+    // Добавляем поля из peoples
     const relDataPeoples = await getDataAsync({
       endpoint: `database/getFormMetaData/peoples`,
     }).then((res) => res.data);
 
+    for (const col of Object.keys(relDataPeoples)) {
+      if (!tableColumns.value.includes(col)) {
+        tableColumns.value.push(col);
+      }
+    }
+
+    // Добавляем professionId
     const relDataProfessions = await getDataAsync({
       endpoint: `database/getFormMetaData/employees_professions`,
     }).then((res) => res.data);
 
-    for (const col of Object.keys(relDataPeoples)) {
-      formFields.value.push({
-        name: col,
-        type: "input",
-        section: "peoples",
-      });
+    if (!tableColumns.value.includes("professionId")) {
+      tableColumns.value.push("professionId");
     }
 
-    // Professions (селект)
-    formFields.value.push({
-      name: "professionId",
-      type: "select",
-      options: relDataProfessions.professionId?.options ?? [],
-      section: "professions",
-    });
+    // Добавляем опции для professionId
+    if (relDataProfessions.professionId?.options) {
+      selectOptions["professionId"] = relDataProfessions.professionId.options;
+    }
   };
 
   onMounted(fetchColumnsAndRelations);
@@ -70,11 +60,11 @@ export function useAddEmployees(sectionName: string, onSuccess: () => void) {
   const submit = async () => {
     try {
       const peopleData = {
-        email: formData.peoples.email,
-        firstName: formData.peoples.firstName,
-        lastName: formData.peoples.lastName,
-        middleName: formData.peoples.middleName,
-        phone: formData.peoples.phone,
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        middleName: formData.middleName,
+        phone: formData.phone,
         birthDate: formData.birthDate,
       };
       const peopleResponse = await createEntityAsync("peoples", peopleData);
@@ -104,7 +94,7 @@ export function useAddEmployees(sectionName: string, onSuccess: () => void) {
         }
       );
 
-      const professionId = formData.professions?.professionId;
+      const professionId = formData.professionId;
 
       const employeeProfessionResponse = await createEntityAsync(
         "employees_professions",
@@ -114,7 +104,6 @@ export function useAddEmployees(sectionName: string, onSuccess: () => void) {
         }
       );
 
-      // console.debug(employeeDepartmentResponse);
       onSuccess();
     } catch (e) {
       toast.error("Ошибка при добавлении сотрудника", { timeout: 3000 });
@@ -123,7 +112,7 @@ export function useAddEmployees(sectionName: string, onSuccess: () => void) {
 
   return {
     formData,
-    formFields,
+    tableColumns,
     selectOptions,
     submit,
   };

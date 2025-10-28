@@ -464,7 +464,10 @@ const handleSelectSection = (item: any) => {
               v-if="navigationStore.currentSection !== `pcbs`"
               :onSuccessCallback="onUpdateCallBack"
             />
-            <AddPcbsButton v-else :onSuccessCallback="onUpdateCallBack" />
+            <AddPcbsButton
+              v-if="navigationStore.currentSection === `pcbs`"
+              :onSuccessCallback="onUpdateCallBack"
+            />
             <HandleEditButton :onSuccessCallback="onUpdateCallBack" />
 
             <HandleDeleteButton :onUpdateCallback="onUpdateCallBack" />

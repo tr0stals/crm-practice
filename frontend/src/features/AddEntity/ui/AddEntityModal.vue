@@ -119,6 +119,7 @@ async function uploadImage(file: File, orgTypeId: number) {
 
 const handleSubmit = async () => {
   try {
+    console.debug(formData);
     if (!validateForm(tableColumns.value)) {
       toast.error("Исправьте ошибки перед отправкой");
       return;
@@ -225,19 +226,25 @@ const handleSubmit = async () => {
             />
 
             <!-- vat -->
-            <template v-else-if="item === 'vat'">
+            <template
+              v-else-if="
+                item === 'vat' ||
+                item === 'digitalDocs' ||
+                item === 'isCompleted'
+              "
+            >
               <div class="addModalWindow__content__field__inputControls">
                 <Button
                   class="addModalWindow__content__field__inputControls__btn"
-                  :class="{ active: formData.vat === true }"
-                  @click="formData.vat = true"
+                  :class="{ active: formData[item] === true }"
+                  @click="formData[item] = true"
                 >
                   Да
                 </Button>
                 <Button
                   class="addModalWindow__content__field__inputControls__btn"
-                  :class="{ active: formData.vat === false }"
-                  @click="formData.vat = false"
+                  :class="{ active: formData[item] === false }"
+                  @click="formData[item] = false"
                 >
                   Нет
                 </Button>
