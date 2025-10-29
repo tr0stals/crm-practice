@@ -2,7 +2,7 @@ import { getDataAsync } from "../api/getDataAsync";
 
 export const roleTables = [
   {
-    profession: "Test",
+    profession: "Администратор",
     tables: [
       "arrival_invoices",
       "bills_for_pay",

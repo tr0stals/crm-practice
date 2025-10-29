@@ -6,33 +6,45 @@ import warehouseIcon from "../../../../public/assets/WarehouseIcon.png";
 import pcbIcon from "../../../../public/assets/PcbsIcon.png";
 import standIcon from "../../../../public/assets/StandsIcon.png";
 import systemIcon from "../../../../public/assets/SystemIcon.png";
+import { roleTables } from "@/shared/config/rolesTables";
 
 interface IMenuEntity {
   icon?: string;
   title: string;
   tableName?: string;
+  professions?: string[]; // 👈 добавляем сюда профессии
   children?: IMenuEntity[];
 }
 
+/**
+ * Хелпер: получить список профессий, которым доступна таблица
+ */
+function getProfessionsForTable(tableName: string): string[] {
+  return roleTables
+    .filter((role) => role.tables.includes(tableName))
+    .map((role) => role.profession);
+}
+
+// Базовое меню
 export const menuEntities: IMenuEntity[] = [
   {
     icon: `${docsIcon}`,
     title: "Документы",
     children: [
       {
-        icon: "",
         title: "Менеджер накладных",
         tableName: "arrival_invoices",
+        professions: getProfessionsForTable("arrival_invoices"),
       },
       {
-        icon: "",
         title: "Менеджер счетов",
         tableName: "bills_for_pay",
+        professions: getProfessionsForTable("bills_for_pay"),
       },
       {
-        icon: "",
         title: "Заявки на заказ",
         tableName: "order_requests",
+        professions: getProfessionsForTable("order_requests"),
       },
     ],
   },
@@ -41,28 +53,27 @@ export const menuEntities: IMenuEntity[] = [
     title: "Организации",
     children: [
       {
-        icon: "",
         title: "Менеджер организаций",
         tableName: "organizations",
+        professions: getProfessionsForTable("organizations"),
       },
       {
-        icon: "",
         title: "Менеджер сотрудников наших компаний",
         children: [
           {
-            icon: "",
             title: "Сотрудники",
             tableName: "employees",
+            professions: getProfessionsForTable("employees"),
           },
           {
-            icon: "",
             title: "Отделы",
             tableName: "departments",
+            professions: getProfessionsForTable("departments"),
           },
           {
-            icon: "",
             title: "Профессии",
             tableName: "professions",
+            professions: getProfessionsForTable("professions"),
           },
         ],
       },
@@ -72,21 +83,21 @@ export const menuEntities: IMenuEntity[] = [
     icon: licenseIcon,
     title: "Лицензии",
     tableName: "license",
-    children: [],
+    professions: getProfessionsForTable("license"),
   },
   {
     icon: standIcon,
     title: "Стенды",
     children: [
       {
-        icon: "",
         title: "Стенды",
         tableName: "stands",
+        professions: getProfessionsForTable("stands"),
       },
       {
-        icon: "",
         title: "Техпроцесс",
         tableName: "stand_tasks",
+        professions: getProfessionsForTable("stand_tasks"),
       },
     ],
   },
@@ -95,23 +106,22 @@ export const menuEntities: IMenuEntity[] = [
     title: "Отгрузки",
     children: [
       {
-        icon: "",
         title: "Отгрузки",
         tableName: "shipments",
+        professions: getProfessionsForTable("shipments"),
       },
       {
-        icon: "",
         title: "Текущие задачи",
         children: [
           {
-            icon: "",
             title: "Текущие задачи",
             tableName: "current_tasks",
+            professions: getProfessionsForTable("current_tasks"),
           },
           {
-            icon: "",
             title: "Состояния текущих задач",
-            tableName: "current_task_states",
+            tableName: "current_tasks_states",
+            professions: getProfessionsForTable("current_tasks_states"),
           },
         ],
       },
@@ -122,30 +132,29 @@ export const menuEntities: IMenuEntity[] = [
     title: "Склад",
     children: [
       {
-        icon: "",
         title: "Компоненты склада",
         children: [
           {
-            icon: "",
             title: "Компоненты",
             tableName: "components",
+            professions: getProfessionsForTable("components"),
           },
           {
-            icon: "",
             title: "Размещение компонентов",
             tableName: "component_placements",
+            professions: getProfessionsForTable("component_placements"),
           },
         ],
       },
       {
-        icon: "",
         title: "Приход / расход",
         tableName: "writeoff",
+        professions: getProfessionsForTable("writeoff"),
       },
       {
-        icon: "",
         title: "Инвентаризация",
         tableName: "inventarization",
+        professions: getProfessionsForTable("inventarization"),
       },
     ],
   },
@@ -154,23 +163,22 @@ export const menuEntities: IMenuEntity[] = [
     title: "Печатные платы",
     children: [
       {
-        icon: "",
         title: "Заказы ПП",
         tableName: "pcb_orders",
+        professions: getProfessionsForTable("pcb_orders"),
       },
       {
-        icon: "",
         title: "Менеджер ПП",
         children: [
           {
-            icon: "",
             title: "Печатные платы",
             tableName: "pcbs",
+            professions: getProfessionsForTable("pcbs"),
           },
           {
-            icon: "",
             title: "Компоненты ПП",
             tableName: "pcbs_components",
+            professions: getProfessionsForTable("pcbs_components"),
           },
         ],
       },
@@ -181,19 +189,19 @@ export const menuEntities: IMenuEntity[] = [
     title: "Система",
     children: [
       {
-        icon: "",
         title: "Менеджер пользователей",
         tableName: "user",
+        professions: getProfessionsForTable("user"),
       },
       {
-        icon: "",
         title: "Импорт / экспорт БД, таблиц. Обновление БД на будущий год",
         tableName: "",
+        professions: ["Администратор", "Директор"],
       },
       {
-        icon: "",
         title: "Журнал текущих задач",
         tableName: "current_task_states_log",
+        professions: getProfessionsForTable("current_task_states_log"),
       },
     ],
   },

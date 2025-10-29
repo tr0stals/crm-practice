@@ -39,6 +39,7 @@ import { TableDataPreview } from "@/features/TableDataPreview";
 import { Sidebar } from "@/features/Sidebar";
 import { useMenuStore } from "@/entities/MenuEntity/model/menuStore";
 import AddPcbsButton from "@/features/AddPcbsButton";
+import { tablesEnum } from "@/shared/config/tablesEnum";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -182,6 +183,15 @@ watch(
   }
 );
 
+watch(
+  () => authorizedUserStore.user,
+  (val) => {
+    navigationStore.currentSection = null;
+    navigationStore.selectedRow = null;
+    navigationStore.activeRow = null;
+  }
+);
+
 async function onUpdateCallBack() {
   await getCurrentData();
   treeviewRef.value?.refreshTree?.();
@@ -284,6 +294,8 @@ onUnmounted(() => {
   if (timer) {
     clearInterval(timer); // Очищаем интервал при размонтировании компонента
   }
+  menuStore.activeEntity = null;
+  navigationStore.currentSection = null;
   document.removeEventListener("click", handleClickOutside);
 });
 
@@ -383,22 +395,7 @@ const handleSelectSection = (item: any) => {
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="logo">А ПРАКТИКУМ</div>
-      <!-- <TreeviewMenu
-        v-if="
-          authorizedUserStore.user?.professionTitle === 'Администратор' ||
-          authorizedUserStore.user?.professionTitle === 'Директор' ||
-          authorizedUserStore.user?.professionTitle === 'Test'
-        "
-        @node-select="handleSelectSection"
-      /> -->
-      <Sidebar
-        v-if="
-          authorizedUserStore.user?.professionTitle === 'Администратор' ||
-          authorizedUserStore.user?.professionTitle === 'Директор' ||
-          authorizedUserStore.user?.professionTitle === 'Test'
-        "
-      />
-      <NavigationSidebar v-else :sections-list="sectionsList" />
+      <Sidebar />
     </aside>
 
     <!-- Main Content Area -->
@@ -451,6 +448,7 @@ const handleSelectSection = (item: any) => {
         </h2>
         <!-- Action Buttons, Search, and Filter Placeholder -->
         <div class="controls">
+          <!-- Кнопки для админа -->
           <div
             v-if="
               authorizedUserStore.user?.professionTitle.toLowerCase() ===
@@ -478,9 +476,17 @@ const handleSelectSection = (item: any) => {
             <ExportTableButton :onSuccessCallback="onUpdateCallBack" />
             <ImportTableButton />
           </div>
+          <!-- Кнопки для сотрудников -->
           <div v-else class="action-buttons">
-            <GetCurrentTaskButton :onSuccessCallback="onUpdateCallBack" />
-            <SetCurrentTaskCompleted :onSuccessCallback="onUpdateCallBack" />
+            <Button :onClick="onUpdateCallBack">
+              <RefreshIcon /> обновить
+            </Button>
+            <template
+              v-if="navigationStore.currentSection === tablesEnum.current_tasks"
+            >
+              <GetCurrentTaskButton :onSuccessCallback="onUpdateCallBack" />
+              <SetCurrentTaskCompleted :onSuccessCallback="onUpdateCallBack" />
+            </template>
           </div>
           <div class="search-filter">
             <input
