@@ -22,6 +22,7 @@ export const fieldDictionary: { [key: string]: string } = {
   stands: "Стенд",
   dateTime: "Дата и время",
   weight: "Вес",
+  paid: "Оплачено",
   material: "Материал",
   receiptDate: "Дата поступления",
   drawingReference: "Ссылка на чертеж",

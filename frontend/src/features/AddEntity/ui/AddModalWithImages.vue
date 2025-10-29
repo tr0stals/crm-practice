@@ -354,15 +354,15 @@ const handleDeleteImage = async (item: any) => {
               :name="item"
               @change="handleInput(item)"
             />
-            <template v-else-if="item === 'vat'">
+            <template v-else-if="item === 'vat' || item === 'paid'">
               <div class="addModalWindow__content__field__inputControls">
                 <Button
                   class="addModalWindow__content__field__inputControls__btn"
-                  :class="{ active: formData.vat === true }"
+                  :class="{ active: formData[item] === true }"
                   @click="
                     () => {
-                      formData.vat = true;
-                      handleInput('vat');
+                      formData[item] = true;
+                      handleInput(item);
                     }
                   "
                 >
@@ -370,11 +370,11 @@ const handleDeleteImage = async (item: any) => {
                 </Button>
                 <Button
                   class="addModalWindow__content__field__inputControls__btn"
-                  :class="{ active: formData.vat === false }"
+                  :class="{ active: formData[item] === false }"
                   @click="
                     () => {
-                      formData.vat = false;
-                      handleInput('vat');
+                      formData[item] = false;
+                      handleInput(item);
                     }
                   "
                 >
