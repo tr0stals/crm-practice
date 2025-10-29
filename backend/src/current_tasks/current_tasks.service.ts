@@ -247,10 +247,18 @@ export class CurrentTasksService {
       // Если задача завершена, создаем запись в server_writeoff
       if (updatedTask.isCompleted) {
         try {
-          const writeoff = await this.serverWriteoffBusiness.createWriteoffFromCurrentTask(updatedTask);
-          console.log(`[SERVER_WRITEOFF] Создано списание #${writeoff.id} для задачи #${id} (через update)`);
+          const writeoff =
+            await this.serverWriteoffBusiness.createWriteoffFromCurrentTask(
+              updatedTask,
+            );
+          console.log(
+            `[SERVER_WRITEOFF] Создано списание #${writeoff.id} для задачи #${id} (через update)`,
+          );
         } catch (error) {
-          console.error(`[SERVER_WRITEOFF] Ошибка при создании списания для задачи #${id}:`, error.message);
+          console.error(
+            `[SERVER_WRITEOFF] Ошибка при создании списания для задачи #${id}:`,
+            error.message,
+          );
           // Не прерываем процесс, но логируем ошибку
         }
       }
@@ -377,10 +385,16 @@ export class CurrentTasksService {
 
     // 6️⃣ Создаем запись в server_writeoff
     try {
-      const writeoff = await this.serverWriteoffBusiness.createWriteoffFromCurrentTask(task);
-      console.log(`[SERVER_WRITEOFF] Создано списание #${writeoff.id} для задачи #${taskId}`);
+      const writeoff =
+        await this.serverWriteoffBusiness.createWriteoffFromCurrentTask(task);
+      console.log(
+        `[SERVER_WRITEOFF] Создано списание #${writeoff.id} для задачи #${taskId}`,
+      );
     } catch (error) {
-      console.error(`[SERVER_WRITEOFF] Ошибка при создании списания для задачи #${taskId}:`, error.message);
+      console.error(
+        `[SERVER_WRITEOFF] Ошибка при создании списания для задачи #${taskId}:`,
+        error.message,
+      );
       // Не прерываем процесс, но логируем ошибку
     }
 
@@ -493,7 +507,6 @@ export class CurrentTasksService {
 
   // Новый метод: дерево только для сотрудника
   async getCurrentTasksTreeForEmployee(employeeId: number): Promise<any> {
-    // 1️⃣ Получаем только задачи конкретного сотрудника (не завершённые)
     const tasks = await this.currentTasksRepository.find({
       where: {
         shipmentStands: {
@@ -514,7 +527,6 @@ export class CurrentTasksService {
       ],
     });
 
-    // 2️⃣ Группируем stand_tasks по parentId для подзадач
     const allStandTasks = await this.standTasksRepository.find({
       relations: ['components', 'stands', 'professions'],
     });
@@ -525,7 +537,6 @@ export class CurrentTasksService {
       standTasksByParent.get(key)!.push(st);
     }
 
-    // 3️⃣ Группируем по: состояние → дедлайн → стенд → задача
     const stateMap = new Map<
       string,
       Map<string, Map<string, Map<number, CurrentTasks>>>
@@ -550,7 +561,6 @@ export class CurrentTasksService {
       standMap.get(stand)!.set(task.id, task);
     }
 
-    // 4️⃣ Формируем дерево (в стиле директора)
     const children = Array.from(stateMap.entries()).map(
       ([state, deadlineMap]) => ({
         name: `Состояние: ${state}`,
@@ -574,7 +584,8 @@ export class CurrentTasksService {
                       `${task.shipmentStands.stands?.employees?.peoples?.lastName || ''} ${task.shipmentStands.stands?.employees?.peoples?.firstName || ''} ${task.shipmentStands.stands?.employees?.peoples?.middleName || ''}`.trim() ||
                         'Без сотрудника',
                       `Задача: ${task.standTasks.title}`,
-                      `Состояние задачи: ${task.currentTaskStates?.title || ''}`,
+                      `Компонент для задачи: ${task.standTasks?.standTasksComponents}`,
+                      `Количество: ${task.standTasks?.componentOutCount}`,
                     ]
                       .filter(Boolean)
                       .join(' | '),

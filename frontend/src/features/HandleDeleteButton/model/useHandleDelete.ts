@@ -32,6 +32,8 @@ export async function useHandleDelete(onUpdateCallBack: () => void) {
   };
 
   ModalManager.getInstance().open(ConfirmModal, {
+    action: "delete",
+    section: targetNodeType,
     onSuccessCallback: execute,
     onDeclineCallback: () => ModalManager.getInstance().closeModal(),
   });

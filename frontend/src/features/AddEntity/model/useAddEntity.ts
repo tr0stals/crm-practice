@@ -18,9 +18,12 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
       endpoint: `database/getFormMetaData/${sectionName}`,
     }).then((res) => res.data);
 
-    tableColumns.value = Object.keys(data);
+    const { quantity, ...defaultData } = data;
+    console.debug(quantity, data);
 
-    for (const [key, value] of Object.entries(data)) {
+    tableColumns.value = Object.keys(defaultData);
+
+    for (const [key, value] of Object.entries(defaultData)) {
       console.debug(value);
       if (value.options) {
         selectOptions[key] = value.options;
@@ -32,7 +35,7 @@ export function useAddEntity(sectionName: string, onSuccess: () => void) {
 
   const submit = async () => {
     if (!formData.parentId) {
-      formData.parentId = 0; // или 0, если у тебя в БД так заведено
+      formData.parentId = 0;
     }
 
     const res = await createEntityAsync(sectionName, formData);

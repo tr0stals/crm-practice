@@ -277,15 +277,15 @@ onUnmounted(() => {
           <div class="addModalWindow__content__field__inputControls">
             <Button
               class="addModalWindow__content__field__inputControls__btn"
-              :class="{ active: formData.vat === true }"
-              @click="formData.vat = true"
+              :class="{ active: formData[key] === true }"
+              @click="formData[key] = true"
             >
               Да
             </Button>
             <Button
               class="addModalWindow__content__field__inputControls__btn"
-              :class="{ active: formData.vat === false }"
-              @click="formData.vat = false"
+              :class="{ active: formData[key] === false }"
+              @click="formData[key] = false"
             >
               Нет
             </Button>

@@ -1,15 +1,28 @@
 <script lang="ts" setup>
 import "../style.scss";
 import Button from "@/shared/ui/Button/ui/Button.vue";
+import { getConfirmText } from "@/shared/utils/textTemplates";
 
-const props = defineProps<{
+interface Props {
   onSuccessCallback: () => void;
   onDeclineCallback: () => void;
-}>();
+  section?: string;
+  action?: string;
+  customText?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  action: "delete",
+  section: "default",
+});
+
+const confirmText =
+  props.customText || getConfirmText(props.section, props.action as any);
 </script>
+
 <template>
   <div class="confirmModal modalWindow">
-    <h1 class="confirmModal__title">Вы действительно хотите это сделать?</h1>
+    <h1 class="confirmModal__title">{{ confirmText }}</h1>
     <div class="confirmModal__controls">
       <Button
         :extra-classes="['confirmModal__button']"

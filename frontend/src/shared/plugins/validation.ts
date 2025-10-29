@@ -31,7 +31,6 @@ export function useFormValidation(formData: any) {
     switch (fieldName) {
       /** --- Числовые поля --- */
       case "price":
-      case "places":
       case "standId":
       case "licenseTypeId":
       case "totalAmount":
@@ -85,7 +84,6 @@ export function useFormValidation(formData: any) {
 
       /** --- Строковые поля --- */
       case "licenseCode":
-      case "timeout":
       case "numberBill":
       case "numberInvoice":
       case "title":
@@ -146,8 +144,6 @@ export function useFormValidation(formData: any) {
         break;
 
       /** --- Даты --- */
-      case "start":
-      case "end":
       case "addedDate":
       case "shipmentDate":
       case "arrivalDate":

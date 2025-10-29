@@ -8,6 +8,7 @@ export const relatedFields = [
   "client",
   "transporter",
   "supplier",
+  "suppliers",
   "factory",
   "licenses",
   "standType",

@@ -12,20 +12,20 @@ interface IMenuEntity {
   icon?: string;
   title: string;
   tableName?: string;
-  professions?: string[]; // 👈 добавляем сюда профессии
+  professions?: string[];
   children?: IMenuEntity[];
 }
 
 /**
- * Хелпер: получить список профессий, которым доступна таблица
+ * Функция получает список профессий, которым доступна таблица
  */
 function getProfessionsForTable(tableName: string): string[] {
+  console.debug(tableName);
   return roleTables
     .filter((role) => role.tables.includes(tableName))
     .map((role) => role.profession);
 }
 
-// Базовое меню
 export const menuEntities: IMenuEntity[] = [
   {
     icon: `${docsIcon}`,
@@ -58,24 +58,9 @@ export const menuEntities: IMenuEntity[] = [
         professions: getProfessionsForTable("organizations"),
       },
       {
-        title: "Менеджер сотрудников наших компаний",
-        children: [
-          {
-            title: "Сотрудники",
-            tableName: "employees",
-            professions: getProfessionsForTable("employees"),
-          },
-          {
-            title: "Отделы",
-            tableName: "departments",
-            professions: getProfessionsForTable("departments"),
-          },
-          {
-            title: "Профессии",
-            tableName: "professions",
-            professions: getProfessionsForTable("professions"),
-          },
-        ],
+        title: "Менеджер сотрудников ",
+        tableName: "employees",
+        professions: getProfessionsForTable("employees"),
       },
     ],
   },
@@ -120,8 +105,8 @@ export const menuEntities: IMenuEntity[] = [
           },
           {
             title: "Состояния текущих задач",
-            tableName: "current_tasks_states",
-            professions: getProfessionsForTable("current_tasks_states"),
+            tableName: "current_task_states",
+            professions: getProfessionsForTable("current_task_states"),
           },
         ],
       },
@@ -147,7 +132,7 @@ export const menuEntities: IMenuEntity[] = [
         ],
       },
       {
-        title: "Приход / расход",
+        title: "Списания",
         tableName: "writeoff",
         professions: getProfessionsForTable("writeoff"),
       },
@@ -174,11 +159,6 @@ export const menuEntities: IMenuEntity[] = [
             title: "Печатные платы",
             tableName: "pcbs",
             professions: getProfessionsForTable("pcbs"),
-          },
-          {
-            title: "Компоненты ПП",
-            tableName: "pcbs_components",
-            professions: getProfessionsForTable("pcbs_components"),
           },
         ],
       },

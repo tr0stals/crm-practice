@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional, Min } from 'class-validator';
 
 export class LicenseDTO {
   @IsOptional()
@@ -11,20 +11,17 @@ export class LicenseDTO {
 
   @IsOptional()
   @Type(() => Date)
-  @IsNotEmpty()
   start: Date;
 
   @IsOptional()
   @Type(() => Date)
-  @IsNotEmpty()
   end: Date;
 
   @IsOptional()
-  @IsNotEmpty()
+  @Min(0)
   places: number;
 
   @IsOptional()
-  @IsNotEmpty()
   timeout: string;
 
   @IsOptional()
