@@ -584,8 +584,6 @@ export class CurrentTasksService {
                       `${task.shipmentStands.stands?.employees?.peoples?.lastName || ''} ${task.shipmentStands.stands?.employees?.peoples?.firstName || ''} ${task.shipmentStands.stands?.employees?.peoples?.middleName || ''}`.trim() ||
                         'Без сотрудника',
                       `Задача: ${task.standTasks.title}`,
-                      `Компонент для задачи: ${task.standTasks?.standTasksComponents}`,
-                      `Количество: ${task.standTasks?.componentOutCount}`,
                     ]
                       .filter(Boolean)
                       .join(' | '),
