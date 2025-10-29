@@ -353,7 +353,7 @@ onUnmounted(() => {
 
         <!-- Generic input -->
         <input
-          v-else-if="key !== 'id'"
+          v-else-if="key !== 'id' && key !== 'quantity'"
           class="editModalWindow__content__field__input"
           :type="getInputType(key, value)"
           :id="key"

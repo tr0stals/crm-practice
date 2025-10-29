@@ -50,7 +50,7 @@ export const fieldDictionary: { [key: string]: string } = {
   start: "Дата начала",
   end: "Дата окончания",
   places: "Количество мест",
-  timeout: "Время ожидания",
+  timeout: "Таймаут",
   comment: "Комментарий",
   licenseTypeId: "Тип лицензии",
   orderRequestId: "Заявка на заказ",

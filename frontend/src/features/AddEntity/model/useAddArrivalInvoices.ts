@@ -2,6 +2,7 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import { createEntityAsync } from "../api/createEntityAsync";
 import { onMounted, reactive, ref } from "vue";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 
 export function useAddArrivalInvoices(
   sectionName: string,
@@ -12,17 +13,30 @@ export function useAddArrivalInvoices(
   const selectOptions = reactive<Record<string, any[]>>({});
   const navigationStore = useNavigationStore();
 
+  const orgTypeKeys = ["supplierId", "factoryId"];
+
   const fetchColumnsAndRelations = async () => {
     const data = await getDataAsync({
       endpoint: `database/getFormMetaData/${sectionName}`,
     }).then((res) => res.data);
 
+    const organizations = await getDataAsync({ endpoint: "organizations/get" });
+
     tableColumns.value = Object.keys(data);
 
     for (const [key, value] of Object.entries(data)) {
-      console.debug(value);
-      if (value.options) {
+      if (value.options && !orgTypeKeys.includes(key)) {
         selectOptions[key] = value.options;
+      } else if (orgTypeKeys.includes(key)) {
+        const targetOrganizations = organizations.data?.filter((org) => {
+          return value.options.map((opt) => opt.label === org.shortName);
+        });
+        console.debug(targetOrganizations);
+
+        selectOptions[key] = targetOrganizations.filter((org) => {
+          console.debug(org.organizationTypes?.title === fieldDictionary[key]);
+          return org.organizationTypes?.title === fieldDictionary[key];
+        });
       }
     }
   };

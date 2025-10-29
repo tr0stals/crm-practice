@@ -155,7 +155,6 @@ function onNodeSelect(event: any) {
 // Новый метод загрузки изображения по полиморфному эндпоинту
 async function fetchImageForNode(targetType: string, targetId: number) {
   if (imageUrlMap.value[targetId]) return; // уже загружено
-  console.debug(targetType, targetId);
   if (targetType === tablesEnum.components_categories)
     targetType = tablesEnum.components;
 

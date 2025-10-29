@@ -316,8 +316,9 @@ const handleDeleteImage = async (item: any) => {
                   :key="option.id"
                   v-for="option in selectOptions[item]"
                 >
+                  {{ console.debug(option) }}
                   <option :value="option.id">
-                    {{ option.label }}
+                    {{ option.label || option.shortName }}
                   </option>
                 </template>
               </select>
