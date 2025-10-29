@@ -54,6 +54,13 @@ export class DatabaseService {
     'Отменен',
   ]);
 
+  private readonly SYSTEM_WRITEOFF_REASONS = new Set([
+    'Утеря',
+    'Повреждение',
+    'Брак',
+    'Истечение срока годности',
+  ]);
+
   private async isSystemOrganizationType(id: string): Promise<boolean> {
     try {
       const rows = await this.dataSource.query(
@@ -88,6 +95,19 @@ export class DatabaseService {
       );
       const state = rows?.[0]?.state as string | undefined;
       return !!state && this.SYSTEM_PCB_ORDER_STATES.has(state);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  private async isSystemWriteoffReason(id: string): Promise<boolean> {
+    try {
+      const rows = await this.dataSource.query(
+        'SELECT title FROM `writeoff_reasons` WHERE id = ? LIMIT 1',
+        [id],
+      );
+      const title = rows?.[0]?.title as string | undefined;
+      return !!title && this.SYSTEM_WRITEOFF_REASONS.has(title);
     } catch (_) {
       return false;
     }
@@ -411,6 +431,17 @@ export class DatabaseService {
           throw new ForbiddenException(msg);
         }
       }
+
+      if (tableName === 'writeoff_reasons') {
+        const isSystem = await this.isSystemWriteoffReason(id);
+        if (isSystem) {
+          const msg = 'Системную причину списания нельзя удалять';
+          if (userId) {
+            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+          }
+          throw new ForbiddenException(msg);
+        }
+      }
       // удаляет запись, если нет связанных записей
       const blocks = await this.getBlockingReferences(tableName, id);
       if (blocks.length > 0) {
@@ -536,6 +567,17 @@ export class DatabaseService {
         const isSystem = await this.isSystemPcbOrderState(id);
         if (isSystem) {
           const msg = 'Системный статус заказа ПП нельзя удалять';
+          if (userId) {
+            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+          }
+          throw new ForbiddenException(msg);
+        }
+      }
+
+      if (tableName === 'writeoff_reasons') {
+        const isSystem = await this.isSystemWriteoffReason(id);
+        if (isSystem) {
+          const msg = 'Системную причину списания нельзя удалять';
           if (userId) {
             this.wsGateway.sendNotification(userId.toString(), msg, 'error');
           }
@@ -727,6 +769,14 @@ export class DatabaseService {
       if (isSystem) {
         // Нет userId параметра у updateTableRecord — уведомление через WS отправить некому
         throw new ForbiddenException('Системный статус заказа ПП нельзя изменять');
+      }
+    }
+
+    if (tableName === 'writeoff_reasons') {
+      const isSystem = await this.isSystemWriteoffReason(id);
+      if (isSystem) {
+        // Нет userId параметра у updateTableRecord — уведомление через WS отправить некому
+        throw new ForbiddenException('Системную причину списания нельзя изменять');
       }
     }
 
