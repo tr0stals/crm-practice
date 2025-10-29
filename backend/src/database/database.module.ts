@@ -8,9 +8,10 @@ import { EmployeesModule } from 'src/employees/employees.module';
 import { StandsModule } from 'src/stands/stands.module';
 import { ComponentsModule } from 'src/components/components.module';
 import { PcbsModule } from 'src/pcbs/pcbs.module';
+import { ComponentQuantityWatcherModule } from 'src/features/component-quantity-watcher/component-quantity-watcher.module';
 
 @Module({
-  imports: [CurrentTasksModule, WebsocketModule, DatabaseLocalizationModule, EmployeesModule, PcbsModule, ComponentsModule, StandsModule],
+  imports: [CurrentTasksModule, WebsocketModule, DatabaseLocalizationModule, EmployeesModule, PcbsModule, ComponentsModule, StandsModule, ComponentQuantityWatcherModule],
   providers: [DatabaseService],
   controllers: [DatabaseController],
   exports: [DatabaseService],

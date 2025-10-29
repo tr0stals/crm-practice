@@ -16,6 +16,7 @@ import { EmployeesService } from 'src/employees/employees.service';
 import { StandsService } from 'src/stands/stands.service';
 import { PcbsService } from 'src/pcbs/pcbs.service';
 import { ComponentsService } from 'src/components/components.service';
+import { ComponentQuantityWatcherService } from 'src/features/component-quantity-watcher/component-quantity-watcher.service';
 import { treeTablesChildren } from './config/treeTablesChildren';
 
 @Injectable()
@@ -29,6 +30,7 @@ export class DatabaseService {
     private componentsService: ComponentsService,
     private readonly wsGateway: WsGateway,
     private readonly databaseLocalizationService: DatabaseLocalizationService,
+    private readonly componentQuantityWatcher: ComponentQuantityWatcherService,
   ) {}
 
   private readonly SYSTEM_ORG_TITLES = new Set([
@@ -421,10 +423,57 @@ export class DatabaseService {
         throw new HttpException({ message: msg }, HttpStatus.BAD_REQUEST);
       }
       console.log('DELETE START', tableName, id, profession, userId);
+
+      // Сохраняем данные для пересчета компонентов до удаления
+      let componentsToRecalculate: number[] = [];
+
+      if (tableName === 'writeoff') {
+        // Получаем componentId до удаления для последующего пересчета
+        const writeoffData = await this.dataSource.query(
+          `SELECT componentId FROM \`${tableName}\` WHERE id = ? LIMIT 1`,
+          [id],
+        );
+        if (writeoffData.length > 0 && writeoffData[0].componentId) {
+          componentsToRecalculate.push(writeoffData[0].componentId);
+        }
+      } else if (tableName === 'server_writeoff') {
+        // Получаем componentId до удаления для последующего пересчета
+        const serverWriteoffData = await this.dataSource.query(
+          `SELECT componentId FROM \`${tableName}\` WHERE id = ? LIMIT 1`,
+          [id],
+        );
+        if (serverWriteoffData.length > 0 && serverWriteoffData[0].componentId) {
+          componentsToRecalculate.push(serverWriteoffData[0].componentId);
+        }
+      } else if (tableName === 'arrival_invoices') {
+        // Получаем все компоненты накладной до удаления
+        const invoiceComponents = await this.dataSource.query(
+          `SELECT DISTINCT componentId FROM invoices_components WHERE arrivalInvoiceId = ?`,
+          [id],
+        );
+        componentsToRecalculate = invoiceComponents
+          .map((row: any) => row.componentId)
+          .filter((id: number) => id);
+      }
+
       const result = await this.dataSource.query(
         `DELETE FROM \`${tableName}\` WHERE id = ?`,
         [id],
       );
+
+      // Пересчитываем компоненты после удаления
+      if (componentsToRecalculate.length > 0) {
+        console.log(`[DATABASE_SERVICE] Пересчет компонентов после удаления из ${tableName} #${id}:`, componentsToRecalculate);
+        for (const componentId of componentsToRecalculate) {
+          try {
+            await this.componentQuantityWatcher.onInvoicesComponentChange(componentId);
+            console.log(`[DATABASE_SERVICE] Пересчитан компонент #${componentId} после удаления из ${tableName}`);
+          } catch (error) {
+            console.error(`[DATABASE_SERVICE] Ошибка пересчета компонента #${componentId}:`, error.message);
+          }
+        }
+      }
+
       // Если дошли сюда — удаление прошло успешно
       if (userId) {
         const successMsg = `Запись удалена из таблицы "${tableName}"`;
@@ -501,6 +550,20 @@ export class DatabaseService {
         userId,
       );
 
+      // Сохраняем данные для пересчета компонентов до удаления
+      let componentsToRecalculate: number[] = [];
+
+      if (tableName === 'arrival_invoices') {
+        // Получаем все компоненты накладной до удаления
+        const invoiceComponents = await this.dataSource.query(
+          `SELECT DISTINCT componentId FROM invoices_components WHERE arrivalInvoiceId = ?`,
+          [id],
+        );
+        componentsToRecalculate = invoiceComponents
+          .map((row: any) => row.componentId)
+          .filter((id: number) => id);
+      }
+
       // Пытаемся обнулить все FK-ссылки (SET NULL) перед удалением
       const fks = await this.getReferencingForeignKeys(tableName);
       try {
@@ -532,6 +595,19 @@ export class DatabaseService {
         }
         // Иначе перебросим исходную ошибку
         throw nullifyErr;
+      }
+
+      // Пересчитываем компоненты после удаления
+      if (componentsToRecalculate.length > 0) {
+        console.log(`[DATABASE_SERVICE] Пересчет компонентов после удаления из ${tableName} #${id} (cleanup):`, componentsToRecalculate);
+        for (const componentId of componentsToRecalculate) {
+          try {
+            await this.componentQuantityWatcher.onInvoicesComponentChange(componentId);
+            console.log(`[DATABASE_SERVICE] Пересчитан компонент #${componentId} после удаления из ${tableName} (cleanup)`);
+          } catch (error) {
+            console.error(`[DATABASE_SERVICE] Ошибка пересчета компонента #${componentId} (cleanup):`, error.message);
+          }
+        }
       }
 
       // Если дошли сюда — удаление прошло успешно

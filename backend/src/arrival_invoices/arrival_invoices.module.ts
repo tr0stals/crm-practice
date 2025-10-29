@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ArrivalInvoices } from './arrival_invoices.entity';
 import { InvoicesComponents } from '../invoices_components/invoices_components.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
+import { ComponentQuantityWatcherModule } from 'src/features/component-quantity-watcher/component-quantity-watcher.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { Organizations } from 'src/organizations/organizations.entity';
       InvoicesComponents,
       Organizations,
     ]),
+    ComponentQuantityWatcherModule,
   ],
   controllers: [ArrivalInvoicesController],
   providers: [ArrivalInvoicesService],

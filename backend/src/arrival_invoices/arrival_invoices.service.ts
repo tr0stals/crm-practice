@@ -10,6 +10,7 @@ import { ArrivalInvoices } from './arrival_invoices.entity';
 import { InvoicesComponents } from '../invoices_components/invoices_components.entity';
 import { ArrivalInvoicesDTO } from './dto/ArrivalInvoicesDTO';
 import { Organizations } from 'src/organizations/organizations.entity';
+import { ComponentQuantityWatcherService } from 'src/features/component-quantity-watcher/component-quantity-watcher.service';
 
 @Injectable()
 export class ArrivalInvoicesService {
@@ -20,6 +21,7 @@ export class ArrivalInvoicesService {
     private readonly invoicesComponentsRepo: Repository<InvoicesComponents>,
     @InjectRepository(Organizations)
     private readonly organizationRepository: Repository<Organizations>,
+    private readonly componentQuantityWatcher: ComponentQuantityWatcherService,
   ) {}
 
   async getAll() {
@@ -93,7 +95,23 @@ export class ArrivalInvoicesService {
 
   async delete(id: number) {
     try {
+      // Получаем все компоненты до удаления для последующего пересчета
+      const invoiceComponents = await this.invoicesComponentsRepo.find({
+        where: { arrivalInvoices: { id } },
+        relations: ['components']
+      });
+
       await this.repo.delete(id);
+
+      // Пересчитываем все компоненты, которые были в этой накладной
+      console.log(`[ARRIVAL_INVOICES] Пересчет компонентов после удаления накладной #${id}, найдено компонентов: ${invoiceComponents.length}`);
+
+      for (const component of invoiceComponents) {
+        if (component.components?.id) {
+          await this.componentQuantityWatcher.onInvoicesComponentChange(component.components.id);
+          console.log(`[ARRIVAL_INVOICES] Пересчитан компонент #${component.components.id} после удаления накладной`);
+        }
+      }
     } catch (e: any) {
       if (e.code === 'ER_ROW_IS_REFERENCED_2') {
         const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);

@@ -6,6 +6,7 @@ import { ServerWriteoffController } from './server_writeoff.controller';
 import { ComponentsModule } from 'src/components/components.module';
 import { CurrentTasksModule } from 'src/current_tasks/current_tasks.module';
 import { OrganizationsModule } from 'src/organizations/organizations.module';
+import { ComponentQuantityWatcherModule } from 'src/features/component-quantity-watcher/component-quantity-watcher.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { OrganizationsModule } from 'src/organizations/organizations.module';
     ComponentsModule,
     OrganizationsModule,
     CurrentTasksModule,
+    ComponentQuantityWatcherModule,
   ],
   providers: [ServerWriteoffService],
   controllers: [ServerWriteoffController],

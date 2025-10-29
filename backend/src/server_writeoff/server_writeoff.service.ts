@@ -11,6 +11,7 @@ import { ServerWriteoffDTO } from './dto/ServerWriteoffDTO';
 import { ComponentsService } from 'src/components/components.service';
 import { CurrentTasksService } from 'src/current_tasks/current_tasks.service';
 import { OrganizationsService } from 'src/organizations/organizations.service';
+import { ComponentQuantityWatcherService } from 'src/features/component-quantity-watcher/component-quantity-watcher.service';
 
 @Injectable()
 export class ServerWriteoffService {
@@ -20,6 +21,7 @@ export class ServerWriteoffService {
     private componentsService: ComponentsService,
     private currentTaskService: CurrentTasksService,
     private organizationService: OrganizationsService,
+    private readonly componentQuantityWatcher: ComponentQuantityWatcherService,
   ) {}
 
   async getAll() {
@@ -94,7 +96,19 @@ export class ServerWriteoffService {
 
   async delete(id: number) {
     try {
+      // Получаем componentId до удаления для последующего пересчета
+      const existingRecord = await this.repo.findOne({
+        where: { id },
+        relations: ['components', 'factory']
+      });
+
       await this.repo.delete(id);
+
+      // Автоматически пересчитываем количество компонента после удаления
+      if (existingRecord?.components?.id) {
+        await this.componentQuantityWatcher.onWriteoffChange(existingRecord.components.id);
+        console.log(`[SERVER_WRITEOFF] Пересчитаны компоненты после удаления списания #${id} для компонента #${existingRecord.components.id}`);
+      }
     } catch (e: any) {
       if (e.code === 'ER_ROW_IS_REFERENCED_2') {
         const match = e.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);
