@@ -40,6 +40,7 @@
         "expectedSupplyDate": "Ожидаемая дата поставки",
         "totalAmount": "Сумма",
         "vat": "НДС",
+        "paid": "Оплачено",
         "link": "Ссылка",
         "supplierId": "Поставщик",
         "factoryId": "Фабрика",
@@ -77,6 +78,7 @@
         "material": "Материал",
         "receiptDate": "Дата поступления",
         "drawingReference": "Ссылка на чертеж",
+        "quantity": "Количество",
         "placementId": "Размещение"
       }
     },

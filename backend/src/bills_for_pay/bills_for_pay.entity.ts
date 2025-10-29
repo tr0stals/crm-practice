@@ -32,6 +32,9 @@ export class BillsForPay {
   @Column()
   vat: boolean;
 
+  @Column()
+  paid: boolean;
+
   @Column({ length: 45 })
   link: string;
 
