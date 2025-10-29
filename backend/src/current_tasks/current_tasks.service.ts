@@ -204,7 +204,7 @@ export class CurrentTasksService {
     return entity;
   }
 
-  async update(id: number, data: Partial<CurrentTasks>): Promise<CurrentTasks> {
+  async update(id: number, data: Partial<CurrentTasks>, userId?: string): Promise<CurrentTasks> {
     const existingTask = await this.findOne(id); // Проверяем существование и получаем текущее состояние
 
     // Проверяем, изменился ли статус на завершенный (ID = 3) или isCompleted = true
@@ -242,10 +242,45 @@ export class CurrentTasksService {
 
     // Если нужно пересчитать компоненты, вызываем пересчет
     if (shouldRecalculateComponents) {
-      await this.componentQuantityWatcher.onCurrentTaskStatusChange(id);
-
-      // Если задача завершена, создаем запись в server_writeoff
+      // Если задача завершена, проверяем доступность компонентов
       if (updatedTask.isCompleted) {
+        const areComponentsAvailable = await this.componentQuantityWatcher.checkTaskComponentsAvailability(
+          id,
+          userId
+        );
+
+        if (!areComponentsAvailable) {
+          // Откатываем статус задачи
+          const inProgressState = await this.currentTaskStatesRepository.findOne({
+            where: [{ title: 'Выполняется' }, { title: 'Выполняется' }],
+          });
+
+          if (inProgressState) {
+            await this.currentTasksRepository.update(id, {
+              isCompleted: false,
+              currentTaskStates: inProgressState,
+            });
+          }
+
+          // Отправляем уведомление через WebSocket
+          if (userId) {
+            this.wsGateway.sendNotification(
+              userId,
+              'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
+              'error'
+            );
+          }
+
+          throw new HttpException(
+            {
+              message: 'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
+              type: 'component_insufficient'
+            },
+            HttpStatus.BAD_REQUEST
+          );
+        }
+
+        // Создаем запись в server_writeoff после успешной проверки
         try {
           const writeoff = await this.serverWriteoffBusiness.createWriteoffFromCurrentTask(updatedTask);
           console.log(`[SERVER_WRITEOFF] Создано списание #${writeoff.id} для задачи #${id} (через update)`);
@@ -254,6 +289,8 @@ export class CurrentTasksService {
           // Не прерываем процесс, но логируем ошибку
         }
       }
+
+      await this.componentQuantityWatcher.onCurrentTaskStatusChange(id);
     }
 
     return updatedTask;
@@ -318,7 +355,7 @@ export class CurrentTasksService {
     return await this.currentTasksRepository.save(task);
   }
 
-  async completeTask(taskId: number) {
+  async completeTask(taskId: number, userId?: string) {
     const task = await this.currentTasksRepository.findOne({
       where: { id: taskId },
       relations: [
@@ -384,7 +421,44 @@ export class CurrentTasksService {
       // Не прерываем процесс, но логируем ошибку
     }
 
-    // 7️⃣ Пересчитываем компоненты
+    // 7️⃣ Проверяем доступность компонентов перед завершением задачи
+    const areComponentsAvailable = await this.componentQuantityWatcher.checkTaskComponentsAvailability(
+      taskId,
+      userId
+    );
+
+    if (!areComponentsAvailable) {
+      // Если компонентов недостаточно, откатываем статус задачи
+      const inProgressState = await this.currentTaskStatesRepository.findOne({
+        where: [{ title: 'Выполняется' }, { title: 'Выполняется' }],
+      });
+
+      if (inProgressState) {
+        await this.currentTasksRepository.update(taskId, {
+          isCompleted: false,
+          currentTaskStates: inProgressState,
+        });
+      }
+
+      // Отправляем уведомление через WebSocket
+      if (userId) {
+        this.wsGateway.sendNotification(
+          userId,
+          'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
+          'error'
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: 'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
+          type: 'component_insufficient'
+        },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    // 8️⃣ Пересчитываем компоненты
     await this.componentQuantityWatcher.onCurrentTaskStatusChange(taskId);
 
     return { success: true, message: 'Задача успешно завершена' };

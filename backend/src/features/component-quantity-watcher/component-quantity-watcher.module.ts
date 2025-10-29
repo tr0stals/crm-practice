@@ -9,6 +9,7 @@ import { CurrentTasks } from 'src/current_tasks/current_tasks.entity';
 import { ArrivalInvoices } from 'src/arrival_invoices/arrival_invoices.entity';
 import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_components.entity';
 import { InventarizationBusinessModule } from 'src/features/inventarization-business/inventarization-business.module';
+import { WsGateway } from 'src/websocket/ws.gateway';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { InventarizationBusinessModule } from 'src/features/inventarization-busi
     ]),
     InventarizationBusinessModule,
   ],
-  providers: [ComponentQuantityWatcherService],
+  providers: [ComponentQuantityWatcherService, WsGateway],
   exports: [ComponentQuantityWatcherService],
 })
 export class ComponentQuantityWatcherModule {}

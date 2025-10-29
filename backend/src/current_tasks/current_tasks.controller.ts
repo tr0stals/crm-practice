@@ -43,8 +43,10 @@ export class CurrentTasksController {
   }
 
   @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() data: Partial<CurrentTasks>) {
-    return await this.service.update(+id, data);
+  async update(@Param('id') id: string, @Body() data: Partial<CurrentTasks>, @Request() req?: any) {
+    // Получаем userId из JWT токена
+    const userId = req?.user?.id || req?.user?.sub;
+    return await this.service.update(+id, data, userId);
   }
 
   @Delete('delete/:id')
@@ -96,8 +98,10 @@ export class CurrentTasksController {
 
   @UseGuards(JwtAuthGuard)
   @Post('complete/:taskId')
-  async completeTask(@Param('taskId') taskId: string) {
-    return await this.service.completeTask(+taskId);
+  async completeTask(@Param('taskId') taskId: string, @Request() req?: any) {
+    // Получаем userId из JWT токена
+    const userId = req?.user?.id || req?.user?.sub;
+    return await this.service.completeTask(+taskId, userId);
   }
 
   @UseGuards(JwtAuthGuard)

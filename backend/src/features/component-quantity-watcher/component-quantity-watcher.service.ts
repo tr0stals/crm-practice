@@ -9,6 +9,7 @@ import { CurrentTasks } from 'src/current_tasks/current_tasks.entity';
 import { ArrivalInvoices } from 'src/arrival_invoices/arrival_invoices.entity';
 import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_components.entity';
 import { InventarizationBusinessService } from 'src/features/inventarization-business/inventarization-business.service';
+import { WsGateway } from 'src/websocket/ws.gateway';
 
 @Injectable()
 export class ComponentQuantityWatcherService {
@@ -34,7 +35,8 @@ export class ComponentQuantityWatcherService {
     @InjectRepository(StandTasksComponents)
     private standTasksComponentsRepository: Repository<StandTasksComponents>,
 
-    private inventarizationBusinessService: InventarizationBusinessService,
+    public inventarizationBusinessService: InventarizationBusinessService,
+    private wsGateway: WsGateway,
   ) {}
 
   /**
@@ -263,6 +265,147 @@ export class ComponentQuantityWatcherService {
       console.log(`Выполнен массовый пересчет всех компонентов для фабрики ${factoryId}`);
     } catch (error) {
       console.error(`Ошибка при массовом пересчете компонентов для фабрики ${factoryId}:`, error.message);
+    }
+  }
+
+  /**
+   * Проверяет доступность компонента для операции
+   */
+  async checkComponentAvailability(
+    componentId: number,
+    requestedQuantity: number,
+    operation: 'writeoff' | 'task_completion' = 'writeoff',
+    userId?: string,
+    factoryId?: number,
+  ): Promise<boolean> {
+    try {
+      console.log(`[ComponentQuantityWatcher] Проверка доступности компонента ${componentId}, кол-во: ${requestedQuantity}, операция: ${operation}`);
+
+      // Если factoryId не указан, определяем его
+      if (!factoryId) {
+        factoryId = await this.findComponentFactory(componentId) || undefined;
+      }
+
+      if (!factoryId) {
+        console.warn(`[ComponentQuantityWatcher] Не удалось определить factoryId для компонента ${componentId}`);
+        if (userId) {
+          this.wsGateway.sendNotification(userId, 'Не удалось определить фабрику для компонента. Операция отменена.', 'error');
+        }
+        return false;
+      }
+
+      // Получаем текущее количество через расчет
+      const calculationResult = await this.inventarizationBusinessService.calculateComponentCount(
+        componentId,
+        factoryId
+      );
+
+      const availableQuantity = calculationResult.calculatedCount;
+      const isAvailable = availableQuantity >= requestedQuantity;
+
+      console.log(`[ComponentQuantityWatcher] Результат проверки: доступно ${availableQuantity}, требуется ${requestedQuantity}, операция разрешена: ${isAvailable}`);
+
+      if (!isAvailable) {
+        const operationText = operation === 'writeoff' ? 'списание' : 'выполнение задачи';
+        const message = `Недостаточно компонентов "${calculationResult.component.title}" для ${operationText}. Доступно: ${availableQuantity}, требуется: ${requestedQuantity}. Операция отменена.`;
+
+        console.log(`[ComponentQuantityWatcher] ${message}`);
+
+        // Отправляем уведомление пользователю
+        if (userId) {
+          this.wsGateway.sendNotification(userId, message, 'error');
+        }
+      }
+
+      return isAvailable;
+    } catch (error) {
+      console.error(`[ComponentQuantityWatcher] Ошибка при проверке доступности компонента ${componentId}:`, error.message);
+
+      // В случае ошибки не разрешаем операцию
+      if (userId) {
+        this.wsGateway.sendNotification(userId, 'Ошибка при проверке доступности компонентов. Операция отменена.', 'error');
+      }
+
+      return false;
+    }
+  }
+
+  /**
+   * Проверяет доступность компонентов для задачи перед выполнением
+   */
+  async checkTaskComponentsAvailability(
+    taskId: number,
+    userId?: string,
+  ): Promise<boolean> {
+    try {
+      console.log(`[ComponentQuantityWatcher] Проверка доступности компонентов для задачи ${taskId}`);
+
+      // Получаем информацию о задаче
+      const currentTask = await this.currentTasksRepository.findOne({
+        where: { id: taskId },
+        relations: ['currentTaskStates', 'standTasks', 'standTasks.components']
+      });
+
+      if (!currentTask) {
+        console.log(`[ComponentQuantityWatcher] Задача ${taskId} не найдена`);
+        return false;
+      }
+
+      const componentIds = new Map<number, number>(); // componentId -> requiredCount
+
+      // 1. Ищем компоненты из CurrentTasksComponents
+      const taskComponents = await this.currentTasksComponentsRepository.find({
+        where: { currentTask: { id: taskId } },
+        relations: ['component']
+      });
+
+      for (const taskComponent of taskComponents) {
+        componentIds.set(taskComponent.component.id, taskComponent.componentCount || 1);
+        console.log(`[ComponentQuantityWatcher] Найден компонент в CurrentTasksComponents: ${taskComponent.component.id} (${taskComponent.component.title}) - ${taskComponent.componentCount || 1} шт`);
+      }
+
+      // 2. Добавляем основной компонент из StandTasks
+      if (currentTask.standTasks?.components) {
+        const mainComponentId = currentTask.standTasks.components.id;
+        const mainCount = currentTask.standTasks.componentOutCount || 1;
+        componentIds.set(mainComponentId, (componentIds.get(mainComponentId) || 0) + mainCount);
+        console.log(`[ComponentQuantityWatcher] Основной компонент: ${mainComponentId} (${currentTask.standTasks.components.title}) - ${mainCount} шт`);
+      }
+
+      // 3. Ищем компоненты из StandTasksComponents
+      if (currentTask.standTasks?.id) {
+        const standTasksComponents = await this.findStandTasksComponents(currentTask.standTasks.id);
+        for (const stc of standTasksComponents) {
+          componentIds.set(stc.component.id, (componentIds.get(stc.component.id) || 0) + (stc.componentCount || 1));
+          console.log(`[ComponentQuantityWatcher] Дополнительный компонент: ${stc.component.id} (${stc.component.title}) - ${stc.componentCount || 1} шт`);
+        }
+      }
+
+      // Проверяем доступность каждого компонента
+      for (const [componentId, requiredCount] of componentIds) {
+        const isAvailable = await this.checkComponentAvailability(
+          componentId,
+          requiredCount,
+          'task_completion',
+          userId
+        );
+
+        if (!isAvailable) {
+          console.log(`[ComponentQuantityWatcher] Компонент ${componentId} недоступен, выполнение задачи отменено`);
+          return false;
+        }
+      }
+
+      console.log(`[ComponentQuantityWatcher] Все компоненты доступны, выполнение задачи разрешено`);
+      return true;
+    } catch (error) {
+      console.error(`[ComponentQuantityWatcher] Ошибка при проверке доступности компонентов задачи ${taskId}:`, error.message);
+
+      if (userId) {
+        this.wsGateway.sendNotification(userId, 'Ошибка при проверке доступности компонентов для задачи. Операция отменена.', 'error');
+      }
+
+      return false;
     }
   }
 }

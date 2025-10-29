@@ -38,8 +38,9 @@ async function bootstrap() {
   app.useWebSocketAdapter(new WsAdapter(app)); // Важно для чистого ws
   app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-  await app.listen(process.env.PORT ?? 3000);
-  console.log('HTTP server running on http://localhost:3000');
-  console.log('WebSocket server running on ws://localhost:3001/ws');
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+  console.log(`HTTP server running on http://localhost:${port}`);
+  console.log(`WebSocket server running on ws://localhost:${port}/ws`);
 }
 bootstrap();
