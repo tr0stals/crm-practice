@@ -594,9 +594,11 @@ export class InventarizationBusinessService {
 
     let totalCount = 0;
     for (const item of results) {
-      const count = item.writeoff_count || 0;
+      // Пробуем разные варианты имен полей для количества
+      const count = item.writeoff_count || item.writeoffCount || item.count || 0;
       totalCount += count;
-      console.log(`  - Writeoff: кол-во ${count}, дата ${item.writeoff_dateTime}, ID ${item.writeoff_id}`);
+      console.log(`  - Writeoff: кол-во ${count}, дата ${item.writeoff_dateTime || item.writeoffDateTime || item.dateTime}, ID ${item.writeoff_id || item.writeoffId || item.id}`);
+      console.log(`    - Доступные поля: ${JSON.stringify(Object.keys(item))}`);
     }
 
     // Если записей не найдено, попробуем найти все writeoff для компонента без фильтра по дате
@@ -614,15 +616,18 @@ export class InventarizationBusinessService {
       console.log(`[InventarizationBusiness] Всего writeoff для компонента: ${allResults.length}`);
 
       for (const item of allResults) {
-        const writeoffDate = new Date(item.writeoff_dateTime);
+        // Пробуем разные варианты имен полей
+        const count = item.writeoff_count || item.writeoffCount || item.count || 0;
+        const writeoffDate = new Date(item.writeoff_dateTime || item.writeoffDateTime || item.dateTime);
         const fromDateMs = fromDate ? fromDate.getTime() : 0;
         const toDateMs = toDate.getTime();
         const writeoffDateMs = writeoffDate.getTime();
 
-        console.log(`  - Writeoff: кол-во ${item.writeoff_count || 0}, дата ${item.writeoff_dateTime}, в периоде: ${fromDateMs <= writeoffDateMs && writeoffDateMs <= toDateMs}`);
+        console.log(`  - Writeoff: кол-во ${count}, дата ${item.writeoff_dateTime || item.writeoffDateTime || item.dateTime}, в периоде: ${fromDateMs <= writeoffDateMs && writeoffDateMs <= toDateMs}`);
+        console.log(`    - Доступные поля: ${JSON.stringify(Object.keys(item))}`);
 
         if (fromDateMs <= writeoffDateMs && writeoffDateMs <= toDateMs) {
-          totalCount += (item.writeoff_count || 0);
+          totalCount += count;
         }
       }
     }

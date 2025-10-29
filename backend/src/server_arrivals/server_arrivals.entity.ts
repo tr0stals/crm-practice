@@ -14,7 +14,7 @@ export class ServerArrivals {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'date' })
   dateTime: Date;
 
   @Column()
