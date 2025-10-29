@@ -17,6 +17,7 @@ import { WsGateway } from 'src/websocket/ws.gateway';
 import { User } from 'src/user/user.entity';
 import { CurrentTaskStatesLogService } from 'src/current_task_states_log/current_task_states_log.service';
 import { ComponentQuantityWatcherService } from 'src/features/component-quantity-watcher/component-quantity-watcher.service';
+import { ServerWriteoffBusinessService } from 'src/features/server-writeoff-business/server-writeoff-business.service';
 
 @Injectable()
 export class CurrentTasksService {
@@ -38,6 +39,7 @@ export class CurrentTasksService {
     private wsGateway: WsGateway,
     private currentTaskStatesLogService: CurrentTaskStatesLogService,
     private readonly componentQuantityWatcher: ComponentQuantityWatcherService,
+    private readonly serverWriteoffBusiness: ServerWriteoffBusinessService,
   ) {}
 
   async create(data: CurrentTasksDTO): Promise<CurrentTasks> {
@@ -186,7 +188,15 @@ export class CurrentTasksService {
   async findOne(id: number): Promise<CurrentTasks> {
     const entity = await this.currentTasksRepository.findOne({
       where: { id },
-      relations: ['currentTaskStates', 'standTasks', 'shipmentStands'],
+      relations: [
+        'currentTaskStates',
+        'standTasks',
+        'standTasks.components',
+        'shipmentStands',
+        'shipmentStands.shipments',
+        'shipmentStands.shipments.factory',
+        'shipmentStands.stands',
+      ],
     });
     if (!entity) {
       throw new NotFoundException(`Текущая задача с ID ${id} не найдена`);
@@ -233,6 +243,17 @@ export class CurrentTasksService {
     // Если нужно пересчитать компоненты, вызываем пересчет
     if (shouldRecalculateComponents) {
       await this.componentQuantityWatcher.onCurrentTaskStatusChange(id);
+
+      // Если задача завершена, создаем запись в server_writeoff
+      if (updatedTask.isCompleted) {
+        try {
+          const writeoff = await this.serverWriteoffBusiness.createWriteoffFromCurrentTask(updatedTask);
+          console.log(`[SERVER_WRITEOFF] Создано списание #${writeoff.id} для задачи #${id} (через update)`);
+        } catch (error) {
+          console.error(`[SERVER_WRITEOFF] Ошибка при создании списания для задачи #${id}:`, error.message);
+          // Не прерываем процесс, но логируем ошибку
+        }
+      }
     }
 
     return updatedTask;
@@ -303,11 +324,14 @@ export class CurrentTasksService {
       relations: [
         'currentTaskStates',
         'standTasks',
+        'standTasks.components',
         'shipmentStands',
         'shipmentStands.stands',
         'shipmentStands.stands.employees',
         'shipmentStands.stands.employees.users',
         'shipmentStands.stands.employees.peoples',
+        'shipmentStands.shipments',
+        'shipmentStands.shipments.factory',
       ],
     });
 
@@ -351,7 +375,16 @@ export class CurrentTasksService {
       );
     }
 
-    // 6️⃣ Пересчитываем компоненты
+    // 6️⃣ Создаем запись в server_writeoff
+    try {
+      const writeoff = await this.serverWriteoffBusiness.createWriteoffFromCurrentTask(task);
+      console.log(`[SERVER_WRITEOFF] Создано списание #${writeoff.id} для задачи #${taskId}`);
+    } catch (error) {
+      console.error(`[SERVER_WRITEOFF] Ошибка при создании списания для задачи #${taskId}:`, error.message);
+      // Не прерываем процесс, но логируем ошибку
+    }
+
+    // 7️⃣ Пересчитываем компоненты
     await this.componentQuantityWatcher.onCurrentTaskStatusChange(taskId);
 
     return { success: true, message: 'Задача успешно завершена' };

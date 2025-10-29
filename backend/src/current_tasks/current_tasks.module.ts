@@ -14,6 +14,7 @@ import { WebsocketModule } from 'src/websocket/websocket.module';
 import { User } from 'src/user/user.entity';
 import { CurrentTaskStatesLogModule } from 'src/current_task_states_log/current_task_states_log.module';
 import { ComponentQuantityWatcherModule } from 'src/features/component-quantity-watcher/component-quantity-watcher.module';
+import { ServerWriteoffBusinessModule } from 'src/features/server-writeoff-business/server-writeoff-business.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ComponentQuantityWatcherModule } from 'src/features/component-quantity-
     WebsocketModule,
     CurrentTaskStatesLogModule,
     ComponentQuantityWatcherModule,
+    ServerWriteoffBusinessModule,
   ],
   providers: [CurrentTasksService],
   controllers: [CurrentTasksController],
