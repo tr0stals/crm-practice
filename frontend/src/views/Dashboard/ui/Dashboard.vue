@@ -48,6 +48,7 @@ import { Sidebar } from "@/features/Sidebar";
 import { useMenuStore } from "@/entities/MenuEntity/model/menuStore";
 import AddPcbsButton from "@/features/AddPcbsButton";
 import { tablesEnum } from "@/shared/config/tablesEnum";
+import { handleShowDismissals } from "../model/handleShowDismissals";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -391,6 +392,7 @@ const handleGlobalClick = (event: MouseEvent) => {
   const createButton = document.getElementById("createButton");
   const editButton = document.getElementById("editButton");
   const modalInstance = document.getElementById("modalInstance");
+  const deleteButton = document.getElementById("deleteButton");
 
   const clickedInsideTree = treeEl?.contains(event.target as Node);
   const clickedInsideTable = tableEl?.contains(event.target as Node);
@@ -402,6 +404,9 @@ const handleGlobalClick = (event: MouseEvent) => {
     event.target as Node
   );
   const clickedInsideTreeview = treeviewEl?.contains(event.target as Node);
+  const clickedInsideDeleteButton = deleteButton?.contains(
+    event.target as Node
+  );
 
   if (
     !clickedInsideTree &&
@@ -411,7 +416,8 @@ const handleGlobalClick = (event: MouseEvent) => {
     !clickedInCreateButton &&
     !clickedInEditButton &&
     !clickedInsideModalInstance &&
-    !clickedInsideTreeview
+    !clickedInsideTreeview &&
+    !clickedInsideDeleteButton
   ) {
     navigationStore.selectedRow = null;
   }
@@ -521,6 +527,11 @@ const handleSelectSection = (item: any) => {
             <Button :onClick="onUpdateCallBack">
               <RefreshIcon /> обновить
             </Button>
+            <Button
+              v-if="navigationStore.currentSection === 'employees'"
+              @click="handleShowDismissals"
+              >Показать уволенных</Button
+            >
 
             <ExportTableButton :onSuccessCallback="onUpdateCallBack" />
             <ImportTableButton />
