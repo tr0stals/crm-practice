@@ -29,6 +29,7 @@ const props = defineProps<{
 </script>
 <template>
   <Button
+    id="editButton"
     :disabled="disabled"
     :extra-classes="disabled ? [`button--disabled`] : []"
     @click="useHandleEdit(props.onSuccessCallback)"

@@ -213,7 +213,10 @@ function toggleExpand(node: any) {
         nodeContent: ({ context }) => ({
           class: [
             'treeview__data',
-            { treeview__data__selected: context.node.key === selectedKey },
+            {
+              treeview__data__selected:
+                navigationStore.selectedRow && context.node.key === selectedKey,
+            },
           ],
         }),
         node: ({ context }) => ({
