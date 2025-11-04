@@ -1,0 +1,37 @@
+import { tablesEnum } from "@/shared/config/tablesEnum";
+import {
+  Monitor,
+  Cpu,
+  FileCheck,
+  User,
+  Package,
+  Layers,
+  Asterisk,
+  Clock,
+  Component,
+  ClipboardList,
+  Users,
+  ReceiptTextIcon,
+  Group,
+  Building,
+  Building2,
+} from "lucide-vue-next";
+
+export const treeviewIcons: Record<string, any> = {
+  [tablesEnum.stands]: Monitor,
+  [tablesEnum.organizations]: Building2,
+  [tablesEnum.components]: Cpu,
+  [tablesEnum.stand_tasks_components]: Cpu,
+  [tablesEnum.pcbs_components]: Cpu,
+  [tablesEnum.invoices_components]: Cpu,
+  [tablesEnum.license]: FileCheck,
+  [tablesEnum.employees]: User,
+  [tablesEnum.pcbs]: Layers,
+  [tablesEnum.shipments]: Package,
+  [tablesEnum.shipments_stands]: Monitor,
+  [tablesEnum.stand_tasks]: ClipboardList,
+  [tablesEnum.current_tasks]: ClipboardList,
+  [tablesEnum.departments]: Users,
+  [tablesEnum.bills_for_pay]: ReceiptTextIcon,
+  [tablesEnum.arrival_invoices]: ReceiptTextIcon,
+};

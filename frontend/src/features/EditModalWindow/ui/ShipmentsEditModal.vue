@@ -12,11 +12,16 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import { relationMap } from "@/shared/config/relationMap";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import useFetch from "@/shared/lib/useFetch";
-import { api, defaultEndpoint } from "@/shared/api/axiosInstance";
+import {
+  api,
+  defaultEndpoint,
+  defaultImageEndpoint,
+} from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { updateAsync } from "../api/updateAsync";
 import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
+import { getImagePath } from "../model/getImagePath";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
@@ -27,6 +32,7 @@ const peopleId = ref<number>();
 const people = ref();
 const employeeProfessionsId = ref<number>();
 const shipmentStandId = ref<number>();
+const specificationImageArray = ref<any[]>([]);
 
 let model: EditModalWindowModel;
 
@@ -161,7 +167,9 @@ function handleFilesChange(e: Event) {
   console.debug(formData.value);
 }
 
-function removeFile(index: number) {
+function removeFile(file, index: number) {
+  console.debug(file);
+  console.debug(index);
   if (formData.value["specificationImage"]) {
     formData.value["specificationImage"].splice(index, 1);
   }
@@ -199,6 +207,11 @@ onMounted(async () => {
         ...newData,
         stands: stand,
       };
+
+      specificationImageArray.value = await getImagePath(
+        "shipments",
+        entityId.value.toString()
+      );
 
       // Поиск полей с датами
       const dateFields = Object.keys(formData.value).filter(isDateField);
@@ -303,8 +316,24 @@ onUnmounted(() => {
                   :key="index"
                   class="imageInput__imageItem"
                 >
-                  {{ file.name ? file.name : file }}
-                  <button type="button" @click="removeFile(index)">X</button>
+                  <img
+                    :class="
+                      specificationImageArray.find(
+                        (img) => img.originalName === file
+                      )
+                        ? 'imagePreview'
+                        : ''
+                    "
+                    :src="`${defaultImageEndpoint}/${
+                      specificationImageArray.find(
+                        (img) => img.originalName === file
+                      )?.path
+                    }`"
+                  />
+                  <span>{{ file.name ? file.name : file }}</span>
+                  <button type="button" @click="removeFile(file, index)">
+                    X
+                  </button>
                 </li>
               </ul>
             </div>

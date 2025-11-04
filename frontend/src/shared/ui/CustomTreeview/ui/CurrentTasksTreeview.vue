@@ -13,6 +13,13 @@ import { useToast } from "vue-toastification";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { useMenuStore } from "@/entities/MenuEntity/model/menuStore";
 import { treeviewIcons } from "../config/treeviewIcons";
+import {
+  CheckCircle,
+  CircleX,
+  Loader,
+  PlusCircle,
+  Monitor,
+} from "lucide-vue-next";
 
 const props = defineProps<{
   currentSection: string;
@@ -260,11 +267,35 @@ function toggleExpand(node: any) {
             @click="toggleExpand(slotProps.node)"
           >
             <div class="treeview__data__label">
-              <component
-                v-if="treeviewIcons[slotProps.node.data.nodeType]"
-                :is="treeviewIcons[slotProps.node.data.nodeType]"
-                class="treeview__icon"
-              />
+              <template v-if="slotProps.node.data.nodeType === 'current_tasks'">
+                <component
+                  v-if="slotProps.node.data.currentTaskState === 'Завершена'"
+                  :is="CheckCircle"
+                  color="#42f578"
+                  class="treeview__icon"
+                />
+                <component
+                  v-if="slotProps.node.data.currentTaskState === 'Отменена'"
+                  :is="CircleX"
+                  color="#e00917"
+                  class="treeview__icon"
+                />
+                <component
+                  v-if="slotProps.node.data.currentTaskState === 'Выполняется'"
+                  :is="Loader"
+                  color="#d3e600"
+                  class="treeview__icon"
+                />
+                <component
+                  v-if="slotProps.node.data.currentTaskState === 'Новая'"
+                  :is="PlusCircle"
+                  color="#3B82F6"
+                  class="treeview__icon"
+                />
+              </template>
+              <template v-else-if="slotProps.node.data.nodeType === 'stands'">
+                <component :is="Monitor" class="treeview__icon" />
+              </template>
 
               <span>{{ slotProps.node.label }}</span>
             </div>

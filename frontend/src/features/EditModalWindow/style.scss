@@ -116,8 +116,8 @@
 
 .imagePreview {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 20px;
+  height: 20px;
   overflow: hidden;
   border-radius: 50%;
   transition: transform 0.3s ease;
@@ -125,7 +125,7 @@
   &:hover {
     cursor: pointer;
     z-index: 100;
-    transform: scale(3);
+    transform: scale(10);
   }
 }
 

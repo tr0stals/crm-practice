@@ -50,6 +50,9 @@ import AddPcbsButton from "@/features/AddPcbsButton";
 import { tablesEnum } from "@/shared/config/tablesEnum";
 import { handleShowDismissals } from "../model/handleShowDismissals";
 import { ExitButton } from "@/shared/ui/ExitButon";
+import { handleResetSection } from "../lib/handleResetSection";
+import { Check } from "lucide-vue-next";
+import CurrentTasksTreeview from "@/shared/ui/CustomTreeview/ui/CurrentTasksTreeview.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -468,7 +471,7 @@ const handleSelectSection = (item: any) => {
   <div class="dashboard-layout">
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="logo">А ПРАКТИКУМ</div>
+      <div @click="handleResetSection" class="logo">А ПРАКТИКУМ</div>
       <Sidebar />
     </aside>
 
@@ -586,6 +589,16 @@ const handleSelectSection = (item: any) => {
               @node-select="handleSelectRow"
             />
           </template>
+          <template
+            v-else-if="navigationStore.currentSection === `current_tasks`"
+          >
+            <CurrentTasksTreeview
+              ref="treeviewRef"
+              :current-section="currentSection"
+              @node-select="handleSelectRow"
+            />
+          </template>
+
           <TableData
             v-else
             :headers="currentTableHeaders"
@@ -595,7 +608,13 @@ const handleSelectSection = (item: any) => {
         </div>
 
         <!-- Pagination -->
-        <div v-if="!treeviewTables.includes(currentSection)" class="pagination">
+        <div
+          v-if="
+            !treeviewTables.includes(currentSection) &&
+            navigationStore.currentSection !== `current_tasks`
+          "
+          class="pagination"
+        >
           <button
             class="pagination__btn"
             @click="prevPage"

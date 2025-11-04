@@ -20,6 +20,7 @@ import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 import { isDateField } from "@/shared/utils/isDateField";
+import { getImagePath } from "../model/getImagePath";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
@@ -118,7 +119,10 @@ onMounted(async () => {
       const currentParentId = formData.value.parentId;
       standTypeId.value = formData.value.standType?.id;
       stands.value = await loadStands();
-      currentImage.value = await getImagePath();
+      currentImage.value = await getImagePath(
+        "stands",
+        entityId.value.toString()
+      );
 
       // Поиск полей с датами
       const dateFields = Object.keys(formData.value).filter(isDateField);
@@ -308,7 +312,6 @@ onUnmounted(() => {
             <div v-if="formData[key]" class="imageInput__textContent">
               <span class="imageInput__header">Выбрано изображение:</span>
               <span class="imageInput__imageTitle">{{ formData[key] }}</span>
-              <!-- {{ console.debug(currentImage[0]) }} -->
               <img
                 class="imagePreview"
                 :src="

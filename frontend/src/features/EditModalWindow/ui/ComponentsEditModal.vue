@@ -11,11 +11,16 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import { relationMap } from "@/shared/config/relationMap";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import useFetch from "@/shared/lib/useFetch";
-import { api, defaultEndpoint } from "@/shared/api/axiosInstance";
+import {
+  api,
+  defaultEndpoint,
+  defaultImageEndpoint,
+} from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 import { isDateField } from "@/shared/utils/isDateField";
+import { getImagePath } from "../model/getImagePath";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
@@ -24,6 +29,7 @@ const relatedOptions = reactive<Record<string, any[]>>({});
 const loading = ref<boolean>(false);
 const uploadedImage = ref();
 const components = ref();
+const currentImage = ref();
 
 let model: EditModalWindowModel;
 
@@ -107,6 +113,10 @@ onMounted(async () => {
       resultData.value = newData;
       formData.value = { ...newData };
       components.value = (await loadComponents()).data;
+      currentImage.value = await getImagePath(
+        "components",
+        entityId.value.toString()
+      );
 
       const reordered = {
         parentId: newData.parentId,
@@ -341,6 +351,14 @@ onUnmounted(() => {
             <div v-if="formData[key]" class="imageInput__textContent">
               <span class="imageInput__header">Выбрано изображение:</span>
               <span class="imageInput__imageTitle">{{ formData[key] }}</span>
+              <img
+                :class="currentImage ? 'imagePreview' : ''"
+                :src="
+                  currentImage &&
+                  `${defaultImageEndpoint}/${currentImage[0].path}`
+                "
+                alt=""
+              />
             </div>
             <label for="iconUpload" class="imageInput__uploadButton">
               Загрузить иконку

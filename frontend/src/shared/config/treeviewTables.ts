@@ -6,7 +6,6 @@ export const treeviewTables = [
   "component_placements",
   "employees",
   "organizations",
-  "current_tasks",
   "components",
   "pcb_orders",
   "pcbs",

@@ -24,4 +24,5 @@ export enum tablesEnum {
   component_placements = "component_placements",
   component_placement_types = "component_placement_types",
   pcbs_components = "pcbs_components",
+  shipments_stands = "shipments_stands",
 }
