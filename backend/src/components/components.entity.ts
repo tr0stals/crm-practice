@@ -19,7 +19,6 @@ import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_com
 import { BillsComponents } from 'src/bills_components/bills_components.entity';
 import { CurrentTasksComponents } from 'src/current_tasks_components/current_tasks_components.entity';
 import { PcbsComponents } from 'src/pcbs_components/pcbs_components.entity';
-import { PCBS } from 'src/pcbs/pcbs.entity';
 import { Images } from 'src/images/images.entity';
 
 @Entity()
@@ -96,9 +95,6 @@ export class Components {
     (orderRequestsComponent) => orderRequestsComponent.component,
   )
   orderRequestsComponents: OrderRequestsComponents[];
-
-  @OneToMany(() => PCBS, (pcb) => pcb.component)
-  pcbs: PCBS[];
 
   @OneToMany(() => PcbsComponents, (pcbsComponent) => pcbsComponent.component)
   pcbsComponents: PcbsComponents[];

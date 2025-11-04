@@ -1,6 +1,5 @@
 import { PcbOrders } from 'src/pcb_orders/pcb_orders.entity';
 import { Stands } from 'src/stands/stands.entity';
-import { Components } from '../components/components.entity';
 import { PcbsComponents } from '../pcbs_components/pcbs_components.entity';
 import {
   Column,
@@ -21,10 +20,6 @@ export class PCBS {
 
   @Column({ length: 100 })
   title: string;
-
-  @ManyToOne(() => Components)
-  @JoinColumn({ name: 'componentId' })
-  component: Components;
 
   @ManyToOne(() => Stands, (stand) => stand.pcbs)
   @JoinColumn({ name: 'standId' })
@@ -47,7 +42,7 @@ export class PCBS {
   // Метод для определения типа записи
   isCategory(): boolean {
     // Если заполнены только parentId и title, то это категория
-    return !this.component && !this.stands;
+    return !this.stands;
   }
 
   isPcb(): boolean {

@@ -10,9 +10,5 @@ export class PCBSDTO {
 
   @IsOptional()
   @IsNotEmpty()
-  componentId: number;
-
-  @IsOptional()
-  @IsNotEmpty()
   standId: number;
 }

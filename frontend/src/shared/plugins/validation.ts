@@ -31,7 +31,7 @@ export function useFormValidation(formData: any) {
     switch (fieldName) {
       /** --- Числовые поля --- */
       case "price":
-      case "standId":
+      // case "standId":
       case "licenseTypeId":
       case "totalAmount":
       case "width":
@@ -190,7 +190,7 @@ export function useFormValidation(formData: any) {
       case "organizationTypeId":
       case "contactPeopleId":
       case "orderRequestId":
-      case "standId":
+      // case "standId":
       // Добавленные поля из DTO
       case "pcbId":
       case "pcbManufacturerId":
@@ -203,7 +203,7 @@ export function useFormValidation(formData: any) {
       case "stateId":
       case "currentTaskId":
       case "componentId": // уже был, но оставляем
-      case "standId": // уже был, но оставляем
+      // case "standId": // уже был, но оставляем
       case "factoryId": // уже был, но оставляем
         if (!value) {
           errors[fieldName] = "Выберите значение";

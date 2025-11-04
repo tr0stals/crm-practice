@@ -8,7 +8,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { PCBS } from './pcbs.entity';
 import { PCBSDTO } from './dto/PCBSDTO';
-import { ComponentsService } from 'src/components/components.service';
 import { StandsService } from 'src/stands/stands.service';
 import { WsGateway } from '../websocket/ws.gateway';
 import { User } from 'src/user/user.entity';
@@ -20,23 +19,20 @@ export class PcbsService {
     private repository: Repository<PCBS>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    private componentService: ComponentsService,
     private standService: StandsService,
     private wsGateway: WsGateway,
   ) {}
 
   async create(data: PCBSDTO, userId?: number) {
     try {
-      const { componentId, standId, ...defaultData } = data;
+      const { standId, ...defaultData } = data;
 
       // Валидация: если это плата (заполнены дополнительные поля), то все обязательные поля должны быть заполнены
-      const isPcb = this.isPcbData(defaultData);
+      const isPcb = this.isPcbData(standId);
+
       if (isPcb) {
-        const missingFields = this.validatePcbFields(
-          defaultData,
-          componentId,
-          standId,
-        );
+        const missingFields = this.validatePcbFields(defaultData, standId);
+
         if (missingFields.length > 0) {
           const errorMessage = `Для создания платы необходимо заполнить все обязательные поля: ${missingFields.join(', ')}`;
 
@@ -69,13 +65,7 @@ export class PcbsService {
         }
       }
 
-      let component: any = undefined;
       let stand: any = undefined;
-
-      if (componentId) {
-        component = await this.componentService.findOne(componentId);
-        if (!component) throw new NotFoundException('Компонент не найден');
-      }
 
       if (standId) {
         stand = await this.standService.findOne(standId);
@@ -84,7 +74,6 @@ export class PcbsService {
 
       const entity = this.repository.create({
         ...defaultData,
-        component: component,
         stands: stand,
       } as DeepPartial<PCBS>);
 
@@ -120,24 +109,17 @@ export class PcbsService {
   }
 
   // Метод для определения, является ли данные платой (а не категорией)
-  private isPcbData(data: any): boolean {
-    // Для PCBS пока нет дополнительных полей кроме component и stands
-    // Если в будущем добавятся поля, их нужно будет проверить здесь
-    return !!(data.component || data.stands);
+  private isPcbData(standId?: number): boolean {
+    // Плата определяется наличием связанного стенда
+    return !!standId;
   }
 
   // Валидация обязательных полей для платы
   private validatePcbFields(
     data: any,
-    componentId?: number,
     standId?: number,
   ): string[] {
     const missingFields: string[] = [];
-
-    // Проверяем componentId
-    if (!componentId) {
-      missingFields.push('Компонент');
-    }
 
     // Проверяем standId
     if (!standId) {
@@ -149,14 +131,14 @@ export class PcbsService {
 
   async findAll(): Promise<PCBS[]> {
     return await this.repository.find({
-      relations: ['stands', 'component', 'parent', 'children'],
+      relations: ['stands', 'parent', 'children'],
     });
   }
 
   // Получить только категории (без плат)
   async findCategories(): Promise<PCBS[]> {
     const allItems = await this.repository.find({
-      relations: ['parent', 'children', 'component', 'stands'],
+      relations: ['parent', 'children', 'stands'],
     });
     return allItems.filter((item) => item.isCategory());
   }
@@ -166,7 +148,6 @@ export class PcbsService {
     const allItems = await this.repository.find({
       relations: [
         'stands',
-        'component',
         'parent',
         'pcbsComponents',
         'pcbsComponents.component',
@@ -178,7 +159,7 @@ export class PcbsService {
   async findOne(id: number): Promise<PCBS> {
     const entity = await this.repository.findOne({
       where: { id },
-      relations: ['stands', 'component'],
+      relations: ['stands'],
     });
     if (!entity) {
       throw new NotFoundException(`Печатная плата с ID ${id} не найдена`);
@@ -194,14 +175,12 @@ export class PcbsService {
       if (!pcbs) throw new NotFoundException('Ошибка при поиске печатных плат');
 
       pcbs.map((item) => {
-        const { component, stands, ...defaultData } = item;
-        const componentTitle = component?.title;
+        const { stands, ...defaultData } = item;
         const standTitle = stands?.title;
 
         data.push({
           ...defaultData,
           standTitle: standTitle,
-          componentTitle: componentTitle,
         });
       });
 
@@ -241,7 +220,6 @@ export class PcbsService {
     const allItems = await this.repository.find({
       relations: [
         'stands',
-        'component',
         'parent',
         'children',
         'pcbsComponents',
@@ -323,7 +301,6 @@ export class PcbsService {
     const allItems = await this.repository.find({
       relations: [
         'stands',
-        'component',
         'parent',
         'children',
         'pcbsComponents',
