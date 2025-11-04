@@ -7,6 +7,7 @@ export const useAuthorizedUserStore = defineStore("authorizedUserStore", () => {
     firstName: string;
     lastName: string;
     professionTitle: string;
+    employeeData?: any;
   }>(null);
 
   function setUser(userData: {

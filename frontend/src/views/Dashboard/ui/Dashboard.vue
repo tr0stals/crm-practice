@@ -49,6 +49,7 @@ import { useMenuStore } from "@/entities/MenuEntity/model/menuStore";
 import AddPcbsButton from "@/features/AddPcbsButton";
 import { tablesEnum } from "@/shared/config/tablesEnum";
 import { handleShowDismissals } from "../model/handleShowDismissals";
+import { ExitButton } from "@/shared/ui/ExitButon";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -245,6 +246,7 @@ onMounted(async () => {
       firstName: user.employees.peoples.firstName,
       lastName: user.employees.peoples.lastName,
       professionTitle: user.employeeProfession.professions.title,
+      employeeData: user?.employees,
     });
   }
 
@@ -255,6 +257,8 @@ onMounted(async () => {
   document.addEventListener("click", handleClickOutside);
 
   localizatedSections.value = localizatedSectionsList;
+
+  console.debug(authorizedUserStore.user);
 
   const tables = roleTables
     .filter(
@@ -393,6 +397,11 @@ const handleGlobalClick = (event: MouseEvent) => {
   const editButton = document.getElementById("editButton");
   const modalInstance = document.getElementById("modalInstance");
   const deleteButton = document.getElementById("deleteButton");
+  const addPcbsButton = document.getElementById("addPcbsButton");
+  const addPcbsComponentButton = document.getElementById(
+    "addPcbsComponentButton"
+  );
+  const customDropdown = document.getElementById("customDropdown");
 
   const clickedInsideTree = treeEl?.contains(event.target as Node);
   const clickedInsideTable = tableEl?.contains(event.target as Node);
@@ -407,6 +416,13 @@ const handleGlobalClick = (event: MouseEvent) => {
   const clickedInsideDeleteButton = deleteButton?.contains(
     event.target as Node
   );
+  const clickedInAddPcbsButton = addPcbsButton?.contains(event.target as Node);
+  const clickedInAddPcbsComponentButton = addPcbsComponentButton?.contains(
+    event.target as Node
+  );
+  const clickedInCustomDropdown = customDropdown?.contains(
+    event.target as Node
+  );
 
   if (
     !clickedInsideTree &&
@@ -417,7 +433,10 @@ const handleGlobalClick = (event: MouseEvent) => {
     !clickedInEditButton &&
     !clickedInsideModalInstance &&
     !clickedInsideTreeview &&
-    !clickedInsideDeleteButton
+    !clickedInsideDeleteButton &&
+    !clickedInAddPcbsButton &&
+    !clickedInAddPcbsComponentButton &&
+    !clickedInCustomDropdown
   ) {
     navigationStore.selectedRow = null;
   }
@@ -471,11 +490,9 @@ const handleSelectSection = (item: any) => {
           </div>
         </div>
 
-        <!-- Кнопка уведомлений -->
-        <NotificationButton />
-
         <div class="header__controls">
-          <CustomDropdown
+          <NotificationButton />
+          <!-- <CustomDropdown
             v-if="
               authorizedUserStore.user?.professionTitle === 'Администратор' ||
               authorizedUserStore.user?.professionTitle === 'Директор' ||
@@ -483,8 +500,9 @@ const handleSelectSection = (item: any) => {
             "
             dropdown-title="Действия"
             :dropdown-items="dropdownConfig"
-          />
-          <Button @click="logout">Выйти</Button>
+          /> -->
+          <ExitButton @click="logout" />
+          <!-- <Button @click="logout">Выйти</Button> -->
         </div>
       </div>
 

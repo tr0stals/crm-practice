@@ -11,7 +11,11 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import { relationMap } from "@/shared/config/relationMap";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import useFetch from "@/shared/lib/useFetch";
-import { api, defaultEndpoint } from "@/shared/api/axiosInstance";
+import {
+  api,
+  defaultEndpoint,
+  defaultImageEndpoint,
+} from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
@@ -34,6 +38,7 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits(["close", "save"]);
+const currentImage = ref();
 
 const sectionName = computed(() => props.config?.sectionName);
 const entityId = computed(() => props.config?.entityId);
@@ -113,6 +118,7 @@ onMounted(async () => {
       const currentParentId = formData.value.parentId;
       standTypeId.value = formData.value.standType?.id;
       stands.value = await loadStands();
+      currentImage.value = await getImagePath();
 
       // Поиск полей с датами
       const dateFields = Object.keys(formData.value).filter(isDateField);
@@ -302,6 +308,15 @@ onUnmounted(() => {
             <div v-if="formData[key]" class="imageInput__textContent">
               <span class="imageInput__header">Выбрано изображение:</span>
               <span class="imageInput__imageTitle">{{ formData[key] }}</span>
+              <!-- {{ console.debug(currentImage[0]) }} -->
+              <img
+                class="imagePreview"
+                :src="
+                  currentImage &&
+                  `${defaultImageEndpoint}/${currentImage[0].path}`
+                "
+                alt=""
+              />
             </div>
             <label for="iconUpload" class="imageInput__uploadButton">
               Загрузить иконку

@@ -1,8 +1,5 @@
 <script lang="ts" setup>
-import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import CustomDropdown from "@/shared/ui/CustomDropdown/ui/CustomDropdown.vue";
-import { ref } from "vue";
-import { useToast } from "vue-toastification";
 import { useAdd } from "../model/useAdd";
 
 const props = defineProps<{
@@ -18,11 +15,13 @@ const dropdownConfig = [
     text: "Добавить ПП",
     value: "pcbs",
     onClickCallback: handleAddPcbs,
+    extraAttrs: [{ name: "id", value: "addPcbsButton" }],
   },
   {
     text: "Добавить компонент ПП",
     value: "pcbs_components",
     onClickCallback: handleAddPcbsComponents,
+    extraAttrs: [{ name: "id", value: "addPcbsComponentButton" }],
   },
 ];
 </script>

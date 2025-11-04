@@ -22,6 +22,7 @@ import { useAddPcbsComponents } from "../model/useAddPcbsComponents";
 import { useToast } from "vue-toastification";
 import { useAddInvoiceComponents } from "../model/useAddInvoiceComponents";
 import { useFormValidation } from "@/shared/plugins/validation";
+import { useAddOrderRequests } from "../model/useAddOrderRequests";
 
 const props = defineProps<{
   sectionName: string;
@@ -50,6 +51,11 @@ const { formData, tableColumns, selectOptions, submit } =
       })
     : props.sectionName === "stand_tasks_components"
     ? useAddStandTasksComponents(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      })
+    : props.sectionName === "order_requests"
+    ? useAddOrderRequests(props.sectionName, () => {
         props.onSuccess();
         props.onClose();
       })

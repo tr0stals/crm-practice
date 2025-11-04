@@ -114,6 +114,21 @@
   }
 }
 
+.imagePreview {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    cursor: pointer;
+    z-index: 100;
+    transform: scale(3);
+  }
+}
+
 .inputCheckbox {
   position: absolute;
   right: 0;

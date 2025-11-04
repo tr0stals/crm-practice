@@ -153,14 +153,9 @@ export const menuEntities: IMenuEntity[] = [
         professions: getProfessionsForTable("pcb_orders"),
       },
       {
-        title: "Менеджер ПП",
-        children: [
-          {
-            title: "Печатные платы",
-            tableName: "pcbs",
-            professions: getProfessionsForTable("pcbs"),
-          },
-        ],
+        title: "Печатные платы",
+        tableName: "pcbs",
+        professions: getProfessionsForTable("pcbs"),
       },
     ],
   },

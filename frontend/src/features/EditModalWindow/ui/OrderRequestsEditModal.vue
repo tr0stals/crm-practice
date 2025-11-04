@@ -174,7 +174,7 @@ onUnmounted(() => {
         class="editModalWindow__content__field"
       >
         <label
-          v-if="key !== 'id'"
+          v-if="key !== 'id' && key !== 'employeeCreator'"
           class="editModalWindow__content__field__label"
           :for="key"
         >
@@ -195,25 +195,8 @@ onUnmounted(() => {
           placeholder="Выберите дату"
         />
 
-        <!-- для поля parentId (Категории) -->
-        <!-- <select
-          v-else-if="key === 'parentId'"
-          class="editModalWindow__content__field__input"
-          :id="key"
-          :name="key"
-          v-model="formData[key]"
-        >
-          {{
-            console.debug(key)
-          }}
-          <option :value="null">Без категории</option>
-          <option v-for="stand in orderRequests" :value="stand.id">
-            {{ stand.title }}
-          </option>
-        </select> -->
-        <!-- Select for object (relation) -->
         <select
-          v-else-if="isRelatedField(key, value)"
+          v-else-if="key !== 'employeeCreator' && isRelatedField(key, value)"
           class="editModalWindow__content__field__input"
           :id="key"
           :name="key"
@@ -283,7 +266,7 @@ onUnmounted(() => {
 
         <!-- Generic input -->
         <input
-          v-else-if="key !== 'id'"
+          v-else-if="key !== 'id' && key !== 'employeeCreator'"
           class="editModalWindow__content__field__input"
           :type="getInputType(key, value)"
           :id="key"

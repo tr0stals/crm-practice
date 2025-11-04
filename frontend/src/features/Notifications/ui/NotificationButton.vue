@@ -30,12 +30,11 @@ watch(
   },
   { deep: true } // обязательно, иначе не будет реагировать на изменение поля "read"
 );
-console.debug(authorizedUserStore.user);
 
 const unreadCount = computed(() => store.unreadCount);
 </script>
 <template>
-  <div class="notificationIcon">
+  <div class="notificationButton">
     <NotificationIcon :is-badge="isBadge" @click="open = !open" />
     <NotificationsMenu v-if="open" :store="store" />
   </div>

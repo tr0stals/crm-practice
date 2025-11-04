@@ -1,0 +1,11 @@
+.exitButton {
+  transition: transform 0.1s ease;
+  &:hover {
+    cursor: pointer;
+    transform: scale(1.05);
+  }
+  svg {
+    width: 3rem;
+    height: 3rem;
+  }
+}
