@@ -27,7 +27,19 @@ export class AuthService {
   }
 
   async register(userData: UserRegisterDTO) {
-    const people = await this.peopleService.create({
+    // Проверяем, если это регистрация супер админа (первый пользователь в системе)
+    const existingUsers = await this.userService.getUsers();
+    const isSuperAdmin = !existingUsers || existingUsers.length === 0;
+
+    const peopleData = isSuperAdmin ? {
+      firstName: "admin",
+      middleName: "admin",
+      lastName: "admin",
+      phone: "+79999999999",
+      email: "info@apracticum.ru",
+      comment: "Супер администратор системы",
+      birthDate: new Date("1999-11-30"),
+    } : {
       email: userData.email,
       phone: userData.phone,
       firstName: userData.firstName,
@@ -35,7 +47,9 @@ export class AuthService {
       lastName: userData.lastName,
       comment: userData.comment,
       birthDate: userData.birthDate,
-    });
+    };
+
+    const people = await this.peopleService.create(peopleData);
 
     const employee = await this.employeeService.create({
       peoples: people,

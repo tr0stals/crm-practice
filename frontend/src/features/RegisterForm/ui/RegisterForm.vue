@@ -8,33 +8,26 @@ import { register } from "../api/registerApi";
 import { useToast } from "vue-toastification";
 import { loginApi } from "../api/loginApi";
 
-const userEmail = ref("");
-const password = ref("");
-const confirmPassword = ref("");
 const userName = ref("");
-const firstName = ref("");
-const lastName = ref("");
-const middleName = ref("");
+const password = ref("");
 const authStore = useAuthStore();
 const router = useRouter();
 const error = ref<string | null>(null);
-const phone = ref("");
-const birthday = ref<any>(null);
 const toast = useToast();
 const token = ref<string | null>(localStorage.getItem("token") || null);
 
 const handleSubmit = async () => {
   try {
     const user: IUserRegister = {
-      email: userEmail.value,
-      firstName: firstName.value,
-      lastName: lastName.value,
-      password: password.value,
-      middleName: middleName.value,
       userName: userName.value,
-      phone: phone.value,
-      passwordSalt: confirmPassword.value,
-      birthDate: birthday.value,
+      password: password.value,
+      passwordSalt: password.value,
+      email: "",
+      firstName: "",
+      lastName: "",
+      middleName: "",
+      phone: "",
+      birthDate: null,
       comment: "",
     };
     const response = await registerUser(user);
@@ -84,16 +77,6 @@ const registerUser = async (user: any) => {
     <h2 class="register-form__title">Создание нового пользователя</h2>
     <form @submit.prevent="handleSubmit">
       <div class="form-group">
-        <label class="form-group__label" for="email">Электронная почта</label>
-        <input
-          class="form-group__text"
-          type="text"
-          id="email"
-          v-model="userEmail"
-          required
-        />
-      </div>
-      <div class="form-group">
         <label class="form-group__label" for="userName">Логин</label>
         <input
           class="form-group__text"
@@ -110,55 +93,6 @@ const registerUser = async (user: any) => {
           type="password"
           id="password"
           v-model="password"
-          required
-        />
-      </div>
-      <div class="form-group">
-        <label class="form-group__label" for="lastName">Фамилия</label>
-        <input
-          class="form-group__text"
-          type="text"
-          id="lastName"
-          v-model="lastName"
-          required
-        />
-      </div>
-      <div class="form-group">
-        <label class="form-group__label" for="firstName">Имя</label>
-        <input
-          class="form-group__text"
-          type="text"
-          id="firstName"
-          v-model="firstName"
-          required
-        />
-      </div>
-      <div class="form-group">
-        <label class="form-group__label" for="middleName">Отчество</label>
-        <input
-          class="form-group__text"
-          type="text"
-          id="middleName"
-          v-model="middleName"
-        />
-      </div>
-      <div class="form-group">
-        <label class="form-group__label" for="birthday">День рождения</label>
-        <input
-          class="form-group__text"
-          type="date"
-          name="birthday"
-          id="birthday"
-          v-model="birthday"
-        />
-      </div>
-      <div class="form-group">
-        <label class="form-group__label" for="phone">Телефон</label>
-        <input
-          class="form-group__text"
-          type="phone"
-          id="phone"
-          v-model="phone"
           required
         />
       </div>
