@@ -5,7 +5,15 @@ import Button from "@/shared/ui/Button/ui/Button.vue";
 import RefreshIcon from "@/shared/ui/RefreshIcon/ui/RefreshIcon.vue";
 import { getUserInfoAsync } from "../api/getUserInfoAsync";
 import CustomTreeview from "@/shared/ui/CustomTreeview/ui/CustomTreeview.vue";
-import { ref, onMounted, onUnmounted, watch, computed, nextTick } from "vue";
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  watch,
+  computed,
+  nextTick,
+  onBeforeUnmount,
+} from "vue";
 import "../style.scss";
 import type { IData } from "../interface/IData";
 import AvatarIcon from "@/shared/ui/AvatarIcon/ui/AvatarIcon.vue";
@@ -40,6 +48,7 @@ import { Sidebar } from "@/features/Sidebar";
 import { useMenuStore } from "@/entities/MenuEntity/model/menuStore";
 import AddPcbsButton from "@/features/AddPcbsButton";
 import { tablesEnum } from "@/shared/config/tablesEnum";
+import { handleShowDismissals } from "../model/handleShowDismissals";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -239,6 +248,8 @@ onMounted(async () => {
     });
   }
 
+  document.addEventListener("click", handleGlobalClick);
+
   updateTime();
   timer = setInterval(updateTime, 1000);
   document.addEventListener("click", handleClickOutside);
@@ -296,7 +307,6 @@ onUnmounted(() => {
   }
   menuStore.activeEntity = null;
   navigationStore.currentSection = null;
-  document.removeEventListener("click", handleClickOutside);
 });
 
 function handleClickOutside(event: MouseEvent) {
@@ -311,6 +321,10 @@ function handleClickOutside(event: MouseEvent) {
     });
   }
 }
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", handleGlobalClick);
+});
 
 const page = ref<number>(1);
 const perPage = ref<number>(9);
@@ -367,6 +381,47 @@ const paginatedData = computed(() => {
 
   return filteredData.value.slice(start, start + perPage.value);
 });
+
+// обработчик кликов по документу
+const handleGlobalClick = (event: MouseEvent) => {
+  const treeEl = treeviewRef.value?.$el || treeviewRef.value;
+  const tableEl = document.querySelector(".data-table");
+  const treeviewEl = document.querySelector(".treeview");
+  const sidebarEl = document.querySelector(".sidebar");
+  const headerEl = document.querySelector(".header");
+  const createButton = document.getElementById("createButton");
+  const editButton = document.getElementById("editButton");
+  const modalInstance = document.getElementById("modalInstance");
+  const deleteButton = document.getElementById("deleteButton");
+
+  const clickedInsideTree = treeEl?.contains(event.target as Node);
+  const clickedInsideTable = tableEl?.contains(event.target as Node);
+  const clickedInsideSidebar = sidebarEl?.contains(event.target as Node);
+  const clickedInsideHeader = headerEl?.contains(event.target as Node);
+  const clickedInCreateButton = createButton?.contains(event.target as Node);
+  const clickedInEditButton = editButton?.contains(event.target as Node);
+  const clickedInsideModalInstance = modalInstance?.contains(
+    event.target as Node
+  );
+  const clickedInsideTreeview = treeviewEl?.contains(event.target as Node);
+  const clickedInsideDeleteButton = deleteButton?.contains(
+    event.target as Node
+  );
+
+  if (
+    !clickedInsideTree &&
+    !clickedInsideTable &&
+    !clickedInsideSidebar &&
+    !clickedInsideHeader &&
+    !clickedInCreateButton &&
+    !clickedInEditButton &&
+    !clickedInsideModalInstance &&
+    !clickedInsideTreeview &&
+    !clickedInsideDeleteButton
+  ) {
+    navigationStore.selectedRow = null;
+  }
+};
 
 function nextPage() {
   if (page.value < Math.ceil(filteredData.value.length / perPage.value)) {
@@ -472,6 +527,11 @@ const handleSelectSection = (item: any) => {
             <Button :onClick="onUpdateCallBack">
               <RefreshIcon /> обновить
             </Button>
+            <Button
+              v-if="navigationStore.currentSection === 'employees'"
+              @click="handleShowDismissals"
+              >Показать уволенных</Button
+            >
 
             <ExportTableButton :onSuccessCallback="onUpdateCallBack" />
             <ImportTableButton />

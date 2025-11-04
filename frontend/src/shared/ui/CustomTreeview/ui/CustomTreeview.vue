@@ -10,6 +10,8 @@ import LoadingLayout from "../../LoadingLayout/ui/LoadingLayout.vue";
 import { imageTables } from "../config/imageTables";
 import { tablesEnum } from "@/shared/config/tablesEnum";
 import { useToast } from "vue-toastification";
+import { getDataAsync } from "@/shared/api/getDataAsync";
+import { useMenuStore } from "@/entities/MenuEntity/model/menuStore";
 
 const props = defineProps<{
   currentSection: string;
@@ -47,6 +49,7 @@ interface TreeNode {
  * Массив исключений. Есть несколько таблиц, для которых дерево запрашивается по /getTree
  * */
 const treeTablesExceptions = ["employees", "stands", "pcbs"];
+const menuStore = useMenuStore();
 
 const { data, error, loading, refetch } = useFetch<TreeNode[]>(
   treeTablesExceptions.includes(props.currentSection)
@@ -57,6 +60,30 @@ const { data, error, loading, refetch } = useFetch<TreeNode[]>(
     timeout: 3000,
   }
 );
+
+watch(
+  () => menuStore.showDismissals,
+  async (val) => {
+    console.debug("!");
+    if (props.currentSection === "employees") {
+      console.debug("!!");
+      if (val) {
+        console.debug("!!!");
+        data.value = await getDataAsync({
+          endpoint: `${defaultEndpoint}/${props.currentSection}/treeDismissed`,
+        }).then((res) => res.data);
+      } else {
+        refetch();
+      }
+    } else {
+      return;
+    }
+  }
+);
+
+const handleShowDismissals = () => {
+  showDismissals.value = !showDismissals.value;
+};
 
 const handleLoadImages = async (nodeType: string) => {
   if (imageTables.includes(props.currentSection as tablesEnum)) {
@@ -200,49 +227,54 @@ function toggleExpand(node: any) {
       <h1>Нет данных для отображения</h1>
     </div>
 
-    <Tree
-      v-else
-      :value="paginatedTreeData"
-      selectionMode="single"
-      class="treeview"
-      v-model:selectionKey="selectedKey"
-      v-model:expandedKeys="expandedKeys"
-      @node-select="onNodeSelect"
-      :pt="{
-        root: { class: 'treeview__root' },
-        nodeContent: ({ context }) => ({
-          class: [
-            'treeview__data',
-            { treeview__data__selected: context.node.key === selectedKey },
-          ],
-        }),
-        node: ({ context }) => ({
-          style: { marginLeft: `${(context.node.level || 0) * 1}rem` },
-        }),
-      }"
-      :pt-options="{ mergeProps: true }"
-    >
-      <template #default="slotProps">
-        <div
-          class="treeview__data__wrapper"
-          @click="toggleExpand(slotProps.node)"
-        >
-          <div class="treeview__data__label">
-            <template
-              v-if="imageTables.includes(slotProps.node.data.nodeType as tablesEnum) && imageUrlMap[slotProps.node.data.id]"
-            >
-              <img
-                :key="imageUrlMap[slotProps.node.data.id]"
-                :src="imageUrlMap[slotProps.node.data.id]"
-                :alt="slotProps.node.label"
-                class="treeview__icon"
-              />
-            </template>
-            <span>{{ slotProps.node.label }}</span>
+    <template v-else>
+      <Tree
+        :value="paginatedTreeData"
+        selectionMode="single"
+        class="treeview"
+        v-model:selectionKey="selectedKey"
+        v-model:expandedKeys="expandedKeys"
+        @node-select="onNodeSelect"
+        :pt="{
+          root: { class: 'treeview__root' },
+          nodeContent: ({ context }) => ({
+            class: [
+              'treeview__data',
+              {
+                treeview__data__selected:
+                  navigationStore.selectedRow &&
+                  context.node.key === selectedKey,
+              },
+            ],
+          }),
+          node: ({ context }) => ({
+            style: { marginLeft: `${(context.node.level || 0) * 1}rem` },
+          }),
+        }"
+        :pt-options="{ mergeProps: true }"
+      >
+        <template #default="slotProps">
+          <div
+            class="treeview__data__wrapper"
+            @click="toggleExpand(slotProps.node)"
+          >
+            <div class="treeview__data__label">
+              <template
+                v-if="imageTables.includes(slotProps.node.data.nodeType as tablesEnum) && imageUrlMap[slotProps.node.data.id]"
+              >
+                <img
+                  :key="imageUrlMap[slotProps.node.data.id]"
+                  :src="imageUrlMap[slotProps.node.data.id]"
+                  :alt="slotProps.node.label"
+                  class="treeview__icon"
+                />
+              </template>
+              <span>{{ slotProps.node.label }}</span>
+            </div>
           </div>
-        </div>
-      </template>
-    </Tree>
+        </template>
+      </Tree>
+    </template>
 
     <div class="pagination">
       <button class="pagination__btn" @click="prevPage" :disabled="page === 1">

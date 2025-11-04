@@ -13,6 +13,7 @@ const navigationStore = useNavigationStore();
 </script>
 <template>
   <Button
+    id="createButton"
     :disabled="navigationStore.currentSection === 'current_tasks'"
     :class="
       navigationStore.currentSection === 'current_tasks' && `button--disabled`

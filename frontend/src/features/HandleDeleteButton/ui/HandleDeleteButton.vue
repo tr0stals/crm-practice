@@ -29,6 +29,7 @@ watch(
 </script>
 <template>
   <Button
+    id="deleteButton"
     :disabled="disabled"
     :extra-classes="disabled ? [`button--disabled`] : []"
     @click="useHandleDelete(props.onUpdateCallback)"
