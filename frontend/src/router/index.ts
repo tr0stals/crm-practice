@@ -46,7 +46,6 @@ const routes: RouteRecordRaw[] = [
     meta: { public: true },
   },
   {
-    // TODO: перебрасывать пользователя на главную страницу (а не дашборд)
     path: "/dashboard",
     name: "Dashboard",
     component: Dashboard,
@@ -109,28 +108,24 @@ router.beforeEach(
     from: RouteLocationNormalized,
     next: NavigationGuardNext
   ) => {
-    if (to.path === "/") {
-      // ⚡ вызываем наш useFetch-хук
-      const { data, error } = useFetch(`${defaultEndpoint}/user/get`, {
-        immediate: true,
-      });
+    const authStore = useAuthStore();
 
-      // подождём пока загрузится
-      while (data.value === null && !error.value) {
-        await new Promise((r) => setTimeout(r, 50));
-      }
-      console.debug(data.value);
+    // если токен хранится в localStorage
+    const token = authStore.token || localStorage.getItem("token");
 
-      if (error.value) {
-        console.error("Ошибка проверки пользователей:", error.value);
-        return next("/login"); // fallback
+    if (to.meta.public) {
+      // но если пользователь уже залогинен и идёт на /login или /register — отправляем на /dashboard
+      if (
+        token &&
+        (to.path === "/login" || to.path === "/register" || to.path === "/")
+      ) {
+        return next("/dashboard");
       }
+      return next();
+    }
 
-      if (data.value?.length !== 0) {
-        return next("/login");
-      } else {
-        return next(); // остаёмся на /
-      }
+    if (to.meta.requiresAuth && !token) {
+      return next("/login");
     }
 
     next();
