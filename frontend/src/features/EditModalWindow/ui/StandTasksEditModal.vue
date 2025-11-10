@@ -310,8 +310,8 @@ onUnmounted(() => {
               <img
                 :class="currentImage ? 'imagePreview' : ''"
                 :src="
-                  currentImage && currentImage[0].path
-                    ? `${defaultImageEndpoint}/${currentImage[0].path}`
+                  currentImage && currentImage[0]?.path
+                    ? `${defaultImageEndpoint}/${currentImage[0]?.path}`
                     : undefined
                 "
                 alt="qwe"

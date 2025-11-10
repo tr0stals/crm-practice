@@ -43,7 +43,11 @@ export class CurrentTasksController {
   }
 
   @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() data: Partial<CurrentTasks>, @Request() req?: any) {
+  async update(
+    @Param('id') id: string,
+    @Body() data: Partial<CurrentTasks>,
+    @Request() req?: any,
+  ) {
     // Получаем userId из JWT токена
     const userId = req?.user?.id || req?.user?.sub;
     return await this.service.update(+id, data, userId);
@@ -65,13 +69,18 @@ export class CurrentTasksController {
       await this.employeesProfessionsService.findEmployeeProfessionByEmployeeId(
         employeeId,
       );
-    console.log('!!!!!', empProf);
+
+    if (!empProf) {
+      return { name: 'Текущие задачи', children: [] };
+    }
     const role = empProf?.professions?.title?.toLowerCase() || '';
     const allowedRoles = ['директор', 'администратор', 'test'];
     if (allowedRoles.some((r) => role.includes(r))) {
       return await this.service.getCurrentTasksTreeForAll();
     } else {
-      return await this.service.getCurrentTasksTreeForEmployee(employeeId);
+      return await this.service.buildCurrentTasksTree(
+        empProf?.professions.title,
+      );
     }
   }
 
@@ -80,10 +89,21 @@ export class CurrentTasksController {
   async getCurrentTasksTreeForEmployee(@Request() req) {
     // employeeId можно получить через req.user.employees?.id или req.user.employeeId
     const employeeId = req.user?.employees?.id || req.user?.employeeId;
+
+    const targetEmployeeProfession =
+      await this.employeesProfessionsService.findEmployeeProfessionByEmployeeId(
+        employeeId,
+      );
+
+    if (!targetEmployeeProfession) {
+      return { name: 'Мои задачи', children: [] };
+    }
     if (!employeeId) {
       return { name: 'Мои задачи', children: [] };
     }
-    return await this.service.getCurrentTasksTreeForEmployee(employeeId);
+    return await this.service.buildCurrentTasksTree(
+      targetEmployeeProfession?.professions.title,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

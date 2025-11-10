@@ -62,6 +62,11 @@ export const menuEntities: IMenuEntity[] = [
         tableName: "employees",
         professions: getProfessionsForTable("employees"),
       },
+      {
+        title: "Люди ",
+        tableName: "peoples",
+        professions: getProfessionsForTable("peoples"),
+      },
     ],
   },
   {

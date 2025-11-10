@@ -26,6 +26,7 @@ export const roleTables = [
       "stands",
       "suppliers",
       "user",
+      "peoples",
       "current_task_states_log",
       "writeoff",
     ],

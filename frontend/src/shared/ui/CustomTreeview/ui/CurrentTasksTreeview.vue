@@ -20,12 +20,15 @@ import {
   PlusCircle,
   Monitor,
 } from "lucide-vue-next";
+import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
 
 const props = defineProps<{
   currentSection: string;
   extraClasses?: string[];
   extraAttrs?: string[];
 }>();
+
+const authoriedUserStore = useAuthorizedUserStore();
 
 const emit = defineEmits<{
   (e: "node-select", item: any): void;
@@ -56,13 +59,14 @@ interface TreeNode {
 /**
  * Массив исключений. Есть несколько таблиц, для которых дерево запрашивается по /getTree
  * */
-const treeTablesExceptions = ["employees", "stands", "pcbs"];
+const professionExceptions = ["Администратор", "Директор"];
+
 const menuStore = useMenuStore();
 
 const { data, error, loading, refetch } = useFetch<TreeNode[]>(
-  treeTablesExceptions.includes(props.currentSection)
-    ? `${defaultEndpoint}/${props.currentSection}/getTree`
-    : `${defaultEndpoint}/${props.currentSection}/tree`,
+  professionExceptions.includes(authoriedUserStore.user.professionTitle)
+    ? `${defaultEndpoint}/${props.currentSection}/tree`
+    : `${defaultEndpoint}/${props.currentSection}/myTree`,
   {
     immediate: true,
     timeout: 3000,

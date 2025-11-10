@@ -26,7 +26,6 @@ export class CurrentTasksBusinessService {
   ) {}
 
   async init(data: ShipmentCurrentTasksDTO) {
-    console.debug(data);
     const { standId, ...shipmentData } = data;
 
     const shipmentResponse = await this.createShipment(shipmentData);
@@ -35,27 +34,28 @@ export class CurrentTasksBusinessService {
       standId,
     );
 
-    // Состояние задачи - "Новая"
     const currentTaskState =
       await this.currentTaskStatesService.getByTitle('Новая');
 
-    const standsTasks = await this.standTasksService.getAllByStand(standId);
+    const standTasks = await this.standTasksService.getAllByStand(standId);
 
-    const currentTasks = standsTasks.map((task) => {
+    // создаём массив currentTasks с parentId
+    const currentTasks = standTasks.map((task) => {
       const current = new CurrentTasks();
 
       current.shipmentStands = shipmentStandResponse;
       current.standTasks = task;
       current.currentTaskStates = currentTaskState;
+      current.parentId = task.parentId ?? null; // <-- вот это ключевая строка
 
       return current;
     });
 
-    const currentTasksResponse = await this.currentTasksRepo.save(currentTasks);
+    const saved = await this.currentTasksRepo.save(currentTasks);
 
     return {
       shipments: shipmentResponse,
-      currentTasks: currentTasksResponse,
+      currentTasks: saved,
     };
   }
 

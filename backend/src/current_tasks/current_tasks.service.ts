@@ -204,7 +204,11 @@ export class CurrentTasksService {
     return entity;
   }
 
-  async update(id: number, data: Partial<CurrentTasks>, userId?: string): Promise<CurrentTasks> {
+  async update(
+    id: number,
+    data: Partial<CurrentTasks>,
+    userId?: string,
+  ): Promise<CurrentTasks> {
     const existingTask = await this.findOne(id); // Проверяем существование и получаем текущее состояние
 
     // Проверяем, изменился ли статус на завершенный (ID = 3) или isCompleted = true
@@ -244,16 +248,18 @@ export class CurrentTasksService {
     if (shouldRecalculateComponents) {
       // Если задача завершена, проверяем доступность компонентов
       if (updatedTask.isCompleted) {
-        const areComponentsAvailable = await this.componentQuantityWatcher.checkTaskComponentsAvailability(
-          id,
-          userId
-        );
+        const areComponentsAvailable =
+          await this.componentQuantityWatcher.checkTaskComponentsAvailability(
+            id,
+            userId,
+          );
 
         if (!areComponentsAvailable) {
           // Откатываем статус задачи
-          const inProgressState = await this.currentTaskStatesRepository.findOne({
-            where: [{ title: 'Выполняется' }, { title: 'Выполняется' }],
-          });
+          const inProgressState =
+            await this.currentTaskStatesRepository.findOne({
+              where: [{ title: 'Выполняется' }, { title: 'Выполняется' }],
+            });
 
           if (inProgressState) {
             await this.currentTasksRepository.update(id, {
@@ -267,16 +273,17 @@ export class CurrentTasksService {
             this.wsGateway.sendNotification(
               userId,
               'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
-              'error'
+              'error',
             );
           }
 
           throw new HttpException(
             {
-              message: 'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
-              type: 'component_insufficient'
+              message:
+                'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
+              type: 'component_insufficient',
             },
-            HttpStatus.BAD_REQUEST
+            HttpStatus.BAD_REQUEST,
           );
         }
 
@@ -436,10 +443,11 @@ export class CurrentTasksService {
     }
 
     // 7️⃣ Проверяем доступность компонентов перед завершением задачи
-    const areComponentsAvailable = await this.componentQuantityWatcher.checkTaskComponentsAvailability(
-      taskId,
-      userId
-    );
+    const areComponentsAvailable =
+      await this.componentQuantityWatcher.checkTaskComponentsAvailability(
+        taskId,
+        userId,
+      );
 
     if (!areComponentsAvailable) {
       // Если компонентов недостаточно, откатываем статус задачи
@@ -459,16 +467,17 @@ export class CurrentTasksService {
         this.wsGateway.sendNotification(
           userId,
           'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
-          'error'
+          'error',
         );
       }
 
       throw new HttpException(
         {
-          message: 'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
-          type: 'component_insufficient'
+          message:
+            'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
+          type: 'component_insufficient',
         },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -580,19 +589,20 @@ export class CurrentTasksService {
   }
 
   // Новый метод: дерево только для сотрудника
-  async getCurrentTasksTreeForEmployee(employeeId: number): Promise<any> {
-    const tasks = await this.currentTasksRepository.find({
+  async buildCurrentTasksTree(employeeProfession: string) {
+    const currentTasks = await this.currentTasksRepository.find({
       where: {
-        shipmentStands: {
-          stands: {
-            employees: { id: employeeId },
-          },
+        standTasks: {
+          professions: { title: employeeProfession },
         },
-        currentTaskStates: { id: Not(3) }, // исключаем завершённые
       },
       relations: [
         'currentTaskStates',
         'standTasks',
+        'standTasks.professions',
+        'standTasks.components',
+        'standTasks.standTasksComponents',
+        'standTasks.standTasksComponents.component',
         'shipmentStands',
         'shipmentStands.shipments',
         'shipmentStands.stands',
@@ -601,40 +611,144 @@ export class CurrentTasksService {
       ],
     });
 
-    const allStandTasks = await this.standTasksRepository.find({
-      relations: ['components', 'stands', 'professions'],
-    });
-    const standTasksByParent = new Map<string, StandTasks[]>();
-    for (const st of allStandTasks) {
-      const key = String(st.parentId);
-      if (!standTasksByParent.has(key)) standTasksByParent.set(key, []);
-      standTasksByParent.get(key)!.push(st);
+    const filteredTasks = currentTasks.filter(
+      (task) =>
+        !task.isCompleted &&
+        task.currentTaskStates?.title?.toLowerCase() !== 'завершена',
+    );
+
+    if (!filteredTasks || filteredTasks.length === 0) {
+      return { name: 'Мои задачи', children: [] };
     }
+
+    const formatDate = (d: Date | string | undefined | null) => {
+      if (!d) return 'Без даты';
+      if (typeof d === 'string') return d;
+      return (d as Date).toISOString().split('T')[0];
+    };
 
     const stateMap = new Map<
       string,
-      Map<string, Map<string, Map<number, CurrentTasks>>>
+      Map<string, Map<string, CurrentTasks[]>>
     >();
 
-    for (const task of tasks) {
+    for (const task of filteredTasks) {
       const state = task.currentTaskStates?.title || 'Без состояния';
-      const deadline = task.shipmentStands?.shipments?.shipmentDate
-        ? typeof task.shipmentStands?.shipments?.shipmentDate === 'string'
-          ? task.shipmentStands?.shipments?.shipmentDate
-          : (task.shipmentStands?.shipments?.shipmentDate as Date)
-              .toISOString()
-              .split('T')[0]
-        : 'Без даты';
-      const stand = task.shipmentStands.stands?.title || 'Без стенда';
+      const deadline = formatDate(task.shipmentStands?.shipments?.shipmentDate);
+      const stand = task.shipmentStands?.stands?.title || 'Без стенда';
 
       if (!stateMap.has(state)) stateMap.set(state, new Map());
       const deadlineMap = stateMap.get(state)!;
+
       if (!deadlineMap.has(deadline)) deadlineMap.set(deadline, new Map());
       const standMap = deadlineMap.get(deadline)!;
-      if (!standMap.has(stand)) standMap.set(stand, new Map());
-      standMap.get(stand)!.set(task.id, task);
+
+      if (!standMap.has(stand)) standMap.set(stand, []);
+      standMap.get(stand)!.push(task);
     }
 
+    const getComponentsForStandTask = (st: any) => {
+      const comps: Array<{ title: string; count?: number }> = [];
+
+      if (st?.components) {
+        comps.push({
+          title: st.components.title,
+          count: st.componentOutCount ?? undefined,
+        });
+      }
+
+      if (Array.isArray(st?.standTasksComponents)) {
+        for (const link of st.standTasksComponents) {
+          const component = link?.component || link?.components;
+          if (component) {
+            comps.push({
+              title: component.title || 'Без названия',
+              count:
+                link.count ??
+                link.componentOutCount ??
+                link.quantity ??
+                undefined,
+            });
+          }
+        }
+      }
+
+      const unique = new Map<string, { title: string; count?: number }>();
+      for (const c of comps) {
+        if (!unique.has(c.title)) unique.set(c.title, c);
+      }
+
+      return Array.from(unique.values());
+    };
+
+    const buildTasksForestForGroup = (tasksInGroup: CurrentTasks[]) => {
+      const byStandTaskId = new Map<number, CurrentTasks[]>();
+      for (const ct of tasksInGroup) {
+        const stId = ct.standTasks?.id;
+        if (!stId) continue;
+        if (!byStandTaskId.has(stId)) byStandTaskId.set(stId, []);
+        byStandTaskId.get(stId)!.push(ct);
+      }
+
+      const buildNodes = (parentStandTaskId: number | null): any[] => {
+        const nodes: any[] = [];
+
+        for (const [standTaskId, ctArray] of byStandTaskId.entries()) {
+          const st = ctArray[0].standTasks;
+          const parentId = (st?.parentId ?? null) as number | null;
+
+          if ((parentId ?? null) === (parentStandTaskId ?? null)) {
+            for (const ct of ctArray) {
+              const employeeName =
+                [
+                  ct.shipmentStands?.stands?.employees?.peoples?.lastName || '',
+                  ct.shipmentStands?.stands?.employees?.peoples?.firstName ||
+                    '',
+                  ct.shipmentStands?.stands?.employees?.peoples?.middleName ||
+                    '',
+                ]
+                  .map((s) => s?.trim())
+                  .filter(Boolean)
+                  .join(' ') || 'Без сотрудника';
+
+              // получаем список компонентов
+              const components = getComponentsForStandTask(st);
+
+              // превращаем компоненты в дочерние узлы
+              const componentNodes = components.map((c) => ({
+                name: `Компонент: ${c.title}${c.count ? ` (${c.count})` : ''}`,
+                nodeType: 'components',
+                children: [],
+              }));
+
+              const node = {
+                id: ct.id,
+                nodeType: 'current_tasks',
+                standTaskId: st?.id ?? null,
+                name: [
+                  `Задача: ${st?.title || 'Без названия'}`,
+                  `Исполнитель: ${employeeName}`,
+                ].join(' | '),
+                employees: employeeName,
+                taskTitle: st?.title || '',
+                currentTaskState: ct.currentTaskStates?.title || '',
+                isCompleted: !!ct.isCompleted,
+                // добавляем компоненты как дочерние узлы
+                children: [...buildNodes(st?.id ?? null), ...componentNodes],
+              };
+
+              nodes.push(node);
+            }
+          }
+        }
+
+        return nodes;
+      };
+
+      return buildNodes(null);
+    };
+
+    // 7️⃣ Преобразуем всё в дерево: Состояние → Дедлайн → Стенд → Задачи → Компоненты
     const children = Array.from(stateMap.entries()).map(
       ([state, deadlineMap]) => ({
         name: `Состояние: ${state}`,
@@ -642,60 +756,52 @@ export class CurrentTasksService {
         children: Array.from(deadlineMap.entries()).map(
           ([deadline, standMap]) => ({
             name: `Дедлайн: ${deadline}`,
-            deadline,
             nodeType: 'deadline',
-            children: Array.from(standMap.entries()).map(([stand, taskMap]) => {
-              const firstTask = Array.from(taskMap.values())[0];
-              return {
-                id: firstTask?.shipmentStands.stands?.id,
+            children: Array.from(standMap.entries()).map(
+              ([stand, tasksInGroup]) => ({
                 name: `Стенд: ${stand}`,
                 nodeType: 'stands',
-                stand,
-                children: Array.from(taskMap.entries()).map(
-                  ([taskId, task]) => ({
-                    id: task.id,
-                    name: [
-                      `${task.shipmentStands.stands?.employees?.peoples?.lastName || ''} ${task.shipmentStands.stands?.employees?.peoples?.firstName || ''} ${task.shipmentStands.stands?.employees?.peoples?.middleName || ''}`.trim() ||
-                        'Без сотрудника',
-                      `Задача: ${task.standTasks.title}`,
-                    ]
-                      .filter(Boolean)
-                      .join(' | '),
-                    nodeType: 'current_tasks',
-                    employees:
-                      `${task.shipmentStands.stands?.employees?.peoples?.lastName || ''} ${task.shipmentStands.stands?.employees?.peoples?.firstName || ''} ${task.shipmentStands.stands?.employees?.peoples?.middleName || ''}`.trim(),
-                    taskTitle: task.standTasks.title || '',
-                    currentTaskState: task.currentTaskStates?.title || '',
-                    children: (
-                      standTasksByParent.get(String(task.standTasks?.id)) || []
-                    ).map((st) => ({
-                      id: st.id,
-                      name: [
-                        `Задача стенда: ${st.title}`,
-                        `Стенд: ${st.stands?.title || ''}`,
-                        `Компонент: ${st.components?.title || ''}`,
-                        `Кол-во: ${st.componentOutCount}`,
-                        `Время изготовления: ${st.manufactureTime}`,
-                      ]
-                        .filter(Boolean)
-                        .join(' | '),
-                      nodeType: 'stand_tasks',
-                      isCompleted: task.isCompleted,
-                      standTask: st.title || '',
-                      component: st.components?.title || '',
-                      manufactureTime: st.manufactureTime,
-                      children: [],
-                    })),
-                  }),
-                ),
-              };
-            }),
+                children: buildTasksForestForGroup(tasksInGroup),
+              }),
+            ),
           }),
         ),
       }),
     );
 
+    // 8️⃣ Возвращаем итоговое дерево
     return { name: 'Мои задачи', children };
+  }
+
+  async createTree(employeeProfession: string) {
+    const standTasks = await this.standTasksRepository.find({
+      relations: ['stands', 'professions', 'components'],
+    });
+
+    const currentTasks = await this.currentTasksRepository.find({
+      relations: [
+        'currentTaskStates',
+        'standTasks',
+        'shipmentStands',
+        'shipmentStands.stands',
+        'shipmentStands.stands.employees',
+        'shipmentStands.stands.employees.peoples',
+      ],
+      where: {
+        standTasks: {
+          professions: {
+            title: employeeProfession,
+          },
+        },
+      },
+    });
+
+    if (!currentTasks) return null;
+
+    const tree = currentTasks.map((currentTask) => ({
+      name: `Состояние: ${currentTask.currentTaskStates?.title}`,
+      children: {},
+    }));
   }
 
   // Получить только основные задачи стенда (parentId == null)

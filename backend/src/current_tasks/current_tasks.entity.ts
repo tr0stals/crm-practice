@@ -27,6 +27,9 @@ export class CurrentTasks {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'int', nullable: true })
+  parentId: number | null;
+
   @Column({ default: false })
   isCompleted: boolean;
 
