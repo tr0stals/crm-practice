@@ -48,6 +48,9 @@ export class Employees {
   @OneToMany(() => OrderRequests, (orderReq) => orderReq.employeeCreator)
   creator: OrderRequests[];
 
+  @OneToMany(() => CurrentTasks, (currentTask) => currentTask.employees)
+  currentTasks: CurrentTasks[];
+
   @OneToMany(() => PcbOrders, (pcbOrder) => pcbOrder.employees)
   pcbOrders: PcbOrders[];
 

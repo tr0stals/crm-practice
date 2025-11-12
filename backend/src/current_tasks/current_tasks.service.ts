@@ -331,22 +331,36 @@ export class CurrentTasksService {
     }
   }
 
-  async startTask(taskId: number, employeeId: number) {
-    const task = await this.currentTasksRepository.findOne({
-      where: { id: taskId },
+  async startTask(currentTaskId: number, employeeId: number) {
+    let executor: Employees | null = null;
+    const currentTask = await this.currentTasksRepository.findOne({
+      where: { id: currentTaskId },
       relations: ['currentTaskStates', 'standTasks', 'shipmentStands'],
     });
-    if (!task) throw new Error('Задача не найдена');
+    if (!currentTask) throw new Error('Задача не найдена');
+
+    if (employeeId) {
+      const targetEmployee = await this.employeeRepository.findOne({
+        where: { id: employeeId },
+        relations: ['peoples'],
+      });
+
+      if (!targetEmployee) {
+        console.debug('!!!!!!!!');
+        throw new Error('Сотрудник не найден');
+      }
+
+      console.log('targetEmployee', targetEmployee);
+      executor = targetEmployee;
+    }
 
     // Отправляем уведомление о начале задачи
     if (
-      task.shipmentStands?.stands?.employees?.users &&
-      task.shipmentStands?.stands?.employees?.users.length > 0
+      currentTask.shipmentStands?.stands?.employees?.users &&
+      currentTask.shipmentStands?.stands?.employees?.users.length > 0
     ) {
-      const user = task.shipmentStands?.stands?.employees?.users[0];
-      const employeeName =
-        `${task.shipmentStands?.stands?.employees?.peoples?.lastName || ''} ${task.shipmentStands?.stands?.employees?.peoples.firstName || ''} ${task.shipmentStands?.stands?.employees?.peoples?.middleName || ''}`.trim();
-      const message = `Задача "${task.standTasks?.title}" на стенде "${task.shipmentStands?.stands?.title}" начата`;
+      const user = currentTask.shipmentStands?.stands?.employees?.users[0];
+      const message = `Задача "${currentTask.standTasks?.title}" на стенде "${currentTask.shipmentStands?.stands?.title}" начата`;
 
       this.wsGateway.sendNotification(
         user.id.toString(),
@@ -362,12 +376,13 @@ export class CurrentTasksService {
     if (inProgressState) {
       // Логируем изменение статуса
       await this.currentTaskStatesLogService.logStateChange(
-        taskId,
+        currentTaskId,
         inProgressState.id,
       );
-      task.currentTaskStates = inProgressState;
+      currentTask.currentTaskStates = inProgressState;
+      if (executor) currentTask.employees = executor;
     }
-    return await this.currentTasksRepository.save(task);
+    return await this.currentTasksRepository.save(currentTask);
   }
 
   async completeTask(taskId: number, userId?: string) {
@@ -492,12 +507,18 @@ export class CurrentTasksService {
     return tasks.map((task) => ({ id: task.id, title: task.standTasks.title }));
   }
 
-  // Новый метод: дерево для всех (директор/админ)
+  // Метод: дерево текущих задач для всех (директор / админ)
   async getCurrentTasksTreeForAll(): Promise<any> {
-    const tasks = await this.currentTasksRepository.find({
+    const currentTasks = await this.currentTasksRepository.find({
       relations: [
         'currentTaskStates',
         'standTasks',
+        'standTasks.professions',
+        'standTasks.components',
+        'standTasks.standTasksComponents',
+        'standTasks.standTasksComponents.component',
+        'employees',
+        'employees.peoples',
         'shipmentStands',
         'shipmentStands.shipments',
         'shipmentStands.stands',
@@ -505,86 +526,172 @@ export class CurrentTasksService {
         'shipmentStands.stands.employees.peoples',
       ],
     });
+
     const allStandTasks = await this.standTasksRepository.find({
-      relations: ['components', 'stands', 'professions'],
+      relations: [
+        'components',
+        'stands',
+        'professions',
+        'standTasksComponents',
+        'standTasksComponents.component',
+      ],
     });
-    const standTasksByParent = new Map<string, StandTasks[]>();
+
+    // --- группируем standTasks по parentId
+    const standTasksByParent = new Map<number | null, StandTasks[]>();
     for (const st of allStandTasks) {
-      const key = String(st.parentId);
+      const key = st.parentId ?? null;
       if (!standTasksByParent.has(key)) standTasksByParent.set(key, []);
       standTasksByParent.get(key)!.push(st);
     }
-    // Новый порядок: дата (дедлайн) -> стенд -> сотрудник+задача (id) -> подзадачи (id)
-    const deadlineMap = new Map<
-      string,
-      Map<string, Map<number, CurrentTasks>>
-    >();
-    for (const task of tasks) {
-      const deadline = task.shipmentStands.shipments?.shipmentDate
-        ? typeof task.shipmentStands.shipments?.shipmentDate === 'string'
-          ? task.shipmentStands.shipments?.shipmentDate
-          : (task.shipmentStands.shipments?.shipmentDate as Date)
-              .toISOString()
-              .split('T')[0]
+
+    // --- вспомогательная функция: получить список компонентов
+    const getComponentsForStandTask = (st: any) => {
+      const comps: Array<{ title: string; count?: number }> = [];
+
+      if (st?.components) {
+        comps.push({
+          title: st.components.title,
+          count: st.componentOutCount ?? undefined,
+        });
+      }
+
+      if (Array.isArray(st?.standTasksComponents)) {
+        for (const link of st.standTasksComponents) {
+          const component = link?.component || link?.components;
+          if (component) {
+            comps.push({
+              title: component.title || 'Без названия',
+              count:
+                link.count ??
+                link.componentOutCount ??
+                link.quantity ??
+                undefined,
+            });
+          }
+        }
+      }
+
+      // убираем дубли
+      const unique = new Map<string, { title: string; count?: number }>();
+      for (const c of comps) {
+        if (!unique.has(c.title)) unique.set(c.title, c);
+      }
+
+      return Array.from(unique.values());
+    };
+
+    // --- группируем задачи по дедлайну и стенду
+    const deadlineMap = new Map<string, Map<string, CurrentTasks[]>>();
+
+    for (const ct of currentTasks) {
+      const deadline = ct.shipmentStands?.shipments?.shipmentDate
+        ? ct.shipmentStands.shipments.shipmentDate instanceof Date
+          ? ct.shipmentStands.shipments.shipmentDate.toISOString().split('T')[0]
+          : ct.shipmentStands.shipments.shipmentDate
         : 'Без даты';
-      const stand = task.shipmentStands.stands?.title || 'Без стенда';
+
+      const stand = ct.shipmentStands?.stands?.title || 'Без стенда';
+
       if (!deadlineMap.has(deadline)) deadlineMap.set(deadline, new Map());
       const standMap = deadlineMap.get(deadline)!;
-      if (!standMap.has(stand)) standMap.set(stand, new Map());
-      // Ключ — id задачи
-      standMap.get(stand)!.set(task.id, task);
+
+      if (!standMap.has(stand)) standMap.set(stand, []);
+      standMap.get(stand)!.push(ct);
     }
+
+    // --- строим дерево подзадач (standTasks)
+    const buildTasksTree = (tasksInGroup: CurrentTasks[]): any[] => {
+      const byStandTaskId = new Map<number, CurrentTasks[]>();
+      for (const ct of tasksInGroup) {
+        const stId = ct.standTasks?.id;
+        if (!stId) continue;
+        if (!byStandTaskId.has(stId)) byStandTaskId.set(stId, []);
+        byStandTaskId.get(stId)!.push(ct);
+      }
+
+      const buildNodes = (parentStandTaskId: number | null): any[] => {
+        const nodes: any[] = [];
+
+        for (const [standTaskId, ctArray] of byStandTaskId.entries()) {
+          const st = ctArray[0].standTasks;
+          const parentId = st?.parentId ?? null;
+
+          if (parentId === parentStandTaskId) {
+            for (const ct of ctArray) {
+              const employeeName =
+                [
+                  ct.employees?.peoples?.lastName || '',
+                  ct.employees?.peoples?.firstName || '',
+                  ct.employees?.peoples?.middleName || '',
+                ]
+                  .map((s) => s?.trim())
+                  .filter(Boolean)
+                  .join(' ') || 'Без сотрудника';
+
+              // компоненты
+              const components = getComponentsForStandTask(st);
+              const componentNodes = components.map((c) => ({
+                name: `Компонент: ${c.title}${
+                  c.count ? ` (${c.count} шт.)` : ''
+                }`,
+                nodeType: 'components',
+                children: [],
+              }));
+
+              // рекурсивно строим подзадачи
+              const subTaskNodes = buildNodes(st.id ?? null);
+
+              nodes.push({
+                id: ct.id,
+                nodeType: 'current_tasks',
+                standTaskId: st?.id ?? null,
+                name: [
+                  `Задача: ${st?.title || 'Без названия'}`,
+                  `Исполнитель: ${employeeName}`,
+                  `Состояние: ${ct.currentTaskStates?.title || 'Без состояния'}`,
+                ].join(' | '),
+                employees: employeeName,
+                taskTitle: st?.title || '',
+                currentTaskState: ct.currentTaskStates?.title || '',
+                isCompleted: !!ct.isCompleted,
+                children: [...subTaskNodes, ...componentNodes],
+              });
+            }
+          }
+        }
+
+        return nodes;
+      };
+
+      return buildNodes(null);
+    };
+
+    // --- собираем полное дерево: дедлайн → стенд → задачи
     const children = Array.from(deadlineMap.entries()).map(
       ([deadline, standMap]) => ({
-        name: deadline,
-        deadline: deadline,
-        children: Array.from(standMap.entries()).map(([stand, taskMap]) => {
-          const firstTask = Array.from(taskMap.values())[0];
-          return {
-            id: firstTask?.shipmentStands.stands?.id,
-            name: `Стенд: ${stand}`,
-            nodeType: 'stands',
-            stand: stand,
-            children: Array.from(taskMap.entries()).map(([taskId, task]) => ({
-              id: task.id,
-              name: [
-                `${task.shipmentStands.stands?.employees?.peoples?.lastName || ''} ${task.shipmentStands.stands?.employees?.peoples?.firstName || ''} ${task.shipmentStands.stands?.employees?.peoples?.middleName || ''}`.trim() ||
-                  'Без сотрудника',
-                `Задача: ${task.standTasks.title}`,
-                `Состояние задачи: ${task.currentTaskStates?.title || ''}`,
-              ]
-                .filter(Boolean)
-                .join(' | '),
-              nodeType: 'current_tasks',
-              employees:
-                `${task.shipmentStands.stands?.employees?.peoples?.lastName || ''} ${task.shipmentStands.stands?.employees?.peoples?.firstName || ''} ${task.shipmentStands.stands?.employees?.peoples?.middleName || ''}`.trim(),
-              taskTitle: task.standTasks.title || '',
-              currentTaskState: task.currentTaskStates?.title || '',
-              children: (
-                standTasksByParent.get(String(task.standTasks?.id)) || []
-              ).map((st) => ({
-                id: st.id,
-                name: [
-                  `Задача стенда: ${st.title}`,
-                  `Стенд: ${st.stands?.title || ''}`,
-                  `Компонент: ${st.components?.title || ''}`,
-                  `Кол-во: ${st.componentOutCount}`,
-                  `Время изготовления: ${st.manufactureTime}`,
-                ]
-                  .filter(Boolean)
-                  .join(' | '),
-                nodeType: 'stand_tasks',
-                isCompleted: task.isCompleted,
-                standTask: st.title || '',
-                component: st.components?.title || '',
-                manufactureTime: st.manufactureTime,
-                children: [],
-              })),
-            })),
-          };
-        }),
+        name: `Дедлайн: ${deadline}`,
+        nodeType: 'deadline',
+        children: Array.from(standMap.entries()).map(
+          ([stand, tasksInGroup]) => {
+            const standEmployees =
+              tasksInGroup[0]?.shipmentStands?.stands?.employees;
+            const responsibleNames =
+              `${standEmployees?.peoples?.lastName || ''} ${
+                standEmployees?.peoples?.firstName || ''
+              } ${standEmployees?.peoples?.middleName || ''}`.trim() ||
+              'Без сотрудника';
+
+            return {
+              name: `Стенд: ${stand}, Ответственный: ${responsibleNames}`,
+              nodeType: 'stands',
+              children: buildTasksTree(tasksInGroup),
+            };
+          },
+        ),
       }),
     );
+
     return { name: 'Текущие задачи', children };
   }
 
@@ -603,6 +710,8 @@ export class CurrentTasksService {
         'standTasks.components',
         'standTasks.standTasksComponents',
         'standTasks.standTasksComponents.component',
+        'employees',
+        'employees.peoples',
         'shipmentStands',
         'shipmentStands.shipments',
         'shipmentStands.stands',
@@ -701,11 +810,9 @@ export class CurrentTasksService {
             for (const ct of ctArray) {
               const employeeName =
                 [
-                  ct.shipmentStands?.stands?.employees?.peoples?.lastName || '',
-                  ct.shipmentStands?.stands?.employees?.peoples?.firstName ||
-                    '',
-                  ct.shipmentStands?.stands?.employees?.peoples?.middleName ||
-                    '',
+                  ct.employees?.peoples?.lastName || '',
+                  ct.employees?.peoples?.firstName || '',
+                  ct.employees?.peoples?.middleName || '',
                 ]
                   .map((s) => s?.trim())
                   .filter(Boolean)
@@ -716,7 +823,7 @@ export class CurrentTasksService {
 
               // превращаем компоненты в дочерние узлы
               const componentNodes = components.map((c) => ({
-                name: `Компонент: ${c.title}${c.count ? ` (${c.count})` : ''}`,
+                name: `Компонент: ${c.title}${c.count ? ` (${c.count} шт.)` : ''}`,
                 nodeType: 'components',
                 children: [],
               }));
@@ -758,11 +865,21 @@ export class CurrentTasksService {
             name: `Дедлайн: ${deadline}`,
             nodeType: 'deadline',
             children: Array.from(standMap.entries()).map(
-              ([stand, tasksInGroup]) => ({
-                name: `Стенд: ${stand}`,
-                nodeType: 'stands',
-                children: buildTasksForestForGroup(tasksInGroup),
-              }),
+              ([stand, tasksInGroup]) => {
+                // достаём всех сотрудников стенда
+                const standEmployees =
+                  tasksInGroup[0]?.shipmentStands?.stands?.employees ?? [];
+
+                // формируем список ФИО
+                const responsibleNames =
+                  `${standEmployees.peoples.lastName} ${standEmployees.peoples.firstName} ${standEmployees.peoples.middleName}`.trim();
+
+                return {
+                  name: `Стенд: ${stand}, Ответственный: ${responsibleNames}`,
+                  nodeType: 'stands',
+                  children: buildTasksForestForGroup(tasksInGroup),
+                };
+              },
             ),
           }),
         ),

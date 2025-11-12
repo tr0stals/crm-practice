@@ -44,12 +44,12 @@ export function useFormValidation(formData: any) {
       case "standTypeId":
       case "employeeId":
       case "order":
-      case "componentOutCount":
+      // case "componentOutCount":
       case "professionId":
-      case "componentId":
+      // case "componentId":
       case "placementTypeId":
       case "placementId":
-      case "componentCount":
+      // case "componentCount":
       case "billId":
       case "supplierId":
       case "factoryId":
@@ -60,27 +60,27 @@ export function useFormValidation(formData: any) {
       case "orderRequestId":
       case "employeeCreatorId":
       // Добавленные поля из DTO
-      case "count":
+      // case "count":
       case "pcbId":
       case "pcbManufacturerId":
       case "pcbOrderStatusId":
       case "writeoffReasonId":
-      case "componentCount": // StandTasksComponentsDTO
+      // case "componentCount": // StandTasksComponentsDTO
       case "standTaskId":
       case "shipmentId":
       case "employeeId": // уже был, но оставляем
       // Новые поля из добавленных DTO
       case "stateId":
       case "currentTaskId":
-      case "componentId": // уже был, но оставляем
-        if (value === undefined || value === null || value === "") {
-          errors[fieldName] = "Заполните поле";
-        } else if (isNaN(Number(value))) {
-          errors[fieldName] = "Введите числовое значение";
-        } else if (Number(value) < 0) {
-          errors[fieldName] = "Значение не может быть отрицательным";
-        }
-        break;
+      // case "componentId": // уже был, но оставляем
+      //   if (value === undefined || value === null || value === "") {
+      //     errors[fieldName] = "Заполните поле";
+      //   } else if (isNaN(Number(value))) {
+      //     errors[fieldName] = "Введите числовое значение";
+      //   } else if (Number(value) < 0) {
+      //     errors[fieldName] = "Значение не может быть отрицательным";
+      //   }
+      //   break;
 
       /** --- Строковые поля --- */
       case "licenseCode":
@@ -186,7 +186,7 @@ export function useFormValidation(formData: any) {
       case "clientId":
       case "supplierId":
       case "placementId":
-      case "componentId":
+      // case "componentId":
       case "organizationTypeId":
       case "contactPeopleId":
       case "orderRequestId":
@@ -202,7 +202,7 @@ export function useFormValidation(formData: any) {
       // Новые поля из добавленных DTO
       case "stateId":
       case "currentTaskId":
-      case "componentId": // уже был, но оставляем
+      // case "componentId": // уже был, но оставляем
       // case "standId": // уже был, но оставляем
       case "factoryId": // уже был, но оставляем
         if (!value) {

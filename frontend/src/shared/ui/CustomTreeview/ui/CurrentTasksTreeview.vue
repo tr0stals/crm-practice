@@ -59,12 +59,12 @@ interface TreeNode {
 /**
  * Массив исключений. Есть несколько таблиц, для которых дерево запрашивается по /getTree
  * */
-const professionExceptions = ["Администратор", "Директор"];
+const professionExceptions = ["администратор", "директор"];
 
 const menuStore = useMenuStore();
 
 const { data, error, loading, refetch } = useFetch<TreeNode[]>(
-  professionExceptions.includes(authoriedUserStore.user.professionTitle)
+  professionExceptions.includes(authoriedUserStore.user.professionTitle.toLowerCase())
     ? `${defaultEndpoint}/${props.currentSection}/tree`
     : `${defaultEndpoint}/${props.currentSection}/myTree`,
   {

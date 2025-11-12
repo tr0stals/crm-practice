@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { StandTasks } from '../stand_tasks/stand_tasks.entity';
 import { Components } from '../components/components.entity';
 
@@ -7,14 +13,14 @@ export class StandTasksComponents {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'int' })
-  componentCount: number;
+  @Column({ type: 'int', nullable: true })
+  componentCount?: number;
 
   @ManyToOne(() => StandTasks)
   @JoinColumn({ name: 'standTaskId' })
   standTask: StandTasks;
 
-  @ManyToOne(() => Components)
+  @ManyToOne(() => Components, { nullable: true })
   @JoinColumn({ name: 'componentId' })
-  component: Components;
+  component?: Components;
 }

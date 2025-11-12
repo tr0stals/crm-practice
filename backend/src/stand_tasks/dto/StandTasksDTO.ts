@@ -9,8 +9,7 @@ export class StandTasksDTO {
   order: number;
 
   @IsOptional()
-  @IsNotEmpty()
-  componentOutCount: number;
+  componentOutCount?: number;
 
   @IsOptional()
   @IsNotEmpty()
@@ -33,5 +32,5 @@ export class StandTasksDTO {
   professionId: number;
 
   @IsOptional()
-  componentId: number;
+  componentId?: number;
 }

@@ -23,8 +23,8 @@ export class StandTasks {
   @Column()
   order: number;
 
-  @Column()
-  componentOutCount: number;
+  @Column({ nullable: true })
+  componentOutCount?: number;
 
   @Column({ length: 45 })
   title: string;
@@ -43,9 +43,11 @@ export class StandTasks {
   @JoinColumn({ name: 'professionId' })
   professions: Professions;
 
-  @ManyToOne(() => Components, (component) => component.standTasks)
+  @ManyToOne(() => Components, (component) => component.standTasks, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'componentId' })
-  components: Components;
+  components?: Components;
 
   @OneToMany(
     () => StandTasksComponents,

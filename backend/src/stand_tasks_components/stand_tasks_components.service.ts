@@ -10,6 +10,7 @@ import { StandTasksComponents } from './stand_tasks_components.entity';
 import { StandTasksComponentsDTO } from './dto/StandTasksComponentsDTO';
 import { ComponentsService } from 'src/components/components.service';
 import { StandTasksService } from 'src/stand_tasks/stand_tasks.service';
+import { Components } from 'src/components/components.entity';
 
 @Injectable()
 export class StandTasksComponentsService {
@@ -76,10 +77,13 @@ export class StandTasksComponentsService {
     try {
       const { componentId, standTaskId, ...defaultData } = data;
 
-      const component = await this.componentService.findOne(componentId);
+      let component: Components | null = null;
+
+      if (componentId)
+        component = await this.componentService.findOne(componentId);
       const standTask = await this.standTaskService.getOne(standTaskId);
 
-      if (!component || !standTask)
+      if (!standTask)
         throw new NotFoundException('Одна из сущностей не найдена');
 
       const entity = this.repo.create({

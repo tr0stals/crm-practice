@@ -4,12 +4,22 @@ import "../style.scss";
 import Button from "@/shared/ui/Button/ui/Button.vue";
 import { startCurrentTask } from "../api/startCurrentTask";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
+import { ref, watch } from "vue";
 
 const navigationStore = useNavigationStore();
+const authoriedUserStore = useAuthorizedUserStore();
 
 const props = defineProps<{
   onSuccessCallback: () => void;
 }>();
+
+const employeeId = ref<number>();
+
+
+watch(() => authoriedUserStore.user, (newVal) => {
+  employeeId.value = newVal.employeeData?.id;
+})
 
 const handleClick = async (e: any) => {
   const currentTask = navigationStore.selectedRow;
@@ -29,7 +39,7 @@ const handleClick = async (e: any) => {
   //   return;
   // }
 
-  const response = await startCurrentTask(currentTask.data.id);
+  const response = await startCurrentTask(currentTask.data.id, employeeId.value);
 
   if (response.status === 201) props.onSuccessCallback();
 };

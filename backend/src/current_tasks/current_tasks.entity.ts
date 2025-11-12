@@ -44,6 +44,10 @@ export class CurrentTasks {
   @JoinColumn({ name: 'standTaskId' })
   standTasks: StandTasks;
 
+  @ManyToOne(() => Employees, (employee) => employee.currentTasks)
+  @JoinColumn({ name: 'executorId' })
+  employees: Employees | null;
+
   @ManyToOne(
     () => ShipmentsStands,
     (shipmentStand) => shipmentStand.currentTasks,

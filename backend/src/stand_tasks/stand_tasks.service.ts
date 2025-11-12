@@ -19,6 +19,7 @@ import { Professions } from 'src/professions/professions.entity';
 import { CurrentTasksService } from 'src/current_tasks/current_tasks.service';
 import { Stands } from 'src/stands/stands.entity';
 import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_components.entity';
+import { Components } from 'src/components/components.entity';
 
 @Injectable()
 export class StandTasksService {
@@ -48,13 +49,18 @@ export class StandTasksService {
       isCompleted = false;
     }
     const { componentId, professionId, standId, ...defaultData } = data;
-    const component = await this.componentService.findOne(componentId);
+
+    let component: Components | null = null;
+
+    if (componentId)
+      component = await this.componentService.findOne(componentId);
+
     const profession = await this.professionsRepo.findOne({
       where: { id: data.professionId },
     });
     const stand = await this.standService.findOne(standId);
 
-    if (!component || !profession || !stand)
+    if (!profession || !stand)
       throw new NotFoundException('Одна из сущностей не найдена');
 
     // Если parentId не передан, явно ставим null
@@ -257,72 +263,85 @@ export class StandTasksService {
         relations: ['standTask', 'component'],
       });
 
-      // Рекурсивный билдер задач
-      const buildTaskTree = (tasks, parentId = null) => {
+      // 🔹 вспомогательная функция — возвращает список компонентов для конкретной задачи
+      const getComponentsForTask = (taskId: number) => {
+        const comps = standTasksComponents.filter(
+          (item) => item.standTask?.id === taskId,
+        );
+
+        if (comps.length === 0) return [];
+
+        // группируем по компоненту, суммируем количество
+        const grouped = new Map<number, { title: string; total: number }>();
+        for (const item of comps) {
+          const compId = item.component?.id;
+          if (!compId) continue;
+
+          const count = Number(item.componentCount ?? 0);
+          const existing = grouped.get(compId);
+
+          if (existing) {
+            grouped.set(compId, {
+              title: existing.title,
+              total: existing.total + count,
+            });
+          } else {
+            grouped.set(compId, {
+              title: item.component?.title ?? 'Без названия',
+              total: count,
+            });
+          }
+        }
+
+        // возвращаем массив дочерних узлов компонентов
+        return Array.from(grouped.entries()).map(([compId, info]) => ({
+          id: compId,
+          name: `Компонент: ${info.title} | Кол-во: ${info.total}`,
+          nodeType: 'stand_tasks_components',
+          children: [],
+        }));
+      };
+
+      // 🔹 рекурсивная функция для построения задач
+      const buildTaskTree = (tasks: any[], parentId: number | null = null) => {
         return tasks
-          .filter((t) => (t.parentId ?? null) === parentId) // фильтруем по parentId
+          .filter((t) => (t.parentId ?? null) === parentId)
           .map((task) => {
+            const subTasks = buildTaskTree(tasks, task.id);
+            const components = getComponentsForTask(task.id);
+
+            // если нет подзадач и нет компонентов — children будет []
+            const children =
+              subTasks.length > 0 || components.length > 0
+                ? [...subTasks, ...components]
+                : [];
+
             return {
               id: task.id,
               name: `Задача: ${task.title}`,
               nodeType: 'stand_tasks',
-              children: [
-                // подзадачи
-                ...buildTaskTree(tasks, task.id),
-                // компоненты
-                ...(() => {
-                  const grouped = new Map<
-                    number,
-                    { title: string; total: number }
-                  >();
-                  standTasksComponents
-                    .filter((item) => item.standTask?.id === task.id)
-                    .forEach((item) => {
-                      const compTaskId = item.id;
-                      if (!compTaskId) return;
-
-                      const prev = grouped.get(compTaskId);
-                      const count = Number(item.componentCount ?? 0);
-                      if (prev)
-                        grouped.set(compTaskId, {
-                          title: prev.title,
-                          total: prev.total + count,
-                        });
-                      else
-                        grouped.set(compTaskId, {
-                          title: item.component?.title ?? '—',
-                          total: count,
-                        });
-                    });
-
-                  return Array.from(grouped.entries()).map(
-                    ([compTaskId, info]) => ({
-                      id: compTaskId,
-                      name: `Компонент: ${info.title} | Кол-во: ${info.total}`,
-                      nodeType: 'stand_tasks_components',
-                    }),
-                  );
-                })(),
-              ],
+              children,
             };
           });
       };
 
-      // Корневой уровень — стенды
+      // 🔹 верхний уровень — стенды
       const tree = stands.map((stand: Stands) => {
+        const standTaskList = standTasks.filter(
+          (task) => task.stands?.id === stand.id,
+        );
+
         return {
           id: stand.id,
-          name: `Стенд: ${stand.title} | ${stand.standType?.title}`,
+          name: `Стенд: ${stand.title} | ${stand.standType?.title ?? 'Без типа'}`,
           nodeType: 'stands',
-          children: buildTaskTree(
-            standTasks.filter((task) => task.stands?.id === stand.id),
-          ),
+          children: buildTaskTree(standTaskList),
         };
       });
 
       return { name: 'Задачи стенда', children: tree };
     } catch (e) {
-      throw new Error(e);
+      throw new Error(`Ошибка при построении дерева задач: ${e.message}`);
     }
   }
 }

@@ -56,7 +56,6 @@ watch(
   dateFields,
   (fields) => {
     fields.forEach((key) => {
-      console.debug(key);
       if (!(key in dateModel)) {
         dateModel[key] = formData[key] ? formData[key].slice(0, 10) : null;
         watch(
@@ -165,7 +164,6 @@ async function loadComponents() {
 
 const getStandTypeId = async () => {
   const standType = navigationStore.selectedRow?.data;
-  console.debug("debug!!!", standType);
   const standTypeId = ref<number>();
 
   switch (standType?.nodeType) {
@@ -194,10 +192,8 @@ const getStandTypeId = async () => {
 async function loadStands() {
   const data = { ...formData };
   const { image, ...defaultData } = data;
-  console.debug(image);
 
   if (!formData) {
-    console.debug("!!!");
     toast.error("Необходимо заполнить поля", { timeout: 5000 });
     return;
   }
@@ -221,7 +217,6 @@ async function loadStands() {
 async function loadStandTasks() {
   const data = { ...formData };
   const { photo, ...defaultData } = data;
-  console.debug(photo);
 
   const res = await createEntityAsync(props.sectionName, {
     photo: photo?.name,
@@ -276,7 +271,6 @@ function removeFile(item: string, index: number) {
 }
 
 const handleDeleteImage = async (item: any) => {
-  console.debug(item);
   if (item.photo) item.photo = null;
   if (item.icon) item.icon = null;
 
@@ -316,7 +310,6 @@ const handleDeleteImage = async (item: any) => {
                   :key="option.id"
                   v-for="option in selectOptions[item]"
                 >
-                  {{ console.debug(option) }}
                   <option :value="option.id">
                     {{ option.label || option.shortName }}
                   </option>
