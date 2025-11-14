@@ -39,6 +39,5 @@ export class ComponentsDTO {
   drawingReference: string;
 
   @IsOptional()
-  @IsNotEmpty()
-  placementId: number;
+  placementId?: number;
 }

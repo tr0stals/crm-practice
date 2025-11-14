@@ -26,8 +26,10 @@ export class ArrivalInvoicesDTO {
   vat: boolean;
 
   @IsOptional()
+  @IsNotEmpty()
   supplierId: number;
 
   @IsOptional()
+  @IsNotEmpty()
   factoryId: number;
 }

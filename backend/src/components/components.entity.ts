@@ -59,7 +59,9 @@ export class Components {
   @Column({ type: 'int', default: 0 })
   quantity: number;
 
-  @ManyToOne(() => ComponentPlacements, (placement) => placement.components)
+  @ManyToOne(() => ComponentPlacements, (placement) => placement.components, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'placementId' })
   componentPlacements?: ComponentPlacements;
 

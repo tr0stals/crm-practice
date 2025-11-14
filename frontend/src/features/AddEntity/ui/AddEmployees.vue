@@ -10,12 +10,14 @@ import { computed, reactive, watch } from "vue";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 import { useFormValidation } from "@/shared/plugins/validation";
 import { useToast } from "vue-toastification";
+import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 
 const props = defineProps<{
   sectionName: string;
   onClose: () => void;
   onSuccess: () => void;
 }>();
+const navigationStore = useNavigationStore()
 
 const { formData, tableColumns, selectOptions, submit } = useAddEmployees(
   props.sectionName,
@@ -85,12 +87,11 @@ watch(
 
 const handleSubmit = async () => {
   try {
-    if (!validateForm(tableColumns.value)) {
+    if (!validateForm(tableColumns.value, props.sectionName)) {
       toast.error("Исправьте ошибки перед отправкой");
       return;
     }
 
-    console.debug(formData);
     await submit();
   } catch (e) {
     console.error("Ошибка при добавлении", e);
@@ -268,8 +269,8 @@ const handleSubmit = async () => {
               v-else
             />
           </div>
-          <p v-if="errors[item]" class="error-text">
-            {{ errors[item] }}
+          <p v-if="errors[sectionName ?? 'global']?.[item]" class="error-text">
+            {{ errors[sectionName ?? 'global'][item] }}
           </p>
         </div>
       </div>

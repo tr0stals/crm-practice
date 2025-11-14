@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -333,11 +334,24 @@ export class CurrentTasksService {
 
   async startTask(currentTaskId: number, employeeId: number) {
     let executor: Employees | null = null;
+    const allCurrentTasks = await this.currentTasksRepository.find({
+      relations: ['currentTaskStates', 'standTasks', 'shipmentStands'],
+    });
     const currentTask = await this.currentTasksRepository.findOne({
       where: { id: currentTaskId },
       relations: ['currentTaskStates', 'standTasks', 'shipmentStands'],
     });
     if (!currentTask) throw new Error('Задача не найдена');
+
+    const flag = allCurrentTasks.some(
+      (task) => task.parentId === currentTask.standTasks?.id,
+    );
+
+    if (flag) {
+      throw new BadRequestException(
+        'Нельзя взять задачу — у неё есть подзадачи, которые нужно выполнить сначала.',
+      );
+    }
 
     if (employeeId) {
       const targetEmployee = await this.employeeRepository.findOne({

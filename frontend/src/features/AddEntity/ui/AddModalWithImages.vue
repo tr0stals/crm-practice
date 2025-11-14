@@ -234,7 +234,8 @@ async function loadStandTasks() {
 const handleSubmit = async () => {
   // 1. Сначала создаем тип организации (получаем его ID)
   try {
-    if (!validateForm(tableColumns.value)) {
+    console.debug(navigationStore.currentSection)
+    if (!validateForm(tableColumns.value, navigationStore.currentSection)) {
       toast.error("Исправьте ошибки перед отправкой");
       return;
     }
@@ -429,8 +430,8 @@ const handleDeleteImage = async (item: any) => {
               />
             </template>
           </div>
-          <p v-if="errors[item]" class="error-text">
-            {{ errors[item] }}
+          <p v-if="errors[sectionName ?? 'global']?.[item]" class="error-text">
+            {{ errors[sectionName ?? 'global'][item] }}
           </p>
         </div>
       </div>

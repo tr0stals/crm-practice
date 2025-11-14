@@ -5,7 +5,7 @@ export const startCurrentTask = async (taskId: number, employeeId?: number) => {
     const endpoint = "current_tasks/start";
 
     return await api.post(`${endpoint}/${taskId}`, {
-      employeeId
+      employeeId,
     });
   } catch (e: any) {
     throw new Error(e);

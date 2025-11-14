@@ -54,7 +54,7 @@ watch(
 
 const handleSubmit = async () => {
   try {
-    if (!validateForm(tableColumns.value)) {
+    if (!validateForm(tableColumns.value, props.sectionName)) {
       toast.error("Исправьте ошибки перед отправкой");
       return;
     }
@@ -184,8 +184,8 @@ const handleSubmit = async () => {
               />
             </template>
           </div>
-          <p v-if="errors[field.name]" class="error-text">
-            {{ errors[field.name] }}
+          <p v-if="errors[sectionName ?? 'global']?.[field]" class="error-text">
+            {{ errors[sectionName ?? 'global'][field] }}
           </p>
         </div>
       </div>

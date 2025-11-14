@@ -40,6 +40,7 @@ const handleClick = async (e: any) => {
   // }
 
   const response = await startCurrentTask(currentTask.data.id, employeeId.value);
+  console.debug(response.data);
 
   if (response.status === 201) props.onSuccessCallback();
 };

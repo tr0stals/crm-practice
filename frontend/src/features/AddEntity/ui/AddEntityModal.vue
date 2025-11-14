@@ -125,8 +125,7 @@ async function uploadImage(file: File, orgTypeId: number) {
 
 const handleSubmit = async () => {
   try {
-    console.debug(formData);
-    if (!validateForm(tableColumns.value)) {
+    if (!validateForm(tableColumns.value, props.sectionName)) {
       toast.error("Исправьте ошибки перед отправкой");
       return;
     }
@@ -267,9 +266,10 @@ const handleSubmit = async () => {
               :name="item"
             />
           </div>
-          <p v-if="errors[item]" class="error-text">
-            {{ errors[item] }}
+          <p v-if="errors[sectionName ?? 'global']?.[item]" class="error-text">
+            {{ errors[sectionName ?? 'global'][item] }}
           </p>
+
         </div>
       </div>
       <div class="addModalWindow__controls">
