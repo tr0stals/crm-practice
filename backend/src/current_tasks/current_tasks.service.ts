@@ -69,8 +69,6 @@ export class CurrentTasksService {
       throw new Error('Related entities not found');
     }
 
-    console.log(shipmentStand);
-
     // Отправляем уведомление до создания entity
     if (
       shipmentStand?.stands?.employees?.users &&
@@ -165,7 +163,6 @@ export class CurrentTasksService {
         item;
 
       const { stands } = shipmentStands;
-      console.log('stands!!!!!!!!!!', shipmentStands);
 
       const standTaskTitle = standTasks?.title;
       const employeesName = `${stands.employees.peoples?.firstName} ${stands.employees.peoples?.middleName} ${stands.employees.peoples?.lastName}`;
@@ -180,8 +177,6 @@ export class CurrentTasksService {
         currentTaskStateTitle,
       });
     });
-
-    console.log('CURRENTDATA!!!!!', data);
 
     return data;
   }
@@ -333,15 +328,24 @@ export class CurrentTasksService {
   }
 
   async startTask(currentTaskId: number, employeeId: number) {
+    console.log(
+      '--------------------------- startTask Logging ---------------------------',
+    );
+    console.log('currentTaskId', currentTaskId);
     let executor: Employees | null = null;
+
     const allCurrentTasks = await this.currentTasksRepository.find({
       relations: ['currentTaskStates', 'standTasks', 'shipmentStands'],
     });
+
     const currentTask = await this.currentTasksRepository.findOne({
       where: { id: currentTaskId },
       relations: ['currentTaskStates', 'standTasks', 'shipmentStands'],
     });
+
     if (!currentTask) throw new Error('Задача не найдена');
+
+    console.log(currentTask);
 
     const flag = allCurrentTasks.some(
       (task) => task.parentId === currentTask.standTasks?.id,
@@ -360,11 +364,9 @@ export class CurrentTasksService {
       });
 
       if (!targetEmployee) {
-        console.debug('!!!!!!!!');
         throw new Error('Сотрудник не найден');
       }
 
-      console.log('targetEmployee', targetEmployee);
       executor = targetEmployee;
     }
 
@@ -385,8 +387,9 @@ export class CurrentTasksService {
 
     // Меняем статус на "Выполняется"
     const inProgressState = await this.currentTaskStatesRepository.findOne({
-      where: [{ title: 'Выполняется' }, { title: 'Выполняется' }],
+      where: [{ title: 'Выполняется' }],
     });
+
     if (inProgressState) {
       // Логируем изменение статуса
       await this.currentTaskStatesLogService.logStateChange(
@@ -396,7 +399,146 @@ export class CurrentTasksService {
       currentTask.currentTaskStates = inProgressState;
       if (executor) currentTask.employees = executor;
     }
-    return await this.currentTasksRepository.save(currentTask);
+    const currentTaskResponse =
+      await this.currentTasksRepository.save(currentTask);
+
+    await this.updateParentStatus(currentTaskId);
+
+    return currentTaskResponse;
+  }
+
+  private async updateParentTaskStates(task: CurrentTasks) {
+    let parentId = task.standTasks?.parentId;
+
+    const stateNew = await this.currentTaskStatesRepository.findOne({
+      where: { title: 'Новая' },
+    });
+
+    const stateInProgress = await this.currentTaskStatesRepository.findOne({
+      where: { title: 'Выполняется' },
+    });
+
+    while (parentId) {
+      // 1️⃣ Загружаем родительскую standTask
+      const parentStand = await this.standTasksRepository.findOne({
+        where: { id: parentId },
+      });
+
+      if (!parentStand) break;
+
+      // 2️⃣ Загружаем родительскую currentTask
+      const parentCurrentTask = await this.currentTasksRepository.findOne({
+        where: { standTasks: { id: parentStand.id } },
+        relations: ['currentTaskStates', 'standTasks'],
+      });
+
+      if (!parentCurrentTask) break;
+
+      // 3️⃣ Загружаем всех детей родителя
+      const childTasks = await this.currentTasksRepository.find({
+        where: { standTasks: { parentId: parentStand.id } },
+        relations: ['currentTaskStates'],
+      });
+
+      const hasAnyStarted = childTasks.some(
+        (t) => t.currentTaskStates?.title === 'Выполняется',
+      );
+
+      // 🔥 Правило:
+      // Если ни одна не выполняется → "Новая"
+      // Если хотя бы одна выполняется → "Выполняется"
+      const newState = hasAnyStarted ? stateInProgress : stateNew;
+
+      if (newState && parentCurrentTask.currentTaskStates.id !== newState.id) {
+        await this.currentTaskStatesLogService.logStateChange(
+          parentCurrentTask.id,
+          newState.id,
+        );
+
+        parentCurrentTask.currentTaskStates = newState;
+        await this.currentTasksRepository.save(parentCurrentTask);
+      }
+
+      // 4️⃣ Переходим выше по дереву
+      parentId = parentStand.parentId;
+    }
+  }
+
+  /**
+   * Автоматически обновляет статус родительской задачи
+   * исходя из статусов всех её подзадач.
+   */
+  private async updateParentStatus(taskId: number) {
+    // 1. Загружаем текущую задачу
+    const currentTask = await this.currentTasksRepository.findOne({
+      where: { id: taskId },
+    });
+    if (!currentTask) return;
+
+    // 2. Если нет parentId — это не подзадача
+    if (!currentTask.parentId) return;
+
+    const parentStandTaskId = currentTask.parentId;
+
+    // 3. Находим родительскую текущую задачу
+    const parentTask = await this.currentTasksRepository.findOne({
+      where: { standTasks: { id: parentStandTaskId } },
+      relations: ['currentTaskStates'],
+    });
+    if (!parentTask) return;
+
+    // 4. Подгружаем все подзадачи родителя (по твоей схеме parentId = standTaskId)
+    const subtasks = await this.currentTasksRepository.find({
+      where: { parentId: parentStandTaskId },
+      relations: ['currentTaskStates'],
+    });
+
+    if (subtasks.length === 0) return;
+
+    // ---- АНАЛИЗ СОСТОЯНИЙ ПОДЗАДАЧ ----
+
+    const allCompleted = subtasks.every((t) => t.isCompleted);
+    const anyInProgress = subtasks.some(
+      (t) => t.currentTaskStates?.title === 'Выполняется',
+    );
+    const anyNew = subtasks.some((t) => t.currentTaskStates?.title === 'Новая');
+
+    // ---- ВЫБОР СТАТУСА РОДИТЕЛЯ ----
+
+    let newStateTitle: string | null = null;
+
+    if (allCompleted) {
+      newStateTitle = 'Завершена';
+    } else if (anyInProgress) {
+      newStateTitle = 'Выполняется';
+    } else if (anyNew) {
+      newStateTitle = 'Новая';
+    } else {
+      newStateTitle = 'Новая';
+    }
+
+    // Если статус родителя не меняется — не сохраняем
+    if (parentTask.currentTaskStates?.title === newStateTitle) return;
+
+    // 5. Находим нужный статус
+    const newState = await this.currentTaskStatesRepository.findOne({
+      where: { title: newStateTitle },
+    });
+
+    if (!newState) {
+      console.error(`Статус '${newStateTitle}' не найден`);
+      return;
+    }
+
+    // 6. Обновляем родителя
+    await this.currentTasksRepository.update(parentTask.id, {
+      currentTaskStates: newState,
+      isCompleted: newStateTitle === 'Завершена',
+    });
+
+    console.log(
+      `Родительская задача #${parentTask.id} → ${newStateTitle} (auto)`,
+    );
   }
 
   async completeTask(taskId: number, userId?: string) {
@@ -418,34 +560,58 @@ export class CurrentTasksService {
 
     if (!task) throw new NotFoundException('Задача не найдена');
 
-    // Если уже завершена — ничего не делаем
     if (task.isCompleted) {
       return { success: true, message: 'Задача уже завершена' };
     }
 
-    // 1️⃣ Помечаем задачу как завершённую
+    // 1️⃣ Перед завершением — проверяем компоненты!
+    const areComponentsAvailable =
+      await this.componentQuantityWatcher.checkTaskComponentsAvailability(
+        taskId,
+        userId,
+      );
+
+    if (!areComponentsAvailable) {
+      if (userId) {
+        this.wsGateway.sendNotification(
+          userId,
+          'Недостаточно компонентов для выполнения задачи.',
+          'error',
+        );
+      }
+
+      throw new HttpException(
+        {
+          message: 'Недостаточно компонентов для выполнения задачи.',
+          type: 'component_insufficient',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // 2️⃣ Теперь можно безопасно завершить
     task.isCompleted = true;
 
-    // 2️⃣ Меняем статус на "Завершена"
     const completedState = await this.currentTaskStatesRepository.findOne({
       where: [{ title: 'Завершена' }, { title: 'COMPLETED' }],
     });
 
-    if (!completedState)
-      throw new Error('Не найден статус "Завершена" в current_task_states');
+    if (!completedState) throw new Error('Не найден статус "Завершена"');
 
     task.currentTaskStates = completedState;
 
-    // 3️⃣ Сохраняем изменения
-    await this.currentTasksRepository.save(task);
+    const savedTask = await this.currentTasksRepository.save(task);
 
-    // 4️⃣ Логируем изменение статуса
+    // 3️⃣ Только теперь обновляем родителя
+    await this.updateParentStatus(taskId);
+
+    // 4️⃣ Лог
     await this.currentTaskStatesLogService.logStateChange(
       taskId,
       completedState.id,
     );
 
-    // 5️⃣ Отправляем уведомление сотруднику
+    // 5️⃣ Уведомление сотруднику
     const employeeUser = task.shipmentStands.stands.employees?.users?.[0];
     if (employeeUser) {
       const message = `Задача "${task.standTasks.title}" на стенде "${task.shipmentStands.stands.title}" завершена`;
@@ -456,7 +622,7 @@ export class CurrentTasksService {
       );
     }
 
-    // 6️⃣ Создаем запись в server_writeoff
+    // 6️⃣ Списание
     try {
       const writeoff =
         await this.serverWriteoffBusiness.createWriteoffFromCurrentTask(task);
@@ -465,52 +631,12 @@ export class CurrentTasksService {
       );
     } catch (error) {
       console.error(
-        `[SERVER_WRITEOFF] Ошибка при создании списания для задачи #${taskId}:`,
+        `[SERVER_WRITEOFF] Ошибка при создании списания:`,
         error.message,
       );
-      // Не прерываем процесс, но логируем ошибку
     }
 
-    // 7️⃣ Проверяем доступность компонентов перед завершением задачи
-    const areComponentsAvailable =
-      await this.componentQuantityWatcher.checkTaskComponentsAvailability(
-        taskId,
-        userId,
-      );
-
-    if (!areComponentsAvailable) {
-      // Если компонентов недостаточно, откатываем статус задачи
-      const inProgressState = await this.currentTaskStatesRepository.findOne({
-        where: [{ title: 'Выполняется' }, { title: 'Выполняется' }],
-      });
-
-      if (inProgressState) {
-        await this.currentTasksRepository.update(taskId, {
-          isCompleted: false,
-          currentTaskStates: inProgressState,
-        });
-      }
-
-      // Отправляем уведомление через WebSocket
-      if (userId) {
-        this.wsGateway.sendNotification(
-          userId,
-          'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
-          'error',
-        );
-      }
-
-      throw new HttpException(
-        {
-          message:
-            'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
-          type: 'component_insufficient',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    // 8️⃣ Пересчитываем компоненты
+    // 7️⃣ Пересчёт компонентов
     await this.componentQuantityWatcher.onCurrentTaskStatusChange(taskId);
 
     return { success: true, message: 'Задача успешно завершена' };
@@ -709,14 +835,11 @@ export class CurrentTasksService {
     return { name: 'Текущие задачи', children };
   }
 
-  // Новый метод: дерево только для сотрудника
-  async buildCurrentTasksTree(employeeProfession: string) {
+  // Импорт (если ещё нет)
+
+  async buildCurrentTasksTree(employeeProfession: string, employeeId: number) {
+    console.log('employeeId', employeeId);
     const currentTasks = await this.currentTasksRepository.find({
-      where: {
-        standTasks: {
-          professions: { title: employeeProfession },
-        },
-      },
       relations: [
         'currentTaskStates',
         'standTasks',
@@ -734,11 +857,60 @@ export class CurrentTasksService {
       ],
     });
 
-    const filteredTasks = currentTasks.filter(
-      (task) =>
-        !task.isCompleted &&
-        task.currentTaskStates?.title?.toLowerCase() !== 'завершена',
-    );
+    const filteredTasks = currentTasks.filter((currentTask) => {
+      const taskProfession =
+        currentTask.standTasks?.professions?.title?.toLowerCase();
+      const employeeProfessionLower = employeeProfession.toLowerCase();
+
+      // ❌ исключаем завершённые задачи
+      if (
+        currentTask.isCompleted ||
+        currentTask.currentTaskStates?.title?.toLowerCase() === 'завершена'
+      ) {
+        return false;
+      }
+
+      // ✅ 1) Задача принадлежит сотруднику → показываем
+      if (currentTask.employees?.id === employeeId) {
+        return true;
+      }
+
+      // 📌 Дальше — задачи БЕЗ сотрудника (ещё не забронированные)
+      const isUnassigned = !currentTask.employees;
+
+      // ✅ 2) Свободная задача: показываем если профессия совпадает
+      if (isUnassigned && taskProfession === employeeProfessionLower) {
+        return true;
+      }
+
+      // ============================================
+      // 🔥 3) РОДИТЕЛЬСКИЕ задачи
+      // ============================================
+
+      if (!currentTask.parentId) {
+        // ищем подзадачи текущего сотрудника
+        const employeeSubtasks = currentTasks.filter(
+          (ct) =>
+            ct.parentId === currentTask.standTasks?.id &&
+            ct.employees?.id === employeeId,
+        );
+
+        if (employeeSubtasks.length > 0) return true;
+
+        // ищем свободные подзадачи по его профессии
+        const professionSubtasks = currentTasks.filter(
+          (ct) =>
+            ct.parentId === currentTask.standTasks?.id &&
+            !ct.employees &&
+            ct.standTasks?.professions?.title?.toLowerCase() ===
+              employeeProfessionLower,
+        );
+
+        if (professionSubtasks.length > 0) return true;
+      }
+
+      return false;
+    });
 
     if (!filteredTasks || filteredTasks.length === 0) {
       return { name: 'Мои задачи', children: [] };
@@ -770,27 +942,26 @@ export class CurrentTasksService {
       standMap.get(stand)!.push(task);
     }
 
-    const getComponentsForStandTask = (st: any) => {
-      const comps: Array<{ title: string; count?: number }> = [];
+    const getComponentsForStandTask = (st: StandTasks) => {
+      const comps: Array<{ title: string; count?: number; quantity?: number }> =
+        [];
 
       if (st?.components) {
         comps.push({
           title: st.components.title,
           count: st.componentOutCount ?? undefined,
+          quantity: st.components?.quantity,
         });
       }
 
       if (Array.isArray(st?.standTasksComponents)) {
         for (const link of st.standTasksComponents) {
-          const component = link?.component || link?.components;
+          const component = link?.component;
           if (component) {
             comps.push({
               title: component.title || 'Без названия',
-              count:
-                link.count ??
-                link.componentOutCount ??
-                link.quantity ??
-                undefined,
+              count: link.componentCount,
+              quantity: component.quantity,
             });
           }
         }
@@ -805,8 +976,21 @@ export class CurrentTasksService {
     };
 
     const buildTasksForestForGroup = (tasksInGroup: CurrentTasks[]) => {
+      const extendedTasks = [...tasksInGroup];
+
+      for (const task of tasksInGroup) {
+        if (task.parentId) {
+          const parent = currentTasks.find(
+            (t) => t.standTasks?.id === task.parentId,
+          );
+          if (parent && !extendedTasks.includes(parent)) {
+            extendedTasks.push(parent);
+          }
+        }
+      }
+
       const byStandTaskId = new Map<number, CurrentTasks[]>();
-      for (const ct of tasksInGroup) {
+      for (const ct of extendedTasks) {
         const stId = ct.standTasks?.id;
         if (!stId) continue;
         if (!byStandTaskId.has(stId)) byStandTaskId.set(stId, []);
@@ -836,9 +1020,9 @@ export class CurrentTasksService {
               const components = getComponentsForStandTask(st);
 
               // превращаем компоненты в дочерние узлы
-              const componentNodes = components.map((c) => ({
-                name: `Компонент: ${c.title}${c.count ? ` (${c.count} шт.)` : ''}`,
-                nodeType: 'components',
+              const componentNodes = components.map((c: any) => ({
+                name: `Компонент: ${c.title} | Для выполнения нужно: ${c.count} шт. | Доступно на складе: ${c.quantity} шт.`,
+                nodeType: 'stand_tasks_components',
                 children: [],
               }));
 
@@ -857,6 +1041,8 @@ export class CurrentTasksService {
                 // добавляем компоненты как дочерние узлы
                 children: [...buildNodes(st?.id ?? null), ...componentNodes],
               };
+
+              // console.log('node!!!!!!!', node, 'node!!!!!!!');
 
               nodes.push(node);
             }
@@ -879,10 +1065,10 @@ export class CurrentTasksService {
             name: `Дедлайн: ${deadline}`,
             nodeType: 'deadline',
             children: Array.from(standMap.entries()).map(
-              ([stand, tasksInGroup]) => {
+              ([stand, extendedTasks]) => {
                 // достаём всех сотрудников стенда
                 const standEmployees =
-                  tasksInGroup[0]?.shipmentStands?.stands?.employees ?? [];
+                  extendedTasks[0]?.shipmentStands?.stands?.employees ?? [];
 
                 // формируем список ФИО
                 const responsibleNames =
@@ -891,7 +1077,7 @@ export class CurrentTasksService {
                 return {
                   name: `Стенд: ${stand}, Ответственный: ${responsibleNames}`,
                   nodeType: 'stands',
-                  children: buildTasksForestForGroup(tasksInGroup),
+                  children: buildTasksForestForGroup(extendedTasks),
                 };
               },
             ),

@@ -1,4 +1,13 @@
 .customDropdown {
+  &--baseWidth {
+    --bs-dropdown-min-width: 25rem !important;
+  }
+
+  &__icon {
+    width: 3rem;
+    height: 3rem;
+  }
+
   &__button {
     font-size: 1.75rem !important;
     color: #000 !important;
@@ -16,11 +25,14 @@
   }
 
   &__menu {
-    min-width: 120px !important;
     &__item {
       font-size: 1.5rem !important;
-      text-align: center;
       width: 100% !important;
     }
   }
+}
+
+.customDropdown__menu__item.active {
+  background-color: #777777;
+  color: white;
 }

@@ -1,9 +1,8 @@
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { IsEmpty, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class PeoplesDTO {
   @IsOptional()
-  @IsNotEmpty()
-  email: string;
+  email?: string;
 
   @IsOptional()
   phone?: string;

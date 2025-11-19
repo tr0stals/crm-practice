@@ -316,9 +316,11 @@ export class StandTasksService {
                 ? [...subTasks, ...components]
                 : [];
 
+            console.log('TASK!!!!', task);
+
             return {
               id: task.id,
-              name: `Задача: ${task.title}`,
+              name: `Задача: ${task.title} | Профессия: ${task.professions?.title ?? 'Без профессии'}`,
               nodeType: 'stand_tasks',
               children,
             };

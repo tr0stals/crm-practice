@@ -6,6 +6,7 @@ export const setCurrentTaskCompleted = async (taskId: number) => {
 
     return await api.post(`${endpoint}/${taskId}`);
   } catch (e: any) {
-    throw new Error(e);
+    console.debug(e);
+    return e.response;
   }
 };

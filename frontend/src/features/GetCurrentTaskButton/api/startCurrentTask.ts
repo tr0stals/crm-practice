@@ -8,6 +8,7 @@ export const startCurrentTask = async (taskId: number, employeeId?: number) => {
       employeeId,
     });
   } catch (e: any) {
-    throw new Error(e);
+    console.debug(e);
+    return e.response;
   }
 };

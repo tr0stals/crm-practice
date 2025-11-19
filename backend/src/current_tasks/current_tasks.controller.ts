@@ -80,6 +80,7 @@ export class CurrentTasksController {
     } else {
       return await this.service.buildCurrentTasksTree(
         empProf?.professions.title,
+        employeeId,
       );
     }
   }
@@ -103,6 +104,7 @@ export class CurrentTasksController {
     }
     return await this.service.buildCurrentTasksTree(
       targetEmployeeProfession?.professions.title,
+      employeeId,
     );
   }
 

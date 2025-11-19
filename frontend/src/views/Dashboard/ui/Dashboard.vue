@@ -53,6 +53,7 @@ import { ExitButton } from "@/shared/ui/ExitButon";
 import { handleResetSection } from "../lib/handleResetSection";
 import { Check } from "lucide-vue-next";
 import CurrentTasksTreeview from "@/shared/ui/CustomTreeview/ui/CurrentTasksTreeview.vue";
+import SystemDashboard from "@/widgets/SystemDashboard";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -165,6 +166,7 @@ const logout = () => {
 };
 
 async function getCurrentData() {
+  if (navigationStore.currentSection === 'system') return;
   const config: IData = {
     endpoint: `/${navigationStore.currentSection}/generateData`,
   };
@@ -390,6 +392,10 @@ const paginatedData = computed(() => {
 });
 
 // обработчик кликов по документу
+/**
+ * Метод для сброса курсора
+ * @param event 
+ */
 const handleGlobalClick = (event: MouseEvent) => {
   const treeEl = treeviewRef.value?.$el || treeviewRef.value;
   const tableEl = document.querySelector(".data-table");
@@ -495,7 +501,8 @@ const handleSelectSection = (item: any) => {
 
         <div class="header__controls">
           <NotificationButton />
-          <!-- <CustomDropdown
+
+          <CustomDropdown
             v-if="
               authorizedUserStore.user?.professionTitle === 'Администратор' ||
               authorizedUserStore.user?.professionTitle === 'Директор' ||
@@ -503,9 +510,9 @@ const handleSelectSection = (item: any) => {
             "
             dropdown-title="Действия"
             :dropdown-items="dropdownConfig"
-          /> -->
+          />
+
           <ExitButton @click="logout" />
-          <!-- <Button @click="logout">Выйти</Button> -->
         </div>
       </div>
 
@@ -520,17 +527,17 @@ const handleSelectSection = (item: any) => {
         v-else-if="navigationStore.activeRow || navigationStore.currentSection"
       >
         <h2 class="content-section__title">
-          {{ localizatedSections[currentSection] }}
+          {{ navigationStore.currentSection === 'system' ? "Системные настройки" : localizatedSections[currentSection] }}
         </h2>
         <!-- Action Buttons, Search, and Filter Placeholder -->
         <div class="controls">
           <!-- Кнопки для админа -->
           <div
             v-if="
-              authorizedUserStore.user?.professionTitle.toLowerCase() ===
+              (authorizedUserStore.user?.professionTitle.toLowerCase() ===
                 professionEnum.admin ||
               authorizedUserStore.user?.professionTitle.toLowerCase() ===
-                professionEnum.director
+                professionEnum.director) && navigationStore.currentSection !== 'system'
             "
             class="action-buttons"
           >
@@ -553,12 +560,9 @@ const handleSelectSection = (item: any) => {
               @click="handleShowDismissals"
               >Показать уволенных</Button
             >
-
-            <ExportTableButton :onSuccessCallback="onUpdateCallBack" />
-            <ImportTableButton />
           </div>
           <!-- Кнопки для сотрудников -->
-          <div v-else class="action-buttons">
+          <div v-else class="action-buttons" v-if="navigationStore.currentSection !== 'system'">
             <Button :onClick="onUpdateCallBack">
               <RefreshIcon /> обновить
             </Button>
@@ -569,7 +573,7 @@ const handleSelectSection = (item: any) => {
               <SetCurrentTaskCompleted :onSuccessCallback="onUpdateCallBack" />
             </template>
           </div>
-          <div class="search-filter">
+          <div class="search-filter" v-if="navigationStore.currentSection !== 'system'">
             <input
               v-if="!treeviewTables.includes(currentSection)"
               type="text"
@@ -597,6 +601,9 @@ const handleSelectSection = (item: any) => {
               :current-section="currentSection"
               @node-select="handleSelectRow"
             />
+          </template>
+          <template v-else-if="menuStore.activeEntity?.tableName === 'system'">
+            <SystemDashboard :on-success-callback="onUpdateCallBack" />
           </template>
 
           <TableData

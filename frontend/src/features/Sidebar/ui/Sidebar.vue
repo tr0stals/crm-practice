@@ -37,7 +37,7 @@ const filterMenuByProfession = (menu: any[], profession: string): any[] => {
 
 const filteredMenu = computed(() => {
   const profession = authorizedUserStore.user?.professionTitle || "";
-  console.debug(profession);
+  
   return filterMenuByProfession(menuEntities, profession);
 });
 </script>

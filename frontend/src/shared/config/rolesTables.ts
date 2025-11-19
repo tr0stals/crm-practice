@@ -163,6 +163,24 @@ export const roleTables = [
     ],
   },
   {
+    profession: "Химик",
+    tables: [
+      "components",
+      "current_tasks",
+      "employees",
+      "license",
+      "order_requests",
+      "organizations",
+      "pcb_orders",
+      "pcbs",
+      "peoples",
+      "professions",
+      "shipments",
+      "stand_tasks",
+      "stands",
+    ],
+  },
+  {
     profession: "Монтажник",
     tables: [
       "components",

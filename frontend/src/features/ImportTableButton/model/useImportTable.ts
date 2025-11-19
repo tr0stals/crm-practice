@@ -1,20 +1,17 @@
 import { ref } from "vue";
 import { importTable as importTableRequest } from "../api/importTable";
 
-export default function useImportTable(globalStore: any) {
+export default function useImportTable() {
   const selectedFile = ref<File | null>(null);
   const loading = ref(false);
 
-  const importTable = async () => {
+  const importTable = async (tableName: string) => {
     if (!selectedFile.value) return;
 
     loading.value = true;
 
     try {
-      const result = await importTableRequest(
-        globalStore.currentSection,
-        selectedFile.value
-      );
+      const result = await importTableRequest(tableName, selectedFile.value);
       console.log("Импорт завершён:", result);
       alert(
         `Импорт завершён: добавлено ${result.imported}, ошибок: ${result.failed}`

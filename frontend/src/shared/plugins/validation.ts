@@ -14,6 +14,7 @@ export function useFormValidation(formData: any) {
     "arrivalDate",
     "specificationImage",
   ];
+  const employeesFields = ["hiringDate", "dismissalDate"];
 
   /**
    * Универсальная проверка "пустое значение"
@@ -76,6 +77,7 @@ export function useFormValidation(formData: any) {
    * Валидация одного поля
    */
   function validateField(fieldName: string, section?: string): boolean {
+    if (section === "employees") section = "peoples";
     const rule = section ? sectionRules[section]?.[fieldName] : null;
     const value = getFieldValue(fieldName, section);
 
@@ -137,6 +139,18 @@ export function useFormValidation(formData: any) {
 
     for (const fieldName of fieldList) {
       console.debug(fieldName, sectionName);
+      if (sectionName === "employees" && employeesFields.includes(fieldName)) {
+        sectionName = "employees";
+        console.debug("YEAaaaaaaaaaaaaaaaaaaah");
+      } else if (
+        sectionName === "employees" &&
+        !employeesFields.includes(fieldName)
+      ) {
+        sectionName = "peoples";
+      } else {
+        sectionName = sectionName;
+      }
+
       if (!validateField(fieldName, sectionName)) {
         valid = false;
       }

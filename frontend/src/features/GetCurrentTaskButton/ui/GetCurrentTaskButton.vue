@@ -6,6 +6,7 @@ import { startCurrentTask } from "../api/startCurrentTask";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
 import { ref, watch } from "vue";
+import { useToast } from "vue-toastification";
 
 const navigationStore = useNavigationStore();
 const authoriedUserStore = useAuthorizedUserStore();
@@ -13,6 +14,8 @@ const authoriedUserStore = useAuthorizedUserStore();
 const props = defineProps<{
   onSuccessCallback: () => void;
 }>();
+
+const toast = useToast();
 
 const employeeId = ref<number>();
 
@@ -41,6 +44,8 @@ const handleClick = async (e: any) => {
 
   const response = await startCurrentTask(currentTask.data.id, employeeId.value);
   console.debug(response.data);
+
+  if (response.status === 400) toast.error(response.data.message);
 
   if (response.status === 201) props.onSuccessCallback();
 };

@@ -19,6 +19,7 @@ const props = defineProps<{
 }>();
 const navigationStore = useNavigationStore()
 
+
 const { formData, tableColumns, selectOptions, submit } = useAddEmployees(
   props.sectionName,
   () => {
@@ -87,6 +88,7 @@ watch(
 
 const handleSubmit = async () => {
   try {
+    console.debug("modal!!!!", props.sectionName)
     if (!validateForm(tableColumns.value, props.sectionName)) {
       toast.error("Исправьте ошибки перед отправкой");
       return;

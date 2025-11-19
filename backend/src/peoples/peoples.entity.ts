@@ -21,11 +21,11 @@ export class Peoples {
   phone?: string;
 
   @Column()
-  email: string;
+  email?: string;
 
   @Column({ nullable: true })
   comment?: string;
-  
+
   @Column({ nullable: true, type: 'date' })
   birthDate?: Date;
 

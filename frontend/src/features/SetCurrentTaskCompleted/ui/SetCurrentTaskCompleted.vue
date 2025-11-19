@@ -3,10 +3,13 @@ import { useGlobalStore } from "@/shared/store/globalStore";
 import Button from "@/shared/ui/Button/ui/Button.vue";
 import { setCurrentTaskCompleted } from "../api/setCurrentTaskCompleted";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import { useToast } from "vue-toastification";
 
 const props = defineProps<{
   onSuccessCallback: () => void;
 }>();
+
+const toast = useToast();
 
 const navigationStore = useNavigationStore();
 
@@ -29,6 +32,11 @@ const handleClick = async () => {
   }
 
   const response = await setCurrentTaskCompleted(currentTask.data.id);
+
+  if (response.status === 400) {
+    toast.error(response.data.message);
+  }
+  console.debug(response)
 
   if (response.status === 201) props.onSuccessCallback();
 };

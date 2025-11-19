@@ -175,7 +175,7 @@ export const menuEntities: IMenuEntity[] = [
       },
       {
         title: "Импорт / экспорт БД, таблиц. Обновление БД на будущий год",
-        tableName: "",
+        tableName: "system",
         professions: ["Администратор", "Директор"],
       },
       {

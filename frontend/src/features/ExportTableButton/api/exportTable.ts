@@ -2,6 +2,7 @@ import { api } from "@/shared/api/axiosInstance";
 
 export const exportTable = async (table: string, format: string) => {
   try {
+    console.debug(table);
     const endpoint = "database_export_import/export/table";
     const response = await api.get(`${endpoint}`, {
       params: { table, format },

@@ -26,7 +26,7 @@ export class StandTasks {
   @Column({ nullable: true })
   componentOutCount?: number;
 
-  @Column({ length: 45 })
+  @Column({ length: 500 })
   title: string;
 
   @Column({ length: 100, nullable: true })

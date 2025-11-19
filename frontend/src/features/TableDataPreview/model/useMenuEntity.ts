@@ -32,8 +32,16 @@ export function useMenuEntity() {
   });
 
   const handleClick = (item: any) => {
+    console.debug(item);
+    /**
+     * Переход в системные настройки
+     */
+    if (item.tableName === "system") {
+      menuEntityStore.activeEntity = item;
+      console.debug(menuEntityStore.activeEntity);
+    }
     // Если есть дочерние узлы — сделать их "текущими"
-    if (item.children && item.children.length > 0) {
+    else if (item.children && item.children.length > 0) {
       menuEntityStore.activeEntity = item;
     } else {
       // Если дочерних нет — открыть таблицу
