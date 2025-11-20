@@ -23,6 +23,7 @@ import { useToast } from "vue-toastification";
 import { useAddInvoiceComponents } from "../model/useAddInvoiceComponents";
 import { useFormValidation } from "@/shared/plugins/validation";
 import { useAddOrderRequests } from "../model/useAddOrderRequests";
+import PhoneInput from "@/features/PhoneInput";
 
 const props = defineProps<{
   sectionName: string;
@@ -211,14 +212,14 @@ const handleSubmit = async () => {
             />
 
             <!-- телефон -->
-            <input
+            <PhoneInput
               v-else-if="item === 'phone'"
-              type="text"
               v-model="formData[item]"
               :id="item"
               :name="item"
               class="addModalWindow__content__field__input"
             />
+
 
             <!-- чекбокс -->
             <input

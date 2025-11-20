@@ -11,6 +11,23 @@ import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 import { useFormValidation } from "@/shared/plugins/validation";
 import { useToast } from "vue-toastification";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import IMask from "imask";
+import PhoneInput from "@/features/PhoneInput";
+
+const phoneMaskDirective = {
+  mounted(el: HTMLInputElement) {
+  (el as any)._mask = IMask(el, {
+    mask: '+{7}(000)000-00-00'
+  });
+},
+unmounted(el: HTMLInputElement) {
+  const mask = (el as any)._mask;
+  if (mask) mask.destroy();
+}
+
+};
+
+defineExpose({ phoneMaskDirective });
 
 const props = defineProps<{
   sectionName: string;
@@ -134,7 +151,6 @@ const handleSubmit = async () => {
                   v-for="option in selectOptions[item]"
                   :key="option.id"
                 >
-                  {{ console.debug(option) }}
                   <option :value="option.id">{{ option.label }}</option>
                 </template>
               </select>
@@ -214,14 +230,14 @@ const handleSubmit = async () => {
             />
 
             <!-- телефон -->
-            <input
+            <PhoneInput
               v-else-if="item === 'phone'"
-              type="text"
               v-model="formData[item]"
               :id="item"
               :name="item"
               class="addModalWindow__content__field__input"
             />
+
 
             <!-- чекбокс -->
             <input

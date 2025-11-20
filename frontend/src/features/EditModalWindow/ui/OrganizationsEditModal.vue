@@ -15,6 +15,7 @@ import { defaultEndpoint } from "@/shared/api/axiosInstance";
 import LoadingLayout from "@/shared/ui/LoadingLayout/ui/LoadingLayout.vue";
 import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
+import PhoneInput from "@/features/PhoneInput";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
@@ -262,15 +263,12 @@ onUnmounted(() => {
         </select>
 
         <!-- Phone mask -->
-        <input
+        <PhoneInput
           v-else-if="key === 'phone'"
-          class="editModalWindow__content__field__input"
-          :disabled="key === 'id'"
-          type="text"
           v-model="formData[key]"
           :id="key"
           :name="key"
-          placeholder="+7 (___) ___-__-__"
+          class="addModalWindow__content__field__input"
         />
 
         <template v-else-if="getInputType(key, value) === 'checkbox'">

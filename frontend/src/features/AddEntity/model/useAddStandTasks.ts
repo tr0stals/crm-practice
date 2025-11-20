@@ -58,7 +58,6 @@ export function useAddStandTasks(sectionName: string, onSuccess: () => void) {
   async function loadStandTasks() {
     const data = { ...formData };
     const { photo, ...defaultData } = data;
-    console.debug(photo);
 
     const res = await createEntityAsync(sectionName, {
       photo: photo?.name,

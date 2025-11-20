@@ -137,15 +137,6 @@ const handleSubmit = async () => {
               }"
               placeholder="Выберите дату"
             />
-            <template v-else-if="field === 'phone'">
-              <input
-                type="text"
-                v-model="formData[field]"
-                :id="field"
-                :name="field"
-                placeholder="+7 (___) ___-__-__"
-              />
-            </template>
             <template v-else-if="field === 'isCompleted'">
               <input
                 class="addModalWindow__content__field__input"

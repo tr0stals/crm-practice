@@ -1,4 +1,9 @@
-import { ForbiddenException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { databaseParentIdStrategies } from './databaseParentIdStrategies';
 import { FIELD_HINTS_MAP } from './fieldHintsMap';
@@ -473,7 +478,10 @@ export class DatabaseService {
           `SELECT componentId FROM \`${tableName}\` WHERE id = ? LIMIT 1`,
           [id],
         );
-        if (serverWriteoffData.length > 0 && serverWriteoffData[0].componentId) {
+        if (
+          serverWriteoffData.length > 0 &&
+          serverWriteoffData[0].componentId
+        ) {
           componentsToRecalculate.push(serverWriteoffData[0].componentId);
         }
       } else if (tableName === 'arrival_invoices') {
@@ -494,13 +502,23 @@ export class DatabaseService {
 
       // Пересчитываем компоненты после удаления
       if (componentsToRecalculate.length > 0) {
-        console.log(`[DATABASE_SERVICE] Пересчет компонентов после удаления из ${tableName} #${id}:`, componentsToRecalculate);
+        console.log(
+          `[DATABASE_SERVICE] Пересчет компонентов после удаления из ${tableName} #${id}:`,
+          componentsToRecalculate,
+        );
         for (const componentId of componentsToRecalculate) {
           try {
-            await this.componentQuantityWatcher.onInvoicesComponentChange(componentId);
-            console.log(`[DATABASE_SERVICE] Пересчитан компонент #${componentId} после удаления из ${tableName}`);
+            await this.componentQuantityWatcher.onInvoicesComponentChange(
+              componentId,
+            );
+            console.log(
+              `[DATABASE_SERVICE] Пересчитан компонент #${componentId} после удаления из ${tableName}`,
+            );
           } catch (error) {
-            console.error(`[DATABASE_SERVICE] Ошибка пересчета компонента #${componentId}:`, error.message);
+            console.error(
+              `[DATABASE_SERVICE] Ошибка пересчета компонента #${componentId}:`,
+              error.message,
+            );
           }
         }
       }
@@ -641,13 +659,23 @@ export class DatabaseService {
 
       // Пересчитываем компоненты после удаления
       if (componentsToRecalculate.length > 0) {
-        console.log(`[DATABASE_SERVICE] Пересчет компонентов после удаления из ${tableName} #${id} (cleanup):`, componentsToRecalculate);
+        console.log(
+          `[DATABASE_SERVICE] Пересчет компонентов после удаления из ${tableName} #${id} (cleanup):`,
+          componentsToRecalculate,
+        );
         for (const componentId of componentsToRecalculate) {
           try {
-            await this.componentQuantityWatcher.onInvoicesComponentChange(componentId);
-            console.log(`[DATABASE_SERVICE] Пересчитан компонент #${componentId} после удаления из ${tableName} (cleanup)`);
+            await this.componentQuantityWatcher.onInvoicesComponentChange(
+              componentId,
+            );
+            console.log(
+              `[DATABASE_SERVICE] Пересчитан компонент #${componentId} после удаления из ${tableName} (cleanup)`,
+            );
           } catch (error) {
-            console.error(`[DATABASE_SERVICE] Ошибка пересчета компонента #${componentId} (cleanup):`, error.message);
+            console.error(
+              `[DATABASE_SERVICE] Ошибка пересчета компонента #${componentId} (cleanup):`,
+              error.message,
+            );
           }
         }
       }
@@ -768,7 +796,9 @@ export class DatabaseService {
       const isSystem = await this.isSystemPcbOrderState(id);
       if (isSystem) {
         // Нет userId параметра у updateTableRecord — уведомление через WS отправить некому
-        throw new ForbiddenException('Системный статус заказа ПП нельзя изменять');
+        throw new ForbiddenException(
+          'Системный статус заказа ПП нельзя изменять',
+        );
       }
     }
 
@@ -776,7 +806,9 @@ export class DatabaseService {
       const isSystem = await this.isSystemWriteoffReason(id);
       if (isSystem) {
         // Нет userId параметра у updateTableRecord — уведомление через WS отправить некому
-        throw new ForbiddenException('Системную причину списания нельзя изменять');
+        throw new ForbiddenException(
+          'Системную причину списания нельзя изменять',
+        );
       }
     }
 
@@ -872,8 +904,8 @@ export class DatabaseService {
           (row.building ? `${row.building} ` : '') +
           (row.room ? `${row.room}` : '') ||
         (row.peoples
-          ? `${row.peoples.firstName} ${row.peoples.lastName} ${row.peoples.middleName}`
-          : row.code || `${row.firstName} ${row.lastName} ${row.middleName}`),
+          ? `${row.peoples.lastName} ${row.peoples.firstName} ${row.peoples.middleName}`
+          : row.code || `${row.lastName} ${row.firstName} ${row.middleName}`),
     }));
   }
 

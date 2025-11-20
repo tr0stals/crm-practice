@@ -4,7 +4,6 @@ import Button from "@/shared/ui/Button/ui/Button.vue";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import "../style.scss";
 import { reactive, watch, computed } from "vue";
-import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
@@ -168,17 +167,6 @@ const handleSubmit = async () => {
                 hideInputIcon: true,
               }"
               placeholder="Выберите дату"
-            />
-
-            <!-- телефон -->
-            <input
-              v-else-if="item === 'phone'"
-              type="text"
-              v-model="formData[item]"
-              :id="item"
-              :name="item"
-              @change="handleInput(item)"
-              class="addModalWindow__content__field__input"
             />
 
             <!-- чекбокс -->

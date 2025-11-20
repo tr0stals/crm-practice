@@ -16,6 +16,7 @@ import { updateAsync } from "../api/updateAsync";
 import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
+import PhoneInput from "@/features/PhoneInput";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
@@ -336,15 +337,12 @@ onUnmounted(() => {
         </select>
 
         <!-- Phone mask -->
-        <input
+        <PhoneInput
           v-else-if="key === 'phone'"
-          class="editModalWindow__content__field__input"
-          :disabled="key === 'id'"
-          type="text"
           v-model="formData[key]"
           :id="key"
           :name="key"
-          placeholder="+7 (___) ___-__-__"
+          class="addModalWindow__content__field__input"
         />
 
         <!-- Generic input -->

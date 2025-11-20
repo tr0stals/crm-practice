@@ -18,6 +18,7 @@ import { getDataAsync } from "@/shared/api/getDataAsync";
 import { useAddArrivalInvoices } from "../model/useAddArrivalInvoices";
 import { useToast } from "vue-toastification";
 import { useFormValidation } from "@/shared/plugins/validation";
+import PhoneInput from "@/features/PhoneInput";
 
 const props = defineProps<{
   sectionName: string;
@@ -330,16 +331,13 @@ const handleDeleteImage = async (item: any) => {
               placeholder="Выберите дату"
               @update:model-value="handleInput(item)"
             />
-            <template v-else-if="item === 'phone'">
-              <input
-                type="text"
-                v-model="formData[item]"
-                :id="item"
-                :name="item"
-                class="addModalWindow__content__field__input"
-                @change="handleInput(item)"
-              />
-            </template>
+            <PhoneInput
+              v-else-if="item === 'phone'"
+              v-model="formData[item]"
+              :id="item"
+              :name="item"
+              class="addModalWindow__content__field__input"
+            />
             <input
               v-else-if="item === 'isCompleted'"
               class="addModalWindow__content__field__input"

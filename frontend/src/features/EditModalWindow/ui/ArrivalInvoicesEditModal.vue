@@ -261,18 +261,6 @@ onUnmounted(() => {
           </option>
         </select>
 
-        <!-- Phone mask -->
-        <input
-          v-else-if="key === 'phone'"
-          class="editModalWindow__content__field__input"
-          :disabled="key === 'id'"
-          type="text"
-          v-model="formData[key]"
-          :id="key"
-          :name="key"
-          placeholder="+7 (___) ___-__-__"
-        />
-
         <template v-else-if="getInputType(key, value) === 'checkbox'">
           <div class="addModalWindow__content__field__inputControls">
             <Button

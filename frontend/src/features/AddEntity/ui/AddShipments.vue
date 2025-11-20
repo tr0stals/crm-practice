@@ -302,16 +302,6 @@ const handleSubmit = async () => {
               @update:model-value="handleInput(item)"
             />
 
-            <!-- телефон -->
-            <input
-              v-else-if="item === 'phone'"
-              type="text"
-              v-model="formData[item]"
-              :id="item"
-              :name="item"
-              class="addModalWindow__content__field__input"
-            />
-
             <!-- чекбокс -->
             <input
               v-else-if="item === 'isCompleted'"
