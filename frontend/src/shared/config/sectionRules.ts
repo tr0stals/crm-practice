@@ -38,6 +38,13 @@ export const sectionRules: Record<
     supplierId: { required: true, type: "number" },
     factoryId: { required: true, type: "number" },
   },
+  departments: {
+    title: { required: true, type: "string" },
+  },
+  organization_types: {
+    title: { required: true, type: "string" },
+    icon: { required: false, type: "string" },
+  },
   bills_for_pay: {
     date: { required: true, type: "date" },
     numberBill: { required: true, type: "string" },

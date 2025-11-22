@@ -174,7 +174,7 @@ export const menuEntities: IMenuEntity[] = [
         professions: getProfessionsForTable("user"),
       },
       {
-        title: "Импорт / экспорт БД, таблиц. Обновление БД на будущий год",
+        title: "Системные настройки",
         tableName: "system",
         professions: ["Администратор", "Директор"],
       },

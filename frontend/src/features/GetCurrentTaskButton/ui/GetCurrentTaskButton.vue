@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { useGlobalStore } from "@/shared/store/globalStore";
-import "../style.scss";
-import Button from "@/shared/ui/Button/ui/Button.vue";
-import { startCurrentTask } from "../api/startCurrentTask";
-import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
+import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
+import Button from "@/shared/ui/Button/ui/Button.vue";
 import { ref, watch } from "vue";
 import { useToast } from "vue-toastification";
+import { startCurrentTask } from "../api/startCurrentTask";
+import "../style.scss";
 
 const navigationStore = useNavigationStore();
 const authoriedUserStore = useAuthorizedUserStore();
@@ -19,21 +18,22 @@ const toast = useToast();
 
 const employeeId = ref<number>();
 
-
-watch(() => authoriedUserStore.user, (newVal) => {
-  employeeId.value = newVal.employeeData?.id;
-})
+watch(
+  () => authoriedUserStore.user,
+  (newVal) => {
+    employeeId.value = newVal.employeeData?.id;
+  }
+);
 
 const handleClick = async (e: any) => {
   const currentTask = navigationStore.selectedRow;
-  console.debug(currentTask);
 
   if (!currentTask) {
-    alert("Не выбрана задача!");
+    toast.info("Не выбрана задача!");
     return;
   }
   if (currentTask.data.nodeType !== "current_tasks") {
-    alert("Необходимо выбрать текущую задачу!");
+    toast.info("Необходимо выбрать текущую задачу!");
     return;
   }
 
@@ -42,7 +42,10 @@ const handleClick = async (e: any) => {
   //   return;
   // }
 
-  const response = await startCurrentTask(currentTask.data.id, employeeId.value);
+  const response = await startCurrentTask(
+    currentTask.data.id,
+    employeeId.value
+  );
   console.debug(response.data);
 
   if (response.status === 400) toast.error(response.data.message);

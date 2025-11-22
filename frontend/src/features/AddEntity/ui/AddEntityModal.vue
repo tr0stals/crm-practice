@@ -3,7 +3,7 @@ import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import Button from "@/shared/ui/Button/ui/Button.vue";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import "../style.scss";
-import { reactive, watch, computed } from "vue";
+import { reactive, watch, computed, onMounted } from "vue";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
@@ -30,6 +30,7 @@ const props = defineProps<{
   onClose: () => void;
   onSuccess: () => void;
 }>();
+console.debug("props.sectionName", props.sectionName)
 const toast = useToast();
 const navigationStore = useNavigationStore();
 console.debug(props.sectionName);

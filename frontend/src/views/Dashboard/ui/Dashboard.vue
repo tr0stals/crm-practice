@@ -502,16 +502,6 @@ const handleSelectSection = (item: any) => {
         <div class="header__controls">
           <NotificationButton />
 
-          <CustomDropdown
-            v-if="
-              authorizedUserStore.user?.professionTitle === 'Администратор' ||
-              authorizedUserStore.user?.professionTitle === 'Директор' ||
-              authorizedUserStore.user?.professionTitle === 'Test'
-            "
-            dropdown-title="Действия"
-            :dropdown-items="dropdownConfig"
-          />
-
           <ExitButton @click="logout" />
         </div>
       </div>
@@ -542,16 +532,16 @@ const handleSelectSection = (item: any) => {
             class="action-buttons"
           >
             <HandleCreateButton
-              v-if="navigationStore.currentSection !== `pcbs`"
+              v-if="navigationStore.currentSection !== `pcbs` && navigationStore.currentSection !== `current_task_states_log`"
               :onSuccessCallback="onUpdateCallBack"
             />
             <AddPcbsButton
-              v-if="navigationStore.currentSection === `pcbs`"
+              v-if="navigationStore.currentSection === `pcbs` && navigationStore.currentSection !== `current_task_states_log`"
               :onSuccessCallback="onUpdateCallBack"
             />
-            <HandleEditButton :onSuccessCallback="onUpdateCallBack" />
+            <HandleEditButton :onSuccessCallback="onUpdateCallBack" v-if="navigationStore.currentSection !== `current_task_states_log`" />
 
-            <HandleDeleteButton :onUpdateCallback="onUpdateCallBack" />
+            <HandleDeleteButton :onUpdateCallback="onUpdateCallBack" v-if="navigationStore.currentSection !== `current_task_states_log`" />
             <Button :onClick="onUpdateCallBack">
               <RefreshIcon /> обновить
             </Button>

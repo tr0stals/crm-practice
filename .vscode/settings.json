@@ -1,3 +1,6 @@
 {
-    "workbench.activityBar.location": "top"
+	"workbench.activityBar.location": "top",
+	"editor.formatOnType": false,
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode"
 }

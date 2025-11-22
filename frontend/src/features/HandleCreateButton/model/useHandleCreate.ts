@@ -134,7 +134,7 @@ export function useCreateButton(onUpdateCallBack: () => void) {
       if (!navigationStore.selectedRow) {
         section.value = tablesEnum.organization_types;
 
-        ModalManager.getInstance().open(AddModalWithImages, {
+        ModalManager.getInstance().open(AddEntity, {
           sectionName: section.value,
           onClose: () => ModalManager.getInstance().closeModal(),
           onSuccess: onUpdateCallBack,
