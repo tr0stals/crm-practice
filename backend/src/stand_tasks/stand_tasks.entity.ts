@@ -30,7 +30,7 @@ export class StandTasks {
   title: string;
 
   @Column({ length: 100, nullable: true })
-  photo: string;
+  photo?: string;
 
   @Column({ type: 'int' })
   manufactureTime: number;

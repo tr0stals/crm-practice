@@ -21,11 +21,11 @@ export class ImagesService {
     }
 
     const image = this.imagesRepository.create({
-      filename: file.filename,
-      originalName: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size,
-      path: `uploads/${file.filename}`,
+      filename: file?.filename,
+      originalName: file?.originalname,
+      mimetype: file?.mimetype,
+      size: file?.size,
+      path: `uploads/${file?.filename}`,
       targetType,
       targetId,
     });

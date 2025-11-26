@@ -10,6 +10,7 @@ import { CurrentTasks } from 'src/current_tasks/current_tasks.entity';
 import { CurrentTaskStates } from 'src/current_task_states/current_task_states.entity';
 import { Writeoff } from 'src/writeoff/writeoff.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
+import { ServerWriteoff } from 'src/server_writeoff/server_writeoff.entity';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { Organizations } from 'src/organizations/organizations.entity';
       CurrentTaskStates,
       Writeoff,
       Organizations,
+      ServerWriteoff,
     ]),
   ],
   providers: [InventarizationBusinessService],

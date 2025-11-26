@@ -256,6 +256,7 @@ function toggleExpand(node: any) {
                 treeview__data__selected:
                   navigationStore.selectedRow &&
                   context.node.key === selectedKey,
+                'data--notAvailabled': context.node.data.isAvailable === false
               },
             ],
           }),
@@ -270,7 +271,7 @@ function toggleExpand(node: any) {
             class="treeview__data__wrapper"
             @click="toggleExpand(slotProps.node)"
           >
-            <div class="treeview__data__label">
+            <div class="treeview__data__label" >
               <template v-if="slotProps.node.data.nodeType === 'current_tasks'">
                 <component
                   v-if="slotProps.node.data.currentTaskState === 'Завершена'"
@@ -301,7 +302,9 @@ function toggleExpand(node: any) {
                 <component :is="Monitor" class="treeview__icon" />
               </template>
 
-              <span>{{ slotProps.node.label }}</span>
+              <span>
+                {{ slotProps.node.label }}
+              </span>
             </div>
           </div>
         </template>

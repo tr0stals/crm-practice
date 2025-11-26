@@ -285,12 +285,13 @@ export class CurrentTasksService {
 
         // Создаем запись в server_writeoff после успешной проверки
         try {
-          const writeoff =
+          const writeoffs =
             await this.serverWriteoffBusiness.createWriteoffFromCurrentTask(
               updatedTask,
             );
+
           console.log(
-            `[SERVER_WRITEOFF] Создано списание #${writeoff.id} для задачи #${id} (через update)`,
+            `[SERVER_WRITEOFF] Создано ${writeoffs.length} списаний для задачи #${updatedTask}`,
           );
         } catch (error) {
           console.error(
@@ -600,7 +601,7 @@ export class CurrentTasksService {
 
     task.currentTaskStates = completedState;
 
-    const savedTask = await this.currentTasksRepository.save(task);
+    await this.currentTasksRepository.save(task);
 
     // 3️⃣ Только теперь обновляем родителя
     await this.updateParentStatus(taskId);
@@ -612,9 +613,9 @@ export class CurrentTasksService {
     );
 
     // 5️⃣ Уведомление сотруднику
-    const employeeUser = task.shipmentStands.stands.employees?.users?.[0];
+    const employeeUser = task.shipmentStands?.stands?.employees?.users?.[0];
     if (employeeUser) {
-      const message = `Задача "${task.standTasks.title}" на стенде "${task.shipmentStands.stands.title}" завершена`;
+      const message = `Задача "${task.standTasks?.title}" на стенде "${task.shipmentStands?.stands?.title}" завершена`;
       this.wsGateway.sendNotification(
         employeeUser.id.toString(),
         message,
@@ -622,19 +623,13 @@ export class CurrentTasksService {
       );
     }
 
-    // 6️⃣ Списание
-    try {
-      const writeoff =
-        await this.serverWriteoffBusiness.createWriteoffFromCurrentTask(task);
-      console.log(
-        `[SERVER_WRITEOFF] Создано списание #${writeoff.id} для задачи #${taskId}`,
-      );
-    } catch (error) {
-      console.error(
-        `[SERVER_WRITEOFF] Ошибка при создании списания:`,
-        error.message,
-      );
-    }
+    // 6️⃣ Серверное Списание
+    const writeoffs =
+      await this.serverWriteoffBusiness.createWriteoffFromCurrentTask(task);
+
+    console.log(
+      `[SERVER_WRITEOFF] Создано ${writeoffs.length} списаний для задачи #${taskId}`,
+    );
 
     // 7️⃣ Пересчёт компонентов
     await this.componentQuantityWatcher.onCurrentTaskStatusChange(taskId);
@@ -1023,6 +1018,7 @@ export class CurrentTasksService {
               const componentNodes = components.map((c: any) => ({
                 name: `Компонент: ${c.title} | Для выполнения нужно: ${c.count} шт. | Доступно на складе: ${c.quantity} шт.`,
                 nodeType: 'stand_tasks_components',
+                isAvailable: c.quantity >= c.count,
                 children: [],
               }));
 

@@ -527,7 +527,7 @@ const handleSelectSection = (item: any) => {
               (authorizedUserStore.user?.professionTitle.toLowerCase() ===
                 professionEnum.admin ||
               authorizedUserStore.user?.professionTitle.toLowerCase() ===
-                professionEnum.director) && navigationStore.currentSection !== 'system'
+                professionEnum.director ) && navigationStore.currentSection !== 'system'
             "
             class="action-buttons"
           >
@@ -541,7 +541,7 @@ const handleSelectSection = (item: any) => {
             />
             <HandleEditButton :onSuccessCallback="onUpdateCallBack" v-if="navigationStore.currentSection !== `current_task_states_log`" />
 
-            <HandleDeleteButton :onUpdateCallback="onUpdateCallBack" v-if="navigationStore.currentSection !== `current_task_states_log`" />
+            <HandleDeleteButton :onUpdateCallback="onUpdateCallBack" v-if="navigationStore.currentSection !== `current_task_states_log` && authorizedUserStore.user?.professionTitle.toLowerCase() !== professionEnum.supplier" />
             <Button :onClick="onUpdateCallBack">
               <RefreshIcon /> обновить
             </Button>
@@ -553,6 +553,12 @@ const handleSelectSection = (item: any) => {
           </div>
           <!-- Кнопки для сотрудников -->
           <div v-else class="action-buttons" v-if="navigationStore.currentSection !== 'system'">
+            <HandleCreateButton
+              v-if="navigationStore.currentSection === 'arrival_invoices' && authorizedUserStore.user?.professionTitle.toLowerCase() === professionEnum.supplier"
+              :onSuccessCallback="onUpdateCallBack"
+            />
+            <HandleEditButton :onSuccessCallback="onUpdateCallBack" v-if="navigationStore.currentSection === 'arrival_invoices' && authorizedUserStore.user?.professionTitle.toLowerCase() === professionEnum.supplier" />
+            <HandleDeleteButton :onUpdateCallback="onUpdateCallBack" v-if="navigationStore.currentSection === 'arrival_invoices' && authorizedUserStore.user?.professionTitle.toLowerCase() === professionEnum.supplier" />
             <Button :onClick="onUpdateCallBack">
               <RefreshIcon /> обновить
             </Button>
@@ -608,7 +614,8 @@ const handleSelectSection = (item: any) => {
         <div
           v-if="
             !treeviewTables.includes(currentSection) &&
-            navigationStore.currentSection !== `current_tasks`
+            navigationStore.currentSection !== `current_tasks` && 
+            navigationStore.currentSection !== `system`
           "
           class="pagination"
         >

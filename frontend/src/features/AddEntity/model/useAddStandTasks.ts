@@ -91,15 +91,20 @@ export function useAddStandTasks(sectionName: string, onSuccess: () => void) {
       ...defaultData,
     });
 
-    const standTasksComponentsResponse = await createEntityAsync(
-      "stand_tasks_components",
-      {
+    /**
+     * Делаем запрет на создание записи в stand_tasks_components,
+     * если не указываются componentId и componentOutCount в standTasks
+     */
+    if (formData.componentOutCount && formData.componentId) {
+      await createEntityAsync("stand_tasks_components", {
         componentCount: formData.componentOutCount,
         standTaskId: standTasksResponse.data?.id,
         componentId: formData.componentId,
-      }
-    );
-    await uploadImage(formData.photo, standTasksResponse.data?.id);
+      });
+    }
+
+    if (formData.photo)
+      await uploadImage(formData.photo, standTasksResponse.data?.id);
 
     onSuccess();
   };

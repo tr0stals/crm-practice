@@ -44,6 +44,7 @@ export class ComponentQuantityWatcherService {
    */
   async recalculateComponentQuantity(
     componentId: number,
+    standTaskId?: number,
     factoryId?: number,
   ): Promise<void> {
     console.log(
@@ -67,13 +68,15 @@ export class ComponentQuantityWatcherService {
       }
 
       // Обновляем количество через бизнес-логику
-      await this.inventarizationBusinessService.updateComponentQuantity(
-        componentId,
-        factoryId,
-      );
+      const updatedComponent =
+        await this.inventarizationBusinessService.updateComponentQuantity(
+          componentId,
+          factoryId,
+          standTaskId,
+        );
 
       console.log(
-        `[ComponentQuantityWatcher] Автоматически обновлено количество компонента ${componentId} для фабрики ${factoryId}`,
+        `[ComponentQuantityWatcher] Автоматически обновлено количество компонента ${updatedComponent.id} для фабрики ${factoryId}`,
       );
     } catch (error) {
       console.error(
@@ -235,7 +238,7 @@ export class ComponentQuantityWatcherService {
     }
 
     console.log(
-      `[ComponentQuantityWatcher] Статус задачи: ${currentTask.currentTaskStates?.title}, isCompleted: ${currentTask.isCompleted}, currentStateId: ${currentTask.currentTaskStates?.id}`,
+      `[ComponentQuantityWatcher] Задача: ${currentTask?.standTasks?.title}, Статус задачи: ${currentTask.currentTaskStates?.title}, isCompleted: ${currentTask.isCompleted}, currentStateId: ${currentTask.currentTaskStates?.id}`,
     );
 
     // Пересчитываем все компоненты, если задача завершена (статус 3 или isCompleted = true)
@@ -246,45 +249,54 @@ export class ComponentQuantityWatcherService {
 
       const componentIds = new Set<number>();
 
-      // 1. Ищем компоненты из CurrentTasksComponents
-      const taskComponents = await this.currentTasksComponentsRepository.find({
-        where: { currentTask: { id: currentTaskId } },
-        relations: ['component'],
-      });
+      const targetStandTask = currentTask.standTasks;
+
+      // 1. Ищем компоненты из StandTasksComponents
+      const standTaskComponents =
+        await this.standTasksComponentsRepository.find({
+          where: { standTask: { id: targetStandTask.id } },
+          relations: ['component', 'standTask'],
+        });
 
       console.log(
-        `[ComponentQuantityWatcher] Найдено компонентов в CurrentTasksComponents: ${taskComponents.length}`,
+        `[ComponentQuantityWatcher] Найдено компонентов в StandTasksComponents: ${standTaskComponents.length}`,
       );
-      for (const taskComponent of taskComponents) {
-        componentIds.add(taskComponent.component.id);
+      for (const taskComponent of standTaskComponents) {
+        if (!taskComponent.component) continue;
+        componentIds.add(taskComponent.component?.id);
         console.log(
-          `[ComponentQuantityWatcher] Найден компонент из CurrentTasksComponents: ${taskComponent.component.id}: ${taskComponent.component.title}`,
+          `[ComponentQuantityWatcher] Найден компонент из StandTasksComponents: ${taskComponent.component?.id}: ${taskComponent.component?.title}`,
         );
       }
 
       // 2. Проверяем основной компонент из StandTasks
-      if (currentTask.standTasks?.components) {
-        componentIds.add(currentTask.standTasks.components.id);
-        console.log(
-          `[ComponentQuantityWatcher] Найден основной компонент из StandTasks: ${currentTask.standTasks.components.id}: ${currentTask.standTasks.components.title}`,
-        );
-      }
+      // Убрал потому что в standTasks указываются только компоненты на выходе
+      // TODO: продумать логику пересчета компонентов на выходе
+
+      // if (targetTask.components) {
+      //   componentIds.add(currentTask.standTasks.components.id);
+      //   console.log(
+      //     `[ComponentQuantityWatcher] Найден основной компонент из StandTasks: ${currentTask.standTasks.components.id}: ${currentTask.standTasks.components.title}`,
+      //   );
+      // }
 
       // 3. Ищем компоненты из StandTasksComponents
-      if (currentTask.standTasks?.id) {
-        const standTasksComponents = await this.findStandTasksComponents(
-          currentTask.standTasks.id,
-        );
-        console.log(
-          `[ComponentQuantityWatcher] Найдено компонентов в StandTasksComponents: ${standTasksComponents.length}`,
-        );
-        for (const stc of standTasksComponents) {
-          if (stc.component) componentIds.add(stc.component.id);
-          console.log(
-            `[ComponentQuantityWatcher] Найден компонент из StandTasksComponents: ${stc.component?.id}: ${stc.component?.title}`,
-          );
-        }
-      }
+      /** Убрал, потому что выше есть проверка, которая уже ищет по standTasksComponents **/
+
+      // if (currentTask.standTasks?.id) {
+      //   const standTasksComponents = await this.findStandTasksComponents(
+      //     currentTask.standTasks.id,
+      //   );
+      //   console.log(
+      //     `[ComponentQuantityWatcher] Найдено компонентов в StandTasksComponents: ${standTasksComponents.length}`,
+      //   );
+      //   for (const stc of standTasksComponents) {
+      //     if (stc.component) componentIds.add(stc.component.id);
+      //     console.log(
+      //       `[ComponentQuantityWatcher] Найден компонент из StandTasksComponents: ${stc.component?.id}: ${stc.component?.title}`,
+      //     );
+      //   }
+      // }
 
       // Пересчитываем все уникальные компоненты
       console.log(
@@ -294,7 +306,10 @@ export class ComponentQuantityWatcherService {
         console.log(
           `[ComponentQuantityWatcher] Пересчитываем компонент ${componentId}`,
         );
-        await this.recalculateComponentQuantity(componentId);
+        await this.recalculateComponentQuantity(
+          componentId,
+          targetStandTask.id,
+        );
       }
     } else {
       console.log(
@@ -311,7 +326,7 @@ export class ComponentQuantityWatcherService {
   ): Promise<StandTasksComponents[]> {
     return await this.standTasksComponentsRepository.find({
       where: { standTask: { id: standTaskId } },
-      relations: ['component'],
+      relations: ['component', 'standTask'],
     });
   }
 
@@ -440,34 +455,36 @@ export class ComponentQuantityWatcherService {
 
       const componentIds = new Map<number, number>(); // componentId -> requiredCount
 
+      //#region
       // 1. Ищем компоненты из CurrentTasksComponents
-      const taskComponents = await this.currentTasksComponentsRepository.find({
-        where: { currentTask: { id: taskId } },
-        relations: ['component'],
-      });
+      // const taskComponents = await this.currentTasksComponentsRepository.find({
+      //   where: { currentTask: { id: taskId } },
+      //   relations: ['component'],
+      // });
 
-      for (const taskComponent of taskComponents) {
-        componentIds.set(
-          taskComponent.component.id,
-          taskComponent.componentCount || 1,
-        );
-        console.log(
-          `[ComponentQuantityWatcher] Найден компонент в CurrentTasksComponents: ${taskComponent.component.id} (${taskComponent.component.title}) - ${taskComponent.componentCount || 1} шт`,
-        );
-      }
+      // for (const taskComponent of taskComponents) {
+      //   componentIds.set(
+      //     taskComponent.component.id,
+      //     taskComponent.componentCount || 1,
+      //   );
+      //   console.log(
+      //     `[ComponentQuantityWatcher] Найден компонент в CurrentTasksComponents: ${taskComponent.component.id} (${taskComponent.component.title}) - ${taskComponent.componentCount || 1} шт`,
+      //   );
+      // }
 
-      // 2. Добавляем основной компонент из StandTasks
-      if (currentTask.standTasks?.components) {
-        const mainComponentId = currentTask.standTasks.components.id;
-        const mainCount = currentTask.standTasks.componentOutCount || 1;
-        componentIds.set(
-          mainComponentId,
-          (componentIds.get(mainComponentId) || 0) + mainCount,
-        );
-        console.log(
-          `[ComponentQuantityWatcher] Основной компонент: ${mainComponentId} (${currentTask.standTasks.components.title}) - ${mainCount} шт`,
-        );
-      }
+      // // 2. Добавляем основной компонент из StandTasks
+      // if (currentTask.standTasks?.components) {
+      //   const mainComponentId = currentTask.standTasks.components.id;
+      //   const mainCount = currentTask.standTasks.componentOutCount || 1;
+      //   componentIds.set(
+      //     mainComponentId,
+      //     (componentIds.get(mainComponentId) || 0) + mainCount,
+      //   );
+      //   console.log(
+      //     `[ComponentQuantityWatcher] Основной компонент: ${mainComponentId} (${currentTask.standTasks.components.title}) - ${mainCount} шт`,
+      //   );
+      // }
+      //#endregion
 
       // 3. Ищем компоненты из StandTasksComponents
       if (currentTask.standTasks?.id) {
@@ -475,30 +492,72 @@ export class ComponentQuantityWatcherService {
           currentTask.standTasks.id,
         );
         for (const stc of standTasksComponents) {
-          if (stc.component)
-            componentIds.set(
-              stc.component.id,
-              (componentIds.get(stc.component.id) || 0) +
-                (stc.componentCount || 1),
+          const comp = stc.component;
+          if (!comp) continue;
+
+          const id = comp.id;
+          // явное приведение к числу (на случай, если тип пришёл как string)
+          const add = Number(stc.componentCount);
+
+          // защитимся от NaN и отрицательных значений — если нужно считать отриц. как 0
+          if (!Number.isFinite(add) || add < 0) {
+            console.warn(
+              `[ComponentQuantityWatcher] Некорректное componentCount для компонента ${id}:`,
+              stc.componentCount,
             );
+            continue;
+          }
+
+          const prev = componentIds.get(id) ?? 0;
+          componentIds.set(id, prev + add);
+
           console.log(
-            `[ComponentQuantityWatcher] Дополнительный компонент: ${stc.component?.id} (${stc.component?.title}) - ${stc.componentCount || 1} шт`,
+            `[ComponentQuantityWatcher] Дополнительный компонент: ${id} (${comp.title}) - ${add} шт (итого: ${prev + add})`,
           );
         }
       }
 
       // Проверяем доступность каждого компонента
-      for (const [componentId, requiredCount] of componentIds) {
-        const isAvailable = await this.checkComponentAvailability(
-          componentId,
-          requiredCount,
-          'task_completion',
-          userId,
-        );
+      // for (const [componentId, requiredCount] of componentIds) {
+      //   console.log(componentId, requiredCount);
+      //   const isAvailable = await this.checkComponentAvailability(
+      //     componentId,
+      //     requiredCount,
+      //     'task_completion',
+      //     userId,
+      //   );
 
-        if (!isAvailable) {
+      //   console.log(
+      //     `[ДОСТУПНОСТЬ ЗАДАЧИ] Компонент ${componentId} доступен: ${isAvailable}`,
+      //   );
+
+      //   if (!isAvailable) {
+      //     console.log(
+      //       `[ComponentQuantityWatcher] Компонент ${componentId} недоступен, выполнение задачи отменено`,
+      //     );
+      //     return false;
+      //   }
+      // }
+
+      /**
+       * Сделал более простую проверку на доступность каждого компонента.
+       * Проверяется по полю components.quantity
+       */
+      for (const [componentId, requiredCount] of componentIds) {
+        const component = await this.componentsRepository.findOne({
+          where: { id: componentId },
+        });
+
+        if (!component) {
+          console.warn(
+            `[ComponentQuantityWatcher] Компонент ${componentId} не найден`,
+          );
+          return false;
+        }
+
+        if (component.quantity < requiredCount) {
           console.log(
-            `[ComponentQuantityWatcher] Компонент ${componentId} недоступен, выполнение задачи отменено`,
+            `[ComponentQuantityWatcher] Недостаточно компонентов ${component.title} на складе: есть ${component.quantity}, нужно ${requiredCount}`,
           );
           return false;
         }

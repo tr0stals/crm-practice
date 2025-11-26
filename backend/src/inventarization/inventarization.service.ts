@@ -11,8 +11,14 @@ import { InventarizationDTO } from './dto/InventarizationDTO';
 import { Components } from 'src/components/components.entity';
 import { ComponentsService } from 'src/components/components.service';
 import { OrganizationsService } from 'src/organizations/organizations.service';
-import { InventarizationBusinessService, ComponentCalculationResult } from 'src/features/inventarization-business/inventarization-business.service';
-import { InventarizationCalculationDTO, CreateInventarizationFromCalculationDTO } from 'src/features/inventarization-business/dto/inventarization-calculation.dto';
+import {
+  InventarizationBusinessService,
+  ComponentCalculationResult,
+} from 'src/features/inventarization-business/inventarization-business.service';
+import {
+  InventarizationCalculationDTO,
+  CreateInventarizationFromCalculationDTO,
+} from 'src/features/inventarization-business/dto/inventarization-calculation.dto';
 
 @Injectable()
 export class InventarizationService {
@@ -175,26 +181,38 @@ export class InventarizationService {
   /**
    * Рассчитать количество компонентов для инвентаризации
    */
-  async calculateComponentCount(componentId: number, factoryId: number, calculationDate?: Date): Promise<ComponentCalculationResult> {
+  async calculateComponentCount(
+    componentId: number,
+    factoryId: number,
+    calculationDate?: Date,
+  ): Promise<ComponentCalculationResult> {
     return await this.inventarizationBusinessService.calculateComponentCount(
       componentId,
       factoryId,
-      calculationDate
+      calculationDate,
     );
   }
 
   /**
    * Массовый расчет количества компонентов
    */
-  async calculateMultipleComponents(data: InventarizationCalculationDTO): Promise<ComponentCalculationResult[]> {
-    return await this.inventarizationBusinessService.calculateMultipleComponents(data);
+  async calculateMultipleComponents(
+    data: InventarizationCalculationDTO,
+  ): Promise<ComponentCalculationResult[]> {
+    return await this.inventarizationBusinessService.calculateMultipleComponents(
+      data,
+    );
   }
 
   /**
    * Создать инвентаризацию на основе автоматического расчета
    */
-  async createInventarizationFromCalculation(data: CreateInventarizationFromCalculationDTO): Promise<Inventarization[]> {
-    return await this.inventarizationBusinessService.createInventarizationFromCalculation(data);
+  async createInventarizationFromCalculation(
+    data: CreateInventarizationFromCalculationDTO,
+  ): Promise<Inventarization[]> {
+    return await this.inventarizationBusinessService.createInventarizationFromCalculation(
+      data,
+    );
   }
 
   /**
@@ -203,20 +221,25 @@ export class InventarizationService {
   async updateComponentQuantity(
     componentId: number,
     factoryId: number,
-    calculationDate?: Date
+    calculationDate?: Date,
   ): Promise<Components> {
     return await this.inventarizationBusinessService.updateComponentQuantity(
       componentId,
       factoryId,
-      calculationDate
+      null,
+      calculationDate,
     );
   }
 
   /**
    * Массово обновить количество компонентов на основе расчета
    */
-  async updateMultipleComponentsQuantity(data: InventarizationCalculationDTO): Promise<Components[]> {
-    return await this.inventarizationBusinessService.updateMultipleComponentsQuantity(data);
+  async updateMultipleComponentsQuantity(
+    data: InventarizationCalculationDTO,
+  ): Promise<Components[]> {
+    return await this.inventarizationBusinessService.updateMultipleComponentsQuantity(
+      data,
+    );
   }
 
   /**
@@ -224,11 +247,11 @@ export class InventarizationService {
    */
   async recalculateAllComponentsForFactory(
     factoryId: number,
-    calculationDate?: Date
+    calculationDate?: Date,
   ): Promise<Components[]> {
     return await this.inventarizationBusinessService.recalculateAllComponentsForFactory(
       factoryId,
-      calculationDate
+      calculationDate,
     );
   }
 }
