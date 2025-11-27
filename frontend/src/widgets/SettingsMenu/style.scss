@@ -1,0 +1,43 @@
+.settingsMenu {
+  position: absolute;
+  bottom: 10%;
+  right: -5%;
+  transform: translate(-50%, -120%);
+  opacity: 1;
+  z-index: 20;
+
+  background-color: rgb(183, 183, 183);
+  border-radius: 2rem;
+  width: 30rem;
+  height: 30rem;
+}
+
+/* === APPEAR === */
+.settingsMenu-enter-from {
+  opacity: 0;
+  transform: translate(-50%, -150%);
+}
+
+.settingsMenu-enter-to {
+  opacity: 1;
+  transform: translate(-50%, -120%);
+}
+
+.settingsMenu-enter-active {
+  transition: 0.3s ease;
+}
+
+/* === DISAPPEAR === */
+.settingsMenu-leave-from {
+  opacity: 1;
+  transform: translate(-50%, -120%);
+}
+
+.settingsMenu-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -150%);
+}
+
+.settingsMenu-leave-active {
+  transition: 0.3s ease;
+}

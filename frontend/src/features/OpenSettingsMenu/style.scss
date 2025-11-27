@@ -1,0 +1,13 @@
+.openSettingsMenu {
+  z-index: 21;
+  &--withoutBackground {
+    background-color: transparent;
+  }
+
+  &__button {
+    &:hover {
+      background-color: transparent;
+      transform: scale(1.1);
+    }
+  }
+}

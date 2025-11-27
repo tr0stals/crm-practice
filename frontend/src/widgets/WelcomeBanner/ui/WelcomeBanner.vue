@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
 import "../style.scss";
+
+const authorizedUserStore = useAuthorizedUserStore();
 </script>
 
 <template>
@@ -10,7 +13,14 @@ import "../style.scss";
         alt="Логотип"
         class="welcome-logo"
       />
-      <h1 class="welcome-message-part1">Добро пожаловать!</h1>
+      <h1 class="welcome-message-part1">
+        Добро пожаловать,
+        {{
+          authorizedUserStore.user?.firstName +
+          " " +
+          authorizedUserStore.user?.lastName
+        }}!
+      </h1>
     </div>
   </section>
 </template>

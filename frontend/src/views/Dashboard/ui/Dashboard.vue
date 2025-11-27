@@ -54,7 +54,8 @@ import { handleResetSection } from "../lib/handleResetSection";
 import { Check } from "lucide-vue-next";
 import CurrentTasksTreeview from "@/shared/ui/CustomTreeview/ui/CurrentTasksTreeview.vue";
 import SystemDashboard from "@/widgets/SystemDashboard";
-import ProfileButton from "@/features/ProfileButton";
+import OpenSettingsMenu from "@/features/OpenSettingsMenu";
+import SettingsMenu from "@/widgets/SettingsMenu";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -68,6 +69,7 @@ const menuStore = useMenuStore();
 const data = ref<any[]>([]);
 const isMenuOpen = ref(false);
 const authorizedUser = ref<IAuthorizedUser | null>(null);
+const isSettingsMenuOpen = ref(false);
 
 const localizatedSections = ref<any>([]);
 
@@ -167,7 +169,7 @@ const logout = () => {
 };
 
 async function getCurrentData() {
-  if (navigationStore.currentSection === 'system') return;
+  if (navigationStore.currentSection === "system") return;
   const config: IData = {
     endpoint: `/${navigationStore.currentSection}/generateData`,
   };
@@ -395,7 +397,7 @@ const paginatedData = computed(() => {
 // обработчик кликов по документу
 /**
  * Метод для сброса курсора
- * @param event 
+ * @param event
  */
 const handleGlobalClick = (event: MouseEvent) => {
   const treeEl = treeviewRef.value?.$el || treeviewRef.value;
@@ -501,12 +503,26 @@ const handleSelectSection = (item: any) => {
         </div>
 
         <div class="header__controls">
-          <NotificationButton />
+          <OpenSettingsMenu
+            :handle-click="
+              () => {
+                console.debug(isSettingsMenuOpen);
+                isSettingsMenuOpen = !isSettingsMenuOpen;
+                console.debug(isSettingsMenuOpen);
+              }
+            "
+          />
+          <!-- <NotificationButton />
           <ProfileButton />
 
-          <ExitButton @click="logout" />
+          <ExitButton @click="logout" /> -->
         </div>
       </div>
+
+      <!-- TODO: здесь отображать виджет настрек -->
+      <Transition name="settingsMenu">
+        <SettingsMenu v-if="isSettingsMenuOpen" />
+      </Transition>
 
       <TableDataPreview
         v-if="menuStore.activeEntity && !navigationStore.currentSection"
@@ -519,7 +535,11 @@ const handleSelectSection = (item: any) => {
         v-else-if="navigationStore.activeRow || navigationStore.currentSection"
       >
         <h2 class="content-section__title">
-          {{ navigationStore.currentSection === 'system' ? "Системные настройки" : localizatedSections[currentSection] }}
+          {{
+            navigationStore.currentSection === "system"
+              ? "Системные настройки"
+              : localizatedSections[currentSection]
+          }}
         </h2>
         <!-- Action Buttons, Search, and Filter Placeholder -->
         <div class="controls">
@@ -528,22 +548,41 @@ const handleSelectSection = (item: any) => {
             v-if="
               (authorizedUserStore.user?.professionTitle.toLowerCase() ===
                 professionEnum.admin ||
-              authorizedUserStore.user?.professionTitle.toLowerCase() ===
-                professionEnum.director ) && navigationStore.currentSection !== 'system'
+                authorizedUserStore.user?.professionTitle.toLowerCase() ===
+                  professionEnum.director) &&
+              navigationStore.currentSection !== 'system'
             "
             class="action-buttons"
           >
             <HandleCreateButton
-              v-if="navigationStore.currentSection !== `pcbs` && navigationStore.currentSection !== `current_task_states_log`"
+              v-if="
+                navigationStore.currentSection !== `pcbs` &&
+                navigationStore.currentSection !== `current_task_states_log`
+              "
               :onSuccessCallback="onUpdateCallBack"
             />
             <AddPcbsButton
-              v-if="navigationStore.currentSection === `pcbs` && navigationStore.currentSection !== `current_task_states_log`"
+              v-if="
+                navigationStore.currentSection === `pcbs` &&
+                navigationStore.currentSection !== `current_task_states_log`
+              "
               :onSuccessCallback="onUpdateCallBack"
             />
-            <HandleEditButton :onSuccessCallback="onUpdateCallBack" v-if="navigationStore.currentSection !== `current_task_states_log`" />
+            <HandleEditButton
+              :onSuccessCallback="onUpdateCallBack"
+              v-if="
+                navigationStore.currentSection !== `current_task_states_log`
+              "
+            />
 
-            <HandleDeleteButton :onUpdateCallback="onUpdateCallBack" v-if="navigationStore.currentSection !== `current_task_states_log` && authorizedUserStore.user?.professionTitle.toLowerCase() !== professionEnum.supplier" />
+            <HandleDeleteButton
+              :onUpdateCallback="onUpdateCallBack"
+              v-if="
+                navigationStore.currentSection !== `current_task_states_log` &&
+                authorizedUserStore.user?.professionTitle.toLowerCase() !==
+                  professionEnum.supplier
+              "
+            />
             <Button :onClick="onUpdateCallBack">
               <RefreshIcon /> обновить
             </Button>
@@ -554,13 +593,35 @@ const handleSelectSection = (item: any) => {
             >
           </div>
           <!-- Кнопки для сотрудников -->
-          <div v-else class="action-buttons" v-if="navigationStore.currentSection !== 'system'">
+          <div
+            v-else
+            class="action-buttons"
+            v-if="navigationStore.currentSection !== 'system'"
+          >
             <HandleCreateButton
-              v-if="navigationStore.currentSection === 'arrival_invoices' && authorizedUserStore.user?.professionTitle.toLowerCase() === professionEnum.supplier"
+              v-if="
+                navigationStore.currentSection === 'arrival_invoices' &&
+                authorizedUserStore.user?.professionTitle.toLowerCase() ===
+                  professionEnum.supplier
+              "
               :onSuccessCallback="onUpdateCallBack"
             />
-            <HandleEditButton :onSuccessCallback="onUpdateCallBack" v-if="navigationStore.currentSection === 'arrival_invoices' && authorizedUserStore.user?.professionTitle.toLowerCase() === professionEnum.supplier" />
-            <HandleDeleteButton :onUpdateCallback="onUpdateCallBack" v-if="navigationStore.currentSection === 'arrival_invoices' && authorizedUserStore.user?.professionTitle.toLowerCase() === professionEnum.supplier" />
+            <HandleEditButton
+              :onSuccessCallback="onUpdateCallBack"
+              v-if="
+                navigationStore.currentSection === 'arrival_invoices' &&
+                authorizedUserStore.user?.professionTitle.toLowerCase() ===
+                  professionEnum.supplier
+              "
+            />
+            <HandleDeleteButton
+              :onUpdateCallback="onUpdateCallBack"
+              v-if="
+                navigationStore.currentSection === 'arrival_invoices' &&
+                authorizedUserStore.user?.professionTitle.toLowerCase() ===
+                  professionEnum.supplier
+              "
+            />
             <Button :onClick="onUpdateCallBack">
               <RefreshIcon /> обновить
             </Button>
@@ -571,7 +632,10 @@ const handleSelectSection = (item: any) => {
               <SetCurrentTaskCompleted :onSuccessCallback="onUpdateCallBack" />
             </template>
           </div>
-          <div class="search-filter" v-if="navigationStore.currentSection !== 'system'">
+          <div
+            class="search-filter"
+            v-if="navigationStore.currentSection !== 'system'"
+          >
             <input
               v-if="!treeviewTables.includes(currentSection)"
               type="text"
@@ -616,7 +680,7 @@ const handleSelectSection = (item: any) => {
         <div
           v-if="
             !treeviewTables.includes(currentSection) &&
-            navigationStore.currentSection !== `current_tasks` && 
+            navigationStore.currentSection !== `current_tasks` &&
             navigationStore.currentSection !== `system`
           "
           class="pagination"
