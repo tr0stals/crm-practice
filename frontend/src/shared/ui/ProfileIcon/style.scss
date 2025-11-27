@@ -1,0 +1,18 @@
+.profileIcon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease;
+
+  &:hover {
+    cursor: pointer;
+    transform: scale(1.05);
+  }
+
+  svg {
+    width: 2.5rem;
+    height: 3rem;
+  }
+  // z-index: 100;
+}

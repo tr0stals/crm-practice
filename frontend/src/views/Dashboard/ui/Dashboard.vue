@@ -54,6 +54,7 @@ import { handleResetSection } from "../lib/handleResetSection";
 import { Check } from "lucide-vue-next";
 import CurrentTasksTreeview from "@/shared/ui/CustomTreeview/ui/CurrentTasksTreeview.vue";
 import SystemDashboard from "@/widgets/SystemDashboard";
+import ProfileButton from "@/features/ProfileButton";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -501,6 +502,7 @@ const handleSelectSection = (item: any) => {
 
         <div class="header__controls">
           <NotificationButton />
+          <ProfileButton />
 
           <ExitButton @click="logout" />
         </div>
