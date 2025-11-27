@@ -634,6 +634,38 @@ export class CurrentTasksService {
     // 7️⃣ Пересчёт компонентов
     await this.componentQuantityWatcher.onCurrentTaskStatusChange(taskId);
 
+    /**
+     * Если в записи stand_tasks есть components и componentOutCount — значит задача предусматривает
+     * создание компонента на выходе.
+     */
+    if (task.standTasks?.components && task.standTasks?.componentOutCount) {
+      const component = task.standTasks?.components;
+      const count = task.standTasks?.componentOutCount;
+
+      try {
+        /**
+         * К старому количеству прибавляем количество компонента на выходе
+         */
+        console.log(
+          `[Исходное количество компонента ${component.title} = ${component.quantity}]`,
+        );
+        console.log(`[Количество компонента на выходе  = ${count}]`);
+        const totalCountForComponent = component.quantity + count;
+        console.log(
+          `[Новое количество компонента = ${totalCountForComponent}]`,
+        );
+
+        await this.componentQuantityWatcher.calculateComponentOutCount(
+          component,
+          totalCountForComponent,
+        );
+      } catch (e) {
+        throw new NotFoundException(
+          'Не удалось пересчитать компоненты на выходе',
+        );
+      }
+    }
+
     return { success: true, message: 'Задача успешно завершена' };
   }
 
@@ -941,13 +973,16 @@ export class CurrentTasksService {
       const comps: Array<{ title: string; count?: number; quantity?: number }> =
         [];
 
-      if (st?.components) {
-        comps.push({
-          title: st.components.title,
-          count: st.componentOutCount ?? undefined,
-          quantity: st.components?.quantity,
-        });
-      }
+      /**
+       * Убираю, так как компоненты на выходе не должны попадать в узлы дерева
+       */
+      // if (st?.components) {
+      //   comps.push({
+      //     title: st.components.title,
+      //     count: st.componentOutCount ?? undefined,
+      //     quantity: st.components?.quantity,
+      //   });
+      // }
 
       if (Array.isArray(st?.standTasksComponents)) {
         for (const link of st.standTasksComponents) {

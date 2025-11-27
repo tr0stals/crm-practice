@@ -29,7 +29,7 @@ export class StandTasksDTO {
   standId: number;
 
   @IsOptional()
-  professionId: number;
+  professionId?: number;
 
   @IsOptional()
   componentId?: number;

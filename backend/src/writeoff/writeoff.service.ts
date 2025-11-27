@@ -67,7 +67,10 @@ export class WriteoffService {
   }
 
   async create(data: WriteoffDTO, userId?: string) {
-    console.log(`[WriteoffService] Создание списания. userId: ${userId}, data:`, data);
+    console.log(
+      `[WriteoffService] Создание списания. userId: ${userId}, data:`,
+      data,
+    );
     const { componentId, factoryId, writeoffReasonId, ...defaultData } = data;
 
     const component = await this.componentsRepository.findOne({
@@ -85,32 +88,42 @@ export class WriteoffService {
     });
 
     // Проверяем доступность компонентов перед созданием списания
-    const isAvailable = await this.componentQuantityWatcher.checkComponentAvailability(
-      componentId,
-      data.count,
-      'writeoff',
-      userId
-    );
+    const isAvailable =
+      await this.componentQuantityWatcher.checkComponentAvailability(
+        componentId,
+        data.count,
+        'writeoff',
+        userId,
+      );
 
     if (!isAvailable) {
       // Получаем информацию о компоненте для детального сообщения
       const componentName = component?.title || `Компонент #${componentId}`;
 
       // Рассчитываем текущее количество для точного сообщения
-      const currentCount = await this.componentQuantityWatcher.inventarizationBusinessService
-        .calculateComponentCount(componentId, factoryId);
+      const currentCount =
+        await this.componentQuantityWatcher.inventarizationBusinessService.calculateComponentCount(
+          componentId,
+          factoryId,
+        );
 
       const message = `Недостаточно компонентов "${componentName}" для списания. Доступно: ${currentCount.calculatedCount}, требуется: ${data.count}. Операция отменена.`;
 
-      console.log(`[WriteoffService] Отправка уведомления о недостатке компонентов. userId: ${userId}, message: ${message}`);
+      console.log(
+        `[WriteoffService] Отправка уведомления о недостатке компонентов. userId: ${userId}, message: ${message}`,
+      );
 
       // Отправляем уведомление через WebSocket
       if (userId) {
         this.wsGateway.sendNotification(userId, message, 'error');
-        console.log(`[WriteoffService] Уведомление отправлено пользователю ${userId}`);
+        console.log(
+          `[WriteoffService] Уведомление отправлено пользователю ${userId}`,
+        );
       } else {
         // Если userId не указан, отправляем всем подключенным
-        console.log(`[WriteoffService] userId не указан, отправляем уведомление всем пользователям`);
+        console.log(
+          `[WriteoffService] userId не указан, отправляем уведомление всем пользователям`,
+        );
         // Временно отправляем себе для отладки
         this.wsGateway.sendNotification('2', message, 'error'); // Временное решение для отладки
       }
@@ -118,9 +131,9 @@ export class WriteoffService {
       throw new HttpException(
         {
           message: 'Недостаточно компонентов для списания. Операция отменена.',
-          type: 'component_insufficient'
+          type: 'component_insufficient',
         },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -140,11 +153,14 @@ export class WriteoffService {
   }
 
   async update(id: number, data: Partial<Writeoff>, userId?: string) {
-    console.log(`[WriteoffService] Обновление списания. userId: ${userId}, id: ${id}, data:`, data);
+    console.log(
+      `[WriteoffService] Обновление списания. userId: ${userId}, id: ${id}, data:`,
+      data,
+    );
     // Получаем componentId до обновления для последующего пересчета
     const existingRecord = await this.repo.findOne({
       where: { id },
-      relations: ['components', 'factory']
+      relations: ['components', 'factory'],
     });
 
     if (!existingRecord) {
@@ -158,41 +174,54 @@ export class WriteoffService {
 
       // Если количество увеличивается, проверяем доступность
       if (countDiff > 0) {
-        const isAvailable = await this.componentQuantityWatcher.checkComponentAvailability(
-          existingRecord.components.id,
-          countDiff,
-          'writeoff',
-          userId
-        );
+        const isAvailable =
+          await this.componentQuantityWatcher.checkComponentAvailability(
+            existingRecord.components.id,
+            countDiff,
+            'writeoff',
+            userId,
+          );
 
         if (!isAvailable) {
           // Получаем информацию о компоненте для детального сообщения
-          const componentName = existingRecord.components?.title || `Компонент #${existingRecord.components.id}`;
+          const componentName =
+            existingRecord.components?.title ||
+            `Компонент #${existingRecord.components.id}`;
 
           // Рассчитываем текущее количество для точного сообщения
-          const currentCount = await this.componentQuantityWatcher.inventarizationBusinessService
-            .calculateComponentCount(existingRecord.components.id, existingRecord.factory.id);
+          const currentCount =
+            await this.componentQuantityWatcher.inventarizationBusinessService.calculateComponentCount(
+              existingRecord.components.id,
+              existingRecord.factory.id,
+            );
 
           const message = `Недостаточно компонентов "${componentName}" для увеличения списания. Доступно: ${currentCount.calculatedCount}, требуется дополнительно: ${countDiff}. Операция отменена.`;
 
-          console.log(`[WriteoffService] Отправка уведомления об увеличении списания. userId: ${userId}, message: ${message}`);
+          console.log(
+            `[WriteoffService] Отправка уведомления об увеличении списания. userId: ${userId}, message: ${message}`,
+          );
 
           // Отправляем уведомление через WebSocket
           if (userId) {
             this.wsGateway.sendNotification(userId, message, 'error');
-            console.log(`[WriteoffService] Уведомление отправлено пользователю ${userId}`);
+            console.log(
+              `[WriteoffService] Уведомление отправлено пользователю ${userId}`,
+            );
           } else {
-            console.log(`[WriteoffService] userId не указан, отправляем уведомление всем пользователям`);
+            console.log(
+              `[WriteoffService] userId не указан, отправляем уведомление всем пользователям`,
+            );
             // Временно отправляем себе для отладки
             this.wsGateway.sendNotification('2', message, 'error'); // Временное решение для отладки
           }
 
           throw new HttpException(
             {
-              message: 'Недостаточно компонентов для увеличения списания. Операция отменена.',
-              type: 'component_insufficient'
+              message:
+                'Недостаточно компонентов для увеличения списания. Операция отменена.',
+              type: 'component_insufficient',
             },
-            HttpStatus.BAD_REQUEST
+            HttpStatus.BAD_REQUEST,
           );
         }
       }
@@ -203,7 +232,9 @@ export class WriteoffService {
 
     // Автоматически пересчитываем количество компонента, если он изменился
     if (existingRecord?.components?.id) {
-      await this.componentQuantityWatcher.onWriteoffChange(existingRecord.components.id);
+      await this.componentQuantityWatcher.onWriteoffChange(
+        existingRecord.components.id,
+      );
     }
 
     return result;
@@ -214,14 +245,16 @@ export class WriteoffService {
       // Получаем componentId до удаления для последующего пересчета
       const existingRecord = await this.repo.findOne({
         where: { id },
-        relations: ['components']
+        relations: ['components'],
       });
 
       await this.repo.delete(id);
 
       // Автоматически пересчитываем количество компонента после удаления
       if (existingRecord?.components?.id) {
-        await this.componentQuantityWatcher.onWriteoffChange(existingRecord.components.id);
+        await this.componentQuantityWatcher.onWriteoffChange(
+          existingRecord.components.id,
+        );
       }
     } catch (e: any) {
       if (e.code === 'ER_ROW_IS_REFERENCED_2') {

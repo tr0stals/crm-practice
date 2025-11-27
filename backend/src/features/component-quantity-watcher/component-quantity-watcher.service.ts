@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { Components } from 'src/components/components.entity';
 import { InvoicesComponents } from 'src/invoices_components/invoices_components.entity';
 import { Writeoff } from 'src/writeoff/writeoff.entity';
@@ -10,6 +10,8 @@ import { ArrivalInvoices } from 'src/arrival_invoices/arrival_invoices.entity';
 import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_components.entity';
 import { InventarizationBusinessService } from 'src/features/inventarization-business/inventarization-business.service';
 import { WsGateway } from 'src/websocket/ws.gateway';
+import { Inventarization } from 'src/inventarization/inventarization.entity';
+import { Organizations } from 'src/organizations/organizations.entity';
 
 @Injectable()
 export class ComponentQuantityWatcherService {
@@ -34,6 +36,9 @@ export class ComponentQuantityWatcherService {
 
     @InjectRepository(StandTasksComponents)
     private standTasksComponentsRepository: Repository<StandTasksComponents>,
+
+    @InjectRepository(Inventarization)
+    private inventarizationRepository: Repository<Inventarization>,
 
     public inventarizationBusinessService: InventarizationBusinessService,
     private wsGateway: WsGateway,
@@ -84,6 +89,48 @@ export class ComponentQuantityWatcherService {
         error.message,
       );
       console.error(`[ComponentQuantityWatcher] Stack trace:`, error.stack);
+    }
+  }
+
+  /**
+   * Метод выполняет перерасчет компонентов на выходе
+   */
+  async calculateComponentOutCount(component: Components, count: number) {
+    const factoryId = await this.findComponentFactory(component.id);
+
+    if (!factoryId)
+      throw new NotFoundException('Не удалось определить фабрику');
+
+    try {
+      await this.componentsRepository.update(component.id, { quantity: count });
+
+      /**
+       * Обновляем инвентаризацию
+       */
+      const lastInventarization =
+        await this.inventarizationBusinessService.getLastInventarization(
+          component.id,
+          factoryId,
+        );
+
+      if (lastInventarization) {
+        await this.inventarizationRepository.update(lastInventarization.id, {
+          componentCount: count,
+          inventarizationDate: new Date(),
+        });
+      } else {
+        const inventarization = this.inventarizationRepository.create({
+          componentCount: count,
+          inventarizationQuality: 100,
+          inventarizationDate: new Date(),
+          component: component,
+          factory: { id: factoryId } as Organizations,
+        });
+
+        await this.inventarizationRepository.save(inventarization);
+      }
+    } catch (e) {
+      throw new NotFoundException('Не удалось обновить данные компонента');
     }
   }
 

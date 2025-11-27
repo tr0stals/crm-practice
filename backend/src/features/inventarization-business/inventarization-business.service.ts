@@ -465,7 +465,7 @@ export class InventarizationBusinessService {
   /**
    * Находит последнюю инвентаризацию компонента на фабрике
    */
-  private async getLastInventarization(
+  public async getLastInventarization(
     componentId: number,
     factoryId: number,
   ): Promise<Inventarization | null> {

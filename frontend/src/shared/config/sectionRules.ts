@@ -25,7 +25,7 @@ export const sectionRules: Record<
     title: { required: true, type: "string" },
     photo: { required: false, type: "string" },
     manufactureTime: { required: true, type: "number" },
-    professionId: { required: true, type: "number" },
+    professionId: { required: false, type: "number" },
     componentId: { required: false, type: "number" },
   },
   arrival_invoices: {
@@ -107,10 +107,6 @@ export const sectionRules: Record<
     orderRequestId: { required: true, type: "number" },
     componentId: { required: true, type: "number" },
     supplierId: { required: true, type: "number" },
-  },
-  organization_types: {
-    title: { required: true, type: "string" },
-    icon: { required: false, type: "string" },
   },
   organizations: {
     parentId: { required: false, type: "number" },

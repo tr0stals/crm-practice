@@ -39,9 +39,11 @@ export class StandTasks {
   @JoinColumn({ name: 'standId' })
   stands: Stands;
 
-  @ManyToOne(() => Professions, (profession) => profession.standTasks)
+  @ManyToOne(() => Professions, (profession) => profession.standTasks, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'professionId' })
-  professions: Professions;
+  professions?: Professions;
 
   @ManyToOne(() => Components, (component) => component.standTasks, {
     nullable: true,

@@ -55,13 +55,17 @@ export class StandTasksService {
     if (componentId)
       component = await this.componentService.findOne(componentId);
 
-    const profession = await this.professionsRepo.findOne({
-      where: { id: data.professionId },
-    });
+    let profession: Professions | null = null;
+
+    if (professionId) {
+      profession = await this.professionsRepo.findOne({
+        where: { id: professionId },
+      });
+    }
+
     const stand = await this.standService.findOne(standId);
 
-    if (!profession || !stand)
-      throw new NotFoundException('Одна из сущностей не найдена');
+    if (!stand) throw new NotFoundException('Одна из сущностей не найдена');
 
     // Если parentId не передан, явно ставим null
     const entity = this.repo.create({

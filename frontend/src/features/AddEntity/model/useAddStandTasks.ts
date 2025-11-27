@@ -92,16 +92,18 @@ export function useAddStandTasks(sectionName: string, onSuccess: () => void) {
     });
 
     /**
-     * Делаем запрет на создание записи в stand_tasks_components,
-     * если не указываются componentId и componentOutCount в standTasks
+     * Убрал добавление компонентов в задачи. Потому что если в stand_tasks указаны
+     * components и componentOutCount - то это информация о компоненте на выходе от задачи.
+     *
+     * Эта информация не должна отображаться в узлах тривью задачи стенда.
      */
-    if (formData.componentOutCount && formData.componentId) {
-      await createEntityAsync("stand_tasks_components", {
-        componentCount: formData.componentOutCount,
-        standTaskId: standTasksResponse.data?.id,
-        componentId: formData.componentId,
-      });
-    }
+    // if (formData.componentOutCount && formData.componentId) {
+    //   await createEntityAsync("stand_tasks_components", {
+    //     componentCount: formData.componentOutCount,
+    //     standTaskId: standTasksResponse.data?.id,
+    //     componentId: formData.componentId,
+    //   });
+    // }
 
     if (formData.photo)
       await uploadImage(formData.photo, standTasksResponse.data?.id);
