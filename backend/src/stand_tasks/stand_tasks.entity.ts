@@ -35,6 +35,9 @@ export class StandTasks {
   @Column({ type: 'int' })
   manufactureTime: number;
 
+  @Column({ type: 'boolean' })
+  isWriteoffComponents: boolean;
+
   @ManyToOne(() => Stands, (stand) => stand.standTasks)
   @JoinColumn({ name: 'standId' })
   stands: Stands;

@@ -315,12 +315,30 @@ onUnmounted(() => {
           </div>
         </template>
 
+        <template v-else-if="getInputType(key, value) === 'checkbox'">
+          <div class="addModalWindow__content__field__inputControls">
+            <Button
+              class="addModalWindow__content__field__inputControls__btn"
+              :class="{ active: formData[key] === true }"
+              @click="formData[key] = true"
+            >
+              Да
+            </Button>
+            <Button
+              class="addModalWindow__content__field__inputControls__btn"
+              :class="{ active: formData[key] === false }"
+              @click="formData[key] = false"
+            >
+              Нет
+            </Button>
+          </div>
+        </template>
+
         <!-- Generic input -->
         <input
           v-else-if="key !== 'id'"
           class="editModalWindow__content__field__input"
           :type="getInputType(key, value)"
-          :class="getInputType(key, value) === 'checkbox' && 'inputCheckbox'"
           :id="key"
           :name="key"
           v-model="formData[key]"

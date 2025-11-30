@@ -565,32 +565,34 @@ export class CurrentTasksService {
       return { success: true, message: 'Задача уже завершена' };
     }
 
-    // 1️⃣ Перед завершением — проверяем компоненты!
-    const areComponentsAvailable =
-      await this.componentQuantityWatcher.checkTaskComponentsAvailability(
-        taskId,
-        userId,
-      );
-
-    if (!areComponentsAvailable) {
-      if (userId) {
-        this.wsGateway.sendNotification(
+    // Если задача требует списание компонентов - перед завершением — проверяем компоненты!
+    if (task.standTasks?.isWriteoffComponents) {
+      const areComponentsAvailable =
+        await this.componentQuantityWatcher.checkTaskComponentsAvailability(
+          taskId,
           userId,
-          'Недостаточно компонентов для выполнения задачи.',
-          'error',
+        );
+
+      if (!areComponentsAvailable) {
+        if (userId) {
+          this.wsGateway.sendNotification(
+            userId,
+            'Недостаточно компонентов для выполнения задачи.',
+            'error',
+          );
+        }
+
+        throw new HttpException(
+          {
+            message: 'Недостаточно компонентов для выполнения задачи.',
+            type: 'component_insufficient',
+          },
+          HttpStatus.BAD_REQUEST,
         );
       }
-
-      throw new HttpException(
-        {
-          message: 'Недостаточно компонентов для выполнения задачи.',
-          type: 'component_insufficient',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
     }
 
-    // 2️⃣ Теперь можно безопасно завершить
+    // Теперь можно безопасно завершить
     task.isCompleted = true;
 
     const completedState = await this.currentTaskStatesRepository.findOne({
@@ -623,6 +625,57 @@ export class CurrentTasksService {
       );
     }
 
+    /**
+     * Если задача предусматривает списывание компонентов (isWriteoffComponents = true) — завершаем задачу и списываем компоненты
+     */
+    if (task.standTasks?.isWriteoffComponents) {
+      await this.completeTaskWithWriteoffs(task);
+    }
+
+    //#region
+    // 6️⃣ Серверное Списание
+    // const writeoffs =
+    //   await this.serverWriteoffBusiness.createWriteoffFromCurrentTask(task);
+
+    // console.log(
+    //   `[SERVER_WRITEOFF] Создано ${writeoffs.length} списаний для задачи #${taskId}`,
+    // );
+
+    // // 7️⃣ Пересчёт компонентов
+    // await this.componentQuantityWatcher.onCurrentTaskStatusChange(taskId);
+
+    // /**
+    //  * Если в записи stand_tasks есть components и componentOutCount — значит задача предусматривает
+    //  * создание компонента на выходе.
+    //  */
+    // if (task.standTasks?.components && task.standTasks?.componentOutCount) {
+    //   const component = task.standTasks?.components;
+    //   const count = task.standTasks?.componentOutCount;
+
+    //   try {
+    //     /**
+    //      * Итоговое количество компонентоа при завершении задачи
+    //      */
+    //     const totalCountForComponent = component.quantity + count;
+
+    //     await this.componentQuantityWatcher.calculateComponentOutCount(
+    //       component,
+    //       totalCountForComponent,
+    //     );
+    //   } catch (e) {
+    //     throw new NotFoundException(
+    //       'Не удалось пересчитать компоненты на выходе',
+    //     );
+    //   }
+    // }
+    //#endregion
+
+    return { success: true, message: 'Задача успешно завершена' };
+  }
+
+  private async completeTaskWithWriteoffs(task: CurrentTasks) {
+    const taskId = task.id;
+
     // 6️⃣ Серверное Списание
     const writeoffs =
       await this.serverWriteoffBusiness.createWriteoffFromCurrentTask(task);
@@ -644,16 +697,9 @@ export class CurrentTasksService {
 
       try {
         /**
-         * К старому количеству прибавляем количество компонента на выходе
+         * Итоговое количество компонентоа при завершении задачи
          */
-        console.log(
-          `[Исходное количество компонента ${component.title} = ${component.quantity}]`,
-        );
-        console.log(`[Количество компонента на выходе  = ${count}]`);
         const totalCountForComponent = component.quantity + count;
-        console.log(
-          `[Новое количество компонента = ${totalCountForComponent}]`,
-        );
 
         await this.componentQuantityWatcher.calculateComponentOutCount(
           component,
@@ -665,8 +711,6 @@ export class CurrentTasksService {
         );
       }
     }
-
-    return { success: true, message: 'Задача успешно завершена' };
   }
 
   async getAllTaskTitles(): Promise<{ id: number; title: string }[]> {

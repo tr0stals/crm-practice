@@ -20,6 +20,10 @@ export class StandTasksDTO {
 
   @IsOptional()
   @IsNotEmpty()
+  isWriteoffComponents: boolean;
+
+  @IsOptional()
+  @IsNotEmpty()
   manufactureTime: number;
 
   @IsOptional()

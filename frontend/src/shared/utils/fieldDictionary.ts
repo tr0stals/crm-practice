@@ -61,6 +61,7 @@ export const fieldDictionary: { [key: string]: string } = {
   executionDatetime: "Дата выполнения",
   standId: "Стенд",
   employeeCreatorId: "Создатель",
+  isWriteoffComponents: "Списывать компоненты",
   fullName: "Полное название",
   shortName: "Краткое название",
   lawAddress: "Юридический адрес",

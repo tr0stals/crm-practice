@@ -976,7 +976,10 @@ export class DatabaseService {
         formStructure[column] = { type: 'date' };
       } else if (column.toLowerCase().includes('date')) {
         formStructure[column] = { type: 'date' };
-      } else if (column.toLowerCase().includes('vat')) {
+      } else if (
+        column.toLowerCase().includes('vat') ||
+        column.toLowerCase().includes('isWriteoffComponents')
+      ) {
         formStructure[column] = { type: 'checkbox' };
       } else {
         formStructure[column] = { type: 'input' };

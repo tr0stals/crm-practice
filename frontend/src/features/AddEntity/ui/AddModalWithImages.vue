@@ -338,16 +338,21 @@ const handleDeleteImage = async (item: any) => {
               :name="item"
               class="addModalWindow__content__field__input"
             />
-            <input
-              v-else-if="item === 'isCompleted'"
+            <!-- <input
+              v-else-if=""
               class="addModalWindow__content__field__input"
               type="checkbox"
               v-model="formData[item]"
               :id="item"
               :name="item"
               @change="handleInput(item)"
-            />
-            <template v-else-if="item === 'vat' || item === 'paid'">
+            /> -->
+            <template v-else-if="
+              item === 'vat' || 
+              item === 'paid' || 
+              item === 'isWriteoffComponents' || 
+              item === 'isCompleted'"
+            >
               <div class="addModalWindow__content__field__inputControls">
                 <Button
                   class="addModalWindow__content__field__inputControls__btn"

@@ -121,7 +121,7 @@ const handleSubmit = async () => {
             />
 
             <input
-              v-else-if="item === 'isCompleted'"
+              v-else-if="item === 'isCompleted' || item === 'isWriteoffComponents'"
               class="addModalWindow__content__field__input inputCheckbox"
               type="checkbox"
               v-model="formData[item]"
