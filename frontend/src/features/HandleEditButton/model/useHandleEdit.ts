@@ -19,7 +19,6 @@ import { useToast } from "vue-toastification";
 /**
  *    Функция срабатывает при клике клике на кнопку "Редактировать"
  *  и выбранной строке
- *
  */
 export function useHandleEdit(onUpdateCallBack: () => void) {
   /*
@@ -29,18 +28,21 @@ export function useHandleEdit(onUpdateCallBack: () => void) {
    *  Логика: 1. если это Treeview - тогда выбранная строка имеет объект data - следовательно, мы выбираем ..data.nodeType
    *          2. если это табличная сущность - у нее нет объекта data, следовательно, передаем navigationStore.currentSection
    *
-   * Желательно не трогать, иначе можно получить ошибки при открытии модалки редактирования
+   *  Желательно не трогать, иначе можно получить ошибки при открытии модалки редактирования
    */
   const navigationStore = useNavigationStore();
+
   const sectionName = navigationStore.selectedRow?.data
     ? navigationStore.selectedRow.data?.nodeType
     : navigationStore.currentSection;
+
   const entityId = navigationStore.selectedRow?.id;
   const toast = useToast();
 
   const cfg: IEdittingProps = {
     sectionName: sectionName,
     entityId: entityId,
+    isProfileEdit: false,
   };
 
   if (!cfg.entityId || !cfg.sectionName) {

@@ -6,6 +6,7 @@ import { useHandleEdit } from "../model/useHandleEdit";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import { tablesEnum } from "@/shared/config/tablesEnum";
 import { ref, watch } from "vue";
+import { useEditProfile } from "../model/useEditProfile";
 
 const navigationStore = useNavigationStore();
 
@@ -23,17 +24,26 @@ watch(
   }
 );
 
+/**
+ * @Param isEditProfile - определяем, редактируем профиль или запись
+ */
 const props = defineProps<{
+  isEditProfile: boolean;
   onSuccessCallback: () => void;
+  iconVisible: boolean;
+  extraClasses?: string[]
 }>();
 </script>
 <template>
   <Button
     id="editButton"
     :disabled="disabled"
-    :extra-classes="disabled ? [`button--disabled`] : []"
-    @click="useHandleEdit(props.onSuccessCallback)"
+    :extra-classes="[
+      disabled ? 'button--disabled' : '',
+      ...(extraClasses ?? [])
+    ]"
+    @click="props.isEditProfile ? useEditProfile() : useHandleEdit(props.onSuccessCallback)"
   >
-    <EditIcon /> редактировать
+    <EditIcon v-if="props.iconVisible" /> редактировать
   </Button>
 </template>

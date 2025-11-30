@@ -1,43 +1,46 @@
 .settingsMenu {
   position: absolute;
-  bottom: 10%;
+  bottom: 40%;
   right: -5%;
   transform: translate(-50%, -120%);
   opacity: 1;
-  z-index: 20;
+  z-index: 21;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 
   background-color: rgb(183, 183, 183);
   border-radius: 2rem;
   width: 30rem;
-  height: 30rem;
-}
+  // height: auto;
+  padding: 2rem;
 
-/* === APPEAR === */
-.settingsMenu-enter-from {
-  opacity: 0;
-  transform: translate(-50%, -150%);
-}
+  &-enter-from {
+    opacity: 0;
+    transform: translate(-50%, -125%);
+  }
 
-.settingsMenu-enter-to {
-  opacity: 1;
-  transform: translate(-50%, -120%);
-}
+  &-enter-active {
+    transition: 0.15s ease-out;
+  }
 
-.settingsMenu-enter-active {
-  transition: 0.3s ease;
-}
+  &-enter-to {
+    opacity: 1;
+    transform: translate(-50%, -120%);
+  }
 
-/* === DISAPPEAR === */
-.settingsMenu-leave-from {
-  opacity: 1;
-  transform: translate(-50%, -120%);
-}
+  &-leave-from {
+    opacity: 1;
+    transform: translate(-50%, -120%);
+  }
 
-.settingsMenu-leave-to {
-  opacity: 0;
-  transform: translate(-50%, -150%);
-}
+  &-leave-active {
+    transition: 0.15s ease-in;
+  }
 
-.settingsMenu-leave-active {
-  transition: 0.3s ease;
+  &-leave-to {
+    opacity: 0;
+    transform: translate(-50%, -125%);
+  }
 }

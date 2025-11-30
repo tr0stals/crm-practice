@@ -56,6 +56,10 @@ import CurrentTasksTreeview from "@/shared/ui/CustomTreeview/ui/CurrentTasksTree
 import SystemDashboard from "@/widgets/SystemDashboard";
 import OpenSettingsMenu from "@/features/OpenSettingsMenu";
 import SettingsMenu from "@/widgets/SettingsMenu";
+import ProfileIcon from "@/shared/ui/ProfileIcon";
+import OpenProfile from "@/features/OpenProfile";
+import ProfileSidebar from "@/widgets/ProfileSidebar";
+import InformationSidebar from "@/widgets/InformationSidebar/ui/InformationSidebar.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -67,9 +71,13 @@ const menuStore = useMenuStore();
  * Данные, которые отображаются в таблице
  */
 const data = ref<any[]>([]);
-const isMenuOpen = ref(false);
+const isMenuOpen = ref<boolean>(false);
 const authorizedUser = ref<IAuthorizedUser | null>(null);
-const isSettingsMenuOpen = ref(false);
+
+const isSettingsMenuOpen = ref<boolean>(false);
+const informationSidebar = ref<string | null>(null);
+const isNotificationsMenuOpen = ref<boolean>(false);
+const isEditProfile = ref<boolean>(false);
 
 const localizatedSections = ref<any>([]);
 
@@ -95,7 +103,7 @@ const searchQuery = ref("");
 const currentPage = ref(1);
 const itemsPerPage = ref<number>(8); // Изменено на 13, чтобы быть по умолчанию
 
-const isSelectOpen = ref(false); // Добавляем реактивную переменную для отслеживания состояния select
+const isSelectOpen = ref<boolean>(false); // Добавляем реактивную переменную для отслеживания состояния select
 
 // --- Фильтры по столбцам ---
 
@@ -253,6 +261,7 @@ onMounted(async () => {
       id: authorizedUser.value.user?.id,
       firstName: user.employees.peoples.firstName,
       lastName: user.employees.peoples.lastName,
+      middleName: user.employees.peoples.middleName,
       professionTitle: user.employeeProfession.professions.title,
       employeeData: user?.employees,
     });
@@ -479,13 +488,30 @@ const handleSelectSection = (item: any) => {
 <template>
   <div class="dashboard-layout">
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" :class="informationSidebar && 'freeze'">
       <div @click="handleResetSection" class="logo">А ПРАКТИКУМ</div>
       <Sidebar />
     </aside>
+      <Transition name="informationSidebar">
+        <InformationSidebar v-if="informationSidebar !== null" :on-close="() => informationSidebar = null">
+          <template v-if="informationSidebar === 'profile'">
+            <ProfileSidebar v-if="!isEditProfile">
+              <template #editButton>
+                <HandleEditButton 
+                  @click="() => informationSidebar = null"
+                  :icon-visible="false" 
+                  :is-edit-profile="true" 
+                  :onSuccessCallback="onUpdateCallBack" 
+                  :extra-classes="['profileSidebar__button']" 
+                />
+              </template>
+            </ProfileSidebar>
+          </template>
+        </InformationSidebar>
+      </Transition>
 
     <!-- Main Content Area -->
-    <main class="main-content">
+    <main :class="informationSidebar && 'freeze'" class="main-content">
       <!-- Header -->
       <div class="header">
         <div class="user-info">
@@ -505,23 +531,26 @@ const handleSelectSection = (item: any) => {
         <div class="header__controls">
           <OpenSettingsMenu
             :handle-click="
-              () => {
-                console.debug(isSettingsMenuOpen);
-                isSettingsMenuOpen = !isSettingsMenuOpen;
-                console.debug(isSettingsMenuOpen);
-              }
+              () => isSettingsMenuOpen = !isSettingsMenuOpen
             "
           />
-          <!-- <NotificationButton />
-          <ProfileButton />
-
-          <ExitButton @click="logout" /> -->
         </div>
       </div>
 
-      <!-- TODO: здесь отображать виджет настрек -->
+      <!-- TODO: Пока что SettingsMenu отображается корректно с 3 слотами.
+                  Если добавить больше или убрать - верстка поедет -->
       <Transition name="settingsMenu">
-        <SettingsMenu v-if="isSettingsMenuOpen" />
+        <SettingsMenu v-if="isSettingsMenuOpen">
+          <template #profile>
+            <OpenProfile @click="() => isSettingsMenuOpen = false" :handle-click="() => informationSidebar = 'profile'" />
+          </template>
+          <template #notifications>
+            <NotificationButton @click="() => isSettingsMenuOpen = false" :handle-click="() => informationSidebar = 'notifications'" />
+          </template>
+          <template #exit>
+            <ExitButton :handle-click="logout" :extra-classes="['exitButton']" />
+          </template>
+        </SettingsMenu>
       </Transition>
 
       <TableDataPreview
@@ -569,6 +598,8 @@ const handleSelectSection = (item: any) => {
               :onSuccessCallback="onUpdateCallBack"
             />
             <HandleEditButton
+              :icon-visible="true"
+              :is-edit-profile="false"
               :onSuccessCallback="onUpdateCallBack"
               v-if="
                 navigationStore.currentSection !== `current_task_states_log`
@@ -607,6 +638,8 @@ const handleSelectSection = (item: any) => {
               :onSuccessCallback="onUpdateCallBack"
             />
             <HandleEditButton
+              :icon-visible="true"
+              :is-edit-profile="false"
               :onSuccessCallback="onUpdateCallBack"
               v-if="
                 navigationStore.currentSection === 'arrival_invoices' &&

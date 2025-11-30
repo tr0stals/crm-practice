@@ -716,12 +716,12 @@ export class CurrentTasksService {
     const getComponentsForStandTask = (st: any) => {
       const comps: Array<{ title: string; count?: number }> = [];
 
-      if (st?.components) {
-        comps.push({
-          title: st.components.title,
-          count: st.componentOutCount ?? undefined,
-        });
-      }
+      // if (st?.components) {
+      //   comps.push({
+      //     title: st.components.title,
+      //     count: st.componentOutCount ?? undefined,
+      //   });
+      // }
 
       if (Array.isArray(st?.standTasksComponents)) {
         for (const link of st.standTasksComponents) {

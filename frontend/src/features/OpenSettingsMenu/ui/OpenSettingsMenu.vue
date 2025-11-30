@@ -16,7 +16,8 @@ const props = defineProps<{
         'openSettingsMenu__button',
       ]"
       :handle-click="props.handleClick"
-      ><SettingsIcon
-    /></Button>
+    >
+      <SettingsIcon />
+    </Button>
   </div>
 </template>

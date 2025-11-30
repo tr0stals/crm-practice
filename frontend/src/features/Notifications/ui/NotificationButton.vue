@@ -6,12 +6,17 @@ import { useNotifications } from "../model/useNotifications";
 import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
 import NotificationsMenu from "./NotificationsMenu.vue";
 import NotificationIcon from "@/shared/ui/NotificationIcon/ui/NotificationIcon.vue";
+import Button from "@/shared/ui/Button/ui/Button.vue";
 
 const store = useNotificationStore();
 const authorizedUserStore = useAuthorizedUserStore();
 const open = ref<boolean>(false);
 const userId = ref();
 const isBadge = ref(false);
+
+const props = defineProps<{
+  handleClick: () => void;
+}>();
 
 watch(
   () => authorizedUserStore.user?.id,
@@ -35,7 +40,10 @@ const unreadCount = computed(() => store.unreadCount);
 </script>
 <template>
   <div class="notificationButton">
-    <NotificationIcon :is-badge="isBadge" @click="open = !open" />
+    <Button :extra-classes="['notificationButton__button']" :handle-click="props.handleClick">
+      Открыть уведомления
+    </Button>
+    <!-- <NotificationIcon :is-badge="isBadge" @click="open = !open" /> -->
     <NotificationsMenu v-if="open" :store="store" />
   </div>
 </template>

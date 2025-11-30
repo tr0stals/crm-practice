@@ -17,12 +17,23 @@
   gap: 3rem;
 }
 
+.freeze {
+  opacity: 0.6;
+}
+
 .logo {
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 40px; /* Увеличил отступ после логотипа */
   color: #0056b3; /* Примерный синий цвет по изображению */
   text-align: center; /* Центрировал логотип */
+}
+
+.exitButton {
+  width: 100%;
+  padding: 2rem 1rem;
+  text-transform: none;
+  background-color: #fff;
 }
 
 .dropdown-menu {

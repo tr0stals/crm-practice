@@ -1,0 +1,55 @@
+.informationSidebar {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100%;
+  background-color: rgb(209, 209, 209);
+  width: 20%;
+  z-index: 22;
+  display: flex;
+  flex-direction: column;
+  border-radius: 2rem 0rem 0rem 2rem;
+  overflow: hidden;
+
+  &__closeIcon {
+    position: absolute;
+    width: 5rem;
+    height: 5rem;
+    left: -3%;
+    top: 5rem;
+    z-index: 101;
+    transition: all 0.3s ease-out;
+    cursor: pointer;
+
+    &:hover {
+      transform: scale(0.9);
+    }
+  }
+
+  &-enter-from {
+    opacity: 1;
+    transform: translateX(100%);
+  }
+
+  &-enter-active {
+    transition: 0.3s ease-out;
+  }
+
+  &-enter-to {
+    transform: translateX(0%);
+  }
+
+  &-leave-from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  &-leave-active {
+    transition: 0.3s ease-out;
+  }
+
+  &-leave-to {
+    opacity: 1;
+    transform: translateX(100%);
+  }
+}

@@ -1,6 +1,13 @@
 .notificationButton {
   position: relative;
   display: flex;
+
+  &__button {
+    width: 100%;
+    padding: 2rem 1rem;
+    text-transform: none;
+    background-color: #fff;
+  }
 }
 
 .notificationIcon {

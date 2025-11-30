@@ -170,33 +170,81 @@ onMounted(async () => {
       if (!newData) return;
 
       resultData.value = newData;
-      const { peoples, ...defaultData } = newData;
-      people.value = peoples;
+      let dataDefault = null;
+      let defaultPeoples = null;
+      let employeesProfessions = null;
+      let employeesDepartments = null;
 
-      const { id, ...defaultPeoples } = peoples;
-      peopleId.value = id;
+      if (!props.config?.isProfileEdit) {
+        const { peoples, ...defaultData } = newData;
+        dataDefault = defaultData;
+        people.value = peoples;
 
-      const employeesProfessions = await getEmployeesProfessions(
-        defaultData?.id
-      );
-      employeeProfessionsId.value = employeesProfessions.data?.id;
-      console.debug(
-        "employeeProfessionsId.value!!!!",
-        employeeProfessionsId.value
-      );
+        const { id, ...peoplesFields } = peoples;
+        defaultPeoples = peoplesFields
+        peopleId.value = id;
 
-      const employeesDepartments = await getEmployeesDepartments(
-        defaultData?.id
-      );
-      employeeDepartmentsId.value = employeesDepartments.data?.id;
+        const empProf = await getEmployeesProfessions(
+          defaultData?.id
+        );
+        employeesProfessions = empProf;
+        employeeProfessionsId.value = empProf.data?.id;
+        console.debug(
+          "employeeProfessionsId.value!!!!",
+          employeeProfessionsId.value
+        );
 
-      formData.value = {
-        ...defaultData,
+        const empDeps = await getEmployeesDepartments(
+          defaultData?.id
+        );
+        employeesDepartments = empDeps;
+        employeeDepartmentsId.value = empDeps.data?.id;
+      } 
+      if (props.config?.isProfileEdit) {
+        const { peoples, dismissalDate, hiringDate, ...defaultData } = newData;
+        console.debug("newdata!!!!!!!!", newData)
+        console.debug("peoples!!!!!!", peoples)
+        dataDefault = defaultData;
+        people.value = peoples;
+
+        const { id, comment, ...peoplesFields } = peoples;
+        defaultPeoples = peoplesFields
+        peopleId.value = id;
+
+        const empProf = await getEmployeesProfessions(
+          defaultData?.id
+        );
+        employeesProfessions = empProf;
+        employeeProfessionsId.value = empProf.data?.id;
+        console.debug(
+          "employeeProfessionsId.value!!!!",
+          employeeProfessionsId.value
+        );
+
+        const empDeps = await getEmployeesDepartments(
+          defaultData?.id
+        );
+        employeesDepartments = empDeps;
+        employeeDepartmentsId.value = empDeps.data?.id;
+      }
+
+      if (!employeesProfessions) return;
+      if (!employeesDepartments) return;
+
+      if (props.config?.isProfileEdit) {
+        formData.value = {
+          ...dataDefault,
+          ...defaultPeoples,
+        };
+      } else {
+        formData.value = {
+        ...dataDefault,
         ...defaultPeoples,
         professions: employeesProfessions.data.professions,
         departments: employeesDepartments.data.departments,
       };
-      console.debug("formData", formData.value);
+      }
+      
 
       // Поиск полей с датами
       const dateFields = Object.keys(formData.value).filter(isDateField);

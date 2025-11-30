@@ -6,6 +6,7 @@ export const useAuthorizedUserStore = defineStore("authorizedUserStore", () => {
     id: number;
     firstName: string;
     lastName: string;
+    middleName?: string;
     professionTitle: string;
     employeeData?: any;
   }>(null);
@@ -14,6 +15,7 @@ export const useAuthorizedUserStore = defineStore("authorizedUserStore", () => {
     id: number;
     firstName: string;
     lastName: string;
+    middleName?: string;
     professionTitle: string;
   }) {
     user.value = userData;
