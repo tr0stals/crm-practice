@@ -187,7 +187,6 @@ const handleSubmit = async () => {
                 :name="item"
                 class="addModalWindow__content__field__option"
               >
-                <option value="" disabled>Выберите значение</option>
                 <template
                   v-for="option in selectOptions[item]"
                   :key="option.id"

@@ -307,7 +307,6 @@ const handleDeleteImage = async (item: any) => {
                 class="addModalWindow__content__field__option"
                 @change="handleInput(item)"
               >
-                <option value="" disabled>Выберите значение</option>
                 <template
                   :key="option.id"
                   v-for="option in selectOptions[item]"

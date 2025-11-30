@@ -201,7 +201,6 @@ const handleSubmit = async () => {
                 :class="{ 'error-layout': errors[item] }"
                 @change="handleInput(item)"
               >
-                <option value="" disabled>Выберите значение</option>
                 <template
                   v-for="option in selectOptions[item]"
                   :key="option.id"
