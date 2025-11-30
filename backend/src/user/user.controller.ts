@@ -31,6 +31,16 @@ export class UserController {
     }
   }
 
+  @Get('count')
+  async getCount() {
+    try {
+      const data = await this.userService.getUsersCount();
+      return data;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   @Get('getWithProfession/:id')
   async getUserWithProfession(@Param('id') id: number) {
     return await this.userService.getUserWithProfessionTitle(id);

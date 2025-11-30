@@ -68,6 +68,14 @@ export class UserService {
     }
   }
 
+  async getUsersCount() {
+    try {
+      return await this.usersRepository.count({ relations: ['employees'] });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   async getUserWithProfessionTitle(id: number) {
     const user = await this.usersRepository.findOne({
       where: { id },

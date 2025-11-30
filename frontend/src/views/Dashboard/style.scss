@@ -76,8 +76,8 @@
 
 .header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: flex-end;
+  align-items: flex-end;
   margin-bottom: 25px; /* Увеличил отступ после шапки */
   padding-bottom: 15px;
   border-bottom: 1px solid #eee;
@@ -85,6 +85,7 @@
   &__controls {
     display: flex;
     flex-direction: row;
+    justify-content: flex-end;
     gap: 5rem;
   }
 }

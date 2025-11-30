@@ -102,34 +102,63 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach(
-  async (
-    to: RouteLocationNormalized,
-    from: RouteLocationNormalized,
-    next: NavigationGuardNext
-  ) => {
-    const authStore = useAuthStore();
-
-    // если токен хранится в localStorage
-    const token = authStore.token || localStorage.getItem("token");
-
-    if (to.meta.public) {
-      // но если пользователь уже залогинен и идёт на /login или /register — отправляем на /dashboard
-      if (
-        token &&
-        (to.path === "/login" || to.path === "/register" || to.path === "/")
-      ) {
-        return next("/dashboard");
+async function checkUsersExist(): Promise<boolean> {
+  try {
+    const { data, refetch } = useFetch<number>(
+      `${defaultEndpoint}/user/count`,
+      {
+        immediate: false,
       }
-      return next();
-    }
+    );
 
-    if (to.meta.requiresAuth && !token) {
-      return next("/login");
-    }
+    await refetch();
 
-    next();
+    return (data.value ?? 0) > 0;
+  } catch (e) {
+    console.error("Ошибка проверки пользователей:", e);
+    return true; // чтобы не сломать работу приложения
   }
-);
+}
+
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore();
+
+  const token = authStore.token || localStorage.getItem("token");
+
+  // --- НОВОЕ: проверяем, есть ли пользователи в БД ---
+  const usersExist = await checkUsersExist();
+  console.debug(usersExist);
+
+  // 1⃣ Если пользователей НЕТ — можно работать ТОЛЬКО в /register
+  if (!usersExist) {
+    if (to.path !== "/register") {
+      return next("/register");
+    }
+
+    return next(); // разрешаем остаться на /register
+  }
+
+  // 2⃣ Если пользователи ЕСТЬ — /register запрещён
+  if (usersExist && to.path === "/register") {
+    return next("/login");
+  }
+
+  // --- старая логика авторизации ---
+  if (to.meta.public) {
+    if (
+      token &&
+      (to.path === "/login" || to.path === "/" || to.path === "/register")
+    ) {
+      return next("/dashboard");
+    }
+    return next();
+  }
+
+  if (to.meta.requiresAuth && !token) {
+    return next("/login");
+  }
+
+  next();
+});
 
 export default router;

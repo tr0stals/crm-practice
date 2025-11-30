@@ -514,20 +514,6 @@ const handleSelectSection = (item: any) => {
     <main :class="informationSidebar && 'freeze'" class="main-content">
       <!-- Header -->
       <div class="header">
-        <div class="user-info">
-          <AvatarIcon class="avatar" />
-          <div>
-            <div class="user-fullname">
-              {{ authorizedUserStore.user?.firstName }}
-              {{ authorizedUserStore.user?.lastName }}
-            </div>
-            <div class="user-details">{{ currentDateTime }}</div>
-            <div class="user-details">
-              {{ authorizedUserStore.user?.professionTitle }}
-            </div>
-          </div>
-        </div>
-
         <div class="header__controls">
           <OpenSettingsMenu
             :handle-click="
@@ -537,8 +523,8 @@ const handleSelectSection = (item: any) => {
         </div>
       </div>
 
-      <!-- TODO: Пока что SettingsMenu отображается корректно с 3 слотами.
-                  Если добавить больше или убрать - верстка поедет -->
+      <!-- Пока что SettingsMenu отображается корректно с 3 слотами.
+          Если добавить больше или убрать - верстка поедет -->
       <Transition name="settingsMenu">
         <SettingsMenu v-if="isSettingsMenuOpen">
           <template #profile>
