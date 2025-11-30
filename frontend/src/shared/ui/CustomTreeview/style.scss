@@ -50,7 +50,7 @@
 }
 
 .data--notAvailabled {
-  background-color: rgb(255, 128, 128) !important;
+  background-color: rgb(255, 195, 195) !important;
   transition: all 0.3s ease;
 }
 
@@ -99,4 +99,15 @@
       }
     }
   }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(5px);
 }

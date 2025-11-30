@@ -18,7 +18,6 @@ export class LicenseDTO {
   end: Date;
 
   @IsOptional()
-  @Min(0)
   places: number;
 
   @IsOptional()

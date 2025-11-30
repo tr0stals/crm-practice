@@ -16,6 +16,7 @@ import { treeviewIcons } from "../config/treeviewIcons";
 
 const props = defineProps<{
   currentSection: string;
+  searchQuery?: string;
   extraClasses?: string[];
   extraAttrs?: string[];
 }>();
@@ -25,6 +26,57 @@ const emit = defineEmits<{
 }>();
 
 const treeData = ref<any[]>([]);
+
+// --- Фильтрация дерева по поиску ---
+function filterTree(nodes: any[], query: string) {
+  if (!query) return nodes;
+
+  const lower = query.toLowerCase();
+
+  const result: any[] = [];
+
+  for (const node of nodes) {
+    const labelMatch = node.label?.toLowerCase().includes(lower);
+
+    let childMatches: any[] = [];
+
+    if (node.children && node.children.length > 0) {
+      childMatches = filterTree(node.children, query);
+    }
+
+    // если совпало название или совпали дети — оставляем узел  
+    if (labelMatch || childMatches.length > 0) {
+      result.push({
+        ...node,
+        children: childMatches.length > 0 ? childMatches : node.children ?? []
+      });
+    }
+  }
+
+  return result;
+}
+
+const filteredTreeData = computed(() => {
+  return filterTree(treeData.value, props.searchQuery || "");
+});
+
+watch(filteredTreeData, (newTree) => {
+  if (!props.searchQuery) return;
+
+  const expandMatches = (nodes: any[]) => {
+    for (const n of nodes) {
+      if (n.children && n.children.length > 0) {
+        expandedKeys.value[n.key] = true;
+        expandMatches(n.children);
+      }
+    }
+  };
+
+  expandMatches(newTree);
+});
+
+
+
 const selectedKey = ref(null);
 const expandedKeys = ref<any>({});
 const navigationStore = useNavigationStore();
@@ -108,6 +160,7 @@ watch(data, async (val) => {
 
   const root = getTreeviewData(val);
   treeData.value = root.children || [];
+  
 
   if (Array.isArray(val)) {
     treeData.value = val.map((node: any) => getTreeviewData(node));
@@ -154,7 +207,7 @@ const perPage = ref<number>(10);
 
 const paginatedTreeData = computed(() => {
   const start = (page.value - 1) * perPage.value;
-  return treeData.value.slice(start, start + perPage.value) || [];
+  return filteredTreeData.value.slice(start, start + perPage.value) || [];
 });
 
 function nextPage() {

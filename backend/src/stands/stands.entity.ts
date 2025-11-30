@@ -28,7 +28,7 @@ export class Stands {
   title: string;
 
   @Column({ nullable: true })
-  image: string;
+  image?: string;
 
   @Column({ length: 100, nullable: true })
   width: string;
@@ -45,7 +45,7 @@ export class Stands {
   @Column({ type: 'float', nullable: true })
   weightBrutto: number;
 
-  @Column({ length: 100, nullable: true })
+  @Column({ length: 256, nullable: true })
   link: string;
 
   @Column({ nullable: true })
@@ -54,8 +54,8 @@ export class Stands {
   @Column({ type: 'int', nullable: true })
   manufactureTime: number;
 
-  @Column({ length: 45, nullable: true })
-  comment: string;
+  @Column({ length: 512, nullable: true })
+  comment?: string;
 
   @ManyToOne(() => StandsTypes, (type) => type.stands)
   @JoinColumn({ name: 'standTypeId' })

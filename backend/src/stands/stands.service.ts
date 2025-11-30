@@ -38,38 +38,38 @@ export class StandsService {
         employeeId,
         standTypeId,
       );
-      if (missingFields.length > 0) {
-        const errorMessage = `Для создания стенда необходимо заполнить все обязательные поля: ${missingFields.join(', ')}`;
+      // if (missingFields.length > 0) {
+      //   const errorMessage = `Для создания стенда необходимо заполнить все обязательные поля: ${missingFields.join(', ')}`;
 
-        // Отправляем уведомление об ошибке валидации
-        let targetUserId = userId ? userId.toString() : '1';
+      //   // Отправляем уведомление об ошибке валидации
+      //   let targetUserId = userId ? userId.toString() : '1';
 
-        // Если userId не передан, пытаемся найти пользователя напрямую
-        if (!userId) {
-          const directUser = await this.userRepository.findOne({
-            where: {}, // Берем первого доступного пользователя
-          });
-          if (directUser) {
-            targetUserId = directUser.id.toString();
-            console.log(
-              `[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${errorMessage}`,
-            );
-          }
-        }
+      //   // Если userId не передан, пытаемся найти пользователя напрямую
+      //   if (!userId) {
+      //     const directUser = await this.userRepository.findOne({
+      //       where: {}, // Берем первого доступного пользователя
+      //     });
+      //     if (directUser) {
+      //       targetUserId = directUser.id.toString();
+      //       console.log(
+      //         `[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление: ${errorMessage}`,
+      //       );
+      //     }
+      //   }
 
-        console.log(
-          `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${errorMessage}`,
-        );
-        this.wsGateway.sendNotification(
-          targetUserId,
-          errorMessage,
-          'validation_error',
-        );
+      //   console.log(
+      //     `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${errorMessage}`,
+      //   );
+      //   this.wsGateway.sendNotification(
+      //     targetUserId,
+      //     errorMessage,
+      //     'validation_error',
+      //   );
 
-        throw new BadRequestException({
-          message: errorMessage,
-        });
-      }
+      //   throw new BadRequestException({
+      //     message: errorMessage,
+      //   });
+      // }
     }
 
     let employee: any = undefined;

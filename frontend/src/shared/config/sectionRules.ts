@@ -83,7 +83,7 @@ export const sectionRules: Record<
     licenseCode: { required: true, type: "string" },
     start: { required: false, type: "date" },
     end: { required: false, type: "date" },
-    places: { required: false, type: "number" },
+    places: { required: true, type: "number" },
     timeout: { required: false, type: "string" },
     comment: { required: false, type: "string" },
     standId: { required: true, type: "number" },

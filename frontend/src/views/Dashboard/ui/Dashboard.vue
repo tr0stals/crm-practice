@@ -656,7 +656,6 @@ const handleSelectSection = (item: any) => {
             v-if="navigationStore.currentSection !== 'system'"
           >
             <input
-              v-if="!treeviewTables.includes(currentSection)"
               type="text"
               placeholder="Поиск"
               class="search-input"
@@ -670,6 +669,7 @@ const handleSelectSection = (item: any) => {
           <template v-if="treeviewTables.includes(currentSection)">
             <CustomTreeview
               ref="treeviewRef"
+              :search-query="searchQuery"
               :current-section="currentSection"
               @node-select="handleSelectRow"
             />
@@ -678,6 +678,7 @@ const handleSelectSection = (item: any) => {
             v-else-if="navigationStore.currentSection === `current_tasks`"
           >
             <CurrentTasksTreeview
+              :search-query="searchQuery"
               ref="treeviewRef"
               :current-section="currentSection"
               @node-select="handleSelectRow"

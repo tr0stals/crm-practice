@@ -24,6 +24,7 @@ import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/st
 
 const props = defineProps<{
   currentSection: string;
+  searchQuery?: string;
   extraClasses?: string[];
   extraAttrs?: string[];
 }>();
@@ -35,6 +36,55 @@ const emit = defineEmits<{
 }>();
 
 const treeData = ref<any[]>([]);
+
+// --- Фильтрация дерева по поиску ---
+function filterTree(nodes: any[], query: string) {
+  if (!query) return nodes;
+
+  const lower = query.toLowerCase();
+
+  const result: any[] = [];
+
+  for (const node of nodes) {
+    const labelMatch = node.label?.toLowerCase().includes(lower);
+
+    let childMatches: any[] = [];
+
+    if (node.children && node.children.length > 0) {
+      childMatches = filterTree(node.children, query);
+    }
+
+    // если совпало название или совпали дети — оставляем узел  
+    if (labelMatch || childMatches.length > 0) {
+      result.push({
+        ...node,
+        children: childMatches.length > 0 ? childMatches : node.children ?? []
+      });
+    }
+  }
+
+  return result;
+}
+
+const filteredTreeData = computed(() => {
+  return filterTree(treeData.value, props.searchQuery || "");
+});
+
+watch(filteredTreeData, (newTree) => {
+  if (!props.searchQuery) return;
+
+  const expandMatches = (nodes: any[]) => {
+    for (const n of nodes) {
+      if (n.children && n.children.length > 0) {
+        expandedKeys.value[n.key] = true;
+        expandMatches(n.children);
+      }
+    }
+  };
+
+  expandMatches(newTree);
+});
+
 const selectedKey = ref(null);
 const expandedKeys = ref<any>({});
 const navigationStore = useNavigationStore();
@@ -165,7 +215,7 @@ const perPage = ref<number>(10);
 
 const paginatedTreeData = computed(() => {
   const start = (page.value - 1) * perPage.value;
-  return treeData.value.slice(start, start + perPage.value) || [];
+  return filteredTreeData.value.slice(start, start + perPage.value) || [];
 });
 
 function nextPage() {
@@ -234,112 +284,117 @@ function toggleExpand(node: any) {
 
 <template>
   <LoadingLayout v-if="loading" />
-  <template v-else>
-    <div v-if="treeData.length === 0">
-      <h1>Нет данных для отображения</h1>
-    </div>
 
-    <template v-else>
-      <Tree
-        :value="paginatedTreeData"
-        selectionMode="single"
-        class="treeview"
-        v-model:selectionKey="selectedKey"
-        v-model:expandedKeys="expandedKeys"
-        @node-select="onNodeSelect"
-        :pt="{
-          root: { class: 'treeview__root' },
-          nodeContent: ({ context }) => ({
-            class: [
-              'treeview__data',
-              {
-                treeview__data__selected:
-                  navigationStore.selectedRow &&
-                  context.node.key === selectedKey,
-                'data--notAvailabled': context.node.data.isAvailable === false
-              },
-            ],
-          }),
-          node: ({ context }) => ({
-            style: { marginLeft: `${(context.node.level || 0) * 1}rem` },
-          }),
-        }"
-        :pt-options="{ mergeProps: true }"
-      >
-        <template #default="slotProps">
-          <div
-            class="treeview__data__wrapper"
-            @click="toggleExpand(slotProps.node)"
-          >
-            <div class="treeview__data__label" >
-              <template v-if="slotProps.node.data.nodeType === 'current_tasks'">
-                <component
-                  v-if="slotProps.node.data.currentTaskState === 'Завершена'"
-                  :is="CheckCircle"
-                  color="#42f578"
-                  class="treeview__icon"
-                />
-                <component
-                  v-if="slotProps.node.data.currentTaskState === 'Отменена'"
-                  :is="CircleX"
-                  color="#e00917"
-                  class="treeview__icon"
-                />
-                <component
-                  v-if="slotProps.node.data.currentTaskState === 'Выполняется'"
-                  :is="Loader"
-                  color="#d3e600"
-                  class="treeview__icon"
-                />
-                <component
-                  v-if="slotProps.node.data.currentTaskState === 'Новая'"
-                  :is="PlusCircle"
-                  color="#3B82F6"
-                  class="treeview__icon"
-                />
-              </template>
-              <template v-else-if="slotProps.node.data.nodeType === 'stands'">
-                <component :is="Monitor" class="treeview__icon" />
-              </template>
+  <Transition name="fade" mode="out-in">
+    <div v-if="!loading" key="tree">
+      <div v-if="treeData.length === 0">
+        <h1>Нет данных для отображения</h1>
+      </div>
 
-              <span>
-                {{ slotProps.node.label }}
-              </span>
-            </div>
-          </div>
-        </template>
-      </Tree>
-    </template>
-
-    <div class="pagination">
-      <button class="pagination__btn" @click="prevPage" :disabled="page === 1">
-        ← Назад
-      </button>
-      <span class="pagination__text">
-        Страница {{ page }} из {{ Math.ceil(treeData.length / perPage) }}
-      </span>
-      <button
-        class="pagination__btn"
-        @click="nextPage"
-        :disabled="page === Math.ceil(treeData.length / perPage)"
-      >
-        Вперёд →
-      </button>
-      <div class="pagination__itemsPerPage">
-        <label for="itemsPerPage">Элементов на странице:</label>
-        <select
-          id="itemsPerPage"
-          v-model="perPage"
-          @change="
-            isSelectOpen = false;
-            page = 1;
-          "
+      <template v-else>
+        <Tree
+          :value="paginatedTreeData"
+          selectionMode="single"
+          class="treeview"
+          v-model:selectionKey="selectedKey"
+          v-model:expandedKeys="expandedKeys"
+          @node-select="onNodeSelect"
+          :pt="{
+            root: { class: 'treeview__root' },
+            nodeContent: ({ context }) => ({
+              class: [
+                'treeview__data',
+                {
+                  treeview__data__selected:
+                    navigationStore.selectedRow &&
+                    context.node.key === selectedKey,
+                  'data--notAvailabled': context.node.data.isAvailable === false
+                },
+              ],
+            }),
+            node: ({ context }) => ({
+              style: { marginLeft: `${(context.node.level || 0) * 1}rem` },
+            }),
+          }"
+          :pt-options="{ mergeProps: true }"
         >
-          <option :value="5">5</option>
-          <option :value="20">20</option>
-          <option :value="35">35</option>
-        </select>
+          <template #default="slotProps">
+            <div
+              class="treeview__data__wrapper"
+              @click="toggleExpand(slotProps.node)"
+            >
+              <div class="treeview__data__label">
+                <template v-if="slotProps.node.data.nodeType === 'current_tasks'">
+                  <component
+                    v-if="slotProps.node.data.currentTaskState === 'Завершена'"
+                    :is="CheckCircle"
+                    color="#42f578"
+                    class="treeview__icon"
+                  />
+                  <component
+                    v-if="slotProps.node.data.currentTaskState === 'Отменена'"
+                    :is="CircleX"
+                    color="#e00917"
+                    class="treeview__icon"
+                  />
+                  <component
+                    v-if="slotProps.node.data.currentTaskState === 'Выполняется'"
+                    :is="Loader"
+                    color="#d3e600"
+                    class="treeview__icon"
+                  />
+                  <component
+                    v-if="slotProps.node.data.currentTaskState === 'Новая'"
+                    :is="PlusCircle"
+                    color="#3B82F6"
+                    class="treeview__icon"
+                  />
+                </template>
+
+                <template v-else-if="slotProps.node.data.nodeType === 'stands'">
+                  <component :is="Monitor" class="treeview__icon" />
+                </template>
+
+                <span>
+                  {{ slotProps.node.label }}
+                </span>
+              </div>
+            </div>
+          </template>
+        </Tree>
+      </template>
+
+      <div class="pagination">
+        <button class="pagination__btn" @click="prevPage" :disabled="page === 1">
+          ← Назад
+        </button>
+        <span class="pagination__text">
+          Страница {{ page }} из {{ Math.ceil(treeData.length / perPage) }}
+        </span>
+        <button
+          class="pagination__btn"
+          @click="nextPage"
+          :disabled="page === Math.ceil(treeData.length / perPage)"
+        >
+          Вперёд →
+        </button>
+        <div class="pagination__itemsPerPage">
+          <label for="itemsPerPage">Элементов на странице:</label>
+          <select
+            id="itemsPerPage"
+            v-model="perPage"
+            @change="
+              isSelectOpen = false;
+              page = 1;
+            "
+          >
+            <option :value="5">5</option>
+            <option :value="20">20</option>
+            <option :value="35">35</option>
+          </select>
+        </div>
       </div>
     </div>
-  </template>
+  </Transition>
 </template>
+

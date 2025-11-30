@@ -14,10 +14,12 @@ export function useAddLicenses(sectionName: string, onSuccess: () => void) {
       endpoint: `database/getFormMetaData/${sectionName}`,
     }).then((res) => res.data);
 
-    tableColumns.value = Object.keys(data);
+    const { licenseTypeId, ...defaultData } = data;
+
+    tableColumns.value = Object.keys(defaultData);
     console.debug("!!!!", tableColumns.value);
 
-    for (const [key, value] of Object.entries(data)) {
+    for (const [key, value] of Object.entries(defaultData)) {
       console.debug(value);
       if (value.options) {
         selectOptions[key] = value.options;

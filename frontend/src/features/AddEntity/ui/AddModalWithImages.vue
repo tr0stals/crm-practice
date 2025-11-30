@@ -439,6 +439,7 @@ const handleDeleteImage = async (item: any) => {
       </div>
       <div class="addModalWindow__controls">
         <Button
+          id="createButton"
           @click="handleSubmit"
           :extra-classes="['addModalWindow__controls__btn']"
         >

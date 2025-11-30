@@ -9,7 +9,7 @@ export class StandsDTO {
   title: string;
 
   @IsOptional()
-  image: string;
+  image?: string;
 
   @IsOptional()
   @Min(0)
@@ -41,7 +41,7 @@ export class StandsDTO {
   manufactureTime: number;
 
   @IsOptional()
-  comment: string;
+  comment?: string;
 
   @IsOptional()
   standTypeId: number;
