@@ -55,6 +55,7 @@ import { WebsocketModule } from './websocket/websocket.module';
 import { CurrentTaskStatesLogModule } from './current_task_states_log/current_task_states_log.module';
 import { ImagesModule } from './images/images.module';
 import { CurrentTasksBusinessModule } from './features/current-tasks-business/current-tasks-business.module';
+import { DatabaseCleanupModule } from './utils/database_cleanup/database_cleanup.module';
 
 @Module({
   imports: [
@@ -127,6 +128,7 @@ import { CurrentTasksBusinessModule } from './features/current-tasks-business/cu
     CurrentTaskStatesLogModule,
     ImagesModule,
     CurrentTasksBusinessModule,
+    DatabaseCleanupModule,
   ],
   controllers: [AppController, StandsController],
   providers: [AppService],

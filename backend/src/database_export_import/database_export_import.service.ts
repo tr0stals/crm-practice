@@ -106,7 +106,24 @@ export class DatabaseExportImportService {
     }
     const tmpFile = join(process.cwd(), `db_import_${Date.now()}.sql`);
     try {
-      fs.writeFileSync(tmpFile, file.buffer);
+      // Предварительная обработка SQL-файла для удаления GTID команд
+      let sqlContent = file.buffer.toString('utf-8');
+      console.log('[IMPORT_DB] Обрабатываю SQL-файл, удаляю GTID команды...');
+
+      // Удаляем строки с GTID_PURGED и другими GTID командами
+      const lines = sqlContent.split('\n');
+      const filteredLines = lines.filter(line => {
+        const trimmed = line.trim().toUpperCase();
+        return !trimmed.includes('GTID_PURGED') &&
+               !trimmed.includes('SET @@GLOBAL.GTID_PURGED') &&
+               !trimmed.includes('SET @@SESSION.GTID_NEXT') &&
+               !trimmed.includes('GTID_NEXT');
+      });
+
+      const cleanedSqlContent = filteredLines.join('\n');
+      fs.writeFileSync(tmpFile, cleanedSqlContent);
+      console.log(`[IMPORT_DB] Файл обработан, удалено GTID строк`);
+
       console.log(
         `[IMPORT_DB] Начало импорта БД: ${dbName} (${host}), файл: ${tmpFile}`,
       );
