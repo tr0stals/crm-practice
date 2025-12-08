@@ -48,6 +48,11 @@ export class EmployeesController {
     return await this.employeesService.findById(id);
   }
 
+  @Get('getByPeople/:id')
+  async getByPeople(@Param('id') id: number) {
+    return await this.employeesService.getByPeople(+id);
+  }
+
   @Get('generateData')
   async generateData() {
     return await this.employeesService.generateData();

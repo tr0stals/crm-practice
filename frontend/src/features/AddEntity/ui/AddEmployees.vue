@@ -6,7 +6,7 @@ import "../style.scss";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { localizatedSectionsList } from "@/shared/config/localizatedSections";
 import { useAddEmployees } from "../model/useAddEmployees";
-import { computed, reactive, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 import { useFormValidation } from "@/shared/plugins/validation";
 import { useToast } from "vue-toastification";
@@ -16,15 +16,14 @@ import PhoneInput from "@/features/PhoneInput";
 
 const phoneMaskDirective = {
   mounted(el: HTMLInputElement) {
-  (el as any)._mask = IMask(el, {
-    mask: '+{7}(000)000-00-00'
-  });
-},
-unmounted(el: HTMLInputElement) {
-  const mask = (el as any)._mask;
-  if (mask) mask.destroy();
-}
-
+    (el as any)._mask = IMask(el, {
+      mask: '+{7}(000)000-00-00'
+    });
+  },
+  unmounted(el: HTMLInputElement) {
+    const mask = (el as any)._mask;
+    if (mask) mask.destroy();
+  }
 };
 
 defineExpose({ phoneMaskDirective });
@@ -36,19 +35,22 @@ const props = defineProps<{
 }>();
 const navigationStore = useNavigationStore()
 
+const addNewPeople = ref<boolean>(false)
 
 const { formData, tableColumns, selectOptions, submit } = useAddEmployees(
   props.sectionName,
   () => {
     props.onSuccess();
     props.onClose();
-  }
+  },
+  addNewPeople
 );
 const toast = useToast();
 
 const { errors, handleInput, validateForm } = useFormValidation(formData);
 
-function isDateField(key) {
+
+function isDateField(key: string) {
   const lower = key.toLowerCase();
   return (
     lower.includes("date") ||
@@ -105,9 +107,9 @@ watch(
 
 const handleSubmit = async () => {
   try {
-    console.debug("modal!!!!", props.sectionName)
     if (!validateForm(tableColumns.value, props.sectionName)) {
       toast.error("Исправьте ошибки перед отправкой");
+      console.debug("errors", errors)
       return;
     }
 
@@ -129,15 +131,16 @@ const handleSubmit = async () => {
           class="addModalWindow__content__field"
           v-for="item in tableColumns"
           :key="item"
+          :class="{'peopleSelect': item === 'peopleId'}"
         >
           <div
             v-if="item !== 'id' && item !== 'passwordSalt'"
             class="addModalWindow__contentBlock"
           >
             <label class="addModalWindow__content__field__label" :for="item">
-              {{ fieldDictionary[item] || item }}
+              {{ fieldDictionary[item] || item }} 
             </label>
-
+            
             <!-- parentId -->
             <template v-if="item === 'parentId'">
               <select
@@ -152,6 +155,26 @@ const handleSubmit = async () => {
                   :key="option.id"
                 >
                   <option :value="option.id">{{ option.label }}</option>
+                </template>
+              </select>
+            </template>
+
+            <template v-else-if="item === 'peopleId'" >
+              <select
+                v-model="formData[item]"
+                :id="item"
+                :name="item"
+                class="addModalWindow__content__field__option"
+                :class="{ 'error-layout': errors[item], 'peopleSelect__select': item === 'peopleId' }"
+                @change="handleInput(item)"
+              >
+                <template
+                  v-for="option in selectOptions[item]"
+                  :key="option.id"
+                >
+                  <option :value="option.id">
+                    {{ option.label || option.shortName }}
+                  </option>
                 </template>
               </select>
             </template>
@@ -192,13 +215,13 @@ const handleSubmit = async () => {
             </template>
 
             <!-- поля с окончанием Id -->
-            <template v-else-if="item.endsWith('Id')">
+            <template v-else-if="item.endsWith('Id') && item !== 'peopleId'" >
               <select
                 v-model="formData[item]"
                 :id="item"
                 :name="item"
                 class="addModalWindow__content__field__option"
-                :class="{ 'error-layout': errors[item] }"
+                :class="{ 'error-layout': errors[item]}"
                 @change="handleInput(item)"
               >
                 <template
@@ -206,7 +229,7 @@ const handleSubmit = async () => {
                   :key="option.id"
                 >
                   <option :value="option.id">
-                    {{ option.label || option.shortName }}
+                    {{ option.label }}
                   </option>
                 </template>
               </select>
@@ -236,7 +259,6 @@ const handleSubmit = async () => {
               :name="item"
               class="addModalWindow__content__field__input"
             />
-
 
             <!-- чекбокс -->
             <input
@@ -276,7 +298,7 @@ const handleSubmit = async () => {
               :name="item"
               :value="formData[item]"
               @input="
-                (e) => {
+                (e: any) => {
                   const val = e.target.value;
                   formData[item] = val;
                   handleInput(item);
@@ -292,6 +314,12 @@ const handleSubmit = async () => {
         </div>
       </div>
       <div class="addModalWindow__controls">
+        <Button 
+          @click="() => addNewPeople = !addNewPeople" 
+          :extra-classes="['addModalWindow__controls__btn']"
+        >
+          {{ addNewPeople ? 'Выбрать существующего' : 'Добавить нового человека' }}
+        </Button>
         <Button
           id="createButton"
           @click="handleSubmit"

@@ -51,7 +51,7 @@ export class Organizations {
   @Column({ type: 'date' })
   orgnDate: Date;
 
-  @Column({ length: 12 })
+  @Column({ length: 16 })
   phone: string;
 
   @Column({ length: 80 })

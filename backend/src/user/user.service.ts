@@ -76,6 +76,11 @@ export class UserService {
     }
   }
 
+  /**
+   * Получаем информацию о пользователе со всеми его профессиями
+   * @param id - userId
+   * @returns
+   */
   async getUserWithProfessionTitle(id: number) {
     const user = await this.usersRepository.findOne({
       where: { id },
@@ -88,10 +93,11 @@ export class UserService {
 
     if (!employeeId) throw new NotFoundException('EmployeeId не найден');
 
+    /**
+     * Берем все профессии сотрудника
+     */
     const employeeProfession =
-      await this.employeeProfessionService.findEmployeeProfessionByEmployeeId(
-        employeeId,
-      );
+      await this.employeeProfessionService.getAllByEmployeeId(employeeId);
 
     return {
       ...user,

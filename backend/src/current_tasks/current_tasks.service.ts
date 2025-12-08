@@ -908,8 +908,10 @@ export class CurrentTasksService {
 
   // Импорт (если ещё нет)
 
-  async buildCurrentTasksTree(employeeProfession: string, employeeId: number) {
-    console.log('employeeId', employeeId);
+  async buildCurrentTasksTree(
+    employeeProfession: string[],
+    employeeId: number,
+  ) {
     const currentTasks = await this.currentTasksRepository.find({
       relations: [
         'currentTaskStates',
@@ -928,10 +930,13 @@ export class CurrentTasksService {
       ],
     });
 
+    const employeeProfessionsLower = employeeProfession.map((p) =>
+      p.toLowerCase(),
+    );
+
     const filteredTasks = currentTasks.filter((currentTask) => {
       const taskProfession =
-        currentTask.standTasks?.professions?.title?.toLowerCase();
-      const employeeProfessionLower = employeeProfession.toLowerCase();
+        currentTask.standTasks?.professions?.title?.toLowerCase() ?? '';
 
       // ❌ исключаем завершённые задачи
       if (
@@ -941,25 +946,21 @@ export class CurrentTasksService {
         return false;
       }
 
-      // ✅ 1) Задача принадлежит сотруднику → показываем
+      // 1) Задача сотрудника
       if (currentTask.employees?.id === employeeId) {
         return true;
       }
 
-      // 📌 Дальше — задачи БЕЗ сотрудника (ещё не забронированные)
+      // 2) Свободная задача + подходит по профессии
       const isUnassigned = !currentTask.employees;
 
-      // ✅ 2) Свободная задача: показываем если профессия совпадает
-      if (isUnassigned && taskProfession === employeeProfessionLower) {
+      if (isUnassigned && employeeProfessionsLower.includes(taskProfession)) {
         return true;
       }
 
-      // ============================================
-      // 🔥 3) РОДИТЕЛЬСКИЕ задачи
-      // ============================================
-
+      // 3) Родительские задачи
       if (!currentTask.parentId) {
-        // ищем подзадачи текущего сотрудника
+        // подзадачи сотрудника
         const employeeSubtasks = currentTasks.filter(
           (ct) =>
             ct.parentId === currentTask.standTasks?.id &&
@@ -968,13 +969,14 @@ export class CurrentTasksService {
 
         if (employeeSubtasks.length > 0) return true;
 
-        // ищем свободные подзадачи по его профессии
+        // подзадачи по профессии
         const professionSubtasks = currentTasks.filter(
           (ct) =>
             ct.parentId === currentTask.standTasks?.id &&
             !ct.employees &&
-            ct.standTasks?.professions?.title?.toLowerCase() ===
-              employeeProfessionLower,
+            employeeProfessionsLower.includes(
+              ct.standTasks?.professions?.title?.toLowerCase() ?? '',
+            ),
         );
 
         if (professionSubtasks.length > 0) return true;

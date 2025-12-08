@@ -43,9 +43,9 @@ export class Shipments {
   )
   shipmentPackages: ShipmentPackage[];
 
-  @OneToOne(() => License, (license) => license.shipment)
+  @OneToOne(() => License, (license) => license.shipment, { nullable: true })
   @JoinColumn({ name: 'licenseId' })
-  licenses: License;
+  licenses?: License;
 
   @OneToMany(() => ShipmentTrips, (shipmentTrip) => shipmentTrip.shipments)
   shipmentTrips: ShipmentTrips[];

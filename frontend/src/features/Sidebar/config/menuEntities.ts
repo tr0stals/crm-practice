@@ -20,7 +20,6 @@ interface IMenuEntity {
  * Функция получает список профессий, которым доступна таблица
  */
 function getProfessionsForTable(tableName: string): string[] {
-  console.debug(tableName);
   return roleTables
     .filter((role) => role.tables.includes(tableName))
     .map((role) => role.profession);

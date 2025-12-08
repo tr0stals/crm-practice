@@ -16,15 +16,19 @@ const handleClick = (item: any) => {
   navigationStore.setActiveRow(item);
 };
 
-const filterMenuByProfession = (menu: any[], profession: string): any[] => {
+const filterMenuByProfessions = (menu: any[], professions: string[]): any[] => {
   return menu
     .map((item) => {
       const filteredChildren = item.children
-        ? filterMenuByProfession(item.children, profession)
+        ? filterMenuByProfessions(item.children, professions)
         : [];
 
       const hasChildren = filteredChildren.length > 0;
-      const isAllowed = item.professions?.includes(profession) || false;
+
+      // Проверяем пересечение профессий
+      const isAllowed = item.professions
+        ? item.professions.some((p: string) => professions.includes(p))
+        : false;
 
       if (isAllowed || hasChildren) {
         return { ...item, children: filteredChildren };
@@ -32,13 +36,15 @@ const filterMenuByProfession = (menu: any[], profession: string): any[] => {
 
       return null;
     })
-    .filter((item) => item !== null);
+    .filter(item => item !== null);
 };
 
 const filteredMenu = computed(() => {
-  const profession = authorizedUserStore.user?.professionTitle || "";
-  
-  return filterMenuByProfession(menuEntities, profession);
+  const professions = authorizedUserStore.user?.employeeProfession?.map(
+    (ep: any) => ep.professions?.title
+  ) ?? [];
+
+  return filterMenuByProfessions(menuEntities, professions);
 });
 </script>
 

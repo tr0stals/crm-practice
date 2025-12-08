@@ -141,7 +141,6 @@ export function useFormValidation(formData: any) {
       console.debug(fieldName, sectionName);
       if (sectionName === "employees" && employeesFields.includes(fieldName)) {
         sectionName = "employees";
-        console.debug("YEAaaaaaaaaaaaaaaaaaaah");
       } else if (
         sectionName === "employees" &&
         !employeesFields.includes(fieldName)

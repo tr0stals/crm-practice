@@ -86,6 +86,8 @@ const treeviewRef = ref(null);
 
 const selectedRow = ref();
 
+const currentProfession = ref<string[]>([]);
+
 /**
  * Наполняем этот массив по ходу
  */
@@ -255,6 +257,9 @@ onMounted(async () => {
   authorizedUser.value = {
     user: user,
   };
+  const professionTitle: string = user.employeeProfession?.reduce((acc: string, item: any, index: number) => {
+    return index+1 === user.employeeProfession.length ? acc + item.professions?.title : acc + item.professions?.title + ", ";
+  }, '').trim()
 
   if (user) {
     authorizedUserStore.setUser({
@@ -262,8 +267,9 @@ onMounted(async () => {
       firstName: user.employees.peoples.firstName,
       lastName: user.employees.peoples.lastName,
       middleName: user.employees.peoples.middleName,
-      professionTitle: user.employeeProfession.professions.title,
+      professionTitle: professionTitle,
       employeeData: user?.employees,
+      employeeProfession: user?.employeeProfession
     });
   }
 
@@ -275,11 +281,14 @@ onMounted(async () => {
 
   localizatedSections.value = localizatedSectionsList;
 
-  console.debug(authorizedUserStore.user);
+  /**
+   * Массив с названиями профессий сотрудника
+   */
+  const professionTitles = user.employeeProfession?.map((item: any) => item.professions?.title)
 
   const tables = roleTables
     .filter(
-      (item) => item.profession === authorizedUserStore.user?.professionTitle
+      (item) => professionTitles.includes(item.profession)
     )
     .map((item) => item.tables)
     .flat();
@@ -289,6 +298,10 @@ onMounted(async () => {
     return item;
   });
 });
+
+watch(() => authorizedUser.value, (newVal) => {
+  newVal.user?.employeeProfession.map((item) => currentProfession.value.push(item.professions?.title.toLowerCase()))
+})
 
 watch(
   () => navigationStore.currentSection,
@@ -618,8 +631,7 @@ const handleSelectSection = (item: any) => {
             <HandleCreateButton
               v-if="
                 navigationStore.currentSection === 'arrival_invoices' &&
-                authorizedUserStore.user?.professionTitle.toLowerCase() ===
-                  professionEnum.supplier
+                currentProfession.includes(professionEnum.supplier)
               "
               :onSuccessCallback="onUpdateCallBack"
             />
@@ -629,16 +641,14 @@ const handleSelectSection = (item: any) => {
               :onSuccessCallback="onUpdateCallBack"
               v-if="
                 navigationStore.currentSection === 'arrival_invoices' &&
-                authorizedUserStore.user?.professionTitle.toLowerCase() ===
-                  professionEnum.supplier
+                currentProfession.includes(professionEnum.supplier)
               "
             />
             <HandleDeleteButton
               :onUpdateCallback="onUpdateCallBack"
               v-if="
                 navigationStore.currentSection === 'arrival_invoices' &&
-                authorizedUserStore.user?.professionTitle.toLowerCase() ===
-                  professionEnum.supplier
+                currentProfession.includes(professionEnum.supplier)
               "
             />
             <Button :onClick="onUpdateCallBack">

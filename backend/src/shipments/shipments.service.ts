@@ -37,9 +37,10 @@ export class ShipmentsService {
       const client = await this.organizationService.getById(clientId);
       const factory = await this.organizationService.getById(factoryId);
       const transporter = await this.organizationService.getById(transporterId);
-      const license = await this.licenseService.findById(licenseId);
+      const license =
+        licenseId && (await this.licenseService.findById(licenseId));
 
-      if (!client || !factory || !transporter || !license)
+      if (!client || !factory || !transporter)
         throw new NotFoundException('Одна из сущностей не найдена');
 
       const entity = this.repository.create({

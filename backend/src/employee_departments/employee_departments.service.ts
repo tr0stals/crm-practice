@@ -43,6 +43,22 @@ export class EmployeeDepartmentsService {
     }
   }
 
+  async getByDepartmentId(departmentId: number) {
+    try {
+      // Ищем записи employee_departments по id отдела
+      const targetEmployeeDepartments = await this.repo.find({
+        where: {
+          departments: { id: departmentId },
+        },
+        relations: ['departments', 'employees', 'employees.peoples'],
+      });
+
+      return targetEmployeeDepartments;
+    } catch (e: any) {
+      throw new NotFoundException(e);
+    }
+  }
+
   async getByEmployeeId(id: number) {
     try {
       const employee = await this.repo.findOne({

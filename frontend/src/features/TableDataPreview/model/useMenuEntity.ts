@@ -40,6 +40,10 @@ export function useMenuEntity() {
       menuEntityStore.activeEntity = item;
       console.debug(menuEntityStore.activeEntity);
     }
+    // Если массив children = 1, тогда сразу переходим на таблицу children[0]
+    else if (item.children.length === 1) {
+      navigationStore.setCurrentSection(item.children[0].tableName);
+    }
     // Если есть дочерние узлы — сделать их "текущими"
     else if (item.children && item.children.length > 0) {
       menuEntityStore.activeEntity = item;

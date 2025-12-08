@@ -8,6 +8,7 @@ const authorizedUser = useAuthorizedUserStore();
 const userName = `${authorizedUser.user?.lastName} ${authorizedUser.user?.firstName}`;
 const userMobilePhone = authorizedUser?.user?.employeeData?.peoples?.phone;
 const userEmail = authorizedUser?.user?.employeeData?.peoples?.email;
+const userProfession = authorizedUser?.user?.professionTitle;
 </script>
 <template>
   <div class="profileSidebar">
@@ -18,6 +19,11 @@ const userEmail = authorizedUser?.user?.employeeData?.peoples?.email;
           class="profileSidebar__text profileSidebar__text--marginTop profileSidebar__text--semiWidth"
         >
           {{ userName }}
+        </p>
+        <p
+          class="profileSidebar__text profileSidebar__text--profession"
+        >
+          {{ userProfession || 'Профессия' }}
         </p>
       </div>
     </div>

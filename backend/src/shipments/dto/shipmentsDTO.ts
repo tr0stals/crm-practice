@@ -39,7 +39,7 @@ export class ShipmentsDTO {
   comment?: string;
 
   @IsOptional()
-  licenseId: number;
+  licenseId?: number;
 
   @IsOptional()
   factoryId: number;

@@ -33,7 +33,7 @@
 
   &__text {
     font-size: 2rem;
-    text-align: left;
+    text-align: center;
 
     &--semiWidth {
       width: 100%;
@@ -41,6 +41,10 @@
 
     &--marginTop {
       margin-top: 2rem;
+    }
+    &--profession {
+      font-size: 1.75rem;
+      letter-spacing: 0.5px;
     }
   }
 

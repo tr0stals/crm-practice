@@ -66,22 +66,24 @@ export class CurrentTasksController {
       return { name: 'Текущие задачи', children: [] };
     }
     const empProf =
-      await this.employeesProfessionsService.findEmployeeProfessionByEmployeeId(
-        employeeId,
-      );
+      await this.employeesProfessionsService.getAllByEmployeeId(employeeId);
 
     if (!empProf) {
       return { name: 'Текущие задачи', children: [] };
     }
-    const role = empProf?.professions?.title?.toLowerCase() || '';
-    const allowedRoles = ['директор', 'администратор', 'test'];
-    if (allowedRoles.some((r) => role.includes(r))) {
+
+    const professions = empProf.map((item) =>
+      item.professions.title.toLowerCase(),
+    );
+
+    /**
+     * Профессии администраторов, руководителей
+     */
+    const managerRoles = ['директор', 'администратор', 'test'];
+    if (managerRoles.some((r) => professions.includes(r))) {
       return await this.service.getCurrentTasksTreeForAll();
     } else {
-      return await this.service.buildCurrentTasksTree(
-        empProf?.professions.title,
-        employeeId,
-      );
+      return await this.service.buildCurrentTasksTree(professions, employeeId);
     }
   }
 
@@ -92,9 +94,11 @@ export class CurrentTasksController {
     const employeeId = req.user?.employees?.id || req.user?.employeeId;
 
     const targetEmployeeProfession =
-      await this.employeesProfessionsService.findEmployeeProfessionByEmployeeId(
-        employeeId,
-      );
+      await this.employeesProfessionsService.getAllByEmployeeId(employeeId);
+
+    const professions = targetEmployeeProfession.map(
+      (item) => item.professions?.title,
+    );
 
     if (!targetEmployeeProfession) {
       return { name: 'Мои задачи', children: [] };
@@ -102,10 +106,7 @@ export class CurrentTasksController {
     if (!employeeId) {
       return { name: 'Мои задачи', children: [] };
     }
-    return await this.service.buildCurrentTasksTree(
-      targetEmployeeProfession?.professions.title,
-      employeeId,
-    );
+    return await this.service.buildCurrentTasksTree(professions, employeeId);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -59,6 +59,13 @@ export class EmployeesService {
     return null;
   }
 
+  async getByPeople(id: number) {
+    return await this.employeesRepository.findOne({
+      where: { peoples: { id: id } },
+      relations: ['peoples'],
+    });
+  }
+
   async create(data: EmployeesDTO) {
     const people = await this.peoplesRepository.findOne({
       where: { id: data.peopleId },

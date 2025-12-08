@@ -39,6 +39,11 @@ export class EmployeesProfessionsController {
     return await this.service.generateData();
   }
 
+  @Get('getAllByEmployeeId/:id')
+  async getAllByEmployeeId(@Param('id') id: number) {
+    return await this.service.getAllByEmployeeId(id);
+  }
+
   @Get('getByEmployeeId/:id')
   async getByEmployeeId(@Param('id') id: string) {
     return await this.service.findEmployeeProfessionByEmployeeId(+id);

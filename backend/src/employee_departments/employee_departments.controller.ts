@@ -40,6 +40,11 @@ export class EmployeeDepartmentsController {
     return await this.service.getByEmployeeId(+id);
   }
 
+  @Get('getByDepartmentId/:id')
+  async getByDepartmentId(@Param('id') id: number) {
+    return await this.service.getByDepartmentId(id);
+  }
+
   @Patch('update/:id')
   async update(
     @Param('id') id: string,

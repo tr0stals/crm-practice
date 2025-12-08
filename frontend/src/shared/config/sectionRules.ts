@@ -63,8 +63,8 @@ export const sectionRules: Record<
   },
   employees: {
     dismissalDate: { required: false, type: "date" },
-    peoples: { required: false, type: "string" },
-    peopleId: { required: false, type: "number" },
+    peoples: { required: true, type: "string" },
+    peopleId: { required: true, type: "number" },
   },
   invetarization: {
     inventarizationDate: { required: true, type: "date" },
@@ -198,7 +198,7 @@ export const sectionRules: Record<
     arrivalDate: { required: false, type: "date" },
     specificationImage: { required: true, type: "string" },
     comment: { required: false, type: "string" },
-    licenseId: { required: true, type: "number" },
+    licenseId: { required: false, type: "number" },
     factoryId: { required: true, type: "number" },
     transporterId: { required: true, type: "number" },
     clientId: { required: true, type: "number" },

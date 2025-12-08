@@ -33,8 +33,12 @@ export class EmployeesProfessionsService {
      * Если нет - задаем дефолтную профессию - Администратор
      */
     const profession = data.professionId
-      ? await this.professionRepository.findOne({ where: { id: data.professionId } })
-      : await this.professionRepository.findOne({ where: { title: 'Администратор' } });
+      ? await this.professionRepository.findOne({
+          where: { id: data.professionId },
+        })
+      : await this.professionRepository.findOne({
+          where: { title: 'Администратор' },
+        });
 
     console.log('!!!!1', profession);
 
@@ -54,15 +58,19 @@ export class EmployeesProfessionsService {
     console.log('employeeId', employeeId);
     const data = await this.employeesProfessionsRepository.findOne({
       where: { employees: { id: employeeId } },
-      relations: [
-        'employees',
-        'employees.peoples',
-        'professions',
-      ],
+      relations: ['employees', 'employees.peoples', 'professions'],
     });
     console.log('data!!!!!!', data);
 
     return data;
+  }
+
+  async getAllByEmployeeId(id: number) {
+    console.log(id);
+    return await this.employeesProfessionsRepository.find({
+      where: { employees: { id: id } },
+      relations: ['employees', 'employees.peoples', 'professions'],
+    });
   }
 
   async getDataForAdditional() {
@@ -141,22 +149,14 @@ export class EmployeesProfessionsService {
 
   async getAll() {
     return await this.employeesProfessionsRepository.find({
-      relations: [
-        'employees',
-        'employees.peoples',
-        'professions',
-      ],
+      relations: ['employees', 'employees.peoples', 'professions'],
     });
   }
 
   async getOne(id: number) {
     return await this.employeesProfessionsRepository.findOne({
       where: { id },
-      relations: [
-        'employees',
-        'employees.peoples',
-        'professions',
-      ],
+      relations: ['employees', 'employees.peoples', 'professions'],
     });
   }
 
