@@ -48,6 +48,7 @@ export function useAddEmployees(
     }
 
     // Добавляем поля из peoples
+    // Если addNewPeople = true, тогда добавляем поля из Peoples
     watch(addNewPeople, async (newValue) => {
       if (newValue) {
         const relDataPeoples = await getDataAsync({
@@ -128,7 +129,7 @@ export function useAddEmployees(
       const departmentId = navigationStore.selectedRow?.data?.id;
 
       /**
-       * TODO: Если в выбранном отделе уже есть такой employeeId, тогда мы не добавляем новую запись в employee_departments.
+       * Если в выбранном отделе уже есть такой employeeId, тогда мы не добавляем новую запись в employee_departments.
        * Если нет - тогда добавляем в employee_departments
        */
 

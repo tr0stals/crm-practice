@@ -544,6 +544,22 @@ export class InventarizationBusinessService {
       `[InventarizationBusiness] Расчет выполненных задач для компонента ${componentId}, фабрика ${factoryId}`,
     );
 
+    const currentTask = standTaskId
+      ? await this.currentTasksRepository.findOne({
+          where: {
+            standTasks: { id: standTaskId },
+          },
+          relations: [
+            'currentTaskStates',
+            'standTasks',
+            'shipmentStands',
+            'shipmentStands.stands',
+            'shipmentStands.stands.employees',
+            'shipmentStands.stands.employees.peoples',
+          ],
+        })
+      : null;
+
     const query = this.currentTasksRepository
       .createQueryBuilder('ct')
       .leftJoin('ct.currentTaskStates', 'state')
@@ -572,7 +588,8 @@ export class InventarizationBusinessService {
         'state.id AS state_id',
       ]);
 
-    if (standTaskId) {
+    if (currentTask?.standTasks?.isWriteoffComponents) {
+      // проверка, если поле isWriteoffComponents = 1 (true) - тогда мы добавляем задачу в списывание
       query.andWhere('st.id = :standTaskId', { standTaskId });
     }
 
@@ -589,15 +606,12 @@ export class InventarizationBusinessService {
     let total = 0;
 
     for (const r of rows) {
-      console.log('=-============');
-      console.log('R Value', r);
       const count = r.stc_componentCount || 0;
       total += count;
 
       console.log(
         ` - STC: standTask=${r.st_id}, ct=${r.ct_id}, count=${count}, status=${r.state_id}`,
       );
-      console.log('=-============');
     }
 
     console.log(

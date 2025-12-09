@@ -20,7 +20,7 @@ export class StandTasks {
   @Column({ type: 'int', nullable: true })
   parentId: number | null;
 
-  @Column()
+  @Column({ nullable: true })
   order: number;
 
   @Column({ nullable: true })
@@ -35,7 +35,7 @@ export class StandTasks {
   @Column({ type: 'int' })
   manufactureTime: number;
 
-  @Column({ type: 'boolean' })
+  @Column({ type: 'boolean', default: false })
   isWriteoffComponents: boolean;
 
   @ManyToOne(() => Stands, (stand) => stand.standTasks)

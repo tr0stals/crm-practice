@@ -278,7 +278,7 @@ export class StandTasksService {
         // группируем по компоненту, суммируем количество
         const grouped = new Map<number, { title: string; total: number }>();
         for (const item of comps) {
-          const compId = item.component?.id;
+          const compId = item.id;
           if (!compId) continue;
 
           const count = Number(item.componentCount ?? 0);

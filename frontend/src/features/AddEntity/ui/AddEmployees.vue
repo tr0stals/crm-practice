@@ -49,7 +49,6 @@ const toast = useToast();
 
 const { errors, handleInput, validateForm } = useFormValidation(formData);
 
-
 function isDateField(key: string) {
   const lower = key.toLowerCase();
   return (
@@ -107,7 +106,9 @@ watch(
 
 const handleSubmit = async () => {
   try {
-    if (!validateForm(tableColumns.value, props.sectionName)) {
+    const validateSection = addNewPeople.value ? 'newEmployees' : props.sectionName;
+    if (!validateForm(tableColumns.value, validateSection)) {
+      console.debug(formData)
       toast.error("Исправьте ошибки перед отправкой");
       console.debug("errors", errors)
       return;

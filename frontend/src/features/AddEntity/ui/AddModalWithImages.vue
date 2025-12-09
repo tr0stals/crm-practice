@@ -297,7 +297,7 @@ const handleDeleteImage = async (item: any) => {
             class="addModalWindow__contentBlock"
           >
             <label class="addModalWindow__content__field__label" :for="item">{{
-              fieldDictionary[item] || item
+              sectionName === 'stand_tasks' && item === 'componentId' ? 'Компонент на выходе' : fieldDictionary[item] || item
             }}</label>
             <template v-if="item.endsWith('Id')">
               <select

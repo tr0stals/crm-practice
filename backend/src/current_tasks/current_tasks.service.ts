@@ -692,24 +692,24 @@ export class CurrentTasksService {
      * создание компонента на выходе.
      */
     if (task.standTasks?.components && task.standTasks?.componentOutCount) {
-      const component = task.standTasks?.components;
-      const count = task.standTasks?.componentOutCount;
+      const component = task.standTasks?.components; // компонент на выходе
+      const count = task.standTasks?.componentOutCount; // количество компонента на выходе
 
-      try {
-        /**
-         * Итоговое количество компонентоа при завершении задачи
-         */
-        const totalCountForComponent = component.quantity + count;
+      // try {
+      /**
+       * Итоговое количество компоненто при завершении задачи
+       */
+      const totalCountForComponent = component.quantity + count;
 
-        await this.componentQuantityWatcher.calculateComponentOutCount(
-          component,
-          totalCountForComponent,
-        );
-      } catch (e) {
-        throw new NotFoundException(
-          'Не удалось пересчитать компоненты на выходе',
-        );
-      }
+      await this.componentQuantityWatcher.calculateComponentOutCount(
+        component,
+        totalCountForComponent,
+      );
+      // } catch (e) {
+      //   throw new NotFoundException(
+      //     'Не удалось пересчитать компоненты на выходе',
+      //   );
+      // }
     }
   }
 
@@ -934,52 +934,19 @@ export class CurrentTasksService {
       p.toLowerCase(),
     );
 
-    const filteredTasks = currentTasks.filter((currentTask) => {
-      const taskProfession =
-        currentTask.standTasks?.professions?.title?.toLowerCase() ?? '';
+    const filteredTasks = currentTasks.filter((task) => {
+      const state = task.currentTaskStates?.title?.toLowerCase();
 
-      // ❌ исключаем завершённые задачи
-      if (
-        currentTask.isCompleted ||
-        currentTask.currentTaskStates?.title?.toLowerCase() === 'завершена'
-      ) {
-        return false;
-      }
+      // исключаем завершённые
+      if (task.isCompleted || state === 'завершена') return false;
 
-      // 1) Задача сотрудника
-      if (currentTask.employees?.id === employeeId) {
+      // 1) задача сотрудника
+      if (task.employees?.id === employeeId) return true;
+
+      // 2) свободная задача по профессии
+      const prof = task.standTasks?.professions?.title?.toLowerCase() ?? '';
+      if (!task.employees && employeeProfessionsLower.includes(prof)) {
         return true;
-      }
-
-      // 2) Свободная задача + подходит по профессии
-      const isUnassigned = !currentTask.employees;
-
-      if (isUnassigned && employeeProfessionsLower.includes(taskProfession)) {
-        return true;
-      }
-
-      // 3) Родительские задачи
-      if (!currentTask.parentId) {
-        // подзадачи сотрудника
-        const employeeSubtasks = currentTasks.filter(
-          (ct) =>
-            ct.parentId === currentTask.standTasks?.id &&
-            ct.employees?.id === employeeId,
-        );
-
-        if (employeeSubtasks.length > 0) return true;
-
-        // подзадачи по профессии
-        const professionSubtasks = currentTasks.filter(
-          (ct) =>
-            ct.parentId === currentTask.standTasks?.id &&
-            !ct.employees &&
-            employeeProfessionsLower.includes(
-              ct.standTasks?.professions?.title?.toLowerCase() ?? '',
-            ),
-        );
-
-        if (professionSubtasks.length > 0) return true;
       }
 
       return false;
@@ -1019,17 +986,6 @@ export class CurrentTasksService {
       const comps: Array<{ title: string; count?: number; quantity?: number }> =
         [];
 
-      /**
-       * Убираю, так как компоненты на выходе не должны попадать в узлы дерева
-       */
-      // if (st?.components) {
-      //   comps.push({
-      //     title: st.components.title,
-      //     count: st.componentOutCount ?? undefined,
-      //     quantity: st.components?.quantity,
-      //   });
-      // }
-
       if (Array.isArray(st?.standTasksComponents)) {
         for (const link of st.standTasksComponents) {
           const component = link?.component;
@@ -1052,6 +1008,7 @@ export class CurrentTasksService {
     };
 
     const buildTasksForestForGroup = (tasksInGroup: CurrentTasks[]) => {
+      // extendedTasks: добавляем родителей (по standTaskId) для подзадач, чтобы при построении дерева были и родительские узлы
       const extendedTasks = [...tasksInGroup];
 
       for (const task of tasksInGroup) {
@@ -1092,12 +1049,10 @@ export class CurrentTasksService {
                   .filter(Boolean)
                   .join(' ') || 'Без сотрудника';
 
-              // получаем список компонентов
               const components = getComponentsForStandTask(st);
 
-              // превращаем компоненты в дочерние узлы
               const componentNodes = components.map((c: any) => ({
-                name: `Компонент: ${c.title} | Для выполнения нужно: ${c.count} шт. | Доступно на складе: ${c.quantity} шт.`,
+                name: `Для выполнения нужно: ${c.title} | ${c.count} шт. | Доступно на складе: ${c.quantity} шт.`,
                 nodeType: 'stand_tasks_components',
                 isAvailable: c.quantity >= c.count,
                 children: [],
@@ -1107,19 +1062,19 @@ export class CurrentTasksService {
                 id: ct.id,
                 nodeType: 'current_tasks',
                 standTaskId: st?.id ?? null,
-                name: [
-                  `Задача: ${st?.title || 'Без названия'}`,
-                  `Исполнитель: ${employeeName}`,
-                ].join(' | '),
+                name: `Задача: ${st?.title || 'Без названия'}
+                  ${
+                    st.components && st.componentOutCount
+                      ? `| Компонент на выходе: ${st.components?.title} - ${st.componentOutCount} шт.`
+                      : ``
+                  }`,
+
                 employees: employeeName,
                 taskTitle: st?.title || '',
                 currentTaskState: ct.currentTaskStates?.title || '',
                 isCompleted: !!ct.isCompleted,
-                // добавляем компоненты как дочерние узлы
                 children: [...buildNodes(st?.id ?? null), ...componentNodes],
               };
-
-              // console.log('node!!!!!!!', node, 'node!!!!!!!');
 
               nodes.push(node);
             }
@@ -1132,7 +1087,6 @@ export class CurrentTasksService {
       return buildNodes(null);
     };
 
-    // 7️⃣ Преобразуем всё в дерево: Состояние → Дедлайн → Стенд → Задачи → Компоненты
     const children = Array.from(stateMap.entries()).map(
       ([state, deadlineMap]) => ({
         name: `Состояние: ${state}`,
@@ -1143,13 +1097,10 @@ export class CurrentTasksService {
             nodeType: 'deadline',
             children: Array.from(standMap.entries()).map(
               ([stand, extendedTasks]) => {
-                // достаём всех сотрудников стенда
                 const standEmployees =
                   extendedTasks[0]?.shipmentStands?.stands?.employees ?? [];
-
-                // формируем список ФИО
                 const responsibleNames =
-                  `${standEmployees.peoples.lastName} ${standEmployees.peoples.firstName} ${standEmployees.peoples.middleName}`.trim();
+                  `${standEmployees.peoples?.lastName ?? ''} ${standEmployees.peoples?.firstName ?? ''} ${standEmployees.peoples?.middleName ?? ''}`.trim();
 
                 return {
                   name: `Стенд: ${stand}, Ответственный: ${responsibleNames}`,
@@ -1163,7 +1114,6 @@ export class CurrentTasksService {
       }),
     );
 
-    // 8️⃣ Возвращаем итоговое дерево
     return { name: 'Мои задачи', children };
   }
 

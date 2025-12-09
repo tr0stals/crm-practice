@@ -128,14 +128,14 @@ export class ComponentsService {
 
     // Обязательные поля для компонента
     const requiredFields = [
-      { field: 'photo', name: 'Фото' },
-      { field: 'width', name: 'Ширина' },
-      { field: 'height', name: 'Высота' },
-      { field: 'thickness', name: 'Толщина' },
-      { field: 'weight', name: 'Вес' },
-      { field: 'material', name: 'Материал' },
-      { field: 'receiptDate', name: 'Дата поступления' },
-      { field: 'drawingReference', name: 'Чертеж' },
+      // { field: 'photo', name: 'Фото' },
+      // { field: 'width', name: 'Ширина' },
+      // { field: 'height', name: 'Высота' },
+      // { field: 'thickness', name: 'Толщина' },
+      // { field: 'weight', name: 'Вес' },
+      // { field: 'material', name: 'Материал' },
+      // { field: 'receiptDate', name: 'Дата поступления' },
+      // { field: 'drawingReference', name: 'Чертеж' },
     ];
 
     // Проверяем каждое обязательное поле
