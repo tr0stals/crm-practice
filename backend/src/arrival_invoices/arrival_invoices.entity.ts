@@ -14,19 +14,19 @@ export class ArrivalInvoices {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'date'})
+  @Column({ type: 'date' })
   date: Date;
 
-  @Column({ length: 45 })
+  @Column({ length: 45, nullable: true })
   numberInvoice: string;
 
-  @Column({ length: 100})
+  @Column({ length: 100, nullable: true })
   scanPhoto: string;
 
-  @Column({ type: 'date'})
+  @Column({ type: 'date', nullable: true })
   dateTimeToWarehouse: Date;
 
-  @Column({ type: 'float'})
+  @Column({ type: 'float' })
   price: number;
 
   @Column()

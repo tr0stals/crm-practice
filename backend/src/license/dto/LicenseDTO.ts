@@ -27,6 +27,5 @@ export class LicenseDTO {
   comment: string;
 
   @IsOptional()
-  @IsNotEmpty()
   standId: number;
 }

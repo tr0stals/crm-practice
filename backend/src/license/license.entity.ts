@@ -37,7 +37,7 @@ export class License {
   @JoinColumn({ name: 'licenseTypeId' })
   licenseTypes: LicenseTypes;
 
-  @ManyToOne(() => Stands, (stand) => stand.licenses)
+  @ManyToOne(() => Stands, (stand) => stand.licenses, { nullable: true })
   @JoinColumn({ name: 'standId' })
   stands: Stands;
 

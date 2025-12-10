@@ -17,13 +17,13 @@ export class BillsForPay {
   @Column({ type: 'date' })
   date: Date;
 
-  @Column({ length: 45 })
+  @Column({ length: 256 })
   numberBill: string;
 
-  @Column({ length: 45 })
+  @Column({ length: 256, nullable: true })
   scanPhoto: string;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   expectedSupplyDate: Date;
 
   @Column({ type: 'float' })
@@ -35,7 +35,7 @@ export class BillsForPay {
   @Column()
   paid: boolean;
 
-  @Column({ length: 45 })
+  @Column({ length: 256, nullable: true })
   link: string;
 
   @ManyToOne(() => Organizations)

@@ -10,11 +10,14 @@ export class BillsComponentsDTO {
   price: number;
 
   @IsOptional()
+  @IsNotEmpty()
   link: string;
 
   @IsOptional()
+  @IsNotEmpty()
   billId: number;
 
   @IsOptional()
+  @IsNotEmpty()
   componentId: number;
 }

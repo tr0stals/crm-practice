@@ -40,6 +40,9 @@ export class ComponentQuantityWatcherService {
     @InjectRepository(Inventarization)
     private inventarizationRepository: Repository<Inventarization>,
 
+    @InjectRepository(Organizations)
+    private organizationsRepository: Repository<Organizations>,
+
     public inventarizationBusinessService: InventarizationBusinessService,
     private wsGateway: WsGateway,
   ) {}
@@ -93,16 +96,31 @@ export class ComponentQuantityWatcherService {
   }
 
   /**
-   * Метод выполняет перерасчет компонентов на выходе
+   * Метод выполняет перерасчет компонентов на выходе при завершении задач стенда
    */
   async calculateComponentOutCount(component: Components, count: number) {
     console.log('[Компонент на выходе]: ', component);
     console.log('[Количество компонента на выходе]: ', count);
-    const factoryId = await this.findComponentFactory(component.id);
+    let factoryId: number | null = null;
+    // const factoryId = await this.findComponentFactory(component.id);
+    const factory = await this.organizationsRepository.findOne({
+      where: {
+        shortName: 'А-Практикум',
+      },
+      relations: ['peoples', 'organizationTypes'],
+    });
 
+    if (factory) {
+      factoryId = factory.id;
+    }
+
+    console.log('[Factory]: ', factory);
+
+    // TODO: ЗДЕСЬ ВОЗНИКАЕТ ОШИБКА
     if (!factoryId)
       throw new NotFoundException('Не удалось определить фабрику');
 
+    console.log('[Фабрика успешно определена: ', factory);
     // try {
     await this.componentsRepository.update(component.id, { quantity: count });
 
@@ -115,22 +133,15 @@ export class ComponentQuantityWatcherService {
         factoryId,
       );
 
-    if (lastInventarization) {
-      await this.inventarizationRepository.update(lastInventarization.id, {
-        componentCount: count,
-        inventarizationDate: new Date(),
-      });
-    } else {
-      const inventarization = this.inventarizationRepository.create({
-        componentCount: count,
-        inventarizationQuality: 100,
-        inventarizationDate: new Date(),
-        component: component,
-        factory: { id: factoryId } as Organizations,
-      });
+    const inventarization = this.inventarizationRepository.create({
+      componentCount: count,
+      inventarizationQuality: 100,
+      inventarizationDate: new Date(),
+      component: component,
+      factory: { id: factoryId } as Organizations,
+    });
 
-      await this.inventarizationRepository.save(inventarization);
-    }
+    await this.inventarizationRepository.save(inventarization);
     // } catch (e) {
     //   throw new NotFoundException('Не удалось обновить данные компонента');
     // }

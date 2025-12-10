@@ -61,7 +61,6 @@ export function useAddInvoiceComponents(
       (item: any) => item.components?.id === formData.componentId
     );
 
-    console.debug("!!!!!", existingComponent);
     if (existingComponent) {
       existingComponent.componentCount += Number(formData.componentCount);
       await updateAsync("invoices_components", existingComponent);

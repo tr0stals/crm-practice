@@ -115,9 +115,9 @@ export class InventarizationBusinessService {
     //   undefined, // Не ограничиваем период, берем всё
     // );
 
-    console.log('[!!!!!!INVOICE_COMPONENTS!!!!!!]', arrivalCount);
-    console.log('[!!!!!INVOICE_COMPONENTS!!!!!]', completedTaskCount);
-    console.log('[!!!!!!!INVOICE_COMPONENTS!!!!!]', writeoffCount);
+    console.log('[Приход]: ', arrivalCount);
+    console.log('[Использовано в задачах]: ', completedTaskCount);
+    console.log('[Списаний:] ', writeoffCount);
 
     // 5. Вычисляем итоговое количество по формуле:
     //    (фактический приход - задачи - списания - серверные списания)
@@ -245,6 +245,9 @@ export class InventarizationBusinessService {
       `[InventarizationBusiness] Начинаем расчет компонента ${componentId} для фабрики ${factoryId}`,
     );
 
+    /**
+     * Перерасчет количества компонента
+     */
     const calculationResult = await this.calculateComponentCount(
       componentId,
       factoryId,
@@ -267,50 +270,53 @@ export class InventarizationBusinessService {
       `  - Итоговое количество: ${calculationResult.calculatedCount}`,
     );
 
-    // Создаем или обновляем инвентаризацию с рассчитанным количеством
-    if (calculationResult.lastInventarizationCount) {
-      console.log(
-        `[InventarizationBusiness] Обновляем существующую инвентаризацию с количества ${calculationResult.lastInventarizationCount} на ${calculationResult.calculatedCount}`,
-      );
+    // // Создаем или обновляем инвентаризацию с рассчитанным количеством
+    // if (
+    //   calculationResult.lastInventarizationCount !== undefined &&
+    //   calculationResult.lastInventarizationCount !== null
+    // ) {
+    //   console.log(
+    //     `[InventarizationBusiness] Обновляем существующую инвентаризацию с количества ${calculationResult.lastInventarizationCount} на ${calculationResult.calculatedCount}`,
+    //   );
 
-      // Находим последнюю инвентаризацию и обновляем её
-      const lastInventarization = await this.getLastInventarization(
-        componentId,
-        factoryId,
-      );
-      if (lastInventarization) {
-        await this.inventarizationRepository.update(lastInventarization.id, {
-          componentCount: calculationResult.calculatedCount,
-          inventarizationDate: new Date(),
-        });
-        console.log(
-          `[InventarizationBusiness] Инвентаризация #${lastInventarization.id} обновлена на количество ${calculationResult.calculatedCount}`,
-        );
-      }
-    } else {
-      console.log(
-        `[InventarizationBusiness] Создаем первичную инвентаризацию для компонента ${componentId} с количеством ${calculationResult.calculatedCount}`,
-      );
+    //   // Находим последнюю инвентаризацию и обновляем её
+    //   const lastInventarization = await this.getLastInventarization(
+    //     componentId,
+    //     factoryId,
+    //   );
+    //   if (lastInventarization) {
+    //     await this.inventarizationRepository.update(lastInventarization.id, {
+    //       componentCount: calculationResult.calculatedCount,
+    //       inventarizationDate: new Date(),
+    //     });
+    //     console.log(
+    //       `[InventarizationBusiness] Инвентаризация #${lastInventarization.id} обновлена на количество ${calculationResult.calculatedCount}`,
+    //     );
+    //   }
+    // } else {
+    console.log(
+      `[InventarizationBusiness] Создаем новую инвентаризацию для компонента ${componentId} с количеством ${calculationResult.calculatedCount}`,
+    );
 
-      const component = await this.componentsRepository.findOne({
-        where: { id: componentId },
+    const component = await this.componentsRepository.findOne({
+      where: { id: componentId },
+    });
+
+    if (component) {
+      const inventarization = this.inventarizationRepository.create({
+        componentCount: calculationResult.calculatedCount,
+        inventarizationQuality: 100,
+        inventarizationDate: new Date(),
+        component: component,
+        factory: { id: factoryId } as Organizations,
       });
 
-      if (component) {
-        const inventarization = this.inventarizationRepository.create({
-          componentCount: calculationResult.calculatedCount,
-          inventarizationQuality: 100,
-          inventarizationDate: new Date(),
-          component: component,
-          factory: { id: factoryId } as Organizations,
-        });
-
-        await this.inventarizationRepository.save(inventarization);
-        console.log(
-          `[InventarizationBusiness] Создана первичная инвентаризация с количеством ${calculationResult.calculatedCount}`,
-        );
-      }
+      await this.inventarizationRepository.save(inventarization);
+      console.log(
+        `[InventarizationBusiness] Создана новая инвентаризация с количеством ${calculationResult.calculatedCount}`,
+      );
     }
+    // }
 
     console.log(
       `[CHECKPOINT HONDA ACCORD]: ${calculationResult.calculatedCount}`,
@@ -578,6 +584,7 @@ export class InventarizationBusinessService {
           completedStateId: 3,
         },
       )
+      .andWhere('st.isWriteoffComponents = true')
       .andWhere('factory.id = :factoryId OR factory.id IS NULL', { factoryId })
       .select([
         'ct.id AS ct_id',
@@ -588,7 +595,7 @@ export class InventarizationBusinessService {
         'state.id AS state_id',
       ]);
 
-    if (currentTask?.standTasks?.isWriteoffComponents) {
+    if (standTaskId) {
       // проверка, если поле isWriteoffComponents = 1 (true) - тогда мы добавляем задачу в списывание
       query.andWhere('st.id = :standTaskId', { standTaskId });
     }

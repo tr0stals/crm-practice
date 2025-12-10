@@ -11,6 +11,7 @@ import { StandTasksComponents } from 'src/stand_tasks_components/stand_tasks_com
 import { InventarizationBusinessModule } from 'src/features/inventarization-business/inventarization-business.module';
 import { WsGateway } from 'src/websocket/ws.gateway';
 import { Inventarization } from 'src/inventarization/inventarization.entity';
+import { Organizations } from 'src/organizations/organizations.entity';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { Inventarization } from 'src/inventarization/inventarization.entity';
       ArrivalInvoices,
       StandTasksComponents,
       Inventarization,
+      Organizations,
     ]),
     InventarizationBusinessModule,
   ],
