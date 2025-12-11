@@ -77,6 +77,7 @@ export function useFormValidation(formData: any) {
    * Валидация одного поля
    */
   function validateField(fieldName: string, section?: string): boolean {
+    console.debug("section: ", section);
     if (section === "employees") section = "peoples";
     const rule = section ? sectionRules[section]?.[fieldName] : null;
     const value = getFieldValue(fieldName, section);

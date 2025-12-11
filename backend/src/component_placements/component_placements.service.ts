@@ -94,7 +94,7 @@ export class ComponentPlacementsService {
       // Возвращаем корневой узел с дочерними элементами
       return {
         name: 'Размещения компонентов',
-        children: tree
+        children: tree,
       };
     } catch (error) {
       console.error('Ошибка при генерации дерева размещений:', error);

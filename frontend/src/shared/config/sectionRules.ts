@@ -70,6 +70,9 @@ export const sectionRules: Record<
     room: { required: false, type: "string" },
     placementTypeId: { required: true, type: "number" },
   },
+  component_placement_types: {
+    title: { required: true, type: "string" },
+  },
   newEmployees: {
     hirringDate: { required: true, type: "date" },
     dismissalDate: { required: false, type: "date" },
@@ -86,7 +89,7 @@ export const sectionRules: Record<
     peoples: { required: true, type: "string" },
     peopleId: { required: true, type: "number" },
   },
-  invetarization: {
+  inventarization: {
     inventarizationDate: { required: true, type: "date" },
     componentCount: { required: true, type: "number" },
     inventarizationQuality: { required: false, type: "number" },
@@ -106,7 +109,7 @@ export const sectionRules: Record<
     places: { required: true, type: "number" },
     timeout: { required: false, type: "string" },
     comment: { required: false, type: "string" },
-    standId: { required: true, type: "number" },
+    standId: { required: false, type: "number" },
   },
   license_types: {
     title: { required: true, type: "string" },
@@ -226,9 +229,9 @@ export const sectionRules: Record<
     standId: { required: true, type: "number" },
   },
   stand_tasks_components: {
-    componentCount: { required: false, type: "number" },
+    componentCount: { required: true, type: "number" },
     standTaskId: { required: true, type: "number" },
-    componentId: { required: false, type: "number" },
+    componentId: { required: true, type: "number" },
   },
   stands: {
     parentId: { required: false, type: "number" },
@@ -255,9 +258,10 @@ export const sectionRules: Record<
     middleName: { required: false, type: "string" },
     comment: { required: false, type: "string" },
     birthDate: { required: false, type: "date" },
+    employeeId: { required: true, type: "number" },
   },
   writeoff: {
-    datetime: { required: true, type: "date" },
+    dateTime: { required: true, type: "date" },
     count: { required: true, type: "number" },
     comment: { required: false, type: "string" },
     componentId: { required: true, type: "number" },

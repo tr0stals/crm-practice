@@ -60,6 +60,8 @@ import ProfileIcon from "@/shared/ui/ProfileIcon";
 import OpenProfile from "@/features/OpenProfile";
 import ProfileSidebar from "@/widgets/ProfileSidebar";
 import InformationSidebar from "@/widgets/InformationSidebar/ui/InformationSidebar.vue";
+import  TooltipIcon from "@/shared/ui/TooltipIcon";
+import { PackageMinus } from 'lucide-vue-next';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -502,7 +504,8 @@ const handleSelectSection = (item: any) => {
   <div class="dashboard-layout">
     <!-- Sidebar -->
     <aside class="sidebar" :class="informationSidebar && 'freeze'">
-      <div @click="handleResetSection" class="logo">А ПРАКТИКУМ</div>
+      <div @click="handleResetSection" class="logo">А ПРАКТИКУМ </div>
+      
       <Sidebar />
     </aside>
       <Transition name="informationSidebar">
@@ -522,12 +525,14 @@ const handleSelectSection = (item: any) => {
           </template>
         </InformationSidebar>
       </Transition>
+      
 
     <!-- Main Content Area -->
     <main :class="informationSidebar && 'freeze'" class="main-content">
       <!-- Header -->
       <div class="header">
         <div class="header__controls">
+          
           <OpenSettingsMenu
             :handle-click="
               () => isSettingsMenuOpen = !isSettingsMenuOpen
@@ -697,6 +702,7 @@ const handleSelectSection = (item: any) => {
           <template v-else-if="menuStore.activeEntity?.tableName === 'system'">
             <SystemDashboard :on-success-callback="onUpdateCallBack" />
           </template>
+          
 
           <TableData
             v-else
@@ -705,6 +711,7 @@ const handleSelectSection = (item: any) => {
             @edit-click="handleSelectRow"
           />
         </div>
+        
 
         <!-- Pagination -->
         <div

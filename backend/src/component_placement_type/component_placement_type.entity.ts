@@ -6,7 +6,7 @@ export class ComponentPlacementType {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 45 })
+  @Column({ length: 256 })
   title: string;
 
   @OneToMany(

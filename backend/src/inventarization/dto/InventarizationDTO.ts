@@ -15,8 +15,10 @@ export class InventarizationDTO {
   inventarizationQuality: number;
 
   @IsOptional()
+  @IsNotEmpty()
   componentId: number;
 
   @IsOptional()
+  @IsNotEmpty()
   factoryId: number;
 }

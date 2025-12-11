@@ -16,16 +16,16 @@ export class OrderRequests {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 45 })
+  @Column({ length: 256 })
   title: string;
 
   @Column({ type: 'date' })
   requestDatetime: Date;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   executionDatetime: Date;
 
-  @Column({ length: 45, nullable: true })
+  @Column({ length: 256, nullable: true })
   comment: string;
 
   @ManyToOne(() => Organizations)

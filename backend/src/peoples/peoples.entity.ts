@@ -11,7 +11,7 @@ export class Peoples {
   @Column()
   firstName: string;
 
-  @Column()
+  @Column({ nullable: true })
   middleName: string;
 
   @Column()
@@ -20,7 +20,7 @@ export class Peoples {
   @Column()
   phone?: string;
 
-  @Column()
+  @Column({ nullable: true })
   email?: string;
 
   @Column({ nullable: true })

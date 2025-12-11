@@ -13,6 +13,8 @@ import { useToast } from "vue-toastification";
 import { getDataAsync } from "@/shared/api/getDataAsync";
 import { useMenuStore } from "@/entities/MenuEntity/model/menuStore";
 import { treeviewIcons } from "../config/treeviewIcons";
+import TooltipIcon from "../../TooltipIcon";
+import { PackageMinus } from "lucide-vue-next";
 import {
   CheckCircle,
   CircleX,
@@ -325,35 +327,53 @@ function toggleExpand(node: any) {
             >
               <div class="treeview__data__label">
                 <template v-if="slotProps.node.data.nodeType === 'current_tasks'">
-                  <component
-                    v-if="slotProps.node.data.currentTaskState === 'Завершена'"
-                    :is="CheckCircle"
-                    color="#42f578"
-                    class="treeview__icon"
-                  />
-                  <component
-                    v-if="slotProps.node.data.currentTaskState === 'Отменена'"
-                    :is="CircleX"
-                    color="#e00917"
-                    class="treeview__icon"
-                  />
-                  <component
-                    v-if="slotProps.node.data.currentTaskState === 'Выполняется'"
-                    :is="Loader"
-                    color="#d3e600"
-                    class="treeview__icon"
-                  />
-                  <component
-                    v-if="slotProps.node.data.currentTaskState === 'Новая'"
-                    :is="PlusCircle"
-                    color="#3B82F6"
-                    class="treeview__icon"
-                  />
+                  <TooltipIcon v-if="slotProps.node.data.currentTaskState === 'Завершена'" tooltip-text="Завершена">
+                    <template #icon>
+                      <component
+                        :is="CheckCircle"
+                        color="#42f578"
+                        class="treeview__icon"
+                      />
+                    </template>
+                  </TooltipIcon>
+                  <TooltipIcon v-else-if="slotProps.node.data.currentTaskState === 'Отменена'" tooltip-text="Отменена">
+                    <template #icon>
+                      <component
+                        :is="CircleX"
+                        color="#e00917"
+                        class="treeview__icon"
+                      />
+                    </template>
+                  </TooltipIcon>
+                  <TooltipIcon v-else-if="slotProps.node.data.currentTaskState === 'Выполняется'" tooltip-text="Выполняется"  tooltip-position="tooltip--top">
+                    <template #icon>
+                      <component
+                        :is="Loader"
+                        color="#d3e600"
+                        class="treeview__icon"
+                      />
+                    </template>
+                  </TooltipIcon>
+                  <TooltipIcon v-else-if="slotProps.node.data.currentTaskState === 'Новая'" tooltip-text="Новая">
+                    <template #icon>
+                      <component
+                        :is="PlusCircle"
+                        color="#3B82F6"
+                        class="treeview__icon"
+                      />
+                    </template>
+                  </TooltipIcon>
                 </template>
 
                 <template v-else-if="slotProps.node.data.nodeType === 'stands'">
                   <component :is="Monitor" class="treeview__icon" />
                 </template>
+
+                <TooltipIcon v-if="slotProps.node.data.isWriteoffComponents" tooltip-text="При выполнении задачи со склада спишутся компоненты">
+                  <template #icon>
+                    <PackageMinus />
+                  </template>
+                </TooltipIcon>
 
                 <span>
                   {{ slotProps.node.label }}

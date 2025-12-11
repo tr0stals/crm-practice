@@ -24,6 +24,7 @@ import { useAddInvoiceComponents } from "../model/useAddInvoiceComponents";
 import { useFormValidation } from "@/shared/plugins/validation";
 import { useAddOrderRequests } from "../model/useAddOrderRequests";
 import PhoneInput from "@/features/PhoneInput";
+import { useAddComponentPlacements } from "../model/useAddComponentPlacements";
 
 const props = defineProps<{
   sectionName: string;
@@ -38,6 +39,11 @@ console.debug(props.sectionName);
 const { formData, tableColumns, selectOptions, submit } =
   props.sectionName === "organizations"
     ? useAddOrganizations(props.sectionName, () => {
+        props.onSuccess();
+        props.onClose();
+      }) : 
+      props.sectionName === 'component_placements' ? 
+      useAddComponentPlacements(props.sectionName, () => {
         props.onSuccess();
         props.onClose();
       })
@@ -65,7 +71,7 @@ const { formData, tableColumns, selectOptions, submit } =
     ? useAddArrivalInvoices(props.sectionName, () => {
         props.onSuccess();
         props.onClose();
-      })
+      }) 
     : props.sectionName === "invoices_components"
     ? useAddInvoiceComponents(props.sectionName, () => {
         props.onSuccess();
@@ -126,6 +132,7 @@ async function uploadImage(file: File, orgTypeId: number) {
 }
 
 const handleSubmit = async () => {
+  console.debug(tableColumns.value, props.sectionName)
   try {
     if (!validateForm(tableColumns.value, props.sectionName)) {
       toast.error("Исправьте ошибки перед отправкой");

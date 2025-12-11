@@ -863,6 +863,7 @@ export class CurrentTasksService {
                   `Состояние: ${ct.currentTaskStates?.title || 'Без состояния'}`,
                 ].join(' | '),
                 employees: employeeName,
+                isWriteoffComponents: st.isWriteoffComponents,
                 taskTitle: st?.title || '',
                 currentTaskState: ct.currentTaskStates?.title || '',
                 isCompleted: !!ct.isCompleted,
@@ -1068,7 +1069,7 @@ export class CurrentTasksService {
                       ? `| Компонент на выходе: ${st.components?.title} - ${st.componentOutCount} шт.`
                       : ``
                   }`,
-
+                isWriteoffComponents: st.isWriteoffComponents,
                 employees: employeeName,
                 taskTitle: st?.title || '',
                 currentTaskState: ct.currentTaskStates?.title || '',

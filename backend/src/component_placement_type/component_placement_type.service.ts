@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ComponentPlacementType } from './component_placement_type.entity';
+import { ComponentPlacementTypeDTO } from './dto/ComponentPlacementTypeDTO';
 
 @Injectable()
 export class ComponentPlacementTypeService {
@@ -42,12 +43,24 @@ export class ComponentPlacementTypeService {
     }
   }
 
-  async create(data: Partial<ComponentPlacementType>) {
+  async getByComponentPlacementType(placementTypeId: number) {
+    try {
+      return await this.repo.findOne({
+        where: {
+          id: placementTypeId,
+        },
+      });
+    } catch (e) {
+      throw new NotFoundException('Ошибка при поиске componentPlacement');
+    }
+  }
+
+  async create(data: ComponentPlacementTypeDTO) {
     const entity = this.repo.create(data);
     return await this.repo.save(entity);
   }
 
-  async update(id: number, data: Partial<ComponentPlacementType>) {
+  async update(id: number, data: ComponentPlacementTypeDTO) {
     await this.repo.update(id, data);
     return await this.repo.findOne({ where: { id } });
   }

@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Components } from '../components/components.entity';
 import { Organizations } from '../organizations/organizations.entity';
 
@@ -13,7 +19,7 @@ export class Inventarization {
   @Column({ type: 'int' })
   componentCount: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   inventarizationQuality: number;
 
   @ManyToOne(() => Components)
@@ -23,4 +29,4 @@ export class Inventarization {
   @ManyToOne(() => Organizations)
   @JoinColumn({ name: 'factoryId' })
   factory: Organizations;
-} 
+}

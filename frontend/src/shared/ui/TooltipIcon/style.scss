@@ -1,0 +1,40 @@
+.tooltipIcon {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+
+  &__text {
+    position: absolute;
+    top: 0%;
+    left: -100%;
+    transform: translate(0, -100%);
+    width: 12rem;
+    font-size: 1.75rem;
+    background-color: #425e9e;
+    color: beige;
+    border-radius: 0.5rem;
+    text-align: center;
+    width: max-content;
+    white-space: normal;
+    max-width: 30rem;
+    padding: 0 1rem;
+  }
+}
+
+.tooltip-enter-from,
+.tooltip-leave-to {
+  opacity: 0;
+  transform: translateY(0%);
+}
+
+.tooltip-enter-to,
+.tooltip-leave-from {
+  opacity: 1;
+  transform: translate(0%, -100%);
+}
+
+.tooltip-enter-active,
+.tooltip-leave-active {
+  transition: all 0.3s ease;
+}

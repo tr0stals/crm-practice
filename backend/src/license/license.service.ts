@@ -39,12 +39,14 @@ export class LicenseService {
       const licenseType =
         await this.licenseTypesService.findById(licenseTypeId);
 
-      const stand = await this.standsRepo.findOne({
-        where: {
-          id: standId,
-        },
-        relations: ['standType', 'employees'],
-      });
+      const stand = standId
+        ? await this.standsRepo.findOne({
+            where: {
+              id: standId,
+            },
+            relations: ['standType', 'employees'],
+          })
+        : null;
 
       if (licenseType) {
         const newLicense = this.licenseRepository.create({

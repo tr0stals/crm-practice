@@ -14,10 +14,10 @@ export class ComponentPlacements {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 45 })
+  @Column({ length: 256, nullable: true })
   building: string;
 
-  @Column({ length: 45 })
+  @Column({ length: 256, nullable: true })
   room: string;
 
   @ManyToOne(
