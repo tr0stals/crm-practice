@@ -9,6 +9,8 @@ import { Stands } from 'src/stands/stands.entity';
 import { ShipmentPackage } from 'src/shipment_package/shipment_package.entity';
 import { ShipmentsStands } from 'src/shipments_stands/shipments_stands.entity';
 import { CurrentTasksBusinessModule } from 'src/features/current-tasks-business/current-tasks-business.module';
+import { User } from 'src/user/user.entity';
+import { WebsocketModule } from 'src/websocket/websocket.module';
 
 @Module({
   imports: [
@@ -17,9 +19,11 @@ import { CurrentTasksBusinessModule } from 'src/features/current-tasks-business/
       Stands,
       ShipmentPackage,
       ShipmentsStands,
+      User,
     ]),
     OrganizationsModule,
     LicenseModule,
+    WebsocketModule,
     forwardRef(() => CurrentTasksBusinessModule),
   ],
   controllers: [ShipmentsController],

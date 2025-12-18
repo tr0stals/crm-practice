@@ -1,5 +1,7 @@
 <template>
-  <router-view />
+  <NotificationsProvider>
+    <router-view />
+  </NotificationsProvider>
 </template>
 
 <script setup lang="ts">
@@ -9,4 +11,5 @@ import "bootstrap";
 
 import "@popperjs/core";
 import "bootstrap";
+import NotificationsProvider from "./providers/NotificationsProvider.vue";
 </script>

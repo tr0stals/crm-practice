@@ -13,6 +13,8 @@ import { LicenseService } from 'src/license/license.service';
 import { Stands } from 'src/stands/stands.entity';
 import { ShipmentPackage } from 'src/shipment_package/shipment_package.entity';
 import { ShipmentsStands } from 'src/shipments_stands/shipments_stands.entity';
+import { User } from 'src/user/user.entity';
+import { WsGateway } from 'src/websocket/ws.gateway';
 
 @Injectable()
 export class ShipmentsService {
@@ -27,6 +29,11 @@ export class ShipmentsService {
     private shipmentStandsRepo: Repository<ShipmentsStands>,
     private organizationService: OrganizationsService,
     private licenseService: LicenseService,
+
+    @InjectRepository(User)
+    private userRepo: Repository<User>,
+
+    private wsGateway: WsGateway,
   ) {}
 
   async create(data: ShipmentsDTO) {
@@ -50,6 +57,18 @@ export class ShipmentsService {
         licenses: license,
         transporter: transporter,
       } as DeepPartial<Shipments>);
+
+      const users = await this.userRepo.find({
+        relations: ['employees'],
+      });
+
+      users.map((user: User) => {
+        this.wsGateway.sendNotification(
+          user.id.toString(),
+          'Добавлена новая отгрузка',
+          'success',
+        );
+      });
 
       return await this.repository.save(entity);
     } catch (e) {

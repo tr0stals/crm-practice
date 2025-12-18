@@ -80,7 +80,7 @@ export class PcbsService {
       const savedEntity = await this.repository.save(entity);
 
       // Отправляем уведомление об успешном создании
-      const recordType = isPcb ? 'плату' : 'категорию плат';
+      const recordType = isPcb ? 'плата' : 'категория плат';
       const message = `Успешно создана ${recordType}: "${savedEntity.title}"`;
       let targetUserId = userId ? userId.toString() : '1';
 
@@ -115,10 +115,7 @@ export class PcbsService {
   }
 
   // Валидация обязательных полей для платы
-  private validatePcbFields(
-    data: any,
-    standId?: number,
-  ): string[] {
+  private validatePcbFields(data: any, standId?: number): string[] {
     const missingFields: string[] = [];
 
     // Проверяем standId

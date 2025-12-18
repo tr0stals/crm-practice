@@ -4,6 +4,8 @@ import Button from "@/shared/ui/Button/ui/Button.vue";
 import { setCurrentTaskCompleted } from "../api/setCurrentTaskCompleted";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
 import { useToast } from "vue-toastification";
+import { useNotificationStore } from "@/entities/NotificationEntity/model/store";
+import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
 
 const props = defineProps<{
   onSuccessCallback: () => void;
@@ -12,22 +14,29 @@ const props = defineProps<{
 const toast = useToast();
 
 const navigationStore = useNavigationStore();
+const notificationStore = useNotificationStore();
+const authorizedUserStore = useAuthorizedUserStore();
 
 const handleClick = async () => {
   const currentTask = navigationStore.selectedRow;
 
   if (!currentTask) {
-    alert("Не выбрана задача!");
+    notificationStore.addNotification({
+      message: "Не выбрана задача",
+      type: "info",
+      userId: authorizedUserStore.user?.id
+    })
+    toast.info("Не выбрана задача!");
     return;
   }
 
   if (currentTask.data.nodeType !== "current_tasks") {
-    alert("Необходимо выбрать текущую задачу!");
+    toast.info("Необходимо выбрать текущую задачу!");
     return;
   }
 
   if (currentTask.data.currentTaskState !== "Выполняется") {
-    alert("Данная задача находится не в стадии выполнения");
+    toast.info("Данная задача находится не в стадии выполнения");
     return;
   }
 
@@ -36,9 +45,16 @@ const handleClick = async () => {
   if (response.status === 400) {
     toast.error(response.data.message);
   }
-  console.debug(response)
 
-  if (response.status === 201) props.onSuccessCallback();
+  if (response.status === 201) {
+    notificationStore.addNotification({
+      message: `Задача ${currentTask.data.taskTitle.toLowerCase()}: выполнена`,
+      type: "success",
+      userId: authorizedUserStore.user?.id
+    });
+    toast.success(`Задача ${currentTask.data.taskTitle.toLowerCase()} выполнена`);
+    props.onSuccessCallback();
+  }
 };
 </script>
 

@@ -62,12 +62,16 @@ import ProfileSidebar from "@/widgets/ProfileSidebar";
 import InformationSidebar from "@/widgets/InformationSidebar/ui/InformationSidebar.vue";
 import  TooltipIcon from "@/shared/ui/TooltipIcon";
 import { PackageMinus } from 'lucide-vue-next';
+import NotificationsMenu from "@/features/Notifications/ui/NotificationsMenu.vue";
+import { useNotificationStore } from "@/entities/NotificationEntity/model/store";
+import NotificationsSidebar from "@/features/Notifications/ui/NotificationsSidebar.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
 const authorizedUserStore = useAuthorizedUserStore();
 const navigationStore = useNavigationStore();
 const menuStore = useMenuStore();
+const notificationStore = useNotificationStore();
 
 /**
  * Данные, которые отображаются в таблице
@@ -523,16 +527,17 @@ const handleSelectSection = (item: any) => {
               </template>
             </ProfileSidebar>
           </template>
+          <template v-else-if="informationSidebar === 'notifications'">
+            <NotificationsSidebar :store="notificationStore" />
+          </template>
         </InformationSidebar>
       </Transition>
-      
 
     <!-- Main Content Area -->
     <main :class="informationSidebar && 'freeze'" class="main-content">
       <!-- Header -->
       <div class="header">
         <div class="header__controls">
-          
           <OpenSettingsMenu
             :handle-click="
               () => isSettingsMenuOpen = !isSettingsMenuOpen
@@ -541,7 +546,7 @@ const handleSelectSection = (item: any) => {
         </div>
       </div>
 
-      <!-- Пока что SettingsMenu отображается корректно с 3 слотами.
+      <!-- TODO: refactoring: Пока что SettingsMenu отображается корректно с 3 слотами.
           Если добавить больше или убрать - верстка поедет -->
       <Transition name="settingsMenu">
         <SettingsMenu v-if="isSettingsMenuOpen">

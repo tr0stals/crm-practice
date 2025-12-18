@@ -12,7 +12,7 @@ const store = useNotificationStore();
 const authorizedUserStore = useAuthorizedUserStore();
 const open = ref<boolean>(false);
 const userId = ref();
-const isBadge = ref(false);
+const isBadge = ref<boolean>(false);
 
 const props = defineProps<{
   handleClick: () => void;
@@ -22,7 +22,7 @@ watch(
   () => authorizedUserStore.user?.id,
   (newVal) => {
     userId.value = newVal;
-    console.debug(userId.value);
+
     useNotifications(userId.value);
   }
 );
@@ -44,6 +44,6 @@ const unreadCount = computed(() => store.unreadCount);
       Открыть уведомления
     </Button>
     <!-- <NotificationIcon :is-badge="isBadge" @click="open = !open" /> -->
-    <NotificationsMenu v-if="open" :store="store" />
+    <!-- <NotificationsMenu v-if="open" :store="store" /> -->
   </div>
 </template>

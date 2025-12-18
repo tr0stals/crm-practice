@@ -345,7 +345,7 @@ function toggleExpand(node: any) {
                       />
                     </template>
                   </TooltipIcon>
-                  <TooltipIcon v-else-if="slotProps.node.data.currentTaskState === 'Выполняется'" tooltip-text="Выполняется"  tooltip-position="tooltip--top">
+                  <TooltipIcon v-else-if="slotProps.node.data.currentTaskState === 'Выполняется'" tooltip-text="Выполняется"  tooltip-position="tooltipIcon__text--bottom">
                     <template #icon>
                       <component
                         :is="Loader"
@@ -369,9 +369,12 @@ function toggleExpand(node: any) {
                   <component :is="Monitor" class="treeview__icon" />
                 </template>
 
-                <TooltipIcon v-if="slotProps.node.data.isWriteoffComponents" tooltip-text="При выполнении задачи со склада спишутся компоненты">
+                <TooltipIcon 
+                  v-if="slotProps.node.data.isWriteoffComponents" 
+                  tooltip-text="При выполнении задачи со склада спишутся компоненты"
+                >
                   <template #icon>
-                    <PackageMinus />
+                    <PackageMinus class="tooltipIcon__icon" />
                   </template>
                 </TooltipIcon>
 

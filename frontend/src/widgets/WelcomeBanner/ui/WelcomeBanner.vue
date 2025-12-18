@@ -12,6 +12,7 @@ const authorizedUserStore = useAuthorizedUserStore();
         src="/src/views/Dashboard/img/ukqawu62wctf9v072xi2c6yypvsjghcp.png"
         alt="Логотип"
         class="welcome-logo"
+        loading="lazy"
       />
       <h1 class="welcome-message-part1">
         Добро пожаловать,

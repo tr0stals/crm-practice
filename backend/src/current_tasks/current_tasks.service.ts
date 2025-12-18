@@ -75,9 +75,15 @@ export class CurrentTasksService {
       shipmentStand?.stands?.employees?.users?.length > 0
     ) {
       const user = shipmentStand?.stands?.employees?.users?.[0]; // Берем первого пользователя
-      const employeeName =
-        `${shipmentStand?.stands?.employees?.peoples?.lastName || ''} ${shipmentStand.stands.employees.peoples?.firstName || ''} ${shipmentStand.stands.employees.peoples?.middleName || ''}`.trim();
-      const message = `Вам назначена новая задача: на стенде "${shipmentStand.stands.title}". Дата отправки: ${shipmentStand.shipments.arrivalDate}`;
+      const employeeName = `
+          ${shipmentStand?.stands?.employees?.peoples?.lastName || ''} 
+          ${shipmentStand.stands.employees.peoples?.firstName || ''} 
+          ${shipmentStand.stands.employees.peoples?.middleName || ''}
+        `.trim();
+      const message = `
+        Вам назначена новая задача: на стенде "${shipmentStand.stands.title}". 
+        Дата отправки: ${shipmentStand.shipments.arrivalDate}
+      `;
 
       console.log(
         `[NOTIFICATION] Отправляем уведомление пользователю ${user.id}: ${message}`,

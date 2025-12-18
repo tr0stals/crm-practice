@@ -5,6 +5,7 @@ import "../style.scss";
 const props = defineProps<{
   store: any;
 }>();
+console.debug(props.store)
 
 const notifications = props.store.notifications;
 console.debug(notifications);

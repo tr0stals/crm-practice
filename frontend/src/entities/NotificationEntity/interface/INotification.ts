@@ -4,4 +4,5 @@ export interface INotification {
   type: string;
   read: boolean;
   timestamp: number;
+  userId: number;
 }

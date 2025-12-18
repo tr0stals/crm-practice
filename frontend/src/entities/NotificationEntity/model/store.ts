@@ -5,13 +5,18 @@ import type { INotification } from "../interface/INotification";
 export const useNotificationStore = defineStore("notificationStore", () => {
   const notifications = ref<INotification[]>([]);
 
-  function addNotification(data: { message: string; type: string }) {
+  function addNotification(data: {
+    message: string;
+    type: string;
+    userId: number;
+  }) {
     notifications.value.unshift({
       id: crypto.randomUUID(),
       message: data.message,
       type: data.type,
       read: false,
       timestamp: Date.now(),
+      userId: data.userId,
     });
   }
 

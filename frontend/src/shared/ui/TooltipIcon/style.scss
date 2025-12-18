@@ -1,14 +1,17 @@
 .tooltipIcon {
+  --tooltipTop: -100%;
+
   position: relative;
   display: flex;
   flex-direction: column;
   z-index: 100;
+  overflow: visible;
 
   &__text {
     position: absolute;
     top: 0%;
     left: -100%;
-    transform: translate(0, -100%);
+    transform: translate(0, var(--tooltipTop));
     width: 12rem;
     font-size: 1.75rem;
     background-color: #425e9e;
@@ -19,6 +22,19 @@
     white-space: normal;
     max-width: 30rem;
     padding: 0 1rem;
+    z-index: 100;
+
+    &--bottom {
+      --tooltipTop: 100%;
+    }
+
+    &--top {
+      --tooltipTop: -100%;
+    }
+  }
+
+  &__icon {
+    z-index: 10;
   }
 }
 
@@ -31,7 +47,7 @@
 .tooltip-enter-to,
 .tooltip-leave-from {
   opacity: 1;
-  transform: translate(0%, -100%);
+  transform: translate(0%, var(--tooltipTop));
 }
 
 .tooltip-enter-active,

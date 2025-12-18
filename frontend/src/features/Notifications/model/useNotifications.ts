@@ -23,7 +23,7 @@ export function useNotifications(userId: string) {
     }
 
     // 2. Сохраняем в store
-    store.addNotification({ message, type });
+    store.addNotification({ message, type, userId });
   };
 
   onUnmounted(() => {
