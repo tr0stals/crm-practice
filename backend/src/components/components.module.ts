@@ -7,12 +7,14 @@ import { ComponentPlacementsModule } from 'src/component_placements/component_pl
 import { ComponentPlacements } from 'src/component_placements/component_placements.entity';
 import { WebsocketModule } from 'src/websocket/websocket.module';
 import { User } from 'src/user/user.entity';
+import { NotifyUsersModule } from 'src/features/notify-users/notify-users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Components, ComponentPlacements, User]),
     ComponentPlacementsModule,
     WebsocketModule,
+    NotifyUsersModule,
   ],
   providers: [ComponentsService],
   controllers: [ComponentsController],

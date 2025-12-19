@@ -12,6 +12,8 @@ import { InventarizationBusinessModule } from 'src/features/inventarization-busi
 import { WsGateway } from 'src/websocket/ws.gateway';
 import { Inventarization } from 'src/inventarization/inventarization.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
+import { WebsocketModule } from 'src/websocket/websocket.module';
+import { NotifyUsersModule } from '../notify-users/notify-users.module';
 
 @Module({
   imports: [
@@ -27,8 +29,10 @@ import { Organizations } from 'src/organizations/organizations.entity';
       Organizations,
     ]),
     InventarizationBusinessModule,
+    WebsocketModule,
+    NotifyUsersModule,
   ],
-  providers: [ComponentQuantityWatcherService, WsGateway],
+  providers: [ComponentQuantityWatcherService],
   exports: [ComponentQuantityWatcherService],
 })
 export class ComponentQuantityWatcherModule {}

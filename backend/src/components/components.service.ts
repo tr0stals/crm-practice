@@ -11,6 +11,7 @@ import { ComponentsDTO } from './dto/ComponentsDTO';
 import { ComponentPlacementsService } from 'src/component_placements/component_placements.service';
 import { WsGateway } from '../websocket/ws.gateway';
 import { User } from 'src/user/user.entity';
+import { NotifyUsersService } from 'src/features/notify-users/notify-users.service';
 
 @Injectable()
 export class ComponentsService {
@@ -21,6 +22,8 @@ export class ComponentsService {
     private userRepository: Repository<User>,
     private componentPlacementService: ComponentPlacementsService,
     private wsGateway: WsGateway,
+
+    private readonly notifyUsersService: NotifyUsersService,
   ) {}
 
   async create(data: ComponentsDTO, userId?: number) {
@@ -56,10 +59,17 @@ export class ComponentsService {
           console.log(
             `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${errorMessage}`,
           );
-          this.wsGateway.sendNotification(
-            targetUserId,
-            errorMessage,
-            'validation_error',
+          // this.wsGateway.sendNotification(
+          //   targetUserId,
+          //   errorMessage,
+          //   'validation_error',
+          // );
+          await this.notifyUsersService.sendNotificationToUser(
+            Number(targetUserId),
+            {
+              message: errorMessage,
+              type: 'validation_error',
+            },
           );
 
           throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
@@ -100,7 +110,14 @@ export class ComponentsService {
       console.log(
         `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${message}`,
       );
-      this.wsGateway.sendNotification(targetUserId, message, 'success');
+      // this.wsGateway.sendNotification(targetUserId, message, 'success');
+      await this.notifyUsersService.sendNotificationToUser(
+        Number(targetUserId),
+        {
+          message: message,
+          type: 'success',
+        },
+      );
 
       return savedEntity;
     } catch (e) {

@@ -11,6 +11,7 @@ import { WriteoffReasonsModule } from 'src/writeoff_reasons/writeoff_reasons.mod
 import { WriteoffReasons } from 'src/writeoff_reasons/writeoff_reasons.entity';
 import { ComponentQuantityWatcherModule } from 'src/features/component-quantity-watcher/component-quantity-watcher.module';
 import { WebsocketModule } from 'src/websocket/websocket.module';
+import { NotifyUsersModule } from 'src/features/notify-users/notify-users.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { WebsocketModule } from 'src/websocket/websocket.module';
     WriteoffReasonsModule,
     ComponentQuantityWatcherModule,
     WebsocketModule,
+    NotifyUsersModule,
   ],
   providers: [WriteoffService],
   controllers: [WriteoffController],

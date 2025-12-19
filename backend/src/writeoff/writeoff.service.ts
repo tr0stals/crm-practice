@@ -11,6 +11,7 @@ import { WriteoffReasons } from 'src/writeoff_reasons/writeoff_reasons.entity';
 import { WriteoffReasonsService } from 'src/writeoff_reasons/writeoff_reasons.service';
 import { ComponentQuantityWatcherService } from 'src/features/component-quantity-watcher/component-quantity-watcher.service';
 import { WsGateway } from 'src/websocket/ws.gateway';
+import { NotifyUsersService } from 'src/features/notify-users/notify-users.service';
 
 @Injectable()
 export class WriteoffService {
@@ -28,6 +29,8 @@ export class WriteoffService {
     private writeoffReason: WriteoffReasonsService,
     private readonly componentQuantityWatcher: ComponentQuantityWatcherService,
     private readonly wsGateway: WsGateway,
+
+    private readonly notifyUsersService: NotifyUsersService,
   ) {}
 
   async getAll() {
@@ -115,17 +118,13 @@ export class WriteoffService {
 
       // Отправляем уведомление через WebSocket
       if (userId) {
-        this.wsGateway.sendNotification(userId, message, 'error');
+        await this.notifyUsersService.sendNotificationToUser(Number(userId), {
+          message: message,
+          type: 'error',
+        });
         console.log(
           `[WriteoffService] Уведомление отправлено пользователю ${userId}`,
         );
-      } else {
-        // Если userId не указан, отправляем всем подключенным
-        console.log(
-          `[WriteoffService] userId не указан, отправляем уведомление всем пользователям`,
-        );
-        // Временно отправляем себе для отладки
-        this.wsGateway.sendNotification('2', message, 'error'); // Временное решение для отладки
       }
 
       throw new HttpException(
@@ -203,16 +202,17 @@ export class WriteoffService {
 
           // Отправляем уведомление через WebSocket
           if (userId) {
-            this.wsGateway.sendNotification(userId, message, 'error');
+            await this.notifyUsersService.sendNotificationToUser(
+              Number(userId),
+              {
+                message: message,
+                type: 'error',
+              },
+            );
+            // this.wsGateway.sendNotification(userId, message, 'error');
             console.log(
               `[WriteoffService] Уведомление отправлено пользователю ${userId}`,
             );
-          } else {
-            console.log(
-              `[WriteoffService] userId не указан, отправляем уведомление всем пользователям`,
-            );
-            // Временно отправляем себе для отладки
-            this.wsGateway.sendNotification('2', message, 'error'); // Временное решение для отладки
           }
 
           throw new HttpException(

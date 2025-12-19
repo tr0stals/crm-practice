@@ -9,9 +9,20 @@ import { StandsModule } from 'src/stands/stands.module';
 import { ComponentsModule } from 'src/components/components.module';
 import { PcbsModule } from 'src/pcbs/pcbs.module';
 import { ComponentQuantityWatcherModule } from 'src/features/component-quantity-watcher/component-quantity-watcher.module';
+import { NotifyUsersModule } from 'src/features/notify-users/notify-users.module';
 
 @Module({
-  imports: [CurrentTasksModule, WebsocketModule, DatabaseLocalizationModule, EmployeesModule, PcbsModule, ComponentsModule, StandsModule, ComponentQuantityWatcherModule],
+  imports: [
+    CurrentTasksModule,
+    WebsocketModule,
+    DatabaseLocalizationModule,
+    EmployeesModule,
+    PcbsModule,
+    ComponentsModule,
+    StandsModule,
+    ComponentQuantityWatcherModule,
+    NotifyUsersModule,
+  ],
   providers: [DatabaseService],
   controllers: [DatabaseController],
   exports: [DatabaseService],

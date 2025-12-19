@@ -15,6 +15,7 @@ import { User } from 'src/user/user.entity';
 import { CurrentTaskStatesLogModule } from 'src/current_task_states_log/current_task_states_log.module';
 import { ComponentQuantityWatcherModule } from 'src/features/component-quantity-watcher/component-quantity-watcher.module';
 import { ServerWriteoffBusinessModule } from 'src/features/server-writeoff-business/server-writeoff-business.module';
+import { NotifyUsersModule } from 'src/features/notify-users/notify-users.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ServerWriteoffBusinessModule } from 'src/features/server-writeoff-busin
     CurrentTaskStatesLogModule,
     ComponentQuantityWatcherModule,
     ServerWriteoffBusinessModule,
+    NotifyUsersModule,
   ],
   providers: [CurrentTasksService],
   controllers: [CurrentTasksController],

@@ -14,6 +14,7 @@ import { StandTypesService } from 'src/stand_types/stand_types.service';
 import { WsGateway } from '../websocket/ws.gateway';
 import { User } from 'src/user/user.entity';
 import { StandsTypes } from 'src/stand_types/stand_types.entity';
+import { NotifyUsersService } from 'src/features/notify-users/notify-users.service';
 
 @Injectable()
 export class StandsService {
@@ -25,6 +26,8 @@ export class StandsService {
     private employeeService: EmployeesService,
     private standTypeService: StandTypesService,
     private wsGateway: WsGateway,
+
+    private readonly notifyUsersService: NotifyUsersService,
   ) {}
 
   async create(data: StandsDTO, userId?: number) {
@@ -114,7 +117,11 @@ export class StandsService {
     console.log(
       `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${message}`,
     );
-    this.wsGateway.sendNotification(targetUserId, message, 'success');
+    // this.wsGateway.sendNotification(targetUserId, message, 'success');
+    await this.notifyUsersService.sendNotificationToUser(Number(targetUserId), {
+      message: message,
+      type: 'success',
+    });
 
     return savedEntity;
   }

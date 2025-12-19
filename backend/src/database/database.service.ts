@@ -23,6 +23,7 @@ import { PcbsService } from 'src/pcbs/pcbs.service';
 import { ComponentsService } from 'src/components/components.service';
 import { ComponentQuantityWatcherService } from 'src/features/component-quantity-watcher/component-quantity-watcher.service';
 import { treeTablesChildren } from './config/treeTablesChildren';
+import { NotifyUsersService } from 'src/features/notify-users/notify-users.service';
 
 @Injectable()
 export class DatabaseService {
@@ -36,6 +37,7 @@ export class DatabaseService {
     private readonly wsGateway: WsGateway,
     private readonly databaseLocalizationService: DatabaseLocalizationService,
     private readonly componentQuantityWatcher: ComponentQuantityWatcherService,
+    private readonly notifyUsersService: NotifyUsersService,
   ) {}
 
   private readonly SYSTEM_ORG_TITLES = new Set([
@@ -409,7 +411,11 @@ export class DatabaseService {
         if (isSystem) {
           const msg = 'Системный тип нельзя удалять';
           if (userId) {
-            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            // this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            await this.notifyUsersService.sendNotificationToUser(userId, {
+              message: msg,
+              type: 'error',
+            });
           }
           throw new ForbiddenException(msg);
         }
@@ -420,7 +426,11 @@ export class DatabaseService {
         if (isSystem) {
           const msg = 'Системный статус задачи нельзя удалять';
           if (userId) {
-            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            // this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            await this.notifyUsersService.sendNotificationToUser(userId, {
+              message: msg,
+              type: 'error',
+            });
           }
           throw new ForbiddenException(msg);
         }
@@ -431,7 +441,11 @@ export class DatabaseService {
         if (isSystem) {
           const msg = 'Системный статус заказа ПП нельзя удалять';
           if (userId) {
-            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            // this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            await this.notifyUsersService.sendNotificationToUser(userId, {
+              message: msg,
+              type: 'error',
+            });
           }
           throw new ForbiddenException(msg);
         }
@@ -442,7 +456,11 @@ export class DatabaseService {
         if (isSystem) {
           const msg = 'Системную причину списания нельзя удалять';
           if (userId) {
-            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            // this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            await this.notifyUsersService.sendNotificationToUser(userId, {
+              message: msg,
+              type: 'error',
+            });
           }
           throw new ForbiddenException(msg);
         }
@@ -452,7 +470,11 @@ export class DatabaseService {
       if (blocks.length > 0) {
         const msg = this.buildBlockedMessage(blocks);
         if (userId) {
-          this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+          // this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+          await this.notifyUsersService.sendNotificationToUser(userId, {
+            message: msg,
+            type: 'error',
+          });
         }
         // Выбрасываем ту же информацию в ответ API
         const { HttpException, HttpStatus } = await import('@nestjs/common');
@@ -526,11 +548,15 @@ export class DatabaseService {
       // Если дошли сюда — удаление прошло успешно
       if (userId) {
         const successMsg = `Запись удалена из таблицы "${tableName}"`;
-        this.wsGateway.sendNotification(
-          userId.toString(),
-          successMsg,
-          'success',
-        );
+        // this.wsGateway.sendNotification(
+        //   userId.toString(),
+        //   successMsg,
+        //   'success',
+        // );
+        await this.notifyUsersService.sendNotificationToUser(userId, {
+          message: successMsg,
+          type: 'success',
+        });
       }
       return result;
     } catch (e: any) {
@@ -540,7 +566,11 @@ export class DatabaseService {
         const match = e.sqlMessage?.match(/`([^`]+)`\.`([^`]+)`/);
         const fkTable = match ? match[2] : '';
         const msg = `Невозможно удалить запись. Есть связанные записи: ${fkTable ? fkTable + ' (1)' : 'в связанных таблицах'}. Удалите их сначала.`;
-        this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+        // this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+        await this.notifyUsersService.sendNotificationToUser(userId, {
+          message: msg,
+          type: 'error',
+        });
       }
       throw e;
     }
@@ -564,7 +594,11 @@ export class DatabaseService {
         if (isSystem) {
           const msg = 'Системный тип нельзя удалять';
           if (userId) {
-            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            // this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            await this.notifyUsersService.sendNotificationToUser(userId, {
+              message: msg,
+              type: 'error',
+            });
           }
           throw new ForbiddenException(msg);
         }
@@ -575,7 +609,11 @@ export class DatabaseService {
         if (isSystem) {
           const msg = 'Системный статус задачи нельзя удалять';
           if (userId) {
-            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            // this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            await this.notifyUsersService.sendNotificationToUser(userId, {
+              message: msg,
+              type: 'error',
+            });
           }
           throw new ForbiddenException(msg);
         }
@@ -586,7 +624,11 @@ export class DatabaseService {
         if (isSystem) {
           const msg = 'Системный статус заказа ПП нельзя удалять';
           if (userId) {
-            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            // this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            await this.notifyUsersService.sendNotificationToUser(userId, {
+              message: msg,
+              type: 'error',
+            });
           }
           throw new ForbiddenException(msg);
         }
@@ -597,7 +639,11 @@ export class DatabaseService {
         if (isSystem) {
           const msg = 'Системную причину списания нельзя удалять';
           if (userId) {
-            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            // this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            await this.notifyUsersService.sendNotificationToUser(userId, {
+              message: msg,
+              type: 'error',
+            });
           }
           throw new ForbiddenException(msg);
         }
@@ -648,7 +694,11 @@ export class DatabaseService {
         if (blocks.length > 0) {
           const msg = this.buildBlockedMessage(blocks);
           if (userId) {
-            this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            // this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+            await this.notifyUsersService.sendNotificationToUser(userId, {
+              message: msg,
+              type: 'error',
+            });
           }
           const { HttpException, HttpStatus } = await import('@nestjs/common');
           throw new HttpException({ message: msg }, HttpStatus.BAD_REQUEST);
@@ -683,11 +733,15 @@ export class DatabaseService {
       // Если дошли сюда — удаление прошло успешно
       if (userId) {
         const successMsg = `Запись удалена из таблицы "${tableName}" (с очисткой связей)`;
-        this.wsGateway.sendNotification(
-          userId.toString(),
-          successMsg,
-          'success',
-        );
+        // this.wsGateway.sendNotification(
+        //   userId.toString(),
+        //   successMsg,
+        //   'success',
+        // );
+        await this.notifyUsersService.sendNotificationToUser(userId, {
+          message: successMsg,
+          type: 'success',
+        });
       }
       return { affected: 1 };
     } catch (e: any) {
@@ -697,7 +751,11 @@ export class DatabaseService {
         const match = e.sqlMessage?.match(/`([^`]+)`\.`([^`]+)`/);
         const fkTable = match ? match[2] : '';
         const msg = `Невозможно удалить запись. Есть связанные записи: ${fkTable ? fkTable + ' (1)' : 'в связанных таблицах'}. Удалите их сначала.`;
-        this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+        // this.wsGateway.sendNotification(userId.toString(), msg, 'error');
+        await this.notifyUsersService.sendNotificationToUser(userId, {
+          message: msg,
+          type: 'error',
+        });
       }
       throw e;
     }

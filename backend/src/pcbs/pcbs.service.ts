@@ -11,6 +11,7 @@ import { PCBSDTO } from './dto/PCBSDTO';
 import { StandsService } from 'src/stands/stands.service';
 import { WsGateway } from '../websocket/ws.gateway';
 import { User } from 'src/user/user.entity';
+import { NotifyUsersService } from 'src/features/notify-users/notify-users.service';
 
 @Injectable()
 export class PcbsService {
@@ -21,6 +22,8 @@ export class PcbsService {
     private userRepository: Repository<User>,
     private standService: StandsService,
     private wsGateway: WsGateway,
+
+    private readonly notifyUsersService: NotifyUsersService,
   ) {}
 
   async create(data: PCBSDTO, userId?: number) {
@@ -55,10 +58,17 @@ export class PcbsService {
           console.log(
             `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${errorMessage}`,
           );
-          this.wsGateway.sendNotification(
-            targetUserId,
-            errorMessage,
-            'validation_error',
+          // this.wsGateway.sendNotification(
+          //   targetUserId,
+          //   errorMessage,
+          //   'validation_error',
+          // );
+          await this.notifyUsersService.sendNotificationToUser(
+            Number(targetUserId),
+            {
+              message: errorMessage,
+              type: 'validation_error',
+            },
           );
 
           throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
@@ -100,7 +110,14 @@ export class PcbsService {
       console.log(
         `[NOTIFICATION] Отправляем уведомление пользователю ${targetUserId}: ${message}`,
       );
-      this.wsGateway.sendNotification(targetUserId, message, 'success');
+      // this.wsGateway.sendNotification(targetUserId, message, 'success');
+      await this.notifyUsersService.sendNotificationToUser(
+        Number(targetUserId),
+        {
+          message: message,
+          type: 'success',
+        },
+      );
 
       return savedEntity;
     } catch (e) {

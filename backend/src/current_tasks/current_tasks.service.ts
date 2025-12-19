@@ -19,6 +19,7 @@ import { User } from 'src/user/user.entity';
 import { CurrentTaskStatesLogService } from 'src/current_task_states_log/current_task_states_log.service';
 import { ComponentQuantityWatcherService } from 'src/features/component-quantity-watcher/component-quantity-watcher.service';
 import { ServerWriteoffBusinessService } from 'src/features/server-writeoff-business/server-writeoff-business.service';
+import { NotifyUsersService } from 'src/features/notify-users/notify-users.service';
 
 @Injectable()
 export class CurrentTasksService {
@@ -41,6 +42,8 @@ export class CurrentTasksService {
     private currentTaskStatesLogService: CurrentTaskStatesLogService,
     private readonly componentQuantityWatcher: ComponentQuantityWatcherService,
     private readonly serverWriteoffBusiness: ServerWriteoffBusinessService,
+
+    private readonly notifyUsersService: NotifyUsersService,
   ) {}
 
   async create(data: CurrentTasksDTO): Promise<CurrentTasks> {
@@ -88,11 +91,15 @@ export class CurrentTasksService {
       console.log(
         `[NOTIFICATION] Отправляем уведомление пользователю ${user.id}: ${message}`,
       );
-      this.wsGateway.sendNotification(
-        user.id.toString(),
-        message,
-        'task_assigned',
-      );
+      // this.wsGateway.sendNotification(
+      //   user.id.toString(),
+      //   message,
+      //   'task_assigned',
+      // );
+      await this.notifyUsersService.sendNotificationToUser(user.id, {
+        message: message,
+        type: 'task_assigned',
+      });
     } else {
       console.log(
         `[NOTIFICATION] У сотрудника ${shipmentStand.stands.employees.id} нет пользователей для уведомлений`,
@@ -114,11 +121,15 @@ export class CurrentTasksService {
         console.log(
           `[NOTIFICATION] Найден пользователь напрямую: ${directUser.id}, отправляем уведомление`,
         );
-        this.wsGateway.sendNotification(
-          directUser.id.toString(),
-          message,
-          'task_assigned',
-        );
+        // this.wsGateway.sendNotification(
+        //   directUser.id.toString(),
+        //   message,
+        //   'task_assigned',
+        // );
+        await this.notifyUsersService.sendNotificationToUser(directUser.id, {
+          message: message,
+          type: 'task_assigned',
+        });
       } else {
         console.log(
           `[DEBUG] Пользователь не найден даже напрямую для сотрудника ${shipmentStand.stands.employees.id}`,
@@ -272,10 +283,18 @@ export class CurrentTasksService {
 
           // Отправляем уведомление через WebSocket
           if (userId) {
-            this.wsGateway.sendNotification(
-              userId,
-              'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
-              'error',
+            // this.wsGateway.sendNotification(
+            //   userId,
+            //   'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
+            //   'error',
+            // );
+            await this.notifyUsersService.sendNotificationToUser(
+              Number(userId),
+              {
+                message:
+                  'Недостаточно компонентов для выполнения задачи. Задача возвращена в статус "Выполняется".',
+                type: 'error',
+              },
             );
           }
 
@@ -385,11 +404,15 @@ export class CurrentTasksService {
       const user = currentTask.shipmentStands?.stands?.employees?.users[0];
       const message = `Задача "${currentTask.standTasks?.title}" на стенде "${currentTask.shipmentStands?.stands?.title}" начата`;
 
-      this.wsGateway.sendNotification(
-        user.id.toString(),
-        message,
-        'task_started',
-      );
+      // this.wsGateway.sendNotification(
+      //   user.id.toString(),
+      //   message,
+      //   'task_started',
+      // );
+      await this.notifyUsersService.sendNotificationToUser(user.id, {
+        message: message,
+        type: 'task_started',
+      });
     }
 
     // Меняем статус на "Выполняется"
@@ -581,11 +604,15 @@ export class CurrentTasksService {
 
       if (!areComponentsAvailable) {
         if (userId) {
-          this.wsGateway.sendNotification(
-            userId,
-            'Недостаточно компонентов для выполнения задачи.',
-            'error',
-          );
+          // this.wsGateway.sendNotification(
+          //   userId,
+          //   'Недостаточно компонентов для выполнения задачи.',
+          //   'error',
+          // );
+          await this.notifyUsersService.sendNotificationToUser(Number(userId), {
+            message: 'Недостаточно компонентов для выполнения задачи.',
+            type: 'error',
+          });
         }
 
         throw new HttpException(
@@ -624,11 +651,15 @@ export class CurrentTasksService {
     const employeeUser = task.shipmentStands?.stands?.employees?.users?.[0];
     if (employeeUser) {
       const message = `Задача "${task.standTasks?.title}" на стенде "${task.shipmentStands?.stands?.title}" завершена`;
-      this.wsGateway.sendNotification(
-        employeeUser.id.toString(),
-        message,
-        'task_completed',
-      );
+      // this.wsGateway.sendNotification(
+      //   employeeUser.id.toString(),
+      //   message,
+      //   'task_completed',
+      // );
+      await this.notifyUsersService.sendNotificationToUser(employeeUser.id, {
+        message: message,
+        type: 'task_completed',
+      });
     }
 
     /**

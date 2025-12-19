@@ -7,7 +7,6 @@ export class WebsocketController {
 
   @Get('notify')
   notify(@Query('userId') userId: string, @Query('msg') msg: string) {
-    this.wsGateway.sendNotification(userId, msg || 'Тестовое уведомление', 'info');
     return { ok: true };
   }
 }

@@ -7,9 +7,16 @@ import { ComponentsModule } from 'src/components/components.module';
 import { StandsModule } from 'src/stands/stands.module';
 import { WebsocketModule } from 'src/websocket/websocket.module';
 import { User } from 'src/user/user.entity';
+import { NotifyUsersModule } from 'src/features/notify-users/notify-users.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PCBS, User]), ComponentsModule, StandsModule, WebsocketModule],
+  imports: [
+    TypeOrmModule.forFeature([PCBS, User]),
+    ComponentsModule,
+    StandsModule,
+    WebsocketModule,
+    NotifyUsersModule,
+  ],
   controllers: [PcbsController],
   providers: [PcbsService],
   exports: [PcbsService],

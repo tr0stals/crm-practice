@@ -12,6 +12,7 @@ import { InventarizationBusinessService } from 'src/features/inventarization-bus
 import { WsGateway } from 'src/websocket/ws.gateway';
 import { Inventarization } from 'src/inventarization/inventarization.entity';
 import { Organizations } from 'src/organizations/organizations.entity';
+import { NotifyUsersService } from '../notify-users/notify-users.service';
 
 @Injectable()
 export class ComponentQuantityWatcherService {
@@ -45,6 +46,7 @@ export class ComponentQuantityWatcherService {
 
     public inventarizationBusinessService: InventarizationBusinessService,
     private wsGateway: WsGateway,
+    private readonly notifyUsersService: NotifyUsersService,
   ) {}
 
   /**
@@ -434,11 +436,16 @@ export class ComponentQuantityWatcherService {
           `[ComponentQuantityWatcher] Не удалось определить factoryId для компонента ${componentId}`,
         );
         if (userId) {
-          this.wsGateway.sendNotification(
-            userId,
-            'Не удалось определить фабрику для компонента. Операция отменена.',
-            'error',
-          );
+          // this.wsGateway.sendNotification(
+          //   userId,
+          //   'Не удалось определить фабрику для компонента. Операция отменена.',
+          //   'error',
+          // );
+          await this.notifyUsersService.sendNotificationToUser(Number(userId), {
+            message:
+              'Не удалось определить фабрику для компонента. Операция отменена.',
+            type: 'error',
+          });
         }
         return false;
       }
@@ -466,7 +473,11 @@ export class ComponentQuantityWatcherService {
 
         // Отправляем уведомление пользователю
         if (userId) {
-          this.wsGateway.sendNotification(userId, message, 'error');
+          // this.wsGateway.sendNotification(userId, message, 'error');
+          await this.notifyUsersService.sendNotificationToUser(Number(userId), {
+            message: message,
+            type: 'error',
+          });
         }
       }
 
@@ -479,11 +490,16 @@ export class ComponentQuantityWatcherService {
 
       // В случае ошибки не разрешаем операцию
       if (userId) {
-        this.wsGateway.sendNotification(
-          userId,
-          'Ошибка при проверке доступности компонентов. Операция отменена.',
-          'error',
-        );
+        // this.wsGateway.sendNotification(
+        //   userId,
+        //   'Ошибка при проверке доступности компонентов. Операция отменена.',
+        //   'error',
+        // );
+        await this.notifyUsersService.sendNotificationToUser(Number(userId), {
+          message:
+            'Ошибка при проверке доступности компонентов. Операция отменена.',
+          type: 'error',
+        });
       }
 
       return false;
@@ -634,11 +650,16 @@ export class ComponentQuantityWatcherService {
       );
 
       if (userId) {
-        this.wsGateway.sendNotification(
-          userId,
-          'Ошибка при проверке доступности компонентов для задачи. Операция отменена.',
-          'error',
-        );
+        await this.notifyUsersService.sendNotificationToUser(Number(userId), {
+          message:
+            'Ошибка при проверке доступности компонентов для задачи. Операция отменена.',
+          type: 'error',
+        });
+        // this.wsGateway.sendNotification(
+        //   userId,
+        //   'Ошибка при проверке доступности компонентов для задачи. Операция отменена.',
+        //   'error',
+        // );
       }
 
       return false;

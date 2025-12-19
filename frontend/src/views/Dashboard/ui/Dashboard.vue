@@ -65,6 +65,9 @@ import { PackageMinus } from 'lucide-vue-next';
 import NotificationsMenu from "@/features/Notifications/ui/NotificationsMenu.vue";
 import { useNotificationStore } from "@/entities/NotificationEntity/model/store";
 import NotificationsSidebar from "@/features/Notifications/ui/NotificationsSidebar.vue";
+import { api, defaultEndpoint } from "@/shared/api/axiosInstance";
+import useFetch from "@/shared/lib/useFetch";
+import { useNotificationsSocket } from "../model/useNotificationsSocket";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -277,6 +280,11 @@ onMounted(async () => {
       employeeData: user?.employees,
       employeeProfession: user?.employeeProfession
     });
+  }
+
+  notificationStore.fetchNotifications(authorizedUserStore.user!.id);
+  if (authorizedUserStore.user?.id) {
+    useNotificationsSocket(authorizedUserStore.user?.id);
   }
 
   document.addEventListener("click", handleGlobalClick);

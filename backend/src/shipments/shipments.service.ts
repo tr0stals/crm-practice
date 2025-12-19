@@ -15,6 +15,8 @@ import { ShipmentPackage } from 'src/shipment_package/shipment_package.entity';
 import { ShipmentsStands } from 'src/shipments_stands/shipments_stands.entity';
 import { User } from 'src/user/user.entity';
 import { WsGateway } from 'src/websocket/ws.gateway';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { NotifyUsersService } from 'src/features/notify-users/notify-users.service';
 
 @Injectable()
 export class ShipmentsService {
@@ -34,6 +36,10 @@ export class ShipmentsService {
     private userRepo: Repository<User>,
 
     private wsGateway: WsGateway,
+
+    private notificationsService: NotificationsService,
+
+    private notifyUsersService: NotifyUsersService,
   ) {}
 
   async create(data: ShipmentsDTO) {
@@ -62,15 +68,23 @@ export class ShipmentsService {
         relations: ['employees'],
       });
 
-      users.map((user: User) => {
-        this.wsGateway.sendNotification(
-          user.id.toString(),
-          'Добавлена новая отгрузка',
-          'success',
-        );
-      });
+      // await this.notificationsService.notifyUsers(
+      //   users.map((u) => u.id),
+      //   'Добавлена новая отгрузка (новая версия)',
+      //   'success',
+      // );
 
-      return await this.repository.save(entity);
+      const shipment = await this.repository.save(entity);
+
+      await this.notifyUsersService.sendNotificationToUsers(
+        users.map((u) => u.id),
+        {
+          message: `Добавлена новая отгрузка №${shipment.id}`,
+          type: 'success',
+        },
+      );
+
+      return shipment;
     } catch (e) {
       console.error('Ошибка при создании записи:', e);
       throw e;

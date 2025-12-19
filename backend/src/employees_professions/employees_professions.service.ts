@@ -40,8 +40,6 @@ export class EmployeesProfessionsService {
           where: { title: 'Администратор' },
         });
 
-    console.log('!!!!1', profession);
-
     if (!profession) throw new NotFoundException('Profession not found');
     if (!employee) throw new NotFoundException('Employee not found');
 
@@ -49,7 +47,6 @@ export class EmployeesProfessionsService {
       employees: employee,
       professions: profession,
     });
-    console.log('!!!!!2', entity);
 
     return await this.employeesProfessionsRepository.save(entity);
   }

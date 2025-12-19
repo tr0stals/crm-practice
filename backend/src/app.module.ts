@@ -56,6 +56,9 @@ import { CurrentTaskStatesLogModule } from './current_task_states_log/current_ta
 import { ImagesModule } from './images/images.module';
 import { CurrentTasksBusinessModule } from './features/current-tasks-business/current-tasks-business.module';
 import { DatabaseCleanupModule } from './utils/database_cleanup/database_cleanup.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { NotificationUsersModule } from './notification-users/notification-users.module';
+import { NotifyUsersModule } from './features/notify-users/notify-users.module';
 
 @Module({
   imports: [
@@ -129,6 +132,9 @@ import { DatabaseCleanupModule } from './utils/database_cleanup/database_cleanup
     ImagesModule,
     CurrentTasksBusinessModule,
     DatabaseCleanupModule,
+    NotificationsModule,
+    NotificationUsersModule,
+    NotifyUsersModule,
   ],
   controllers: [AppController, StandsController],
   providers: [AppService],

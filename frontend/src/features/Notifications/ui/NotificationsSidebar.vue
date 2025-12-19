@@ -2,24 +2,35 @@
 import TooltipIcon from "@/shared/ui/TooltipIcon";
 import "../style.scss";
 import { MailCheckIcon, MailWarningIcon } from "lucide-vue-next";
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import type { INotification } from "@/entities/NotificationEntity/interface/INotification";
 import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
+import { markNotificationAsRead } from "../model/markNotificationAsRead";
+import { api, defaultEndpoint } from "@/shared/api/axiosInstance";
+import useFetch from "@/shared/lib/useFetch";
+import { handleMarkAsRead } from "../model/handleMarkAsRead";
 
 const props = defineProps<{
   store: any
 }>();
+const refetchData = ref<() => Promise<void>>()
 
 const authorizedUserStore = useAuthorizedUserStore();
 
-const userNotifications = computed<INotification[]>(() => {
+const userNotifications = computed(() => {
   const userId = authorizedUserStore.user?.id;
   if (!userId) return [];
 
-  return props.store.notifications.filter(
-    (n: INotification) => n.userId === userId
-  );
+  return props.store.notifications
+    .filter((n: any) => n.users?.id === userId)
+    .map((item: any) => ({
+      id: item.id, // notification_users.id
+      read: item.read,
+      notification: item.notifications
+    }));
 });
+
+
 </script>
 
 <template>
@@ -28,16 +39,16 @@ const userNotifications = computed<INotification[]>(() => {
     <ul class="notificationsSidebar__list">
       <li
         v-if="userNotifications.length > 0"
-        class="notificationsSidebar__notification"
         v-for="n in userNotifications"
+        class="notificationsSidebar__notification"
         :key="n.id"
         :class="{ unread: !n.read }"
       >
         <div class="notificationsSidebar__textContent">
           <TooltipIcon 
+            v-if="!n.read" 
             tooltip-position="notificationStatusIcon--position" 
             class="notificationStatusIcon notificationStatusIcon--warning" 
-            v-if="!n.read" 
             tooltip-text="Новое уведомление"
           >
             <template #icon>
@@ -45,28 +56,34 @@ const userNotifications = computed<INotification[]>(() => {
             </template>
           </TooltipIcon>
           <TooltipIcon 
+            v-else 
             tooltip-position="notificationStatusIcon--position" 
             class="notificationStatusIcon notificationStatusIcon--check" 
-            v-else tooltip-text="Новое уведомление"
+            tooltip-text="Прочитано"
           >
             <template #icon>
               <MailCheckIcon />
             </template>
           </TooltipIcon>
           <div class="notificationsSidebar__message">
-            {{ n.message }}
+            {{ n.notification.message }}
           </div>
         </div>
         
         <div class="notificationsSidebar__bottomContent">
           <small class="notificationsSidebar__message">
-            {{ new Date(n.timestamp).toLocaleTimeString() }}
+            {{ new Date(n.notification.updatedAt).toLocaleDateString() }}
           </small>
           
           <button
-            class="notificationsSidebar__button"
-            @click="props.store.markAsRead(n?.id)"
             v-if="userNotifications.length > 0"
+            :disabled="n.read"
+            class="notificationsSidebar__button"
+            :class="n.read && 'notificationsSidebar__button--disabled'"
+            @click="!n.read && props.store.markAsReadAndSync(
+              n.notification.id,
+              authorizedUserStore.user!.id
+            )"
           >
             Прочитано
           </button>
@@ -82,9 +99,9 @@ const userNotifications = computed<INotification[]>(() => {
       </li>
     </ul>
     <button
-      class="notificationsSidebar__button"
-      @click="props.store.markAllAsRead()"
       v-if="userNotifications.length > 0"
+      class="notificationsSidebar__button"
+      @click="props.store.markAllAsRead(authorizedUserStore.user?.id)"
     >
       Прочитать все
     </button>

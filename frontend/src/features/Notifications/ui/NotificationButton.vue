@@ -30,13 +30,12 @@ watch(
 watch(
   () => store.notifications,
   (newNotifications) => {
+    console.debug(newNotifications)
     // Если есть хотя бы одно уведомление с read: false → показываем badge
-    isBadge.value = newNotifications.some((n) => !n.read);
+    isBadge.value = newNotifications.some((n: any) => !n.read);
   },
   { deep: true } // обязательно, иначе не будет реагировать на изменение поля "read"
 );
-
-const unreadCount = computed(() => store.unreadCount);
 </script>
 <template>
   <div class="notificationButton">
