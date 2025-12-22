@@ -53,6 +53,5 @@ watch(
     :placeholder="placeholder || '+7 (___) ___-__-__'"
     :class="class"
     :value="modelValue ?? ''"
-    @input="(e) => emit('update:modelValue', (e.target as HTMLInputElement).value)"
   />
 </template>

@@ -2,7 +2,7 @@
 import "../style.scss";
 import { useNotificationStore } from "@/entities/NotificationEntity/model/store";
 import { computed, ref, watch } from "vue";
-import { useNotifications } from "../model/useNotifications";
+// import { useNotifications } from "../model/useNotifications";
 import { useAuthorizedUserStore } from "@/entities/AuthorizedUserEntity/model/store";
 import NotificationsMenu from "./NotificationsMenu.vue";
 import NotificationIcon from "@/shared/ui/NotificationIcon/ui/NotificationIcon.vue";
@@ -23,7 +23,7 @@ watch(
   (newVal) => {
     userId.value = newVal;
 
-    useNotifications(userId.value);
+    // useNotifications(userId.value);
   }
 );
 

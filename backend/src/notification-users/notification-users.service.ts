@@ -59,14 +59,6 @@ export class NotificationUsersService {
         users: user,
       });
 
-      if (entity)
-        this.wsGateway.notifyUser(
-          data.userId.toString(),
-          notification.id,
-          notification.message,
-          notification.type,
-        );
-
       return await this.notificationUsersRepo.save(entity);
     } catch (e) {
       throw new NotFoundException(e);

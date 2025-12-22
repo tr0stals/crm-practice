@@ -68,6 +68,7 @@ import NotificationsSidebar from "@/features/Notifications/ui/NotificationsSideb
 import { api, defaultEndpoint } from "@/shared/api/axiosInstance";
 import useFetch from "@/shared/lib/useFetch";
 import { useNotificationsSocket } from "../model/useNotificationsSocket";
+import { value } from "@primeuix/themes/aura/knob";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -282,7 +283,10 @@ onMounted(async () => {
     });
   }
 
+  // Загружаем уведомления сразу
   notificationStore.fetchNotifications(authorizedUserStore.user!.id);
+
+  // Подключаем WebSocket и подписываемся на уведомления один раз
   if (authorizedUserStore.user?.id) {
     useNotificationsSocket(authorizedUserStore.user?.id);
   }
@@ -449,6 +453,7 @@ const handleGlobalClick = (event: MouseEvent) => {
   const addPcbsComponentButton = document.getElementById(
     "addPcbsComponentButton"
   );
+  const vueToast = document.querySelector('.Vue-Toastification__toast');
   const customDropdown = document.getElementById("customDropdown");
 
   const clickedInsideTree = treeEl?.contains(event.target as Node);
@@ -471,6 +476,7 @@ const handleGlobalClick = (event: MouseEvent) => {
   const clickedInCustomDropdown = customDropdown?.contains(
     event.target as Node
   );
+  const clickedInVueToast = vueToast?.contains(event.target as Node)
 
   if (
     !clickedInsideTree &&
@@ -484,8 +490,11 @@ const handleGlobalClick = (event: MouseEvent) => {
     !clickedInsideDeleteButton &&
     !clickedInAddPcbsButton &&
     !clickedInAddPcbsComponentButton &&
-    !clickedInCustomDropdown
+    !clickedInCustomDropdown &&
+    !clickedInVueToast
   ) {
+    console.debug("сброс")
+    console.debug(event)
     navigationStore.selectedRow = null;
   }
 };
@@ -536,7 +545,7 @@ const handleSelectSection = (item: any) => {
             </ProfileSidebar>
           </template>
           <template v-else-if="informationSidebar === 'notifications'">
-            <NotificationsSidebar :store="notificationStore" />
+            <NotificationsSidebar />
           </template>
         </InformationSidebar>
       </Transition>
@@ -735,11 +744,7 @@ const handleSelectSection = (item: any) => {
           "
           class="pagination"
         >
-          <button
-            class="pagination__btn"
-            @click="prevPage"
-            :disabled="page === 1"
-          >
+          <button class="pagination__btn" @click="prevPage" :disabled="page === 1">
             ← Назад
           </button>
           <span class="pagination__text"
@@ -754,47 +759,22 @@ const handleSelectSection = (item: any) => {
             Вперёд →
           </button>
           <div class="pagination__itemsPerPage">
-            <label class="pagination__itemsPerPage__label" for="itemsPerPage"
-              >Элементов на странице:</label
+            <label class="pagination__label" for="itemsPerPage">Элементов на странице:</label>
+            <select
+              id="itemsPerPage"
+              class="pagination__select"
+              v-model="perPage"
+              @change="
+                isSelectOpen = false;
+                page = 1;
+              "
             >
-            <div
-              class="pagination__itemsPerPage__selectWrapper"
-              :class="{ open: isSelectOpen }"
-            >
-              <select
-                class="pagination__itemsPerPage__selectWrapper__select"
-                id="itemsPerPage"
-                v-model="perPage"
-                @change="
-                  isSelectOpen = false;
-                  currentPage = 1;
-                "
-              >
-                <option
-                  class="pagination__itemsPerPage__selectWrapper__select__option"
-                  :value="9"
-                ></option>
-                <option
-                  class="pagination__itemsPerPage__selectWrapper__select__option"
-                  :value="5"
-                >
-                  5
-                </option>
-                <option
-                  class="pagination__itemsPerPage__selectWrapper__select__option"
-                  :value="20"
-                >
-                  20
-                </option>
-                <option
-                  class="pagination__itemsPerPage__selectWrapper__select__option"
-                  :value="35"
-                >
-                  35
-                </option>
-              </select>
-            </div>
+              <option class="pagination__option" :value="5">5</option>
+              <option class="pagination__option" :value="20">20</option>
+              <option class="pagination__option" :value="35">35</option>
+            </select>
           </div>
+          
         </div>
       </section>
 

@@ -39,9 +39,9 @@
     // gap: 2rem;
     width: 50rem;
     height: 80vh;
-    overflow-y: auto;
     padding: 0;
     margin: 5rem 0;
+    overflow: auto;
   }
 
   &__textContent {
@@ -105,9 +105,9 @@
   &__button {
     border: none;
     outline: none;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     width: auto;
-    margin: 1rem;
+    margin: 0 1rem;
     padding: 0.5rem 2rem;
     border-radius: 1rem;
 

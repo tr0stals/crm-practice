@@ -402,18 +402,19 @@ function toggleExpand(node: any) {
           Вперёд →
         </button>
         <div class="pagination__itemsPerPage">
-          <label for="itemsPerPage">Элементов на странице:</label>
+          <label class="pagination__label" for="itemsPerPage">Элементов на странице:</label>
           <select
             id="itemsPerPage"
+            class="pagination__select"
             v-model="perPage"
             @change="
               isSelectOpen = false;
               page = 1;
             "
           >
-            <option :value="5">5</option>
-            <option :value="20">20</option>
-            <option :value="35">35</option>
+            <option class="pagination__option" :value="5">5</option>
+            <option class="pagination__option" :value="20">20</option>
+            <option class="pagination__option" :value="35">35</option>
           </select>
         </div>
       </div>

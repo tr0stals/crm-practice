@@ -18,21 +18,15 @@ export function useNotificationsSocket(userId: number) {
 
   socket.onmessage = async (event) => {
     const data = JSON.parse(event.data);
-    console.debug(data);
 
     if (data.event === "notifications:new") {
-      console.log("[WS] New notifications event received");
-      await store.fetchNotifications(userId);
+      const { notification } = data;
 
-      const latest = store.notifications[store.notifications.length - 1];
+      toast[notification.type ?? "info"](notification.message, {
+        timeout: 5000,
+      });
 
-      console.debug(store.notifications);
-      console.debug(latest);
-      if (latest) {
-        toast.success(latest.notifications.message, {
-          timeout: 5000,
-        });
-      }
+      store.fetchNotifications(userId);
     }
   };
 

@@ -9,11 +9,9 @@ import { markNotificationAsRead } from "../model/markNotificationAsRead";
 import { api, defaultEndpoint } from "@/shared/api/axiosInstance";
 import useFetch from "@/shared/lib/useFetch";
 import { handleMarkAsRead } from "../model/handleMarkAsRead";
+import { useNotificationStore } from "@/entities/NotificationEntity/model/store";
 
-const props = defineProps<{
-  store: any
-}>();
-const refetchData = ref<() => Promise<void>>()
+const store = useNotificationStore()
 
 const authorizedUserStore = useAuthorizedUserStore();
 
@@ -21,16 +19,20 @@ const userNotifications = computed(() => {
   const userId = authorizedUserStore.user?.id;
   if (!userId) return [];
 
-  return props.store.notifications
+  return store.notifications
     .filter((n: any) => n.users?.id === userId)
     .map((item: any) => ({
       id: item.id, // notification_users.id
       read: item.read,
       notification: item.notifications
-    }));
+    }))
+    .sort((a, b) => {
+      return new Date(b.notification?.createdAt).getTime() - new Date(a.notification?.createdAt).getTime()
+    }).sort((a, b) => {
+      // если a.read false, b.read true → a выше
+      return Number(a.read) - Number(b.read);
+    });
 });
-
-
 </script>
 
 <template>
@@ -49,7 +51,7 @@ const userNotifications = computed(() => {
             v-if="!n.read" 
             tooltip-position="notificationStatusIcon--position" 
             class="notificationStatusIcon notificationStatusIcon--warning" 
-            tooltip-text="Новое уведомление"
+            tooltip-text="Не прочитано"
           >
             <template #icon>
               <MailWarningIcon />
@@ -80,28 +82,29 @@ const userNotifications = computed(() => {
             :disabled="n.read"
             class="notificationsSidebar__button"
             :class="n.read && 'notificationsSidebar__button--disabled'"
-            @click="!n.read && props.store.markAsReadAndSync(
+            @click="!n.read && store.markAsReadAndSync(
               n.notification.id,
               authorizedUserStore.user!.id
             )"
           >
-            Прочитано
+            {{ n.read ? "Прочитано" : "Прочитать" }}
           </button>
         </div>
-
       </li>
       <li 
+        v-else
         class="
           notificationsSidebar__message 
           notificationsSidebar__message--noNotifications
         " 
-        v-else>Нет уведомлений
+      >
+        Нет уведомлений
       </li>
     </ul>
     <button
       v-if="userNotifications.length > 0"
       class="notificationsSidebar__button"
-      @click="props.store.markAllAsRead(authorizedUserStore.user?.id)"
+      @click="store.markAllAsRead(authorizedUserStore.user?.id)"
     >
       Прочитать все
     </button>

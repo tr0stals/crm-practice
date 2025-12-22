@@ -297,7 +297,7 @@ export class ComponentsService {
           return {
             id: cat.id,
             name: `${cat.title} (${categoryComponents.length})`, // Добавляем количество компонентов
-            nodeType: 'components_categories',
+            nodeType: 'components',
             isCategory: true,
             componentCount: categoryComponents.length,
             children: [

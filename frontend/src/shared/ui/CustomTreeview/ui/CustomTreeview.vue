@@ -327,34 +327,35 @@ function toggleExpand(node: any) {
     </template>
 
     <div class="pagination">
-      <button class="pagination__btn" @click="prevPage" :disabled="page === 1">
-        ← Назад
-      </button>
-      <span class="pagination__text">
-        Страница {{ page }} из {{ Math.ceil(treeData.length / perPage) }}
-      </span>
-      <button
-        class="pagination__btn"
-        @click="nextPage"
-        :disabled="page === Math.ceil(treeData.length / perPage)"
-      >
-        Вперёд →
-      </button>
-      <div class="pagination__itemsPerPage">
-        <label for="itemsPerPage">Элементов на странице:</label>
-        <select
-          id="itemsPerPage"
-          v-model="perPage"
-          @change="
-            isSelectOpen = false;
-            page = 1;
-          "
+        <button class="pagination__btn" @click="prevPage" :disabled="page === 1">
+          ← Назад
+        </button>
+        <span class="pagination__text">
+          Страница {{ page }} из {{ Math.ceil(treeData.length / perPage) }}
+        </span>
+        <button
+          class="pagination__btn"
+          @click="nextPage"
+          :disabled="page === Math.ceil(treeData.length / perPage)"
         >
-          <option :value="5">5</option>
-          <option :value="20">20</option>
-          <option :value="35">35</option>
-        </select>
+          Вперёд →
+        </button>
+        <div class="pagination__itemsPerPage">
+          <label class="pagination__label" for="itemsPerPage">Элементов на странице:</label>
+          <select
+            id="itemsPerPage"
+            class="pagination__select"
+            v-model="perPage"
+            @change="
+              isSelectOpen = false;
+              page = 1;
+            "
+          >
+            <option class="pagination__option" :value="5">5</option>
+            <option class="pagination__option" :value="20">20</option>
+            <option class="pagination__option" :value="35">35</option>
+          </select>
+        </div>
       </div>
-    </div>
   </template>
 </template>

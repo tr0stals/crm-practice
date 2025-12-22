@@ -9,6 +9,7 @@ export function useNotifications(userId: string) {
   const socket = new WebSocket(`ws://localhost:3000/ws?userId=${userId}`);
 
   socket.onmessage = (event) => {
+    console.debug(event);
     const { message, type } = JSON.parse(event.data);
 
     // 1. Показываем уведомление в зависимости от типа уведомления

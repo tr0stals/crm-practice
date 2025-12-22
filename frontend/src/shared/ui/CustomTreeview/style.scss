@@ -75,29 +75,26 @@
   }
 
   &__text {
+    font-size: 1.75rem !important;
+    color: #555555;
+  }
+
+  &__label {
+    font-size: 1.75rem;
+    margin: 0;
+  }
+
+  &__option {
     font-size: 1.5rem;
   }
 
-  &__itemsPerPage {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-
-    &__label {
-      font-size: 1.5rem;
-      margin: 0;
-    }
-
-    &__selectWrapper {
-      &__select {
-        padding: 1rem 2rem;
-        font-size: 1.5rem;
-
-        &__option {
-          font-size: 1.5rem;
-        }
-      }
-    }
+  &__select {
+    padding: 0.25rem 1rem;
+    font-size: 1.5rem;
+    border: 1px solid rgba(85, 85, 85, 0.3);
+    border-radius: 4px;
+    outline: none;
+    transition: border 0.1s ease;
   }
 }
 

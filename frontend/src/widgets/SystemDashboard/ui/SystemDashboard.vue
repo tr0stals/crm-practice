@@ -4,6 +4,7 @@ import "../style.scss";
 import ExportDatabase from "@/features/ExportDatabase/ui/ExportDatabase.vue";
 import ExportTableButton from "@/features/ExportTableButton/ui/ExportTableButton.vue";
 import ImportTableButton from "@/features/ImportTableButton/ui/ImportTableButton.vue";
+import CleanupDatabaseButton from "@/features/CleanupDatabase";
 
 const props = defineProps<{
   onSuccessCallback: () => void;
@@ -15,5 +16,6 @@ const props = defineProps<{
     <ExportDatabase />
     <ExportTableButton :onSuccessCallback="onSuccessCallback" />
     <ImportTableButton :onSuccessCallback="onSuccessCallback" />
+    <CleanupDatabaseButton />
   </div>
 </template>
