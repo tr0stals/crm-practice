@@ -12,6 +12,7 @@ import { ComponentPlacementsService } from 'src/component_placements/component_p
 import { WsGateway } from '../websocket/ws.gateway';
 import { User } from 'src/user/user.entity';
 import { NotifyUsersService } from 'src/features/notify-users/notify-users.service';
+import { UpdateComponentsDTO } from './dto/UpdateComponentsDTO';
 
 @Injectable()
 export class ComponentsService {
@@ -240,7 +241,7 @@ export class ComponentsService {
     }
   }
 
-  async update(id: number, data: Partial<Components>): Promise<Components> {
+  async update(id: number, data: UpdateComponentsDTO): Promise<Components> {
     await this.findOne(id); // Проверяем существование
     await this.repository.update(id, data);
     return await this.findOne(id);
@@ -267,80 +268,53 @@ export class ComponentsService {
   }
 
   async getComponentsTree() {
-    const allItems = await this.repository.find({
-      relations: [
-        'componentPlacements',
-        'componentPlacements.placementType',
-        'parent',
-        'children',
-      ],
-    });
-
-    // Разделяем на категории и компоненты
-    const categories = allItems.filter((item) => item.isCategory());
-    const components = allItems.filter((item) => item.isComponent());
-
-    // Строим дерево категорий
-    const buildCategoryTree = (parentId: number | null = null): any[] => {
-      return categories
-        .filter((cat) => cat.parentId === parentId)
-        .map((cat) => {
-          // Находим все компоненты для этой категории
-          const categoryComponents = components.filter(
-            (comp) => comp.parentId === cat.id,
-          );
-          // Находим все подкатегории
-          const subcategories = categories.filter(
-            (subCat) => subCat.parentId === cat.id,
-          );
-
-          return {
-            id: cat.id,
-            name: `${cat.title} (${categoryComponents.length})`, // Добавляем количество компонентов
-            nodeType: 'components',
-            isCategory: true,
-            componentCount: categoryComponents.length,
-            children: [
-              // Рекурсивно добавляем подкатегории
-              ...buildCategoryTree(cat.id),
-              // Добавляем компоненты этой категории
-              ...categoryComponents.map((comp) => {
-                const placement = comp.componentPlacements;
-                const placementInfo = placement
-                  ? `${placement.placementType?.title || ''}, Здание ${placement.building}, комната ${placement.room}`
-                  : '';
-                return {
-                  name: `${comp.title} | ${placementInfo} | Кол-во на складе: ${comp.quantity || 0}`, // Добавляем количество
-                  nodeType: 'components',
-                  placementInfo,
-                  ...comp,
-                  children: [],
-                };
-              }),
-            ],
-          };
-        });
-    };
-
-    const tree = buildCategoryTree();
-
-    // Добавляем компоненты без категории (parentId = null) на корневой уровень
-    const rootComponents = components
-      .filter((comp) => comp.parentId === null || comp.parentId === undefined)
-      .map((comp) => {
-        const placement = comp.componentPlacements;
-        const placementInfo = placement
-          ? `${placement.placementType?.title || ''}, Здание ${placement.building}, комната ${placement.room}`
-          : '';
-        return {
-          name: `${comp.title} (${comp.quantity || 0}) | ${placementInfo}`, // Добавляем количество
-          nodeType: 'components',
-          placementInfo,
-          ...comp,
-          children: [],
-        };
+    try {
+      const components = await this.repository.find({
+        relations: [
+          'componentPlacements',
+          'componentPlacements.placementType',
+          'parent',
+          'children',
+        ],
       });
 
-    return { name: 'Актуальный склад', children: [...rootComponents, ...tree] };
+      const buildComponentsTree = (
+        list: any[],
+        parentId: number | null = null,
+      ): any[] => {
+        return list
+          .filter((item) => item.parentId === parentId)
+          .map((item) => {
+            const placement = item.componentPlacements;
+            const placementInfo = placement
+              ? `${placement.placementType?.title || ''}, Здание ${placement.building}, комната ${placement.room}`
+              : '';
+
+            const quantityInfo =
+              item.quantity !== undefined && item.quantity !== null
+                ? ` | Кол-во: ${item.quantity}`
+                : '';
+
+            return {
+              id: item.id,
+              name: `${item.title}${placementInfo ? ' | ' + placementInfo : ''}${quantityInfo}`,
+              nodeType: 'components',
+              isCategory: item.children?.length > 0, // логическая категория
+              ...item,
+              children: buildComponentsTree(list, item.id), // рекурсия
+            };
+          });
+      };
+
+      const tree = buildComponentsTree(components);
+
+      return {
+        name: 'Актуальный склад',
+        nodeType: 'components_root',
+        children: tree,
+      };
+    } catch (e) {
+      throw new Error(e as any);
+    }
   }
 }

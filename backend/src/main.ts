@@ -22,18 +22,16 @@ async function bootstrap() {
   app.enableCors();
   app.useGlobalInterceptors(new DateOnlyInterceptor());
 
-  /* TODO: Когда для всех DTO будут прописаны декораторы валидации - раскомментировать. */
-  /* На момент коммита декораторы валидации прописаны только для Shipments */
-  // app.useGlobalPipes(
-  //   new ValidationPipe({
-  //     whitelist: true,
-  //     forbidNonWhitelisted: false,
-  //     transform: true,
-  //     transformOptions: {
-  //       enableImplicitConversion: true,
-  //     },
-  //   }),
-  // );
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: false,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
 
   app.useWebSocketAdapter(new WsAdapter(app)); // Важно для чистого ws
   app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));

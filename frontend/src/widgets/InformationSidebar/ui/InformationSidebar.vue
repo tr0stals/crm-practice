@@ -5,6 +5,7 @@ import close from "../../../../public/assets/profileSidebar-closeIcon.svg"
 const props = defineProps<{
     onClose: () => void;
 }>();
+
 </script>
 <template>
     <div class="informationSidebar">

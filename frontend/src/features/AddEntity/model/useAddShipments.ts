@@ -122,7 +122,6 @@ export function useAddShipments(sectionName: string, onSuccess: () => void) {
         }
       }
 
-      toast.success("Отгрузка успешно добавлена!");
       onSuccess();
     } catch (e: any) {
       console.error("Ошибка при создании:", e);

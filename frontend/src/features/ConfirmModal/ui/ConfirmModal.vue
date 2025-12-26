@@ -24,7 +24,7 @@ const confirmText =
 
 <template>
   <div class="confirmModal modalWindow">
-    <LoadingLayout v-if="loading" />
+    <LoadingLayout v-if="!loading" />
     <template v-else>
       <h1 class="confirmModal__title">{{ confirmText }}</h1>
       <div class="confirmModal__controls">

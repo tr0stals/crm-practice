@@ -68,12 +68,6 @@ export class ShipmentsService {
         relations: ['employees'],
       });
 
-      // await this.notificationsService.notifyUsers(
-      //   users.map((u) => u.id),
-      //   'Добавлена новая отгрузка (новая версия)',
-      //   'success',
-      // );
-
       const shipment = await this.repository.save(entity);
 
       await this.notifyUsersService.sendNotificationToUsers(

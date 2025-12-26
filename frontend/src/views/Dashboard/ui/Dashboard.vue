@@ -69,6 +69,7 @@ import { api, defaultEndpoint } from "@/shared/api/axiosInstance";
 import useFetch from "@/shared/lib/useFetch";
 import { useNotificationsSocket } from "../model/useNotificationsSocket";
 import { value } from "@primeuix/themes/aura/knob";
+import { useToast } from "vue-toastification";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -90,6 +91,8 @@ const isNotificationsMenuOpen = ref<boolean>(false);
 const isEditProfile = ref<boolean>(false);
 
 const localizatedSections = ref<any>([]);
+
+const toast = useToast()
 
 const treeviewData = ref<TreeNode[]>([]);
 const treeviewRef = ref(null);

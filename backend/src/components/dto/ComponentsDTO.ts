@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsOptional, Min } from 'class-validator';
+import { EmptyToNullNumber } from 'src/utils/emptyToNullNumber';
 
 export class ComponentsDTO {
   @IsOptional()
@@ -14,18 +15,22 @@ export class ComponentsDTO {
 
   @IsOptional()
   @Min(0)
+  @EmptyToNullNumber()
   width: number;
 
   @IsOptional()
   @Min(0)
+  @EmptyToNullNumber()
   height: number;
 
   @IsOptional()
   @Min(0)
+  @EmptyToNullNumber()
   thickness: number;
 
   @IsOptional()
   @Min(0)
+  @EmptyToNullNumber()
   weight: number;
 
   @IsOptional()

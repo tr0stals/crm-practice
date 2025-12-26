@@ -13,6 +13,7 @@ import { ComponentsService } from './components.service';
 import { Components } from './components.entity';
 import { ComponentsDTO } from './dto/ComponentsDTO';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { UpdateComponentsDTO } from './dto/UpdateComponentsDTO';
 
 @Controller('components')
 @UseGuards(JwtAuthGuard)
@@ -44,7 +45,7 @@ export class ComponentsController {
   @Patch('update/:id')
   async update(
     @Param('id') id: number,
-    @Body() data: Partial<Components>,
+    @Body() data: UpdateComponentsDTO,
   ): Promise<Components> {
     return await this.service.update(id, data);
   }
