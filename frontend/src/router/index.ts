@@ -30,7 +30,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/login",
     name: "Login",
-    component: LoginForm,
+    component: AuthView,
     meta: { public: true },
   },
   {
@@ -108,7 +108,7 @@ async function checkUsersExist(): Promise<boolean> {
       `${defaultEndpoint}/user/count`,
       {
         immediate: false,
-      }
+      },
     );
 
     await refetch();

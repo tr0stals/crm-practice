@@ -34,7 +34,6 @@ watch(
     const tree = getTreeviewData(data.value || []);
 
     treeData.value = tree; // Массив узлов, без дополнительной обёртки
-    console.debug(treeData.value);
   }
 );
 
