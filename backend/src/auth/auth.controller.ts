@@ -28,6 +28,8 @@ export class AuthController {
   async register(@Body() user: UserRegisterDTO) {
     const { user: newUser, employeeProfession } =
       await this.authService.register(user);
+
+    console.log(user, employeeProfession)
     return {
       id: newUser?.id,
       userName: newUser?.userName,

@@ -11,7 +11,5 @@ const isRegistred = ref<boolean>(true);
   <div class="auth-view">
     <LoginForm v-if="isRegistred" />
     <RegisterForm v-else />
-
-    <button @click="isRegistred = !isRegistred">Зарегистрироваться</button>
   </div>
 </template>

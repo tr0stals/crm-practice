@@ -163,7 +163,7 @@ export const roleTables = [
     ],
   },
   {
-    profession: "Химия",
+    profession: "Химик",
     tables: [
       "components",
       "current_tasks",

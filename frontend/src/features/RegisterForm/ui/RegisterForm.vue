@@ -30,8 +30,7 @@ const handleSubmit = async () => {
       birthDate: null,
       comment: "",
     };
-    const response = await registerUser(user);
-    console.debug(response);
+    await registerUser(user);
     toast.success("Успешная регистрация!");
     await loginUser(user.userName, user.password);
     router.push("/dashboard");
@@ -57,7 +56,7 @@ const loginUser = async (userName: string, password: string) => {
   }
 };
 
-const registerUser = async (user: any) => {
+const registerUser = async (user: IUserRegister) => {
   try {
     await register(user);
     error.value = null;

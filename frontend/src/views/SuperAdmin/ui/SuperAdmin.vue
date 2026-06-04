@@ -6,15 +6,17 @@ import "../style.scss";
 
 const router = useRouter();
 const isLogin = ref<boolean>(false);
+
+const token = localStorage.getItem("token");
 </script>
 <template>
   <div class="superAdmin" v-if="!isLogin">
     <h1 class="superAdmin__title">Добро пожаловать в CRM-систему!</h1>
-    <button
+    <button 
       class="superAdmin__registerButton"
-      @click="router.push('/register')"
+      @click="router.push('/login')"
     >
-      Создать пользователя
+      Авторизоваться
     </button>
   </div>
 </template>

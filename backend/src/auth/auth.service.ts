@@ -29,6 +29,7 @@ export class AuthService {
   async register(userData: UserRegisterDTO) {
     // Проверяем, если это регистрация супер админа (первый пользователь в системе)
     const existingUsers = await this.userService.getUsers();
+    console.log("existingUsers", existingUsers)
     const isSuperAdmin = !existingUsers || existingUsers.length === 0;
 
     const peopleData = isSuperAdmin ? {

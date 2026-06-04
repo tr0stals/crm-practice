@@ -9,11 +9,11 @@ export class PeoplesDTO {
 
   @IsOptional()
   @IsNotEmpty()
-  firstName: string;
+  firstName?: string;
 
   @IsOptional()
   @IsNotEmpty()
-  lastName: string;
+  lastName?: string;
 
   @IsOptional()
   middleName?: string;

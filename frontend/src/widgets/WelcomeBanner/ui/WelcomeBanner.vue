@@ -19,7 +19,7 @@ const authorizedUserStore = useAuthorizedUserStore();
         {{
           authorizedUserStore.user?.firstName +
           " " +
-          authorizedUserStore.user?.lastName
+          authorizedUserStore.user?.middleName
         }}!
       </h1>
     </div>

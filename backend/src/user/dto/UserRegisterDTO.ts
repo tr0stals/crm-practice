@@ -20,19 +20,16 @@ export class UserRegisterDTO {
 
   // Данные для Peoples
   @IsOptional()
-  @IsNotEmpty()
-  email: string;
+  email?: string;
 
   @IsOptional()
   phone?: string;
 
   @IsOptional()
-  @IsNotEmpty()
-  firstName: string;
+  firstName?: string;
 
   @IsOptional()
-  @IsNotEmpty()
-  lastName: string;
+  lastName?: string;
 
   @IsOptional()
   middleName?: string;

@@ -12,15 +12,12 @@ export class StandsDTO {
   image?: string;
 
   @IsOptional()
-  @Min(0)
   width: string;
 
   @IsOptional()
-  @Min(0)
   height: string;
 
   @IsOptional()
-  @Min(0)
   thickness: string;
 
   @IsOptional()

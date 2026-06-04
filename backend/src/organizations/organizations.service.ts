@@ -106,7 +106,17 @@ export class OrganizationsService {
 
   async update(id: number, data: OrganizationsDTO) {
     try {
-      await this.organizationRepository.update(id, data);
+      console.log("data.contactPeopleId", data.contactPeopleId)
+      const targetPeople = await this.peoplesService.findById(data.contactPeopleId);
+      if (!targetPeople) {
+        throw new Error(`Человек с id ${data.contactPeopleId} не найден`)
+      }
+      console.log(targetPeople)
+
+      await this.organizationRepository.update(id, {
+        peoples: targetPeople,
+        ...data
+      });
       return this.getById(id);
     } catch (e) {
       console.error('Ошибка при изменении организации', e);

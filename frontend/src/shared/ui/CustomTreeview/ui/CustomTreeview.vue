@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, type Component } from "vue";
+import { ref, watch, computed, type Component, onBeforeMount, onActivated } from "vue";
 import Tree from "primevue/tree";
 import "../style.scss";
 import { getTreeviewData } from "@/shared/ui/CustomTreeview/utils/getTreeviewData";
@@ -77,6 +77,8 @@ watch(filteredTreeData, (newTree) => {
 
 
 
+
+
 const selectedKey = ref(null);
 const expandedKeys = ref<any>({});
 const navigationStore = useNavigationStore();
@@ -114,14 +116,13 @@ const { data, error, loading, refetch } = useFetch<TreeNode[]>(
   }
 );
 
+
+
 watch(
   () => menuStore.showDismissals,
   async (val) => {
-    console.debug("!");
     if (props.currentSection === "employees") {
-      console.debug("!!");
       if (val) {
-        console.debug("!!!");
         data.value = await getDataAsync({
           endpoint: `${defaultEndpoint}/${props.currentSection}/treeDismissed`,
         }).then((res) => res.data);
@@ -154,6 +155,15 @@ const handleLoadImages = async (nodeType: string) => {
     }
   }
 };
+
+// Разворачивание узлов
+function toggleExpand(node: any) {
+  const key = node.key;
+  const isExpanded = expandedKeys.value[key];
+  if (node.leaf) return;
+  if (isExpanded) delete expandedKeys.value[key];
+  else expandedKeys.value[key] = true;
+}
 
 watch(data, async (val) => {
   if (!val) return;
@@ -264,14 +274,7 @@ function handleImageError(event: Event) {
   // img.style.display = "none";
 }
 
-// Разворачивание узлов
-function toggleExpand(node: any) {
-  const key = node.key;
-  const isExpanded = expandedKeys.value[key];
-  if (node.leaf) return;
-  if (isExpanded) delete expandedKeys.value[key];
-  else expandedKeys.value[key] = true;
-}
+
 </script>
 
 <template>
@@ -291,6 +294,9 @@ function toggleExpand(node: any) {
         @node-select="onNodeSelect"
         :pt="{
           root: { class: 'treeview__root' },
+          nodeChildren: {
+            class: 'treeview__expanded'
+          },
           nodeContent: ({ context }) => ({
             class: [
               'treeview__data',

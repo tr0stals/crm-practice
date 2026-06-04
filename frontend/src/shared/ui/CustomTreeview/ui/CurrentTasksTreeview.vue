@@ -314,6 +314,9 @@ function toggleExpand(node: any) {
                 },
               ],
             }),
+            nodeChildren: {
+              class: 'treeview__expanded'
+            },
             node: ({ context }) => ({
               style: { marginLeft: `${(context.node.level || 0) * 1}rem` },
             }),

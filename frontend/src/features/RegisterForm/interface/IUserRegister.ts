@@ -1,10 +1,10 @@
 export interface IUserRegister {
-  email: string;
+  email?: string;
   userName: string;
   password: string;
   passwordSalt: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   middleName?: string;
   phone: string;
   comment?: string;

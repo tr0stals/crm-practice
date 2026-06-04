@@ -149,7 +149,19 @@
   border: 1px #ccc solid;
 
   &__option {
+    border: none;
     border-radius: 2rem;
     font-size: 1.45rem;
+    animation: optionsExpanded 0.5s forwards;
+  }
+}
+
+@keyframes optionsExpanded {
+  0% {
+    transform: translateY(-10%);
+  }
+
+  100% {
+    transform: translateY(0%);
   }
 }
