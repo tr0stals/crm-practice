@@ -14,7 +14,7 @@ export class Writeoff {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   dateTime: Date;
 
   @Column()

@@ -475,14 +475,16 @@ export class InventarizationBusinessService {
     componentId: number,
     factoryId: number,
   ): Promise<Inventarization | null> {
-    return await this.inventarizationRepository
-      .createQueryBuilder('inv')
-      .leftJoinAndSelect('inv.component', 'component')
-      .leftJoinAndSelect('inv.factory', 'factory')
-      .where('component.id = :componentId', { componentId })
-      .andWhere('factory.id = :factoryId', { factoryId })
-      .orderBy('inv.inventarizationDate', 'DESC')
-      .getOne();
+    return this.inventarizationRepository.findOne({
+      where: {
+        component: { id: componentId },
+        factory: { id: factoryId },
+      },
+      relations: ['component', 'factory'],
+      order: {
+        id: 'DESC',
+      },
+    });
   }
 
   /**

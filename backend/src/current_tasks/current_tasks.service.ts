@@ -580,6 +580,7 @@ export class CurrentTasksService {
         'currentTaskStates',
         'standTasks',
         'standTasks.components',
+        'standTasks.standTasksComponents',
         'shipmentStands',
         'shipmentStands.stands',
         'shipmentStands.stands.employees',
@@ -668,6 +669,7 @@ export class CurrentTasksService {
      * Если задача предусматривает списывание компонентов (isWriteoffComponents = true) — завершаем задачу и списываем компоненты
      */
     if (task.standTasks?.isWriteoffComponents) {
+      console.log('Выполненная задача: ', task);
       await this.completeTaskWithWriteoffs(task);
     }
 
