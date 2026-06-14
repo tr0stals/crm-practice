@@ -1,6 +1,7 @@
 import { useMenuStore } from "@/entities/MenuEntity/model/menuStore";
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
-import { computed } from "vue";
+import { setFadeAnimation } from "@/shared/utils/setFadeAnimation";
+import { computed, onMounted, watch } from "vue";
 
 export function useMenuEntity() {
   const menuEntityStore = useMenuStore();
@@ -30,6 +31,17 @@ export function useMenuEntity() {
     navigationStore.setCurrentSection(activeEntity.tableName);
     return [];
   });
+
+  onMounted(() => {
+    setFadeAnimation(".tableDataPreview");
+  });
+
+  watch(
+    () => data.value,
+    (newVal) => {
+      setFadeAnimation(".tableDataPreview");
+    },
+  );
 
   const handleClick = (item: any) => {
     console.debug(item);

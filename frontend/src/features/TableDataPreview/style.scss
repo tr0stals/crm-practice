@@ -1,3 +1,13 @@
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
 .tableDataPreview {
   display: flex;
   flex-direction: column;
@@ -15,5 +25,9 @@
       border: 2px solid rgba(0, 0, 0, 0.5);
       cursor: pointer;
     }
+  }
+
+  &--animated {
+    animation: fadeIn 0.3s forwards;
   }
 }

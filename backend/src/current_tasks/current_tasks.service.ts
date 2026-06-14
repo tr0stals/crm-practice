@@ -420,7 +420,9 @@ export class CurrentTasksService {
       where: [{ title: 'Выполняется' }],
     });
 
-    if (inProgressState) {
+    if (!inProgressState) {
+      throw new Error('Статус задачи не найден');
+    } else {
       // Логируем изменение статуса
       await this.currentTaskStatesLogService.logStateChange(
         currentTaskId,

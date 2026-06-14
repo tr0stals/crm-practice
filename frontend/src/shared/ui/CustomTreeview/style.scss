@@ -8,11 +8,22 @@
   }
 }
 
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
 .treeview {
   margin-top: 2rem;
   height: 40%;
   max-width: 100%;
   overflow-y: auto;
+  animation: fadeIn 0.3s forwards;
 
   &__expanded {
     animation: nodeExpanded 0.15s forwards !important;
@@ -70,7 +81,7 @@
 
 .data--notAvailabled {
   background-color: rgb(255, 195, 195) !important;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 .spinner {

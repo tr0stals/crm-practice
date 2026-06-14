@@ -3,7 +3,7 @@ import type { IEdittingProps } from "@/shared/config/IEdittingProps";
 import "../style.scss";
 import CloseIcon from "@/shared/ui/CloseIcon/ui/CloseIcon.vue";
 import Button from "@/shared/ui/Button/ui/Button.vue";
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { computed, onActivated, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { EditModalWindowModel } from "../model/EditModalWindowModel";
 import { fieldDictionary } from "@/shared/utils/fieldDictionary";
 import "@vuepic/vue-datepicker/dist/main.css";
@@ -21,6 +21,7 @@ import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 import { isDateField } from "@/shared/utils/isDateField";
 import { getImagePath } from "../model/getImagePath";
+import { setFadeAnimation } from "@/shared/utils/setFadeAnimation";
 
 const resultData = ref<any>();
 const formData = ref<any>({});
@@ -85,11 +86,11 @@ function isRelatedField(key: string, value: any): boolean {
   return isObjectField(value) || relatedFields.includes(key);
 }
 
+
 onMounted(async () => {
   watch(
     () => uploadedImage.value,
     (val) => {
-      console.debug(val);
       formData.value.image = val.name;
       model.setUploadedImage(val);
     }

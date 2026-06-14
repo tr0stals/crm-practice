@@ -139,8 +139,8 @@ const handleSubmit = async () => {
                 v-model="formData[item]"
                 :id="item"
                 :name="item"
-                class="addModalWindow__content__field__option"
                 @change="handleInput(item)"
+                class="addModalWindow__content__field__option"
                 :class="{ 'error-layout': errors[item] }"
               >
                 <template

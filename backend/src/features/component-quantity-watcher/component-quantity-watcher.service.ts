@@ -123,30 +123,30 @@ export class ComponentQuantityWatcherService {
       throw new NotFoundException('Не удалось определить фабрику');
 
     console.log('[Фабрика успешно определена: ', factory);
-    // try {
-    await this.componentsRepository.update(component.id, { quantity: count });
+    try {
+      await this.componentsRepository.update(component.id, { quantity: count });
 
-    /**
-     * Обновляем инвентаризацию
-     */
-    const lastInventarization =
-      await this.inventarizationBusinessService.getLastInventarization(
-        component.id,
-        factoryId,
-      );
+      /**
+       * Обновляем инвентаризацию
+       */
+      const lastInventarization =
+        await this.inventarizationBusinessService.getLastInventarization(
+          component.id,
+          factoryId,
+        );
 
-    const inventarization = this.inventarizationRepository.create({
-      componentCount: count,
-      inventarizationQuality: 100,
-      inventarizationDate: new Date(),
-      component: component,
-      factory: { id: factoryId } as Organizations,
-    });
+      const inventarization = this.inventarizationRepository.create({
+        componentCount: count,
+        inventarizationQuality: 100,
+        inventarizationDate: new Date(),
+        component: component,
+        factory: { id: factoryId } as Organizations,
+      });
 
-    await this.inventarizationRepository.save(inventarization);
-    // } catch (e) {
-    //   throw new NotFoundException('Не удалось обновить данные компонента');
-    // }
+      await this.inventarizationRepository.save(inventarization);
+    } catch (e) {
+      throw new NotFoundException('Не удалось обновить данные компонента');
+    }
   }
 
   /**

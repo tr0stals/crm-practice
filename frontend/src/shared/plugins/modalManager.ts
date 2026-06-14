@@ -1,4 +1,5 @@
 import { createApp } from "vue";
+import { setFadeAnimation } from "../utils/setFadeAnimation";
 
 export class ModalManager {
   static instance: any;
@@ -48,6 +49,7 @@ export class ModalManager {
 
     document.querySelector("body")?.appendChild(modalInstanceNode);
     document.querySelector("body")?.classList.add("modal-active");
+    setFadeAnimation(".modalInstance");
   }
 
   /**

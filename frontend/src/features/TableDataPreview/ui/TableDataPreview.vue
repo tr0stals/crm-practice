@@ -4,19 +4,19 @@ import { useTableDataPreview } from "../model/useTableDataPreview";
 import "../style.scss";
 import { useMenuEntity } from "../model/useMenuEntity";
 
-// const { data, handleClick } = useTableDataPreview();
 const { data, handleClick } = useMenuEntity();
-console.debug(data);
 </script>
 <template>
-  <div class="tableDataPreview">
-    <div
-      v-for="item in data"
-      class="tableDataPreview__button"
-      @click="handleClick(item)"
-    >
-      {{ localizatedSectionsList[item.name] }}
-      {{ item.title }}
+  <Transition name="fadeIn">
+    <div class="tableDataPreview">
+      <div
+        v-for="item in data"
+        class="tableDataPreview__button"
+        @click="handleClick(item)"
+      >
+        {{ localizatedSectionsList[item.name] }}
+        {{ item.title }}
+      </div>
     </div>
-  </div>
+  </Transition>
 </template>

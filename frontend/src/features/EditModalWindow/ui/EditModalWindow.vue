@@ -17,6 +17,7 @@ import { relatedFields } from "../config/relatedTables";
 import DatePicker from "@/shared/ui/DatePicker/ui/DatePicker.vue";
 import { isDateField } from "@/shared/utils/isDateField";
 import PhoneInput from "@/features/PhoneInput";
+import { setFadeAnimation } from "@/shared/utils/setFadeAnimation";
 
 const resultData = ref<any>();
 const formData = ref<any>({});

@@ -2,6 +2,7 @@ import { ModalManager } from "@/shared/plugins/modalManager";
 import { getAttr } from "@/shared/utils/getAttr";
 import { updateAsync } from "../api/updateAsync";
 import { api } from "@/shared/api/axiosInstance";
+import { setFadeAnimation } from "@/shared/utils/setFadeAnimation";
 
 export class EditModalWindowModel {
   private endpoint: string;
@@ -34,7 +35,7 @@ export class EditModalWindowModel {
   }
 
   private async uploadOrUpdateImage(
-    type: "organization_types" | "components" | "stands" | "stand_tasks"
+    type: "organization_types" | "components" | "stands" | "stand_tasks",
   ) {
     if (!this.uploadedImage) return;
 

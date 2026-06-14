@@ -1,5 +1,5 @@
 import { useNavigationStore } from "@/entities/NavigationEntity/model/store";
-import { computed } from "vue";
+import { computed, watch } from "vue";
 
 export function useTableDataPreview() {
   const navigationStore = useNavigationStore();
@@ -21,9 +21,7 @@ export function useTableDataPreview() {
   });
 
   const handleClick = (item: any) => {
-    console.debug(item);
     navigationStore.currentSection = item.name;
-    console.debug(navigationStore.currentSection);
   };
 
   return {
