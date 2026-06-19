@@ -118,7 +118,6 @@ export const fieldDictionary: { [key: string]: string } = {
   writeoffReasonId: "Причина списания",
   writeoffReason: "Причина списания",
   writeoffReasons: "Причина списания",
-  dateTime: "Дата и время",
   suppliers: "Поставщик",
   factory: "Фабрика",
   employees: "Сотрудник",

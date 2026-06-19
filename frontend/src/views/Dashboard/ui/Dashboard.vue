@@ -60,8 +60,8 @@ import ProfileIcon from "@/shared/ui/ProfileIcon";
 import OpenProfile from "@/features/OpenProfile";
 import ProfileSidebar from "@/widgets/ProfileSidebar";
 import InformationSidebar from "@/widgets/InformationSidebar/ui/InformationSidebar.vue";
-import  TooltipIcon from "@/shared/ui/TooltipIcon";
-import { PackageMinus } from 'lucide-vue-next';
+import TooltipIcon from "@/shared/ui/TooltipIcon";
+import { PackageMinus } from "lucide-vue-next";
 import NotificationsMenu from "@/features/Notifications/ui/NotificationsMenu.vue";
 import { useNotificationStore } from "@/entities/NotificationEntity/model/store";
 import NotificationsSidebar from "@/features/Notifications/ui/NotificationsSidebar.vue";
@@ -92,7 +92,7 @@ const isEditProfile = ref<boolean>(false);
 
 const localizatedSections = ref<any>([]);
 
-const toast = useToast()
+const toast = useToast();
 
 const treeviewData = ref<TreeNode[]>([]);
 const treeviewRef = ref(null);
@@ -206,7 +206,7 @@ async function getCurrentData() {
     } else {
       console.warn(
         "API returned non-array data for current section",
-        response.data
+        response.data,
       );
       data.value.splice(0, data.value.length);
     }
@@ -221,7 +221,7 @@ watch(
   (newVal) => {
     selectedRow.value = newVal;
     console.debug("selectedRow", navigationStore.selectedRow);
-  }
+  },
 );
 
 watch(
@@ -230,7 +230,7 @@ watch(
     navigationStore.currentSection = null;
     navigationStore.selectedRow = null;
     navigationStore.activeRow = null;
-  }
+  },
 );
 
 async function onUpdateCallBack() {
@@ -242,7 +242,7 @@ watch(
   () => navigationStore.currentSection,
   (newVal) => {
     currentSection.value = newVal;
-  }
+  },
 );
 
 const currentDateTime = ref("");
@@ -270,9 +270,13 @@ onMounted(async () => {
   authorizedUser.value = {
     user: user,
   };
-  const professionTitle: string = user.employeeProfession?.reduce((acc: string, item: any, index: number) => {
-    return index+1 === user.employeeProfession.length ? acc + item.professions?.title : acc + item.professions?.title + ", ";
-  }, '').trim()
+  const professionTitle: string = user.employeeProfession
+    ?.reduce((acc: string, item: any, index: number) => {
+      return index + 1 === user.employeeProfession.length
+        ? acc + item.professions?.title
+        : acc + item.professions?.title + ", ";
+    }, "")
+    .trim();
 
   if (user) {
     authorizedUserStore.setUser({
@@ -282,7 +286,7 @@ onMounted(async () => {
       middleName: user.employees.peoples.middleName,
       professionTitle: professionTitle,
       employeeData: user?.employees,
-      employeeProfession: user?.employeeProfession
+      employeeProfession: user?.employeeProfession,
     });
   }
 
@@ -305,12 +309,12 @@ onMounted(async () => {
   /**
    * Массив с названиями профессий сотрудника
    */
-  const professionTitles = user.employeeProfession?.map((item: any) => item.professions?.title)
+  const professionTitles = user.employeeProfession?.map(
+    (item: any) => item.professions?.title,
+  );
 
   const tables = roleTables
-    .filter(
-      (item) => professionTitles.includes(item.profession)
-    )
+    .filter((item) => professionTitles.includes(item.profession))
     .map((item) => item.tables)
     .flat();
 
@@ -320,9 +324,14 @@ onMounted(async () => {
   });
 });
 
-watch(() => authorizedUser.value, (newVal) => {
-  newVal.user?.employeeProfession.map((item) => currentProfession.value.push(item.professions?.title.toLowerCase()))
-})
+watch(
+  () => authorizedUser.value,
+  (newVal) => {
+    newVal.user?.employeeProfession.map((item) =>
+      currentProfession.value.push(item.professions?.title.toLowerCase()),
+    );
+  },
+);
 
 watch(
   () => navigationStore.currentSection,
@@ -339,9 +348,9 @@ watch(
     showTableContainer.value = true;
     console.debug(
       `Section changed to ${newSection}. Data after update:`,
-      data.value
+      data.value,
     );
-  }
+  },
 );
 
 watch(itemsPerPage, () => {
@@ -351,7 +360,7 @@ watch(itemsPerPage, () => {
 const currentTableHeaders = computed(() => {
   if (data.value && data.value.length > 0) {
     return Object.keys(data.value[0]).filter(
-      (item) => item !== "id" && item !== "parentId"
+      (item) => item !== "id" && item !== "parentId",
     );
   }
 });
@@ -454,9 +463,9 @@ const handleGlobalClick = (event: MouseEvent) => {
   const deleteButton = document.getElementById("deleteButton");
   const addPcbsButton = document.getElementById("addPcbsButton");
   const addPcbsComponentButton = document.getElementById(
-    "addPcbsComponentButton"
+    "addPcbsComponentButton",
   );
-  const vueToast = document.querySelector('.Vue-Toastification__toast');
+  const vueToast = document.querySelector(".Vue-Toastification__toast");
   const customDropdown = document.getElementById("customDropdown");
 
   const clickedInsideTree = treeEl?.contains(event.target as Node);
@@ -466,20 +475,20 @@ const handleGlobalClick = (event: MouseEvent) => {
   const clickedInCreateButton = createButton?.contains(event.target as Node);
   const clickedInEditButton = editButton?.contains(event.target as Node);
   const clickedInsideModalInstance = modalInstance?.contains(
-    event.target as Node
+    event.target as Node,
   );
   const clickedInsideTreeview = treeviewEl?.contains(event.target as Node);
   const clickedInsideDeleteButton = deleteButton?.contains(
-    event.target as Node
+    event.target as Node,
   );
   const clickedInAddPcbsButton = addPcbsButton?.contains(event.target as Node);
   const clickedInAddPcbsComponentButton = addPcbsComponentButton?.contains(
-    event.target as Node
+    event.target as Node,
   );
   const clickedInCustomDropdown = customDropdown?.contains(
-    event.target as Node
+    event.target as Node,
   );
-  const clickedInVueToast = vueToast?.contains(event.target as Node)
+  const clickedInVueToast = vueToast?.contains(event.target as Node);
 
   if (
     !clickedInsideTree &&
@@ -496,8 +505,8 @@ const handleGlobalClick = (event: MouseEvent) => {
     !clickedInCustomDropdown &&
     !clickedInVueToast
   ) {
-    console.debug("сброс")
-    console.debug(event)
+    console.debug("сброс");
+    console.debug(event);
     navigationStore.selectedRow = null;
   }
 };
@@ -528,30 +537,33 @@ const handleSelectSection = (item: any) => {
   <div class="dashboard-layout">
     <!-- Sidebar -->
     <aside class="sidebar" :class="informationSidebar && 'freeze'">
-      <div @click="handleResetSection" class="logo">А ПРАКТИКУМ </div>
-      
+      <div @click="handleResetSection" class="logo">А ПРАКТИКУМ</div>
+
       <Sidebar />
     </aside>
-      <Transition name="informationSidebar">
-        <InformationSidebar v-if="informationSidebar !== null" :on-close="() => informationSidebar = null">
-          <template v-if="informationSidebar === 'profile'">
-            <ProfileSidebar v-if="!isEditProfile">
-              <template #editButton>
-                <HandleEditButton 
-                  @click="() => informationSidebar = null"
-                  :icon-visible="false" 
-                  :is-edit-profile="true" 
-                  :onSuccessCallback="onUpdateCallBack" 
-                  :extra-classes="['profileSidebar__button']" 
-                />
-              </template>
-            </ProfileSidebar>
-          </template>
-          <template v-else-if="informationSidebar === 'notifications'">
-            <NotificationsSidebar />
-          </template>
-        </InformationSidebar>
-      </Transition>
+    <Transition name="informationSidebar">
+      <InformationSidebar
+        v-if="informationSidebar !== null"
+        :on-close="() => (informationSidebar = null)"
+      >
+        <template v-if="informationSidebar === 'profile'">
+          <ProfileSidebar v-if="!isEditProfile">
+            <template #editButton>
+              <HandleEditButton
+                @click="() => (informationSidebar = null)"
+                :icon-visible="false"
+                :is-edit-profile="true"
+                :onSuccessCallback="onUpdateCallBack"
+                :extra-classes="['profileSidebar__button']"
+              />
+            </template>
+          </ProfileSidebar>
+        </template>
+        <template v-else-if="informationSidebar === 'notifications'">
+          <NotificationsSidebar />
+        </template>
+      </InformationSidebar>
+    </Transition>
 
     <!-- Main Content Area -->
     <main :class="informationSidebar && 'freeze'" class="main-content">
@@ -559,9 +571,7 @@ const handleSelectSection = (item: any) => {
       <div class="header">
         <div class="header__controls">
           <OpenSettingsMenu
-            :handle-click="
-              () => isSettingsMenuOpen = !isSettingsMenuOpen
-            "
+            :handle-click="() => (isSettingsMenuOpen = !isSettingsMenuOpen)"
           />
         </div>
       </div>
@@ -571,13 +581,22 @@ const handleSelectSection = (item: any) => {
       <Transition name="settingsMenu">
         <SettingsMenu v-if="isSettingsMenuOpen">
           <template #profile>
-            <OpenProfile @click="() => isSettingsMenuOpen = false" :handle-click="() => informationSidebar = 'profile'" />
+            <OpenProfile
+              @click="() => (isSettingsMenuOpen = false)"
+              :handle-click="() => (informationSidebar = 'profile')"
+            />
           </template>
           <template #notifications>
-            <NotificationButton @click="() => isSettingsMenuOpen = false" :handle-click="() => informationSidebar = 'notifications'" />
+            <NotificationButton
+              @click="() => (isSettingsMenuOpen = false)"
+              :handle-click="() => (informationSidebar = 'notifications')"
+            />
           </template>
           <template #exit>
-            <ExitButton :handle-click="logout" :extra-classes="['exitButton']" />
+            <ExitButton
+              :handle-click="logout"
+              :extra-classes="['exitButton']"
+            />
           </template>
         </SettingsMenu>
       </Transition>
@@ -596,7 +615,9 @@ const handleSelectSection = (item: any) => {
           {{
             navigationStore.currentSection === "system"
               ? "Системные настройки"
-              : localizatedSections[currentSection]
+              : navigationStore.currentSection === "current_task_states_log"
+                ? "Журнал состояний задач"
+                : localizatedSections[currentSection]
           }}
         </h2>
         <!-- Action Buttons, Search, and Filter Placeholder -->
@@ -727,7 +748,6 @@ const handleSelectSection = (item: any) => {
           <template v-else-if="menuStore.activeEntity?.tableName === 'system'">
             <SystemDashboard :on-success-callback="onUpdateCallBack" />
           </template>
-          
 
           <TableData
             v-else
@@ -736,7 +756,6 @@ const handleSelectSection = (item: any) => {
             @edit-click="handleSelectRow"
           />
         </div>
-        
 
         <!-- Pagination -->
         <div
@@ -747,7 +766,11 @@ const handleSelectSection = (item: any) => {
           "
           class="pagination"
         >
-          <button class="pagination__btn" @click="prevPage" :disabled="page === 1">
+          <button
+            class="pagination__btn"
+            @click="prevPage"
+            :disabled="page === 1"
+          >
             ← Назад
           </button>
           <span class="pagination__text"
@@ -762,7 +785,9 @@ const handleSelectSection = (item: any) => {
             Вперёд →
           </button>
           <div class="pagination__itemsPerPage">
-            <label class="pagination__label" for="itemsPerPage">Элементов на странице:</label>
+            <label class="pagination__label" for="itemsPerPage"
+              >Элементов на странице:</label
+            >
             <select
               id="itemsPerPage"
               class="pagination__select"
@@ -777,7 +802,6 @@ const handleSelectSection = (item: any) => {
               <option class="pagination__option" :value="35">35</option>
             </select>
           </div>
-          
         </div>
       </section>
 
